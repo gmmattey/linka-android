@@ -32,22 +32,13 @@ scripts/notify.sh claudete "sprint encerrada: 4 issues fechadas" success
 
 ## Setup — uma vez
 
-### 1. Discord
-1. Servidor Discord → `#linka-android` (ou canal de sua escolha) → ⚙️ → Integrações → Webhooks → Novo
-2. Copie o **Webhook URL**
-3. Cole em `.env`:
-   ```
-   DISCORD_WEBHOOK_LINKA=https://discord.com/api/webhooks/...
-   ```
+### 1. Discord (via webhook em bash)
+Já configurado em `.env` como `DISCORD_WEBHOOK_LINKA`. Os agentes chamam `scripts/discord_notify.sh` diretamente.
 
-### 2. Slack
-1. https://api.slack.com/apps → Create New App → From scratch → escolha workspace
-2. Features → **Incoming Webhooks** → Activate → Add New Webhook to Workspace → escolha `#linka-android`
-3. Copie o **Webhook URL**
-4. Cole em `.env`:
-   ```
-   SLACK_WEBHOOK_LINKA=https://hooks.slack.com/services/...
-   ```
+### 2. Slack (via MCP, não webhook)
+O canal `#projeto-linka` (`C0B4NSGSK1D`, workspace `squaddispatch`) já está configurado em `.env` (`SLACK_CHANNEL_LINKA_ID`). O envio é feito pelo orquestrador (Claude) usando o MCP do Slack — **não precisa webhook**.
+
+`SLACK_WEBHOOK_LINKA` no `.env` é opcional: se preenchido, o `slack_notify.sh` posta direto via curl (útil para agentes rodando fora do contexto MCP). Se vazio, o script é no-op e o orquestrador é quem entrega via MCP.
 
 ### 3. Eventos do GitHub (issues/PRs movendo no board)
 
