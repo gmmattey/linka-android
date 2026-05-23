@@ -673,7 +673,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun coletarIspInfo() = withContext(Dispatchers.IO) {
         try {
-            val connection = URL("http://ip-api.com/json?fields=query,isp,as,country,regionName")
+            val connection = URL("https://ip-api.com/json?fields=query,isp,as,country,regionName")
                 .openConnection() as HttpURLConnection
             connection.connectTimeout = 6_000
             connection.readTimeout = 6_000

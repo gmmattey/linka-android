@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        Cleartext (HTTP) permitido apenas para IPs de gateway LAN — acesso ao modem via HTTP puro.
+        O IP exato varia por usuário; listamos os gateways mais comuns de ISPs brasileiros.
+        Limitação do Android NSC: não suporta CIDR — apenas IPs exatos ou domínios.
+        Gateways fora dessas faixas falharão; abrir issue para detecção dinâmica de gateway.
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- 192.168.0.x -->
+        <domain includeSubdomains="false">192.168.0.1</domain>
+        <domain includeSubdomains="false">192.168.0.254</domain>
+        <!-- 192.168.1.x -->
+        <domain includeSubdomains="false">192.168.1.1</domain>
+        <domain includeSubdomains="false">192.168.1.254</domain>
+        <!-- 192.168.2.x -->
+        <domain includeSubdomains="false">192.168.2.1</domain>
+        <!-- 10.0.x.x -->
+        <domain includeSubdomains="false">10.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.0.138</domain>
+        <!-- 172.16.x.x -->
+        <domain includeSubdomains="false">172.16.0.1</domain>
+    </domain-config>
+
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
