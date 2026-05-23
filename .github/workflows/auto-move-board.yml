@@ -32,7 +32,6 @@ env:
 jobs:
   move-card:
     runs-on: ubuntu-latest
-    if: ${{ secrets.PROJECT_PAT != '' }}
     steps:
       - name: Decide coluna alvo
         id: decide
