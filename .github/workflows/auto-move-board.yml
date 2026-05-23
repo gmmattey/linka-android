@@ -1,0 +1,112 @@
+name: Auto-mover board
+
+# Safety net: move o card no Project quando algo muda no GitHub
+# fora do controle dos agentes locais (PR aberto/mergeado, issue fechada, label trocada).
+#
+# Funciona em conjunto com scripts/issue-move.sh (chamado pelos agentes).
+
+on:
+  issues:
+    types: [opened, reopened, closed, labeled, unlabeled]
+  pull_request:
+    types: [opened, reopened, closed, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+env:
+  PROJECT_NUMBER: "8"
+  PROJECT_OWNER: "gmmattey"
+  PROJECT_ID: "PVT_kwHOD83n7c4BYmdL"
+  FIELD_COLUNA_ID: "PVTSSF_lAHOD83n7c4BYmdLzhTrIt4"
+  OPT_BACKLOG: "aed7967a"
+  OPT_TRIAGEM: "6193a896"
+  OPT_READY: "22f4f491"
+  OPT_IN_PROGRESS: "55b9be2a"
+  OPT_REVIEW: "dd9ed333"
+  OPT_DOCS: "bff9d55b"
+  OPT_DONE: "9305bbcf"
+
+jobs:
+  move-card:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.PROJECT_PAT != '' }}
+    steps:
+      - name: Decide coluna alvo
+        id: decide
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          set -e
+          EVENT="${{ github.event_name }}"
+          ACTION="${{ github.event.action }}"
+          TARGET=""
+          NUM=""
+
+          if [ "$EVENT" = "issues" ]; then
+            NUM="${{ github.event.issue.number }}"
+            case "$ACTION" in
+              opened|reopened)
+                # Se vier com status:agent-ready → "Pronta para dev"; senão "Triagem"
+                if echo '${{ toJSON(github.event.issue.labels) }}' | grep -q 'status:agent-ready'; then
+                  TARGET="$OPT_READY"
+                else
+                  TARGET="$OPT_TRIAGEM"
+                fi
+                ;;
+              closed) TARGET="$OPT_DONE" ;;
+              labeled|unlabeled)
+                LABEL="${{ github.event.label.name }}"
+                case "$LABEL" in
+                  status:agent-ready) [ "$ACTION" = labeled ] && TARGET="$OPT_READY" ;;
+                  status:in-progress) [ "$ACTION" = labeled ] && TARGET="$OPT_IN_PROGRESS" ;;
+                  status:waiting-review) [ "$ACTION" = labeled ] && TARGET="$OPT_REVIEW" ;;
+                  status:blocked) [ "$ACTION" = labeled ] && TARGET="$OPT_TRIAGEM" ;;
+                esac
+                ;;
+            esac
+          elif [ "$EVENT" = "pull_request" ]; then
+            # Extrai número da issue referenciada no corpo/título do PR
+            BODY="${{ github.event.pull_request.body }}"
+            TITLE="${{ github.event.pull_request.title }}"
+            NUM=$(echo "$BODY $TITLE" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
+            if [ -n "$NUM" ]; then
+              case "$ACTION" in
+                opened|reopened|ready_for_review) TARGET="$OPT_REVIEW" ;;
+                closed)
+                  if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+                    TARGET="$OPT_DOCS"
+                  fi
+                  ;;
+              esac
+            fi
+          fi
+
+          echo "num=$NUM" >> "$GITHUB_OUTPUT"
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Atualizar Project
+        if: steps.decide.outputs.target != '' && steps.decide.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+          NUM: ${{ steps.decide.outputs.num }}
+          TARGET: ${{ steps.decide.outputs.target }}
+        run: |
+          set -e
+          # Acha item ID no project
+          ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" \
+            --format json --limit 200 \
+            --jq ".items[] | select(.content.number == $NUM) | .id")
+
+          if [ -z "$ITEM_ID" ]; then
+            ITEM_ID=$(gh project item-add "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" \
+              --url "https://github.com/${{ github.repository }}/issues/$NUM" \
+              --format json --jq '.id')
+          fi
+
+          gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" \
+            --field-id "$FIELD_COLUNA_ID" --single-select-option-id "$TARGET"
+
+          echo "#$NUM movida no board"

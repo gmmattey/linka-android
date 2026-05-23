@@ -25,6 +25,18 @@ Este repositorio agora representa apenas o projeto Android nativo Kotlin.
 - Segredos devem ser recriados localmente a partir de templates, nunca migrados.
 - Artefatos de build devem ser gerados de novo, nunca versionados.
 
+## Handoff e board
+
+Sempre que uma issue do board mudar de estado, o agente chama:
+
+```bash
+scripts/agent-handoff.sh <agente> <evento> <issue#> "<mensagem>" [--para <outro>]
+```
+
+Eventos: `start | handoff | review | docs | done | block | refine | ready`.
+
+Isso move o card no Project, ajusta labels e notifica Discord + Slack em uma chamada. Detalhes e tabela de eventos em [`docs/WORKFLOW_BOARD.md`](docs/WORKFLOW_BOARD.md). Substitui o uso direto de `scripts/notify.sh` (que continua disponível para mensagens fora de issue).
+
 ## Validacao minima
 
 Antes de concluir uma mudanca:
