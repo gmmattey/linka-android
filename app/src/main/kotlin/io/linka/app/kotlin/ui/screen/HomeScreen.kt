@@ -423,14 +423,11 @@ fun HomeScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(LkSpacing.md))
-                        if (hasEffectiveResult) {
-                            val ts = effectiveTs ?: return@item
-                            val dl = effectiveDl ?: return@item
-                            val ul = effectiveUl ?: return@item
+                        if (hasEffectiveResult && effectiveTs != null && effectiveDl != null && effectiveUl != null) {
                             LastResultHero(
-                                timestampEpochMs = ts,
-                                downloadMbps = dl,
-                                uploadMbps = ul,
+                                timestampEpochMs = effectiveTs,
+                                downloadMbps = effectiveDl,
+                                uploadMbps = effectiveUl,
                                 c = c,
                             )
                             Spacer(modifier = Modifier.height(LkSpacing.md))
