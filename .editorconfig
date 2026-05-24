@@ -5,3 +5,8 @@ indent_style = space
 indent_size = 4
 max_line_length = 160
 ktlint_standard_no-wildcard-imports = disabled
+
+# Composable functions use PascalCase convention per Compose guidelines
+# https://developer.android.com/jetpack/compose/style-guide#naming-composable-functions
+[app/src/main/kotlin/io/linka/app/kotlin/ui/**.kt]
+ktlint_standard_function-naming = disabled
