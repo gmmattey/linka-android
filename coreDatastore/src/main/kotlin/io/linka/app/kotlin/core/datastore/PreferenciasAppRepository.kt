@@ -9,11 +9,15 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class PreferenciasAppRepository(
     private val context: Context,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "linkaPreferencias")
 
@@ -154,140 +158,144 @@ class PreferenciasAppRepository(
         context.dataStore.data.map { it[chaveNotificacaoSemInternetAtiva] ?: true }
 
     suspend fun definirMonitoramentoAtivo(ativo: Boolean) {
-        context.dataStore.edit { it[chaveMonitoramentoAtivo] = ativo }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveMonitoramentoAtivo] = ativo } }
     }
 
     suspend fun definirModemHost(host: String?) {
-        context.dataStore.edit { prefs ->
-            if (host != null) prefs[chaveModemHost] = host
-            else prefs.remove(chaveModemHost)
+        withContext(ioDispatcher) {
+            context.dataStore.edit { prefs ->
+                if (host != null) prefs[chaveModemHost] = host
+                else prefs.remove(chaveModemHost)
+            }
         }
     }
 
     suspend fun definirModemUsername(username: String) {
-        context.dataStore.edit { it[chaveModemUsername] = username }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveModemUsername] = username } }
     }
 
     suspend fun definirModemPassword(password: String) {
-        context.dataStore.edit { it[chaveModemPassword] = password }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveModemPassword] = password } }
     }
 
     suspend fun definirModemPermanecerConectado(permanecer: Boolean) {
-        context.dataStore.edit { it[chaveModemPermanecerConectado] = permanecer }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveModemPermanecerConectado] = permanecer } }
     }
 
     suspend fun definirTemaSelecionado(tema: String) {
-        context.dataStore.edit { it[chaveTemaSelecionado] = tema }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveTemaSelecionado] = tema } }
     }
 
     suspend fun definirAnaliseAvancada(ativa: Boolean) {
-        context.dataStore.edit { it[chaveAnaliseAvancada] = ativa }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveAnaliseAvancada] = ativa } }
     }
 
     suspend fun definirNomeUsuario(nome: String) {
-        context.dataStore.edit { it[chaveNomeUsuario] = nome }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveNomeUsuario] = nome } }
     }
 
     suspend fun definirFotoUriUsuario(uri: String?) {
-        context.dataStore.edit { prefs ->
-            if (uri != null) prefs[chaveFotoUriUsuario] = uri
-            else prefs.remove(chaveFotoUriUsuario)
+        withContext(ioDispatcher) {
+            context.dataStore.edit { prefs ->
+                if (uri != null) prefs[chaveFotoUriUsuario] = uri
+                else prefs.remove(chaveFotoUriUsuario)
+            }
         }
     }
 
     suspend fun definirOperadora(operadora: String) {
-        context.dataStore.edit { it[chaveOperadora] = operadora }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveOperadora] = operadora } }
     }
 
     suspend fun definirPlanoInternet(plano: String) {
-        context.dataStore.edit { it[chavePlanoInternet] = plano }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chavePlanoInternet] = plano } }
     }
 
     suspend fun definirRegiao(regiao: String) {
-        context.dataStore.edit { it[chaveRegiao] = regiao }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveRegiao] = regiao } }
     }
 
     suspend fun definirLimiteAlertaMbps(limite: Int) {
-        context.dataStore.edit { it[chaveLimiteAlertaMbps] = limite }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveLimiteAlertaMbps] = limite } }
     }
 
     suspend fun definirUltimaVerificacaoMonitoramento(timestamp: Long) {
-        context.dataStore.edit { it[chaveUltimaVerificacaoMonitoramento] = timestamp }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveUltimaVerificacaoMonitoramento] = timestamp } }
     }
 
     suspend fun definirIspConfirmado(confirmado: Boolean) {
-        context.dataStore.edit { it[chaveIspConfirmado] = confirmado }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveIspConfirmado] = confirmado } }
     }
 
     suspend fun definirOperadoraMovel(operadora: String) {
-        context.dataStore.edit { it[chaveOperadoraMovel] = operadora }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveOperadoraMovel] = operadora } }
     }
 
     suspend fun definirEstadoUf(uf: String) {
-        context.dataStore.edit { it[chaveEstadoUf] = uf }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveEstadoUf] = uf } }
     }
 
     suspend fun definirCidadeNome(cidade: String) {
-        context.dataStore.edit { it[chaveCidadeNome] = cidade }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveCidadeNome] = cidade } }
     }
 
     suspend fun definirUltimaVersaoVista(versao: String) {
-        context.dataStore.edit { it[chaveUltimaVersaoVista] = versao }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveUltimaVersaoVista] = versao } }
     }
 
     suspend fun definirOnboardingConcluido(concluido: Boolean) {
-        context.dataStore.edit { it[ONBOARDING_CONCLUIDO] = concluido }
+        withContext(ioDispatcher) { context.dataStore.edit { it[ONBOARDING_CONCLUIDO] = concluido } }
     }
 
     // Setters de speedtest em rede medida (móvel)
     suspend fun setSpeedtestPermiteHeavyMovel(value: Boolean) {
-        context.dataStore.edit { it[chaveSpeedtestPermiteHeavyMovel] = value }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveSpeedtestPermiteHeavyMovel] = value } }
     }
 
     suspend fun setSpeedtestMbConsumidosMes(value: Long) {
-        context.dataStore.edit { it[chaveSpeedtestMbConsumidosMes] = value }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveSpeedtestMbConsumidosMes] = value } }
     }
 
     suspend fun setSpeedtestMesReferencia(value: String) {
-        context.dataStore.edit { it[chaveSpeedtestMesReferencia] = value }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveSpeedtestMesReferencia] = value } }
     }
 
     // Setters de controles granulares
     suspend fun definirNotificacaoLatenciaAtiva(ativa: Boolean) {
-        context.dataStore.edit { it[chaveNotificacaoLatenciaAtiva] = ativa }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveNotificacaoLatenciaAtiva] = ativa } }
     }
 
     suspend fun definirNotificacaoDnsAtiva(ativa: Boolean) {
-        context.dataStore.edit { it[chaveNotificacaoDnsAtiva] = ativa }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveNotificacaoDnsAtiva] = ativa } }
     }
 
     suspend fun definirNotificacaoRssiAtiva(ativa: Boolean) {
-        context.dataStore.edit { it[chaveNotificacaoRssiAtiva] = ativa }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveNotificacaoRssiAtiva] = ativa } }
     }
 
     suspend fun definirNotificacaoSemInternetAtiva(ativa: Boolean) {
-        context.dataStore.edit { it[chaveNotificacaoSemInternetAtiva] = ativa }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveNotificacaoSemInternetAtiva] = ativa } }
     }
 
     // Setters de histerese
     suspend fun setAlertaLatenciaAtivo(ativo: Boolean) {
-        context.dataStore.edit { it[chaveAlertaLatenciaAtivo] = ativo }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveAlertaLatenciaAtivo] = ativo } }
     }
 
     suspend fun setAlertaDnsAtivo(ativo: Boolean) {
-        context.dataStore.edit { it[chaveAlertaDnsAtivo] = ativo }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveAlertaDnsAtivo] = ativo } }
     }
 
     suspend fun setAlertaRssiAtivo(ativo: Boolean) {
-        context.dataStore.edit { it[chaveAlertaRssiAtivo] = ativo }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveAlertaRssiAtivo] = ativo } }
     }
 
     suspend fun setAlertaSemInternetAtivo(ativo: Boolean) {
-        context.dataStore.edit { it[chaveAlertaSemInternetAtivo] = ativo }
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveAlertaSemInternetAtivo] = ativo } }
     }
 
     suspend fun limparTodasPreferencias() {
-        context.dataStore.edit { it.clear() }
+        withContext(ioDispatcher) { context.dataStore.edit { it.clear() } }
     }
 }
 
