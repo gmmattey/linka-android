@@ -13,7 +13,6 @@ import org.junit.Test
  * sem dependencia de Android/ViewModel/WorkManager.
  */
 class DeteccaoDispositivoNovoTest {
-
     /**
      * Extrai MACs novos: MACs no scan atual que nao existem no banco.
      * Replica a logica central de verificarDispositivosNovos().
@@ -61,10 +60,11 @@ class DeteccaoDispositivoNovoTest {
     fun `MAC com apelido null e tratado como conhecido para notificacao`() {
         // Dispositivos com apelido=null foram registrados silenciosamente
         // para suprimir notificacao — devem ser tratados como conhecidos
-        val entidades = listOf(
-            ApelidoDispositivoEntity(mac = "AA:BB:CC:DD:EE:01", apelido = null),  // silencioso
-            ApelidoDispositivoEntity(mac = "AA:BB:CC:DD:EE:02", apelido = "Router"), // com apelido
-        )
+        val entidades =
+            listOf(
+                ApelidoDispositivoEntity(mac = "AA:BB:CC:DD:EE:01", apelido = null), // silencioso
+                ApelidoDispositivoEntity(mac = "AA:BB:CC:DD:EE:02", apelido = "Router"), // com apelido
+            )
         val macsConhecidos = entidades.map { it.mac }.toSet()
 
         val macsNoScan = listOf("AA:BB:CC:DD:EE:01", "AA:BB:CC:DD:EE:02", "AA:BB:CC:DD:EE:03")
