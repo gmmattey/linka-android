@@ -70,7 +70,7 @@ android {
             buildConfigField("Boolean", "FEATURE_WIDGET",               "true")
             buildConfigField("Boolean", "FEATURE_QUICK_SETTINGS_TILE",  "true")
             buildConfigField("Boolean", "FEATURE_PROVA_REAL_COMPLETO",  "true")
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_ITERATIVO","true")
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_ITERATIVO", "true")
             buildConfigField("Boolean", "FEATURE_TRACEROUTE",           "true")
             buildConfigField("Boolean", "FEATURE_FIBRA_SCREEN",         "true")
             buildConfigField("Boolean", "FEATURE_DNS_SCREEN",           "true")
@@ -84,7 +84,7 @@ android {
             buildConfigField("Boolean", "FEATURE_CONTRIBUICAO_ANONIMA", "true")
             buildConfigField("Boolean", "FEATURE_RATE_US",              "true")
             buildConfigField("Boolean", "FEATURE_ACESSIBILIDADE",       "true")
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_CHAT",    "true")
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_CHAT",     "true")
         }
         release {
             firebaseAppDistribution {
