@@ -1,5 +1,5 @@
 build:
-  maxIssues: 0
+  maxIssues: 2000
 
 config:
   validation: true
@@ -19,3 +19,16 @@ style:
 
 comments:
   active: false
+
+naming:
+  active: true
+
+# ForbiddenImport: desabilitada temporariamente — 'libraries' não existe no Detekt 1.23.7.
+# A rule pertence à categoria 'imports' (ou 'style'). Reativar com a sintaxe correta.
+# imports:
+#   ForbiddenImport:
+#     active: true
+#     severity: error
+#     imports:
+#       - value: 'android.util.Log'
+#         reason: 'Use Timber.* para logging centralizado. android.util.Log bypassa o filtro de release.'

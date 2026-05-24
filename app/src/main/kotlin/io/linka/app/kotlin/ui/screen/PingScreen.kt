@@ -53,8 +53,11 @@ import kotlinx.coroutines.launch
 
 sealed interface PingScreenState {
     data object Idle : PingScreenState
+
     data class Executando(val progresso: Int) : PingScreenState
+
     data class Resultado(val resultado: PingResultado) : PingScreenState
+
     data class Erro(val mensagem: String) : PingScreenState
 }
 

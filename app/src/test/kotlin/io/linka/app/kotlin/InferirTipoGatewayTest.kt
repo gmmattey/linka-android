@@ -9,8 +9,11 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class InferirTipoGatewayTest {
-
-    private fun rede(ssid: String?, bssid: String, rssi: Int) = RedeVizinha(
+    private fun rede(
+        ssid: String?,
+        bssid: String,
+        rssi: Int,
+    ) = RedeVizinha(
         ssid = ssid,
         bssid = bssid,
         rssiDbm = rssi,
@@ -30,20 +33,22 @@ class InferirTipoGatewayTest {
 
     @Test
     fun `(b) 2 BSSIDs distintos mesmo SSID RSSI forte retorna wifiMesh`() {
-        val redes = listOf(
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -60),
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:02", -60),
-        )
+        val redes =
+            listOf(
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -60),
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:02", -60),
+            )
         val resultado = inferirTipoGatewayPorScan("MinhaCasa", redes)
         assertEquals(ConnectionNodeType.wifiMesh, resultado)
     }
 
     @Test
     fun `(c) 2 BSSIDs distintos mesmo SSID RSSI fraco retorna wifiRouter`() {
-        val redes = listOf(
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -80),
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:02", -80),
-        )
+        val redes =
+            listOf(
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -80),
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:02", -80),
+            )
         val resultado = inferirTipoGatewayPorScan("MinhaCasa", redes)
         assertEquals(ConnectionNodeType.wifiRouter, resultado)
     }
@@ -58,10 +63,11 @@ class InferirTipoGatewayTest {
 
     @Test
     fun `(e) 2 BSSIDs mesmo SSID RSSI exatamente -75 retorna wifiMesh (inclusivo)`() {
-        val redes = listOf(
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -75),
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:02", -75),
-        )
+        val redes =
+            listOf(
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -75),
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:02", -75),
+            )
         val resultado = inferirTipoGatewayPorScan("MinhaCasa", redes)
         assertEquals(ConnectionNodeType.wifiMesh, resultado)
     }
@@ -120,10 +126,11 @@ class InferirTipoGatewayTest {
 
     @Test
     fun `(n) 2 BSSIDs identicos mesma rede RSSI forte retorna wifiRouter (distinct reduz a 1)`() {
-        val redes = listOf(
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -60),
-            rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -60),
-        )
+        val redes =
+            listOf(
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -60),
+                rede("MinhaCasa", "AA:BB:CC:DD:EE:01", -60),
+            )
         val resultado = inferirTipoGatewayPorScan("MinhaCasa", redes)
         assertEquals(ConnectionNodeType.wifiRouter, resultado)
     }

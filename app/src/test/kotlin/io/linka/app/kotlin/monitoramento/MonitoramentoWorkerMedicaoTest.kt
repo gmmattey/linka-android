@@ -14,31 +14,31 @@ import java.util.UUID
  * A persistencia em si e testada na integracao (requer Robolectric ou device).
  */
 class MonitoramentoWorkerMedicaoTest {
-
-    private fun criarMedicaoMonitor(latenciaMs: Long?, rssiDbm: Int?): MedicaoEntity {
-        return MedicaoEntity(
-            id = UUID.randomUUID().toString(),
-            timestampEpochMs = System.currentTimeMillis(),
-            connectionType = "monitor",
-            connectionTypeStart = null,
-            connectionTypeEnd = null,
-            contaminado = false,
-            speedtestMode = null,
-            specVersion = null,
-            downloadMbps = null,
-            uploadMbps = null,
-            latencyMs = latenciaMs?.toDouble(),
-            jitterMs = null,
-            perdaPercentual = null,
-            bufferbloatMs = null,
-            packetLossSource = null,
-            vereditoStreaming = null,
-            vereditoGamer = null,
-            vereditoVideoChamada = null,
-            gargaloPrimario = null,
-            fonte = "monitor",
-        )
-    }
+    private fun criarMedicaoMonitor(
+        latenciaMs: Long?,
+        rssiDbm: Int?,
+    ) = MedicaoEntity(
+        id = UUID.randomUUID().toString(),
+        timestampEpochMs = System.currentTimeMillis(),
+        connectionType = "monitor",
+        connectionTypeStart = null,
+        connectionTypeEnd = null,
+        contaminado = false,
+        speedtestMode = null,
+        specVersion = null,
+        downloadMbps = null,
+        uploadMbps = null,
+        latencyMs = latenciaMs?.toDouble(),
+        jitterMs = null,
+        perdaPercentual = null,
+        bufferbloatMs = null,
+        packetLossSource = null,
+        vereditoStreaming = null,
+        vereditoGamer = null,
+        vereditoVideoChamada = null,
+        gargaloPrimario = null,
+        fonte = "monitor",
+    )
 
     @Test
     fun `medicao monitor tem fonte igual a monitor`() {

@@ -232,7 +232,7 @@ private fun calcularResumoOffline(diaBlocos: List<BlocoUptime>): String? {
         if (hora != null) {
             val hh = hora.hour.toString().padStart(2, '0')
             val mm = hora.minute.toString().padStart(2, '0')
-            "$totalMinutos min offline às ${hh}h${mm}"
+            "$totalMinutos min offline às ${hh}h$mm"
         } else {
             "$totalMinutos min offline"
         }
