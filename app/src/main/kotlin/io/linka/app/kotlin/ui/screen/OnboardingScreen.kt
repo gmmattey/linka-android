@@ -94,7 +94,7 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .semantics {
-                        contentDescription = "Página ${pagina + 1} de 3, ${when(pagina) { 0 -> "boas-vindas"; 1 -> "privacidade"; else -> "diagnóstico em cores" }}"
+                        contentDescription = "Página ${pagina + 1} de 3, ${when (pagina) { 0 -> "boas-vindas"; 1 -> "privacidade"; else -> "diagnóstico em cores" }}"
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {

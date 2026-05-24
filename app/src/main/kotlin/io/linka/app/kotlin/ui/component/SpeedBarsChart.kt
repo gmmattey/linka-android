@@ -180,7 +180,6 @@ fun SpeedBarsChart(
             .padding(vertical = LkSpacing.md),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
-
             // Header
             Row(
                 modifier = Modifier

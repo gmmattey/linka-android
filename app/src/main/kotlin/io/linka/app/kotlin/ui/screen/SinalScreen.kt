@@ -330,13 +330,15 @@ fun SinalScreen(
                 val bandaConectada = connectedNetwork.banda ?: return@remember false
                 val redesBanda = snapshotWifi.redes.filter { it.banda == bandaConectada }
                 val espectro = WifiChannelDiagnosticEngine.computarEspectro(
-                    redes = redesBanda.map { RedeWifiVizinha(
-                        canal = it.canal,
-                        rssiDbm = it.rssiDbm,
-                        frequenciaMhz = it.frequenciaMhz,
-                        ssid = it.ssid,
-                        bssid = it.bssid,
-                    ) },
+                    redes = redesBanda.map {
+                        RedeWifiVizinha(
+                            canal = it.canal,
+                            rssiDbm = it.rssiDbm,
+                            frequenciaMhz = it.frequenciaMhz,
+                            ssid = it.ssid,
+                            bssid = it.bssid,
+                        )
+                    },
                     canalAtual = connectedNetwork.canal,
                     banda = bandaConectada,
                     seuSSID = connectedNetwork.ssid,
@@ -1293,13 +1295,15 @@ private fun CanalTab(
     val canalAtual = remember(connectedNetwork) { connectedNetwork?.canal }
     val espectro = remember(redesBanda, canalAtual, selectedBanda, connectedNetwork) {
         WifiChannelDiagnosticEngine.computarEspectro(
-            redes = redesBanda.map { RedeWifiVizinha(
-                canal = it.canal,
-                rssiDbm = it.rssiDbm,
-                frequenciaMhz = it.frequenciaMhz,
-                ssid = it.ssid,
-                bssid = it.bssid,
-            ) },
+            redes = redesBanda.map {
+                RedeWifiVizinha(
+                    canal = it.canal,
+                    rssiDbm = it.rssiDbm,
+                    frequenciaMhz = it.frequenciaMhz,
+                    ssid = it.ssid,
+                    bssid = it.bssid,
+                )
+            },
             canalAtual = canalAtual,
             banda = selectedBanda,
             seuSSID = connectedNetwork?.ssid,

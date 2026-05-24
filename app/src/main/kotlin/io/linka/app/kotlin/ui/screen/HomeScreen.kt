@@ -879,6 +879,7 @@ private fun MiniLineChart(history: List<HistoryPoint>, modifier: Modifier, c: Lk
         val n = (history.size - 1).coerceAtLeast(1).toFloat()
 
         fun toX(i: Float) = i / n * size.width
+
         fun toY(v: Float) = size.height - (v / maxY * size.height)
 
         fun smoothPath(pts: List<Pair<Float, Float>>): Path {
@@ -1094,7 +1095,16 @@ private fun SignalCard(
                         }
                     }
                 } else {
-                    Text(mobileName?.takeIf { it.isNotBlank() } ?: "Rede móvel", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.W600, color = c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        mobileName?.takeIf {
+                            it.isNotBlank()
+                        } ?: "Rede móvel",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.W600,
+                        color = c.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     Text("Dados móveis", style = MaterialTheme.typography.bodySmall, color = c.textTertiary)
                 }
             }

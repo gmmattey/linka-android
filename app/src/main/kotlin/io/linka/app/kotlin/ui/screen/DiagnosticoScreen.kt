@@ -217,9 +217,13 @@ fun DiagnosticoScreen(
 
 private sealed interface DiagnosticoScreenState {
     data object Idle : DiagnosticoScreenState
+
     data object EnginesRodando : DiagnosticoScreenState
+
     data object AiRodando : DiagnosticoScreenState
+
     data class Resultado(val result: AiDiagnosisResult, val isFallback: Boolean) : DiagnosticoScreenState
+
     data object Erro : DiagnosticoScreenState
 }
 

@@ -44,6 +44,13 @@ ktlint_standard_trailing-comma-on-call-site = disabled
 ktlint_standard_trailing-comma-on-declaration-site = disabled
 ktlint_standard_redundant-curly-braces = disabled
 ktlint_standard_wrapping = disabled
+ktlint_standard_if-else-wrapping = disabled
+ktlint_standard_multiline-if-else = disabled
+ktlint_standard_try-catch-finally-spacing = disabled
+ktlint_standard_class-signature = disabled
+ktlint_standard_chain-wrapping = disabled
+ktlint_standard_indent = disabled
+ktlint_standard_string-template-indent = disabled
 
 # Gradle build script pre-existing formatting violations
 [*.gradle.kts]

@@ -132,7 +132,7 @@ fun OrbitTechnicalResultBubble(
 
             // Wi-Fi info (compact, secondary)
             session.wifiSsid?.let { ssid ->
-                val rssi = session.wifiRssiDbm?.let { " · ${it} dBm" } ?: ""
+                val rssi = session.wifiRssiDbm?.let { " · $it dBm" } ?: ""
                 Text(
                     text = "Wi-Fi: $ssid$rssi",
                     style = MaterialTheme.typography.bodySmall,
