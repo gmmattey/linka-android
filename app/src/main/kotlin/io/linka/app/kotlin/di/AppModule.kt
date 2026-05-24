@@ -8,9 +8,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.linka.app.kotlin.core.database.CoreDatabaseModulo
 import io.linka.app.kotlin.core.database.LinkaDatabase
-import io.linka.app.kotlin.core.datastore.CoreDatastoreModulo
 import io.linka.app.kotlin.core.datastore.PreferenciasAppRepository
 import io.linka.app.kotlin.core.network.CoreNetworkModulo
+import io.linka.app.kotlin.core.network.DefaultDispatcherProvider
+import io.linka.app.kotlin.core.network.DispatcherProvider
 import io.linka.app.kotlin.core.network.MonitorRede
 import io.linka.app.kotlin.core.network.NetworkCapabilitiesProvider
 import io.linka.app.kotlin.core.permissions.CorePermissionsModulo
@@ -34,6 +35,10 @@ import javax.inject.Singleton
 object AppModule {
     @Provides
     @Singleton
+    fun provideDispatcherProvider(): DispatcherProvider = DefaultDispatcherProvider()
+
+    @Provides
+    @Singleton
     fun provideBancoDados(
         @ApplicationContext ctx: Context,
     ): LinkaDatabase = CoreDatabaseModulo.criarBanco(ctx)
@@ -42,7 +47,8 @@ object AppModule {
     @Singleton
     fun providePreferenciasAppRepository(
         @ApplicationContext ctx: Context,
-    ): PreferenciasAppRepository = CoreDatastoreModulo.criarPreferenciasAppRepository(ctx)
+        dispatchers: DispatcherProvider,
+    ): PreferenciasAppRepository = PreferenciasAppRepository(ctx, dispatchers.io)
 
     @Provides
     @Singleton
