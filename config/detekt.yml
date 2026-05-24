@@ -19,3 +19,14 @@ style:
 
 comments:
   active: false
+
+naming:
+  active: true
+
+libraries:
+  ForbiddenImport:
+    active: true
+    severity: error
+    imports:
+      - value: 'android.util.Log'
+        reason: 'Use Timber.* para logging centralizado. android.util.Log bypassa o filtro de release.'
