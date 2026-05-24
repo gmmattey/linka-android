@@ -138,6 +138,7 @@ class MainViewModel @Inject constructor(
             gemmaAvailable.value = orbitOrchestrator.checkAiAvailability()
         }
     }
+
     val apelidos by lazy {
         bancoDados.apelidoDispositivoDao()
             .observarTodos()
@@ -319,6 +320,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun iniciarMonitorRede() = monitorRede.iniciar()
+
     fun encerrarMonitorRede() {
         monitorRede.encerrar()
         monitorTelephony.encerrar()

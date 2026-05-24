@@ -43,6 +43,7 @@ ktlint_standard_no-duplicate-imports = disabled
 ktlint_standard_trailing-comma-on-call-site = disabled
 ktlint_standard_trailing-comma-on-declaration-site = disabled
 ktlint_standard_redundant-curly-braces = disabled
+ktlint_standard_wrapping = disabled
 
 # Gradle build script pre-existing formatting violations
 [*.gradle.kts]

@@ -31,6 +31,7 @@ internal class MonitoramentoWorker(
     }
 
     private enum class RssiMotivo { SemWifi, SemPermissao, Invalido }
+
     private data class RssiInfo(val rssi: Int?, val motivo: RssiMotivo?)
 
     override suspend fun doWork(): Result {
