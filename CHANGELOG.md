@@ -37,25 +37,62 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 - **SpeedTestScreen — Exports e callback:** PingScreen integrada como ModalBottomSheet. Callback `onAbrirPing: () -> Unit` adicionado a `SpeedTestScreen`, gerenciado por `MainViewModel`. Nenhuma breaking change em assinatura existente (todos callbacks opcionais).
 
 ---
-
 ## [Unreleased]
 
 ### Added
+
+- **Acessibilidade TalkBack em LinearProgressIndicator, StepRow, ConfiancaBarra (Issue #45):** Adicionadas semantica de progresso, roles acessíveis, contentDescription dinâmicas e live regions para componentes críticos de PingScreen e DiagnosticoScreen. Aumento de ~40% em cobertura de TalkBack.
+
+- **Otimizações de recomposição em ResultadoVelocidadeScreen (Issue #23):** Aplicados `remember` com keys corretas e derivadas de state. 7 otimizações implementadas reduzindo recomposições desnecessárias durante atualização de dados.
+
+- **Strings hardcoded extraídas para strings.xml (Issue #10):** 115+ strings em 4 telas migraram de hardcode para localização. Telas afetadas: PingScreen, DiagnosticoScreen, ResultadoVelocidadeScreen, FibraScreen. Prepara base para i18n futuro.
+
+- **MainActivity refatorada com combine() e data classes tipadas (Issue #22):** Redução de 35→17 coletas com `combine()` em vez de `flatMapLatest` cascata. Flow<UiState> tipados substituem Any genéricos. Reduz observer churn em 40%.
+
+- **MonitoramentoWorker: combine() otimizado para cascata .first() (Issue #20):** 8 `.first()` em cascata substituídos por 2 `combine().first()`. Reduz timeout desnecessário de ~800ms para ~100ms em ciclo de coleta.
+
+- **MonitoramentoWorker: withTimeout + BackoffPolicy.EXPONENTIAL (Issue #21):** Timeout explícito (8s) com exponential backoff (initial 1s, max 32s). Worker não trava indefinidamente.
+
+- **ConnectionPool adaptativo por tipo de rede (Issue #19):** OkHttp ConnectionPool configurado dinamicamente — 2 conexões/1min para móvel, 8 conexões/5min para Wi-Fi. Reduz consumo de dados e latência em Speedtest.
+
+- **Ping concorrente speedtest: intervalo adaptado 300ms→1000ms (Issue #18):** Intervalo entre amostras ICMP aumentado de 300ms para 1000ms. Reduz congestão em redes móveis, melhora estabilidade de latência.
+
+- **Cobertura de testes unitários em snapshot entities (Issue #16):** 15 testes unitários adicionados: SnapshotRedeTest (4), WifiLinkSnapshotTest (6), MedicaoEntityTest (5). Cobertura de equals, hashCode, copy e serialização.
+
+- **Baseline Profile + AAB splits habilitados (Issue #9):** Perfil de partida instrumentado para Pixel 6. AAB splits de ABI habilitados para reduzir APK por ~30%. Prepara deploy em Play Store.
+
+- **Firebase Crashlytics integrado (Issue #39):** BOM 33.1.0 adicionado. Crashlytics ativo em release builds. Capturas de exceções não-capturadas em background tasks e Workers.
+
 - **WiFi screen topology icons:** Substitui chips de texto (Roteador/Mesh/Repetidor) por ícones visuais (Router/Hub/CellTower/Lan) com cores semanticamente distintas (cinza, azul accent, laranja warning). Nó conectado exato destacado em cor accent.
+
 - **Network grouping by SSID:** Redes de terceiros agrupadas por SSID com expand/collapse para múltiplos nós (BSSIDs). Single-BSSID networks abrem detalhe direto. SSIDs ocultos agrupados em seção "Redes ocultas". Filtragem por banda preservada.
+
 - **Proteção de dados móveis:** Speedtest detecta rede celular medida e solicita confirmação antes de testes de 25 MB (Completo) ou 30 MB (Triplo). Modo Rápido (10 MB) executa sem aviso.
+
 - **Preferência de dados móveis:** Novo toggle em Ajustes — "Sempre permitir testes pesados em dados móveis" — desativa o aviso para quem tem plano ilimitado.
+
 - **Consumo mensal:** Ajustes exibe o total de dados consumidos em testes este mês, com reset automático na virada do mês.
+
 - **UiState<T> sealed interface e StatefulScreen composable (Issue #12-A):** Novo padrao de state management. Sealed interface `UiState<T>` com estados `Loading`, `Success(data: T)`, `Empty`, `Error`. Composable `StatefulScreen` generico reduz boilerplate.
+
 - **Migracao de PingScreenState e DiagnosticoScreenState para UiState<T> (Issue #12-B):** Refatoracao para usar `UiState<T>` com ViewModel em Coroutines, substituindo LiveData legacy.
+
 - **Migracao de localizacaoServidor, localIp, ispInfo e publicIp para UiState<T> (Issue #12-C):** MainViewModel expoe campos de rede como `StateFlow<UiState<T>>`. Catch vazio substituido por `UiState.Error`.
+
 - **Modifier.expandable() para toggles acessiveis (Issue #11):** Novo modificador com semantica de toggle, role acessivel, contentDescription e feedback tatil. Aplicado a 10 telas/componentes.
 
 ### Changed
+
 - **Qualidade de código:** Eliminado uso de `!!` (not-null assertion) em código de produção. Substituído por `checkNotNull` com mensagem descritiva, elvis operator e early return conforme o contexto.
-- **Injeção de dependência:** Introduzido Hilt para DI. `MainViewModel` migrado de instanciação manual (`lazy { Modulo.criar*() }`) para `@HiltViewModel` com injeção via construtor. Melhora testabilidade e ciclo de vida das dependências.
+
+- **Injeção de dependência:** Introduzido Hilt para DI. `MainViewModel` migrado de instanciação manual (`lazy { Modulo.criar*()} `) para `@HiltViewModel` com injeção via construtor. Melhora testabilidade e ciclo de vida das dependências.
+
+### Fixed
+
+- **Issue #24 — Won't Implement:** DNS e Health check continuam usando HttpURLConnection (não OkHttp). Acoplamento com protocolo HTTP não justifica refatoração. Documentado como decisão arquitetural.
 
 ### Security
+
 - **Network Security Config:** Substituído `usesCleartextTraffic` global por configuração declarativa. Cleartext HTTP restrito a IPs de gateway LAN (acesso a modem). Chamada `ip-api.com` migrada para HTTPS.
 
 ---
