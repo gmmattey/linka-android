@@ -2,6 +2,8 @@ package io.linka.app.kotlin.feature.history
 
 import android.os.Bundle
 import android.os.CancellationSignal
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.print.PageRange
 import android.print.PrintAttributes
@@ -27,11 +29,34 @@ internal object PdfPrintHelper {
      * @param arquivo  Arquivo de destino (deve existir ou seu pai deve existir)
      * @param callback Chamado com `true` em sucesso, `false` em falha
      */
+    private const val TIMEOUT_MS = 10_000L
+
     fun imprimir(
         adapter: PrintDocumentAdapter,
         arquivo: File,
         callback: (Boolean) -> Unit,
     ) {
+        val handler = Handler(Looper.getMainLooper())
+        var respondeu = false
+
+        // Dispara callback(false) se onWrite nunca completar dentro do timeout
+        val timeoutRunnable = Runnable {
+            if (!respondeu) {
+                respondeu = true
+                callback(false)
+            }
+        }
+        handler.postDelayed(timeoutRunnable, TIMEOUT_MS)
+
+        // Wrapper que garante: cancela timeout e chama callback uma única vez
+        val callbackSeguro: (Boolean) -> Unit = { sucesso ->
+            if (!respondeu) {
+                respondeu = true
+                handler.removeCallbacks(timeoutRunnable)
+                callback(sucesso)
+            }
+        }
+
         val printAttributes = PrintAttributes.Builder()
             .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
             .setResolution(PrintAttributes.Resolution("pdf", "pdf", 300, 300))
@@ -58,31 +83,31 @@ internal object PdfPrintHelper {
                             /* callback = */ object : PrintDocumentAdapter.WriteResultCallback() {
                                 override fun onWriteFinished(pages: Array<out PageRange>) {
                                     fd.close()
-                                    callback(true)
+                                    callbackSeguro(true)
                                 }
 
                                 override fun onWriteFailed(error: CharSequence?) {
                                     runCatching { fd.close() }
-                                    callback(false)
+                                    callbackSeguro(false)
                                 }
 
                                 override fun onWriteCancelled() {
                                     runCatching { fd.close() }
-                                    callback(false)
+                                    callbackSeguro(false)
                                 }
                             },
                         )
                     } catch (e: Exception) {
-                        callback(false)
+                        callbackSeguro(false)
                     }
                 }
 
                 override fun onLayoutFailed(error: CharSequence?) {
-                    callback(false)
+                    callbackSeguro(false)
                 }
 
                 override fun onLayoutCancelled() {
-                    callback(false)
+                    callbackSeguro(false)
                 }
             },
             /* extras = */ Bundle(),

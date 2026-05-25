@@ -11,6 +11,7 @@ import io.linka.app.kotlin.core.database.MedicaoEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -158,39 +159,42 @@ class ExportadorHistoricoPDF {
         return try {
             val html = gerarHtml(medicoes)
 
-            withContext(Dispatchers.Main) {
-                suspendCancellableCoroutine { cont ->
-                    val webView = WebView(context).apply {
-                        settings.javaScriptEnabled = false
-                        setBackgroundColor(Color.WHITE)
-                    }
+            val resultado = withContext(Dispatchers.Main) {
+                withTimeoutOrNull(10_000L) {
+                    suspendCancellableCoroutine { cont ->
+                        val webView = WebView(context).apply {
+                            settings.javaScriptEnabled = false
+                            setBackgroundColor(Color.WHITE)
+                        }
 
-                    webView.webViewClient = object : WebViewClient() {
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            if (!cont.isActive) return
+                        webView.webViewClient = object : WebViewClient() {
+                            override fun onPageFinished(view: WebView?, url: String?) {
+                                if (!cont.isActive) return
 
-                            try {
-                                // minSdk=24 > LOLLIPOP(21) — createPrintDocumentAdapter(String) sempre disponível
-                                val printAdapter = view?.createPrintDocumentAdapter("historico_linka")
+                                try {
+                                    // minSdk=24 > LOLLIPOP(21) — createPrintDocumentAdapter(String) sempre disponível
+                                    val printAdapter = view?.createPrintDocumentAdapter("historico_linka")
 
-                                if (printAdapter == null) {
+                                    if (printAdapter == null) {
+                                        cont.resume(false)
+                                        return
+                                    }
+
+                                    // Escreve o PDF usando PdfPrint helper
+                                    PdfPrintHelper.imprimir(printAdapter, arquivo) { sucesso ->
+                                        cont.resume(sucesso)
+                                    }
+                                } catch (e: Exception) {
                                     cont.resume(false)
-                                    return
                                 }
-
-                                // Escreve o PDF usando PdfPrint helper
-                                PdfPrintHelper.imprimir(printAdapter, arquivo) { sucesso ->
-                                    cont.resume(sucesso)
-                                }
-                            } catch (e: Exception) {
-                                cont.resume(false)
                             }
                         }
-                    }
 
-                    webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+                        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+                    }
                 }
             }
+            resultado ?: false  // timeout → falha graceful
         } catch (e: Exception) {
             false
         }
