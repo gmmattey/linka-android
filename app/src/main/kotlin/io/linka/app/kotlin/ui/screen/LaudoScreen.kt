@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.toArgb
@@ -265,7 +266,10 @@ fun LaudoScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .semantics { role = Role.Button }
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = "Registrar reclamação na Anatel"
+                            }
                             .clickable { uriHandler.openUri("https://www.anatel.gov.br/consumidor") },
                 )
             }

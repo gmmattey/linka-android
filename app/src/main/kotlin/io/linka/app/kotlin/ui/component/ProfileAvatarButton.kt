@@ -54,7 +54,7 @@ fun ProfileAvatarButton(
     }
     val profileBrush = Brush.linearGradient(colors = listOf(LkColors.accent, LkColors.accentBlue))
 
-    val descPerfil = if (nomeUsuario.isNotBlank()) "Perfil de $nomeUsuario" else "Perfil"
+    val descPerfil = if (nomeUsuario.isNotBlank()) "Foto de perfil de $nomeUsuario" else "Foto de perfil"
     Box(
         modifier =
             modifier
@@ -71,7 +71,7 @@ fun ProfileAvatarButton(
         if (bitmap != null) {
             Image(
                 bitmap = bitmap,
-                contentDescription = "Foto de perfil",
+                contentDescription = descPerfil,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxWidth().clip(CircleShape),
             )
