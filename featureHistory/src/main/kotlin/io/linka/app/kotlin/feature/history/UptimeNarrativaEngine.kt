@@ -179,13 +179,15 @@ object UptimeNarrativaEngine {
                 if (contadorAtual == 0) inicioAtual = bloco.dataHora
                 contadorAtual++
             } else {
-                if (contadorAtual >= BLOCOS_INTERRUPCAO_LONGA) {
-                    interrupcoes.add(
-                        InterrupcaoOffline(
-                            inicio = inicioAtual!!,
-                            duracaoMinutos = contadorAtual * MINUTOS_POR_BLOCO,
-                        ),
-                    )
+                inicioAtual?.let { inicio ->
+                    if (contadorAtual >= BLOCOS_INTERRUPCAO_LONGA) {
+                        interrupcoes.add(
+                            InterrupcaoOffline(
+                                inicio = inicio,
+                                duracaoMinutos = contadorAtual * MINUTOS_POR_BLOCO,
+                            ),
+                        )
+                    }
                 }
                 contadorAtual = 0
                 inicioAtual = null

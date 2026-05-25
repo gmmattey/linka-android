@@ -318,6 +318,49 @@ class UptimeNarrativaEngineTest {
         )
     }
 
+    // ---------------------------------------------------------------------------
+    // v2.0 — Edge cases obrigatorios (criticos #42)
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `calcularTendencia retorna ESTAVEL com exatamente 96 blocos distribuidos 50-50`() {
+        // 96 blocos: anteriores24h = indices 0..47, ultimas24h = indices 48..95
+        // Cada janela tem 24 OK + 24 OFFLINE = 50% uptime em cada lado => delta = 0 => ESTAVEL
+        val anteriores = List(24) { blocoOk(dia = 1) } + List(24) { blocoOffline(dia = 1) }
+        val ultimas = List(24) { blocoOk(dia = 2) } + List(24) { blocoOffline(dia = 2) }
+        val blocos = anteriores + ultimas
+
+        assertEquals("96 blocos com 50/50 em cada janela deve ser ESTAVEL", 96, blocos.size)
+        val tendencia = UptimeNarrativaEngine.calcularTendencia(blocos)
+        assertEquals("Delta zero deve retornar ESTAVEL", Tendencia.ESTAVEL, tendencia)
+    }
+
+    @Test
+    fun `detectarInterrupcoesLongas nao lanca excecao quando sequencia OFFLINE comeca no bloco 0`() {
+        // Sequencia OFFLINE comecando no primeiro bloco (indice 0) — NPE potencial sem fix
+        val blocos = List(3) { blocoOffline(hora = 0) } + List(10) { blocoOk() }
+
+        val interrupcoes = UptimeNarrativaEngine.detectarInterrupcoesLongas(blocos)
+        assertEquals("Deve detectar 1 interrupcao iniciada no bloco 0", 1, interrupcoes.size)
+        assertEquals("Duracao deve ser 90 minutos (3 blocos)", 90, interrupcoes[0].duracaoMinutos)
+    }
+
+    @Test
+    fun `calcularTendencia retorna PIORANDO quando anteriores 80pct OK e ultimas 50pct OK`() {
+        // anteriores24h: 80% OK = 39 OK + 9 OFFLINE de 48 blocos
+        val anteriores = List(39) { blocoOk(dia = 1) } + List(9) { blocoOffline(dia = 1) }
+        // ultimas24h: 50% OK = 24 OK + 24 OFFLINE de 48 blocos
+        val ultimas = List(24) { blocoOk(dia = 2) } + List(24) { blocoOffline(dia = 2) }
+        val blocos = anteriores + ultimas
+
+        val tendencia = UptimeNarrativaEngine.calcularTendencia(blocos)
+        assertEquals(
+            "Queda de ~80pp para 50pp (delta -30pp) deve retornar PIORANDO",
+            Tendencia.PIORANDO,
+            tendencia,
+        )
+    }
+
     @Test
     fun `narrativa menciona padrao horario recorrente quando detectado`() {
         // 50 blocos OK como base + quedas as 8h em 3 dias diferentes
