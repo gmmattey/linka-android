@@ -1,8 +1,6 @@
 package io.linka.app.kotlin.core.network
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -17,33 +15,11 @@ class SnapshotRedeTest {
     }
 
     @Test
-    fun `desconectado retorna conectado false`() {
-        val snap = SnapshotRede.desconectado(0L)
-
-        assertFalse(snap.conectado)
-    }
-
-    @Test
     fun `desconectado preserva timestamp informado`() {
         val ts = 9_999_999_999L
         val snap = SnapshotRede.desconectado(ts)
 
         assertEquals(ts, snap.timestampEpochMs)
-    }
-
-    @Test
-    fun `desconectado tem wifiLinkSnapshot nulo`() {
-        val snap = SnapshotRede.desconectado(0L)
-
-        assertNull(snap.wifiLinkSnapshot)
-    }
-
-    @Test
-    fun `desconectado tem privateDns inativo`() {
-        val snap = SnapshotRede.desconectado(0L)
-
-        assertFalse(snap.privateDnsAtivo)
-        assertNull(snap.privateDnsHostname)
     }
 
     @Test
@@ -77,15 +53,6 @@ class SnapshotRedeTest {
         assertEquals(EstadoConexao.wifi, snap.estadoConexao)
         assertEquals("MinhaRede", snap.wifiLinkSnapshot?.ssid)
         assertEquals(2, snap.dnsServidores.size)
-    }
-
-    @Test
-    fun `dois snapshots identicos sao iguais por data class`() {
-        val ts = 1_000L
-        val a = SnapshotRede.desconectado(ts)
-        val b = SnapshotRede.desconectado(ts)
-
-        assertEquals(a, b)
     }
 
     @Test

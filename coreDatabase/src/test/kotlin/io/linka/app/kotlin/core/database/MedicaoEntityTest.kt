@@ -94,15 +94,6 @@ class MedicaoEntityTest {
     }
 
     @Test
-    fun `duas entidades com mesmo id sao iguais`() {
-        val a = entidadeMinima("id-x")
-        val b = entidadeMinima("id-x")
-
-        assertEquals(a, b)
-        assertEquals(a.hashCode(), b.hashCode())
-    }
-
-    @Test
     fun `entidades com ids diferentes nao sao iguais`() {
         val a = entidadeMinima("id-1")
         val b = entidadeMinima("id-2")

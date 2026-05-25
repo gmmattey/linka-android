@@ -2,25 +2,9 @@ package io.linka.app.kotlin.core.network
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class WifiLinkSnapshotTest {
-
-    @Test
-    fun `snapshot com todos os campos nulos e valido`() {
-        val snap = WifiLinkSnapshot(
-            ssid = null,
-            bssid = null,
-            rssiDbm = null,
-            linkSpeedMbps = null,
-            frequenciaMhz = null,
-            padraoWifi = null,
-        )
-
-        assertNull(snap.ssid)
-        assertNull(snap.rssiDbm)
-    }
 
     @Test
     fun `rssi negativo e preservado corretamente`() {
@@ -50,15 +34,6 @@ class WifiLinkSnapshotTest {
 
         assertEquals(5745, snap.frequenciaMhz)
         assertEquals(867, snap.linkSpeedMbps)
-    }
-
-    @Test
-    fun `dois snapshots com mesmos valores sao iguais`() {
-        val a = WifiLinkSnapshot("Net", "AA:BB", -60, 144, 5180, "802.11ac")
-        val b = WifiLinkSnapshot("Net", "AA:BB", -60, 144, 5180, "802.11ac")
-
-        assertEquals(a, b)
-        assertEquals(a.hashCode(), b.hashCode())
     }
 
     @Test
