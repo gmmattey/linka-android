@@ -795,7 +795,7 @@ class ExecutorSpeedtestCloudflare : ExecutorSpeedtest {
             launch {
                 var ultimaEscalaMs = 0L
                 while (!stopFlag.get() && System.nanoTime() < stopNs && !mudouRede(redeInicial, connectionTypeProvider) && !cancelFlag.get()) {
-                    delay(300)
+                    delay(1_000)
                     val agoraNs = System.nanoTime()
                     val elapsedSec = (agoraNs - ultimoSampleNs.get()).toDouble() / 1_000_000_000.0
                     ultimoSampleNs.set(agoraNs)
