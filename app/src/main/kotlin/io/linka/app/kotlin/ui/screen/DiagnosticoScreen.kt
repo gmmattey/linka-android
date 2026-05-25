@@ -787,8 +787,7 @@ private fun AiResultBubble(
                         contentDescription =
                             if (analiseExpandida) "Análise completa — recolher" else "Análise completa — expandir"
                         stateDescription = if (analiseExpandida) "expandida" else "recolhida"
-                    }
-                    .clickable { onToggleAnalise() }
+                    }.clickable { onToggleAnalise() }
                     .padding(vertical = LkSpacing.md),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
