@@ -29,6 +29,10 @@ import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.rounded.CellTower
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -271,6 +275,13 @@ fun ResultadoVelocidadeScreen(
                         lineHeight = 20.sp,
                     )
                 }
+
+                // Chip de tipo de rede — posição discreta antes dos valores de velocidade
+                ChipTipoRede(
+                    connectionType = resultado.connectionType,
+                    tecnologia = resultado.tecnologia,
+                    c = c,
+                )
 
                 Spacer(Modifier.height(LkSpacing.xxl))
 
@@ -631,6 +642,61 @@ fun ResultadoVelocidadeScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ChipTipoRede(
+    connectionType: String?,
+    tecnologia: String?,
+    c: LkTokens,
+) {
+    val (label, icon) =
+        remember(connectionType, tecnologia) {
+            when {
+                connectionType == null -> null
+                connectionType.equals("wifi", ignoreCase = true) ->
+                    "Via Wi-Fi" to Icons.Rounded.Wifi
+                connectionType.equals("movel", ignoreCase = true) -> {
+                    val tecLabel =
+                        when {
+                            tecnologia == null -> "Via Rede Móvel"
+                            tecnologia.contains("5G", ignoreCase = true) -> "Via 5G"
+                            tecnologia.contains("4G", ignoreCase = true) ||
+                                tecnologia.contains("LTE", ignoreCase = true) -> "Via 4G"
+                            else -> "Via Rede Móvel"
+                        }
+                    tecLabel to Icons.Rounded.CellTower
+                }
+                else -> null
+            }
+        } ?: return
+
+    Spacer(Modifier.height(LkSpacing.sm))
+    SuggestionChip(
+        onClick = {},
+        label = {
+            Text(
+                text = label,
+                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                color = c.textSecondary,
+            )
+        },
+        icon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = c.textSecondary,
+                modifier = Modifier.size(14.dp),
+            )
+        },
+        colors =
+            SuggestionChipDefaults.suggestionChipColors(
+                containerColor = c.bgSecondary,
+                labelColor = c.textSecondary,
+                iconContentColor = c.textSecondary,
+            ),
+        border = SuggestionChipDefaults.suggestionChipBorder(enabled = true, borderColor = c.border),
+    )
 }
 
 @Composable
