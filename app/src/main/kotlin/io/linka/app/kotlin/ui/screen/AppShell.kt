@@ -540,8 +540,9 @@ fun AppShell(
                     localizacaoServidor = localizacaoServidorStr,
                     gemmaAvailable = gemmaAvailable,
                     onAbrirChat = {
-                        onIniciarOrbitComResultado(resultado, null)
-                        if (Overlay.Chat !in overlayStack) overlayStack.add(Overlay.Chat)
+                        if (Overlay.DiagnosticoInteligente !in overlayStack) {
+                            overlayStack.add(Overlay.DiagnosticoInteligente)
+                        }
                     },
                     ispInfo = ispInfoData,
                 )
