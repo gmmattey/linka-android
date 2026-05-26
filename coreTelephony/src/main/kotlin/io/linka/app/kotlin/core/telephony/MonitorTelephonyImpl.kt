@@ -1,6 +1,7 @@
 package io.linka.app.kotlin.core.telephony
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -190,6 +191,7 @@ class MonitorTelephonyImpl(
         }
     }
 
+    @SuppressLint("MissingPermission")
     @Suppress("DEPRECATION")
     private fun capturarSnapshot(tm: TelephonyManager): MovelSnapshot? {
         // Se nao tem SIM ativa, simState != READY tipicamente.
