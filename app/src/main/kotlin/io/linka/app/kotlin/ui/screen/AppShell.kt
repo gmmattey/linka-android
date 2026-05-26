@@ -127,6 +127,7 @@ private enum class Overlay {
     Novidades,
     ResultadoVelocidade,
     Fibra,
+    MinhaConexao,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -227,6 +228,11 @@ fun AppShell(
     diagChatCarregando: Boolean = false,
     onEnviarPerguntaDiagnostico: (String) -> Unit = {},
     onLimparDiagChat: () -> Unit = {},
+    // Issue #85 — Minha Conexão
+    velocidadeContratadaDownMbps: Int = 0,
+    velocidadeContratadaUpMbps: Int = 0,
+    onSalvarVelocidadeContratada: (downMbps: Int, upMbps: Int) -> Unit = { _, _ -> },
+    onSalvarConexaoDadosCompletos: (operadora: String, estadoUf: String, cidadeNome: String, downMbps: Int, upMbps: Int) -> Unit = { _, _, _, _, _ -> },
 ) {
     val c = LocalLkTokens.current
     // Desempacota UiState<T> → tipos opcionais para as telas filhas que ainda recebem primitivos.
@@ -465,6 +471,7 @@ fun AppShell(
                             onAbrirPerfil = { showPerfilSheet = true },
                             onAbrirPrivacidade = { if (Overlay.Privacidade !in overlayStack) overlayStack.add(Overlay.Privacidade) },
                             onAbrirNovidades = { if (Overlay.Novidades !in overlayStack) overlayStack.add(Overlay.Novidades) },
+                            onAbrirMinhaConexao = { if (Overlay.MinhaConexao !in overlayStack) overlayStack.add(Overlay.MinhaConexao) },
                             dadosMoveis =
                                 AjustesDadosMoveisState(
                                     speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
@@ -640,6 +647,28 @@ fun AppShell(
                 snapshotFibra = snapshotFibra,
                 onDismiss = { overlayStack.remove(Overlay.Fibra) },
                 onRetentar = { onReconectarFibra(modemHost ?: "", modemUsername, modemPassword) },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = Overlay.MinhaConexao in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            MinhaConexaoScreen(
+                operadora = operadora,
+                estadoUf = estadoUf,
+                cidadeNome = cidadeNome,
+                velocidadeContratadaDownMbps = velocidadeContratadaDownMbps,
+                velocidadeContratadaUpMbps = velocidadeContratadaUpMbps,
+                operadoraAutodetectada = movelSnapshot?.operadora,
+                onSalvar = { op, uf, cidade, down, up ->
+                    onSalvarDadosProvedor(op, planoInternet, regiao)
+                    onSalvarEstadoCidade(uf, cidade)
+                    onSalvarVelocidadeContratada(down, up)
+                    overlayStack.remove(Overlay.MinhaConexao)
+                },
+                onVoltar = { overlayStack.remove(Overlay.MinhaConexao) },
             )
         }
 

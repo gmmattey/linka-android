@@ -304,6 +304,16 @@ class MainActivity : ComponentActivity() {
                             viewModel.enviarPerguntaDiagnostico(pergunta)
                         },
                         onLimparDiagChat = { viewModel.limparDiagChat() },
+                        velocidadeContratadaDownMbps = perfilProvedor.velocidadeContratadaDownMbps,
+                        velocidadeContratadaUpMbps = perfilProvedor.velocidadeContratadaUpMbps,
+                        onSalvarVelocidadeContratada = { down, up ->
+                            viewModel.salvarVelocidadeContratada(down, up)
+                        },
+                        onSalvarConexaoDadosCompletos = { op, uf, cidade, down, up ->
+                            viewModel.salvarDadosProvedor(op, "", "")
+                            viewModel.salvarEstadoCidade(uf, cidade)
+                            viewModel.salvarVelocidadeContratada(down, up)
+                        },
                     )
                 } // else onboardingConcluido
             }
