@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,6 +57,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -1283,10 +1283,39 @@ private fun CardRodadasTriplo(
                         color = c.textSecondary,
                     )
                     Text(
-                        text = "↓ ${"%.0f".format(rodada.downloadMbps)} · ↑ ${"%.0f".format(rodada.uploadMbps)} Mbps",
+                        text = "↓ ${"%.0f".format(rodada.downloadMbps)} · ↑ ${"%.0f".format(rodada.uploadMbps)} Mbps · ${rodada.latenciaMs.toInt()} ms",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.W600,
                         color = LkColors.accent,
+                    )
+                }
+            }
+            if (rodadas.size == 3) {
+                Spacer(Modifier.height(LkSpacing.xs))
+                HorizontalDivider(color = c.border)
+                Spacer(Modifier.height(LkSpacing.xs))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("Min/Max ↓", style = MaterialTheme.typography.labelSmall, color = c.textTertiary)
+                    Text(
+                        "${"%.0f".format(rodadas.minOf { it.downloadMbps })} / ${"%.0f".format(rodadas.maxOf { it.downloadMbps })} Mbps",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.W600,
+                        color = c.textSecondary,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("Min/Max ↑", style = MaterialTheme.typography.labelSmall, color = c.textTertiary)
+                    Text(
+                        "${"%.0f".format(rodadas.minOf { it.uploadMbps })} / ${"%.0f".format(rodadas.maxOf { it.uploadMbps })} Mbps",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.W600,
+                        color = c.textSecondary,
                     )
                 }
             }

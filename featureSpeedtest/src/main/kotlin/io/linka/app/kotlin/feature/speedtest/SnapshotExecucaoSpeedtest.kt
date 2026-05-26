@@ -3,6 +3,7 @@ package io.linka.app.kotlin.feature.speedtest
 data class ResultadoRodadaTriplo(
     val downloadMbps: Double,
     val uploadMbps: Double,
+    val latenciaMs: Double = 0.0,
 )
 
 data class SnapshotExecucaoSpeedtest(
