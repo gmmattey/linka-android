@@ -60,6 +60,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 - **Mensagens de erro do modem exibidas em português humanizado:** Strings brutas internas (ex: "erroModemInacessivel") substituídas por mensagens humanizadas em português. Mapeamento `when()` em `AppShell.kt` e `VelocidadeScreen.kt` com 6 strings de fallback semânticas. (#80)
 - Card de rede móvel exibe nome da operadora no formato "Operadora · Tipo" (ex: "Claro · 4G") (#83)
 - **Tela Sinal em rede móvel exibe RSRP, RSRQ e SINR em cards estruturados com chips de status visual (Ótimo/Bom/Ruim) e ícones (#84)**
+- TopBar da Central de Testes colapsa completamente ao rolar — sem gap vazio no topo (#75)
 
 ---
 
