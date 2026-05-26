@@ -477,6 +477,7 @@ class ExecutorSpeedtestCloudflare(isMobile: Boolean = false) : ExecutorSpeedtest
                 ResultadoRodadaTriplo(
                     downloadMbps = downloadPhase.throughputMbps,
                     uploadMbps = uploadPhase.throughputMbps,
+                    latenciaMs = latencyPhase.latenciaMs,
                 )
             )
 
@@ -499,10 +500,15 @@ class ExecutorSpeedtestCloudflare(isMobile: Boolean = false) : ExecutorSpeedtest
             return
         }
 
-        // Calcula médias e constrói resultado final
+        // Calcula medianas e constrói resultado final
+        fun List<Double>.mediana(): Double {
+            val sorted = this.sorted()
+            return if (sorted.size % 2 == 0) (sorted[sorted.size / 2 - 1] + sorted[sorted.size / 2]) / 2.0 else sorted[sorted.size / 2]
+        }
         val rodadas = rodadasTriploInternos.toList()
-        val downloadMedia = rodadas.map { it.downloadMbps }.average()
-        val uploadMedia = rodadas.map { it.uploadMbps }.average()
+        val downloadMediana = rodadas.map { it.downloadMbps }.mediana()
+        val uploadMediana = rodadas.map { it.uploadMbps }.mediana()
+        val latenciaMediana = rodadas.map { it.latenciaMs }.mediana()
 
         // Resultado sintético com médias — usa valores neutros para campos não medidos em triplo
         // (bufferbloat, jitter, DNS não são calculados por rodada no triplo)
@@ -513,13 +519,13 @@ class ExecutorSpeedtestCloudflare(isMobile: Boolean = false) : ExecutorSpeedtest
             connectionTypeStart = connectionType,
             connectionTypeEnd = connectionTypeProvider?.invoke() ?: connectionType,
             contaminado = false,
-            latenciaMs = 0.0,
+            latenciaMs = latenciaMediana,
             jitterMs = 0.0,
             perdaPercentual = 0.0,
             bufferbloatMs = 0.0,
             severidadeBufferbloat = SeveridadeBufferbloat.none,
-            downloadMbps = downloadMedia,
-            uploadMbps = uploadMedia,
+            downloadMbps = downloadMediana,
+            uploadMbps = uploadMediana,
             latencyDownloadMs = 0.0,
             latencyUploadMs = 0.0,
             stabilityScore = 0.0,
@@ -530,9 +536,9 @@ class ExecutorSpeedtestCloudflare(isMobile: Boolean = false) : ExecutorSpeedtest
             dnsResolverIp = null,
             dnsProvider = null,
             diagnosticoQualidade = SpeedtestQualityClassifier.classificarQualidade(
-                dl = downloadMedia,
-                ul = uploadMedia,
-                latency = 0.0,
+                dl = downloadMediana,
+                ul = uploadMediana,
+                latency = latenciaMediana,
                 jitter = 0.0,
                 packetLoss = 0.0,
                 bufferbloatDeltaMs = 0.0,
@@ -561,7 +567,7 @@ class ExecutorSpeedtestCloudflare(isMobile: Boolean = false) : ExecutorSpeedtest
             ),
         )
 
-        Log.i(logTag, "triplo concluido dl=${downloadMedia} ul=${uploadMedia} rodadas=${rodadas.size}")
+        Log.i(logTag, "triplo concluido dl=${downloadMediana} ul=${uploadMediana} lat=${latenciaMediana} rodadas=${rodadas.size}")
         faseAtualInterna = FaseSpeedtest.concluido
         aguardandoProximaRodadaInterna = false
         publicar(EstadoExecucaoSpeedtest.concluido, 100, resultadoTriplo, null)
