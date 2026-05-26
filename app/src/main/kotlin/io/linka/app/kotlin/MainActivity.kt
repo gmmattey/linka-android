@@ -303,6 +303,7 @@ class MainActivity : ComponentActivity() {
                         onEnviarPerguntaDiagnostico = { pergunta ->
                             viewModel.enviarPerguntaDiagnostico(pergunta)
                         },
+                        onLimparDiagChat = { viewModel.limparDiagChat() },
                     )
                 } // else onboardingConcluido
             }
