@@ -638,6 +638,7 @@ fun AppShell(
             FibraStatusOverlay(
                 snapshotFibra = snapshotFibra,
                 onDismiss = { overlayStack.remove(Overlay.Fibra) },
+                onRetentar = { onReconectarFibra(modemHost ?: "", modemUsername, modemPassword) },
             )
         }
 
@@ -1080,6 +1081,7 @@ private fun DnsGuideStep(
 private fun FibraStatusOverlay(
     snapshotFibra: SnapshotFibra,
     onDismiss: () -> Unit,
+    onRetentar: () -> Unit = {},
 ) {
     val c = LocalLkTokens.current
 
@@ -1173,16 +1175,28 @@ private fun FibraStatusOverlay(
             }
 
             Spacer(Modifier.height(LkSpacing.lg))
-            Button(
-                onClick = onDismiss,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                shape = RoundedCornerShape(LkRadius.button),
-            ) {
-                Text("Fechar", fontSize = 14.sp, fontWeight = FontWeight.W600)
+            if (snapshotFibra.estado == EstadoFibra.erro) {
+                Button(
+                    onClick = onRetentar,
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                    shape = RoundedCornerShape(LkRadius.button),
+                ) {
+                    Text("Tentar novamente", fontSize = 14.sp, fontWeight = FontWeight.W600)
+                }
+                Spacer(Modifier.height(LkSpacing.sm))
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                    Text("Fechar", fontSize = 14.sp, color = c.textSecondary)
+                }
+            } else {
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                    shape = RoundedCornerShape(LkRadius.button),
+                ) {
+                    Text("Fechar", fontSize = 14.sp, fontWeight = FontWeight.W600)
+                }
             }
         }
     }
