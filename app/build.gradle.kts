@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.hilt)
     id("com.google.gms.google-services")
     id("com.google.firebase.appdistribution")
-    alias(libs.plugins.firebaseCrashlyticsPlugin)
+    id("com.google.firebase.crashlytics")
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
 }
@@ -122,7 +122,7 @@ android {
             buildConfigField("Boolean", "FEATURE_DNS_SCREEN", "true")
             // ─── FORA DO RELEASE ──────────────────────────────────────────
             // Chat IA (card e laudo ativos acima; só o chat desligado)
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_CHAT", "false")
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_CHAT", "true")
             // Dispositivos (limitação de hostname conhecida)
             buildConfigField("Boolean", "FEATURE_DEVICES_SCREEN_V2", "false")
             // Monitoramento passivo e dependentes
