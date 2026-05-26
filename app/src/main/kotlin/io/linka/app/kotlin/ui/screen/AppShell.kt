@@ -226,6 +226,7 @@ fun AppShell(
     diagChatHistorico: List<DiagChatEntry> = emptyList(),
     diagChatCarregando: Boolean = false,
     onEnviarPerguntaDiagnostico: (String) -> Unit = {},
+    onLimparDiagChat: () -> Unit = {},
 ) {
     val c = LocalLkTokens.current
     // Desempacota UiState<T> → tipos opcionais para as telas filhas que ainda recebem primitivos.
@@ -619,7 +620,10 @@ fun AppShell(
                 onAnaliseSolicitadaChange = { diagInteligenteAnaliseSolicitada = it },
                 aiState = diagInteligenteAiState,
                 onAiStateChange = { diagInteligenteAiState = it },
-                onVoltar = { overlayStack.remove(Overlay.DiagnosticoInteligente) },
+                onVoltar = {
+                    overlayStack.remove(Overlay.DiagnosticoInteligente)
+                    onLimparDiagChat()
+                },
                 chatHistorico = diagChatHistorico,
                 chatCarregando = diagChatCarregando,
                 onEnviarChat = onEnviarPerguntaDiagnostico,
