@@ -153,4 +153,11 @@
     <string name="home_qualidade_titulo">Qualidade da minha internet</string>
     <string name="home_qualidade_em_breve">Em breve</string>
     <string name="home_qualidade_descricao">Estamos desenvolvendo uma análise com IA para avaliar automaticamente a qualidade da sua conexão e gerar insights personalizados.</string>
+
+    <!-- Fibra: erros de conexão com o modem -->
+    <string name="fibra_erro_modem_inacessivel">Não foi possível conectar ao modem. Verifique se o endereço IP está correto e se o modem está ligado.</string>
+    <string name="fibra_erro_timeout">O modem não respondeu a tempo. Verifique sua conexão com a rede local e tente novamente.</string>
+    <string name="fibra_erro_resposta_invalida">O modem retornou uma resposta inesperada. Tente novamente ou verifique as credenciais.</string>
+    <string name="fibra_erro_comunicacao">Não foi possível se comunicar com o modem. Tente novamente em instantes.</string>
+    <string name="fibra_erro_sem_rede">Sem conexão com a rede. Verifique o Wi-Fi ou cabo de rede e tente novamente.</string>
 </resources>

@@ -36,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
+import androidx.compose.ui.res.stringResource
+import io.linka.app.kotlin.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -400,8 +402,17 @@ private fun ErroContent(
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(LkSpacing.sm))
+        val textoExibido = when (mensagem) {
+            "erroModemInacessivel"      -> stringResource(R.string.fibra_erro_modem_inacessivel)
+            "erroTimeout"               -> stringResource(R.string.fibra_erro_timeout)
+            "erroRespostaModemInvalida" -> stringResource(R.string.fibra_erro_resposta_invalida)
+            "erroComunicacaoModem"      -> stringResource(R.string.fibra_erro_comunicacao)
+            "semRede"                   -> stringResource(R.string.fibra_erro_sem_rede)
+            null                        -> "Verifique sua conexão e tente novamente."
+            else                        -> mensagem
+        }
         Text(
-            text = mensagem ?: "Verifique sua conexão e tente novamente.",
+            text = textoExibido,
             style = MaterialTheme.typography.bodyMedium,
             color = c.textSecondary,
             textAlign = TextAlign.Center,
