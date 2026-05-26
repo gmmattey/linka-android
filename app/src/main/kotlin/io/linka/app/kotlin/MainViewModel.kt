@@ -689,19 +689,26 @@ class MainViewModel
             if (!fibraDisparada) {
                 fibraDisparada = true
                 viewModelScope.launch {
+                    // #127: guard de rede — fibra só faz sentido em Wi-Fi/Ethernet.
+                    // Em rede móvel pura não há modem local para consultar.
+                    val estadoAtual = monitorRede.snapshotFlow.value.estadoConexao
+                    if (estadoAtual == EstadoConexao.movel) {
+                        executorFibra.marcarSemRede()
+                        return@launch
+                    }
+                    if (estadoAtual == EstadoConexao.desconectado) {
+                        executorFibra.marcarSemRede()
+                        return@launch
+                    }
                     val permanecerConectado = preferenciasAppRepository.modemPermanecerConectadoFlow.first()
                     if (!permanecerConectado) return@launch
-                    if (monitorRede.snapshotFlow.value.estadoConexao == EstadoConexao.desconectado) {
-                        executorFibra.marcarSemRede()
-                    } else {
-                        val host =
-                            preferenciasAppRepository.modemHostFlow.first()
-                                ?: gateways.value.firstOrNull()?.ip
-                                ?: return@launch
-                        val username = preferenciasAppRepository.modemUsernameFlow.first()
-                        val password = preferenciasAppRepository.modemPasswordFlow.first()
-                        executorFibra.executar(host, username, password)
-                    }
+                    val host =
+                        preferenciasAppRepository.modemHostFlow.first()
+                            ?: gateways.value.firstOrNull()?.ip
+                            ?: return@launch
+                    val username = preferenciasAppRepository.modemUsernameFlow.first()
+                    val password = preferenciasAppRepository.modemPasswordFlow.first()
+                    executorFibra.executar(host, username, password)
                 }
             }
             if (!infoLocalRedeColetada) {
