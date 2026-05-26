@@ -122,7 +122,7 @@ android {
             buildConfigField("Boolean", "FEATURE_DNS_SCREEN", "true")
             // ─── FORA DO RELEASE ──────────────────────────────────────────
             // Chat IA (card e laudo ativos acima; só o chat desligado)
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_CHAT", "false")
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_CHAT", "true")
             // Dispositivos (limitação de hostname conhecida)
             buildConfigField("Boolean", "FEATURE_DEVICES_SCREEN_V2", "false")
             // Monitoramento passivo e dependentes
