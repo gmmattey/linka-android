@@ -39,6 +39,8 @@ import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.GraphicEq
+import androidx.compose.material.icons.outlined.NetworkCheck
 import androidx.compose.material.icons.outlined.SignalCellularAlt
 import androidx.compose.material.icons.outlined.SignalCellularOff
 import androidx.compose.material.icons.outlined.Warning
@@ -2345,63 +2347,52 @@ private fun MobileSignalCard(
             }
         }
 
-        // ── Seção 3 — Força e Estabilidade ────────────────────────────────────
-        Row(
+        // ── Seção 3 — Cards estruturados de sinal ────────────────────────────
+        val (rsrpLabel, rsrpCor) = rsrpQualidade(rsrp)
+        MetricaSinalCard(
+            icone = Icons.Outlined.SignalCellularAlt,
+            label = "RSRP — Potência do sinal",
+            value = "$rsrp",
+            unit = "dBm",
+            chipLabel = rsrpLabel,
+            chipCor = rsrpCor,
+            tokens = tokens,
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
+        )
+
+        val rsrq = snapshot.rsrqDb
+        val sinr = snapshot.sinrDb
+        if (rsrq != null || sinr != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
             ) {
-                Text(
-                    "Força do sinal",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tokens.textTertiary,
-                )
-                Text(
-                    qualidadeLabel,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.W700,
-                    color = qualidadeCor,
-                )
-            }
-            Box(
-                modifier =
-                    Modifier
-                        .width(1.dp)
-                        .height(40.dp)
-                        .background(tokens.border),
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    "Estabilidade",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = tokens.textTertiary,
-                )
-                val rsrq = snapshot.rsrqDb
-                val sinr = snapshot.sinrDb
-                val rsrqBom = rsrq != null && rsrq >= -10
-                val rsrqRuim = rsrq != null && rsrq < -15
-                val sinrBom = sinr != null && sinr >= 10
-                val sinrRuim = sinr != null && sinr < 0
-                val (estLabel, estCor) =
-                    when {
-                        rsrq == null && sinr == null -> "—" to tokens.textTertiary
-                        rsrqRuim || sinrRuim -> "Instável" to LkColors.error
-                        (rsrqBom || sinrBom) && !rsrqRuim && !sinrRuim -> "Estável" to LkColors.success
-                        else -> "Moderada" to LkColors.warning
-                    }
-                Text(
-                    estLabel,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.W700,
-                    color = estCor,
-                )
+                if (rsrq != null) {
+                    val (rsrqLabel, rsrqCor) = rsrqQualidade(rsrq)
+                    MetricaSinalCard(
+                        icone = Icons.Outlined.NetworkCheck,
+                        label = "RSRQ",
+                        value = "$rsrq",
+                        unit = "dB",
+                        chipLabel = rsrqLabel,
+                        chipCor = rsrqCor,
+                        tokens = tokens,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (sinr != null) {
+                    val (sinrLabel, sinrCor) = sinrQualidade(sinr)
+                    MetricaSinalCard(
+                        icone = Icons.Outlined.GraphicEq,
+                        label = "SINR",
+                        value = "$sinr",
+                        unit = "dB",
+                        chipLabel = sinrLabel,
+                        chipCor = sinrCor,
+                        tokens = tokens,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
 
@@ -2415,19 +2406,12 @@ private fun MobileSignalCard(
                         "Sinal ótimo",
                         "Você está próximo de uma torre. Ideal para streaming e videochamadas.",
                     )
-                rsrp >= -90 ->
-                    DiagData(
-                        Icons.Outlined.CheckCircle,
-                        LkColors.success,
-                        "Sinal bom",
-                        "Conexão estável para a maioria das atividades.",
-                    )
                 rsrp >= -100 ->
                     DiagData(
                         Icons.Outlined.Warning,
                         LkColors.warning,
-                        "Sinal moderado — pode lentidão em picos",
-                        "Tente ir para área aberta ou próximo de uma janela.",
+                        "Sinal bom — conexão estável para a maioria das atividades",
+                        "Tente ir para área aberta ou próximo de uma janela se quiser melhorar.",
                     )
                 else ->
                     DiagData(
@@ -2477,6 +2461,97 @@ private data class DiagData(
     val causa: String,
     val acao: String,
 )
+
+private fun rsrpQualidade(rsrp: Int): Pair<String, Color> =
+    when {
+        rsrp >= -80 -> "Ótimo" to LkColors.success
+        rsrp >= -100 -> "Bom" to LkColors.warning
+        else -> "Ruim" to LkColors.error
+    }
+
+private fun rsrqQualidade(rsrq: Int): Pair<String, Color> =
+    when {
+        rsrq >= -10 -> "Ótimo" to LkColors.success
+        rsrq >= -15 -> "Bom" to LkColors.warning
+        else -> "Ruim" to LkColors.error
+    }
+
+private fun sinrQualidade(sinr: Int): Pair<String, Color> =
+    when {
+        sinr >= 20 -> "Ótimo" to LkColors.success
+        sinr >= 10 -> "Bom" to LkColors.warning
+        else -> "Ruim" to LkColors.error
+    }
+
+@Composable
+private fun MetricaSinalCard(
+    icone: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    unit: String,
+    chipLabel: String,
+    chipCor: Color,
+    tokens: LkTokens,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(LkRadius.card))
+                .border(1.dp, chipCor.copy(alpha = 0.25f), RoundedCornerShape(LkRadius.card))
+                .background(tokens.bgSecondary)
+                .padding(LkSpacing.lg),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(chipCor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icone,
+                    contentDescription = null,
+                    tint = chipCor,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+            Spacer(Modifier.width(LkSpacing.sm))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = tokens.textSecondary,
+            )
+        }
+        Spacer(Modifier.height(LkSpacing.sm))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineLarge,
+            color = chipCor,
+        )
+        Text(
+            text = unit,
+            style = MaterialTheme.typography.labelSmall,
+            color = tokens.textTertiary,
+        )
+        Spacer(Modifier.height(LkSpacing.xs))
+        Box(
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(chipCor.copy(alpha = 0.15f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+        ) {
+            Text(
+                text = chipLabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = chipCor,
+            )
+        }
+    }
+}
 
 @Composable
 private fun EmptyStatePermissaoTelefonia(
