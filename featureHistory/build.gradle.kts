@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "io.linka.app.kotlin.feature.history"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk = 35 // PrintDocumentAdapter callbacks tornaram-se package-private no SDK 36
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()

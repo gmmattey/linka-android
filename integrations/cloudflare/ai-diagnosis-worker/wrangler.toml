@@ -3,10 +3,10 @@ main = "src/index.ts"
 compatibility_date = "2026-05-09"
 
 [vars]
-# Modelo padrao do diagnostico Linka: Gemma 2 9B (Google) via Cloudflare
-# Workers AI. Modelo denso sem reasoning tokens, muito mais rapido que o
-# Gemma 4 26B MoE (que gerava >3500 tokens incluindo thinking, causando
-# timeout de 30s no wall-clock do Worker).
+# Modelo padrao do diagnostico Linka: Gemma 4 26B MoE (Google) via Cloudflare
+# Workers AI. Modelo reasoning — gera 500-2500 tokens de thinking antes do
+# JSON final (700-1100 tokens), total tipico ~3500 tokens. max_tokens=5000 no
+# Worker e readTimeout=90s no Android cobrem essa margem.
 # Politica do projeto: Llama/Meta NAO deve ser configurado aqui — nem como
 # padrao, nem como fallback cloud. Em caso de falha do modelo, o cliente
 # Kotlin usa o fallback local (sem IA externa).

@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.hilt)
     id("com.google.gms.google-services")
     id("com.google.firebase.appdistribution")
-    alias(libs.plugins.firebaseCrashlyticsPlugin)
+    id("com.google.firebase.crashlytics")
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
 }
