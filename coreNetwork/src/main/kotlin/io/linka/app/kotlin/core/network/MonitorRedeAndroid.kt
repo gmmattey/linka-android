@@ -31,6 +31,11 @@ class MonitorRedeAndroid(
     private val mainHandler = Handler(Looper.getMainLooper())
     private val runnableRetry = Runnable { if (callbackRegistrado) atualizarSnapshot() }
 
+    // Contador de tentativas aguardando NET_CAPABILITY_VALIDATED.
+    // Permite fallback após 1 retry: evita deixar o usuário preso como "desconectado"
+    // em captive portal, VPN corporativa ou redes de operadora com proxy.
+    private var tentativasAguardandoValidated = 0
+
     private val callbackRede = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             atualizarSnapshot()
@@ -58,7 +63,7 @@ class MonitorRedeAndroid(
             atualizarSnapshot()
             // getNetworkCapabilities() pode retornar null transientemnte logo após o registro;
             // o retry garante o estado correto caso onAvailable ainda não tenha disparado.
-            mainHandler.postDelayed(runnableRetry, 350)
+            mainHandler.postDelayed(runnableRetry, 600)
         } catch (_: SecurityException) {
             mutableSnapshotFlow.value = SnapshotRede.desconectado(System.currentTimeMillis())
         }
@@ -97,7 +102,39 @@ class MonitorRedeAndroid(
                 else -> EstadoConexao.desconhecido
             }
 
-        val conectado = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        // #123: exige VALIDATED além de INTERNET para considerar conectado.
+        // Fallback temporal: se INTERNET está presente mas VALIDATED ainda não,
+        // agenda um retry e considera conectado após 1 tentativa — evita travar o
+        // usuário como "desconectado" em captive portal, VPN corporativa ou proxy de operadora.
+        // estadoConexao (wifi/movel/desconectado) não exige VALIDATED — permanece inalterado.
+        val temInternet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        val temValidated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        val conectado = when {
+            temInternet && temValidated -> {
+                tentativasAguardandoValidated = 0
+                true
+            }
+            temInternet && !temValidated -> {
+                // VALIDATED ainda não chegou — pode ser Samsung One UI disparando onAvailable cedo,
+                // captive portal, VPN ou proxy de operadora.
+                if (tentativasAguardandoValidated >= 1) {
+                    // Já esperamos 1 ciclo de retry (600 ms) — fallback: considera conectado
+                    // para não travar o usuário. onCapabilitiesChanged vai corrigir se mudar.
+                    tentativasAguardandoValidated = 0
+                    true
+                } else {
+                    tentativasAguardandoValidated++
+                    // Agenda retry: onCapabilitiesChanged normalmente chega com VALIDATED em seguida.
+                    // Se não chegar, o retry dispara e no próximo ciclo o fallback acima assume.
+                    mainHandler.postDelayed(runnableRetry, 600)
+                    false
+                }
+            }
+            else -> {
+                tentativasAguardandoValidated = 0
+                false
+            }
+        }
         val linkProperties = connectivityManager.getLinkProperties(network)
         val privateDnsHostname = linkProperties?.privateDnsServerName?.trim()?.ifBlank { null }
         val dnsServidores =
