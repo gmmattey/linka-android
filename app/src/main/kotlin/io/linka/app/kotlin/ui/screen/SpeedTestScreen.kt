@@ -572,7 +572,7 @@ private fun ConcluidoCircle(onIniciarTeste: () -> Unit) {
                 .clip(CircleShape)
                 .background(LkColors.success.copy(alpha = 0.1f))
                 .border(2.dp, LkColors.success, CircleShape)
-                .semantics { contentDescription = "Teste concluído. Toque para repetir." }
+                .semantics { contentDescription = "Iniciar novo teste" }
                 .clickable(onClick = onIniciarTeste),
         contentAlignment = Alignment.Center,
     ) {
@@ -584,7 +584,7 @@ private fun ConcluidoCircle(onIniciarTeste: () -> Unit) {
                 modifier = Modifier.size(40.dp),
             )
             Spacer(Modifier.height(4.dp))
-            Text(text = "Repetir", style = MaterialTheme.typography.titleLarge, color = LkColors.success, fontWeight = FontWeight.W600)
+            Text(text = "Iniciar teste", style = MaterialTheme.typography.titleLarge, color = LkColors.success, fontWeight = FontWeight.W600)
         }
     }
 }
