@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -70,6 +71,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -95,7 +97,6 @@ import io.linka.app.kotlin.ui.LkSpacing
 import io.linka.app.kotlin.ui.LkTokens
 import io.linka.app.kotlin.ui.LocalLkTokens
 import io.linka.app.kotlin.ui.component.ProfileAvatarButton
-import io.linka.app.kotlin.ui.component.rememberTopBarAlpha
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,8 +123,7 @@ fun SpeedTestScreen(
     planoInternet: String = "",
 ) {
     val c = LocalLkTokens.current
-    val scrollState = rememberScrollState()
-    val topBarAlpha = scrollState.rememberTopBarAlpha()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     // NAV-E: BackHandler com confirmação durante execução do teste
     val estaExecutando = snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.executando
@@ -188,10 +188,10 @@ fun SpeedTestScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = c.bgPrimary,
         topBar = {
             CenterAlignedTopAppBar(
-                modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = Icons.Outlined.Speed, contentDescription = null, tint = c.textPrimary, modifier = Modifier.size(18.dp))
@@ -212,6 +212,7 @@ fun SpeedTestScreen(
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
@@ -220,7 +221,7 @@ fun SpeedTestScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .verticalScroll(scrollState)
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = LkSpacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
