@@ -352,7 +352,7 @@ class MainViewModel
                         when (filtroConexao) {
                             FiltroConexaoHistorico.TODOS -> true
                             FiltroConexaoHistorico.WIFI -> m.connectionType == "wifi"
-                            FiltroConexaoHistorico.MOVEL -> m.connectionType == "cellular"
+                            FiltroConexaoHistorico.MOVEL -> m.connectionType == EstadoConexao.movel.name
                         }
                     }.filter { m -> filtroOp == null || m.operadoraMovel == filtroOp }
             }.distinctUntilChanged()
@@ -362,7 +362,7 @@ class MainViewModel
             historico
                 .map { lista ->
                     lista
-                        .filter { it.connectionType == "cellular" }
+                        .filter { it.connectionType == EstadoConexao.movel.name }
                         .mapNotNull { it.operadoraMovel?.trim()?.ifBlank { null } }
                         .distinct()
                         .sorted()
