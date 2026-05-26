@@ -113,6 +113,7 @@ fun SpeedTestScreen(
     onAbrirDiagnostico: () -> Unit,
     onAbrirPing: () -> Unit = {},
     onVerResultado: () -> Unit = {},
+    onAbrirHistorico: () -> Unit = {},
     onAbrirAjustes: () -> Unit = {},
     nomeUsuario: String = "",
     fotoUri: String? = null,
@@ -331,6 +332,7 @@ fun SpeedTestScreen(
                     downloadMbps = resultado.downloadMbps,
                     uploadMbps = resultado.uploadMbps,
                     label = if (modoSelecionado == ModoSpeedtest.triplo) "Média das 3 medições" else "Último resultado",
+                    onClick = onAbrirHistorico,
                 )
                 if (modoSelecionado == ModoSpeedtest.triplo && snapshotSpeedtest.rodadasTriplo.isNotEmpty()) {
                     Spacer(Modifier.height(LkSpacing.sm))
@@ -1298,6 +1300,7 @@ private fun LastResultCard(
     downloadMbps: Double,
     uploadMbps: Double,
     label: String = "Último resultado",
+    onClick: () -> Unit = {},
 ) {
     Row(
         modifier =
@@ -1306,6 +1309,7 @@ private fun LastResultCard(
                 .clip(RoundedCornerShape(LkRadius.card))
                 .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
                 .background(c.bgCard)
+                .clickable(onClick = onClick)
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -1320,6 +1324,13 @@ private fun LastResultCard(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.W600,
             color = LkColors.accent,
+        )
+        Spacer(Modifier.width(LkSpacing.xs))
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+            contentDescription = null,
+            modifier = Modifier.size(12.dp),
+            tint = c.textTertiary,
         )
     }
 }

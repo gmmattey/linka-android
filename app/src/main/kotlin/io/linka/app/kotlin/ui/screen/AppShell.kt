@@ -361,6 +361,7 @@ fun AppShell(
                             },
                             onAbrirPing = { if (Overlay.Ping !in overlayStack) overlayStack.add(Overlay.Ping) },
                             onVerResultado = { if (Overlay.ResultadoVelocidade !in overlayStack) overlayStack.add(Overlay.ResultadoVelocidade) },
+                            onAbrirHistorico = { selectedTab = 3 },
                             onAbrirAjustes = { selectedTab = 4 },
                             nomeUsuario = nomeUsuario,
                             fotoUri = fotoUriUsuario,
