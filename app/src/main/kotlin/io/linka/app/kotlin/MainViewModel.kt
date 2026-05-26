@@ -133,6 +133,17 @@ class MainViewModel
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
         }
 
+        // #82 — Banner Anatel dismissível
+        val anatelBannerDismissed: StateFlow<Boolean> by lazy {
+            preferenciasAppRepository.anatelBannerDismissedFlow
+                .distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        }
+
+        fun dispensarBannerAnatel() {
+            viewModelScope.launch { preferenciasAppRepository.definirAnatelBannerDismissed(true) }
+        }
+
         fun marcarOnboardingConcluido() {
             viewModelScope.launch { preferenciasAppRepository.definirOnboardingConcluido(true) }
         }

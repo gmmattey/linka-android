@@ -87,7 +87,7 @@
     <string name="home_medicoes_sem_dados">Faça um teste para ver o histórico de velocidade aqui.</string>
     <string name="home_btn_fazer_teste_agora">Fazer teste agora</string>
     <string name="home_btn_medir_velocidade">Medir velocidade</string>
-    <string name="home_secao_experiencia">EXPERIÊNCIA DE USO</string>
+    <string name="home_secao_experiencia">O QUE VOCÊ CONSEGUE FAZER</string>
     <string name="home_shortcut_diagnostico_titulo">Diagnóstico Inteligente</string>
     <string name="home_shortcut_diagnostico_descricao">Realize o diagnóstico da sua rede com IA</string>
     <string name="home_shortcut_gaming_titulo">Jogar Online</string>
@@ -153,6 +153,18 @@
     <string name="home_qualidade_titulo">Qualidade da minha internet</string>
     <string name="home_qualidade_em_breve">Em breve</string>
     <string name="home_qualidade_descricao">Estamos desenvolvendo uma análise com IA para avaliar automaticamente a qualidade da sua conexão e gerar insights personalizados.</string>
+
+    <!-- #82 Home reorganização -->
+    <string name="home_banner_anatel_titulo">Regulação Anatel</string>
+    <string name="home_banner_anatel_descricao">Resultados de velocidade podem diferir do contratado conforme regulação Anatel vigente.</string>
+    <string name="home_atraso_extra_titulo">Atraso extra na conexão</string>
+    <string name="home_atraso_extra_subtexto">Latência extra durante uso intenso da rede</string>
+    <string name="home_atraso_extra_otimo">Ótimo</string>
+    <string name="home_atraso_extra_aceitavel">Aceitável</string>
+    <string name="home_atraso_extra_alto">Alto</string>
+    <string name="home_minicard_dns">DNS</string>
+    <string name="home_minicard_ping">Ping</string>
+    <string name="home_minicard_diagnostico">Diagnóstico</string>
 
     <!-- Fibra: erros de conexão com o modem -->
     <string name="fibra_erro_modem_inacessivel">Não foi possível conectar ao modem. Verifique se o endereço IP está correto e se o modem está ligado.</string>
