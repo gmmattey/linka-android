@@ -713,12 +713,6 @@ class MainViewModel
                                 resultado.result.modeloIa.nomeExibicao.ifBlank { "Linka IA" },
                                 false,
                             )
-                        is AiDiagnosisState.fallback ->
-                            Triple(
-                                resultado.result.textoLaudo.ifBlank { resultado.result.resumo },
-                                resultado.result.modeloIa.nomeExibicao.ifBlank { "Linka IA" },
-                                false,
-                            )
                         else -> Triple("", null, true)
                     }
 

@@ -52,6 +52,7 @@ import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -285,14 +286,72 @@ fun DiagnosticoScreen(
                     }
                 }
 
-                is UiState.Error ->
-                    DiagnosticoErroContent(
-                        c = c,
-                        onTentar = {
-                            onAnaliseSolicitadaChange(false)
-                            onAiStateChange(AiDiagnosisState.idle)
-                        },
-                    )
+                is UiState.Error -> {
+                    val isAiError = uiState.message != "Não foi possível diagnosticar a conexão."
+                    if (isAiError) {
+                        val codigoAmigavel = when {
+                            uiState.message.contains("timeout", ignoreCase = true) -> "ERR_TIMEOUT"
+                            uiState.message.contains("503") || uiState.message.contains("504") -> "ERR_SERVIDOR_INDISPONIVEL"
+                            uiState.message.contains("sem_relatorio") -> "ERR_SEM_DADOS"
+                            else -> uiState.message.take(40)
+                        }
+                        var mostrarDetalhes by remember { mutableStateOf(false) }
+                        AlertDialog(
+                            onDismissRequest = { onAiStateChange(AiDiagnosisState.idle) },
+                            title = { Text("Falha na conexão com a IA") },
+                            text = {
+                                Column {
+                                    Text("Não foi possível conectar ao servidor de análise. Verifique sua conexão e tente novamente.")
+                                    if (mostrarDetalhes) {
+                                        Spacer(Modifier.height(LkSpacing.sm))
+                                        Text(
+                                            "Código: $codigoAmigavel",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = c.textTertiary,
+                                        )
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        scope.launch {
+                                            val relatorio = snapshotDiagnostico.relatorio ?: return@launch
+                                            onAiStateChange(AiDiagnosisState.loading)
+                                            val connectionType = snapshotDiagnostico.input?.connectionType ?: ConnectionType.desconhecido
+                                            val ctx = DiagnosisAiContextFactory.from(relatorio, snapshotDiagnostico.input, connectionType)
+                                            onAiStateChange(aiRepository.explainDiagnosis(ctx) { AiFallbackFactory.fromLocal(relatorio) })
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                                ) { Text("Tentar novamente") }
+                            },
+                            dismissButton = {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    TextButton(onClick = {
+                                        onAnaliseSolicitadaChange(false)
+                                        onAiStateChange(AiDiagnosisState.idle)
+                                    }) { Text("Sair") }
+                                    TextButton(onClick = { mostrarDetalhes = !mostrarDetalhes }) {
+                                        Text(
+                                            if (mostrarDetalhes) "Ocultar detalhes" else "Ver detalhes",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = c.textTertiary,
+                                        )
+                                    }
+                                }
+                            },
+                        )
+                    } else {
+                        DiagnosticoErroContent(
+                            c = c,
+                            onTentar = {
+                                onAnaliseSolicitadaChange(false)
+                                onAiStateChange(AiDiagnosisState.idle)
+                            },
+                        )
+                    }
+                }
             }
         }
     }
@@ -310,8 +369,9 @@ private fun resolveUiState(
     if (ai is AiDiagnosisState.success) {
         return UiState.Success(DiagnosticoUiData.Resultado(ai.result, isFallback = false))
     }
-    if (ai is AiDiagnosisState.fallback) {
-        return UiState.Success(DiagnosticoUiData.Resultado(ai.result, isFallback = true))
+    if (ai is AiDiagnosisState.fallback || ai is AiDiagnosisState.error) {
+        val code = if (ai is AiDiagnosisState.error) ai.code else "ERR_SERVIDOR_INDISPONIVEL"
+        return UiState.Error(code)
     }
     if (ai is AiDiagnosisState.loading) {
         return UiState.Success(DiagnosticoUiData.Carregando(DiagnosticoFase.Ia))
