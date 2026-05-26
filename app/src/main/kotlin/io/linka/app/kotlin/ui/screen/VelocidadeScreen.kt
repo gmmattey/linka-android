@@ -36,13 +36,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
-import androidx.compose.ui.res.stringResource
-import io.linka.app.kotlin.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.linka.app.kotlin.R
 import io.linka.app.kotlin.feature.speedtest.EstadoExecucaoSpeedtest
 import io.linka.app.kotlin.feature.speedtest.FaseSpeedtest
 import io.linka.app.kotlin.feature.speedtest.SnapshotExecucaoSpeedtest
@@ -402,15 +402,16 @@ private fun ErroContent(
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(LkSpacing.sm))
-        val textoExibido = when (mensagem) {
-            "erroModemInacessivel"      -> stringResource(R.string.fibra_erro_modem_inacessivel)
-            "erroTimeout"               -> stringResource(R.string.fibra_erro_timeout)
-            "erroRespostaModemInvalida" -> stringResource(R.string.fibra_erro_resposta_invalida)
-            "erroComunicacaoModem"      -> stringResource(R.string.fibra_erro_comunicacao)
-            "semRede"                   -> stringResource(R.string.fibra_erro_sem_rede)
-            null                        -> "Verifique sua conexão e tente novamente."
-            else                        -> mensagem
-        }
+        val textoExibido =
+            when (mensagem) {
+                "erroModemInacessivel" -> stringResource(R.string.fibra_erro_modem_inacessivel)
+                "erroTimeout" -> stringResource(R.string.fibra_erro_timeout)
+                "erroRespostaModemInvalida" -> stringResource(R.string.fibra_erro_resposta_invalida)
+                "erroComunicacaoModem" -> stringResource(R.string.fibra_erro_comunicacao)
+                "semRede" -> stringResource(R.string.fibra_erro_sem_rede)
+                null -> "Verifique sua conexão e tente novamente."
+                else -> stringResource(R.string.fibra_erro_generico)
+            }
         Text(
             text = textoExibido,
             style = MaterialTheme.typography.bodyMedium,

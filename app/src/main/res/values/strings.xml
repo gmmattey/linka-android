@@ -160,4 +160,5 @@
     <string name="fibra_erro_resposta_invalida">O modem retornou uma resposta inesperada. Tente novamente ou verifique as credenciais.</string>
     <string name="fibra_erro_comunicacao">Não foi possível se comunicar com o modem. Tente novamente em instantes.</string>
     <string name="fibra_erro_sem_rede">Sem conexão com a rede. Verifique o Wi-Fi ou cabo de rede e tente novamente.</string>
+    <string name="fibra_erro_generico">Ocorreu um erro inesperado. Tente novamente.</string>
 </resources>
