@@ -44,6 +44,13 @@ class PreferenciasAppRepository(
 
     private val ONBOARDING_CONCLUIDO = booleanPreferencesKey("onboarding_concluido")
 
+    // Banner Anatel dismissível — #82
+    private val chaveAnatelBannerDismissed = booleanPreferencesKey("anatelBannerDismissed")
+
+    // Velocidade contratada — MinhaConexaoScreen / Laudo (#85)
+    private val chaveVelocidadeContratadaDownMbps = intPreferencesKey("velocidadeContratadaDownMbps")
+    private val chaveVelocidadeContratadaUpMbps = intPreferencesKey("velocidadeContratadaUpMbps")
+
     // Speedtest em rede medida (móvel)
     private val chaveSpeedtestPermiteHeavyMovel = booleanPreferencesKey("speedtest_permite_heavy_movel")
     private val chaveSpeedtestMbConsumidosMes = longPreferencesKey("speedtest_mb_consumidos_mes")
@@ -120,6 +127,15 @@ class PreferenciasAppRepository(
 
     val onboardingConcluidoFlow: Flow<Boolean> =
         context.dataStore.data.map { it[ONBOARDING_CONCLUIDO] ?: false }
+
+    val anatelBannerDismissedFlow: Flow<Boolean> =
+        context.dataStore.data.map { it[chaveAnatelBannerDismissed] ?: false }
+
+    val velocidadeContratadaDownMbpsFlow: Flow<Int> =
+        context.dataStore.data.map { it[chaveVelocidadeContratadaDownMbps] ?: 0 }
+
+    val velocidadeContratadaUpMbpsFlow: Flow<Int> =
+        context.dataStore.data.map { it[chaveVelocidadeContratadaUpMbps] ?: 0 }
 
     // Speedtest em rede medida (móvel)
     val speedtestPermiteHeavyMovel: Flow<Boolean> =
@@ -247,6 +263,18 @@ class PreferenciasAppRepository(
         withContext(ioDispatcher) { context.dataStore.edit { it[ONBOARDING_CONCLUIDO] = concluido } }
     }
 
+    suspend fun definirAnatelBannerDismissed(dismissed: Boolean) {
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveAnatelBannerDismissed] = dismissed } }
+    }
+
+    suspend fun definirVelocidadeContratadaDownMbps(mbps: Int) {
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveVelocidadeContratadaDownMbps] = mbps } }
+    }
+
+    suspend fun definirVelocidadeContratadaUpMbps(mbps: Int) {
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveVelocidadeContratadaUpMbps] = mbps } }
+    }
+
     // Setters de speedtest em rede medida (móvel)
     suspend fun setSpeedtestPermiteHeavyMovel(value: Boolean) {
         withContext(ioDispatcher) { context.dataStore.edit { it[chaveSpeedtestPermiteHeavyMovel] = value } }
@@ -298,4 +326,3 @@ class PreferenciasAppRepository(
         withContext(ioDispatcher) { context.dataStore.edit { it.clear() } }
     }
 }
-

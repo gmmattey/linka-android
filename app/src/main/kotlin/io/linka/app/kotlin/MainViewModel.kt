@@ -246,7 +246,11 @@ class MainViewModel
                 ) { regiao, uf, cidade, isp, limite ->
                     listOf<Any?>(regiao, uf, cidade, isp, limite)
                 },
-            ) { primeiro, segundo ->
+                combine(
+                    preferenciasAppRepository.velocidadeContratadaDownMbpsFlow,
+                    preferenciasAppRepository.velocidadeContratadaUpMbpsFlow,
+                ) { down, up -> listOf<Any?>(down, up) },
+            ) { primeiro, segundo, terceiro ->
                 PreferenciasPerfilProvedorUiState(
                     nomeUsuario = primeiro[0] as String,
                     fotoUriUsuario = primeiro[1] as String?,
@@ -257,6 +261,8 @@ class MainViewModel
                     cidadeNome = segundo[2] as String,
                     ispConfirmado = segundo[3] as Boolean,
                     limiteAlertaMbps = segundo[4] as Int,
+                    velocidadeContratadaDownMbps = terceiro[0] as Int,
+                    velocidadeContratadaUpMbps = terceiro[1] as Int,
                 )
             }.distinctUntilChanged()
                 .stateIn(
@@ -884,6 +890,13 @@ class MainViewModel
             }
         }
 
+        fun salvarVelocidadeContratada(downMbps: Int, upMbps: Int) {
+            viewModelScope.launch {
+                preferenciasAppRepository.definirVelocidadeContratadaDownMbps(downMbps)
+                preferenciasAppRepository.definirVelocidadeContratadaUpMbps(upMbps)
+            }
+        }
+
         fun confirmarIspDetectado(operadora: String) {
             viewModelScope.launch {
                 preferenciasAppRepository.definirOperadora(operadora)
@@ -1376,6 +1389,8 @@ class MainViewModel
             val cidadeNome: String = "",
             val ispConfirmado: Boolean = false,
             val limiteAlertaMbps: Int = 0,
+            val velocidadeContratadaDownMbps: Int = 0,
+            val velocidadeContratadaUpMbps: Int = 0,
         )
 
         data class PreferenciasSpeedtestMovelUiState(
