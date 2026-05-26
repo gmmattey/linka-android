@@ -694,7 +694,18 @@ class MainViewModel
                             .also { diagAiContext = it }
                     }
 
-                    val ctxComPergunta = ctx.copy(feedbackUsuario = pergunta)
+                    // Inclui histórico recente para dar contexto conversacional ao Worker.
+                    // O Worker detecta feedbackUsuario e muda para modo chat (resposta direta).
+                    val historicoContexto = historicoAtual.takeLast(6).joinToString("\n") { entry ->
+                        if (entry.autor == DiagChatAutor.Usuario) "Usuário: ${entry.texto.take(200)}"
+                        else "IA: ${entry.texto.take(300)}"
+                    }
+                    val feedbackComHistorico = if (historicoContexto.isNotBlank()) {
+                        "Histórico:\n$historicoContexto\n\nPergunta atual: $pergunta"
+                    } else {
+                        pergunta
+                    }
+                    val ctxComPergunta = ctx.copy(feedbackUsuario = feedbackComHistorico.take(1000))
                     val snap = diagnosticOrchestrator.snapshotFlow.value
                     val relatorio = snap.relatorio
 
