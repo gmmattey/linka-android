@@ -530,8 +530,8 @@ class MainViewModel
                 }
                 try {
                     executarSpeedtest(modo)
-                    acumularMbConsumidos(modo)
                 } finally {
+                    acumularMbConsumidos(modo)
                     iniciarRotinasNaoSpeedtest()
                 }
             }
@@ -544,8 +544,8 @@ class MainViewModel
             viewModelScope.launch {
                 try {
                     executarSpeedtest(modo)
-                    acumularMbConsumidos(modo)
                 } finally {
+                    acumularMbConsumidos(modo)
                     iniciarRotinasNaoSpeedtest()
                 }
             }
