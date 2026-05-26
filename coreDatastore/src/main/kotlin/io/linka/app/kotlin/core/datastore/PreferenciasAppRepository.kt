@@ -43,8 +43,6 @@ class PreferenciasAppRepository(
     private val chaveUltimaVersaoVista = stringPreferencesKey("ultimaVersaoVista")
 
     private val ONBOARDING_CONCLUIDO = booleanPreferencesKey("onboarding_concluido")
-
-    // Banner Anatel dismissível — #82
     private val chaveAnatelBannerDismissed = booleanPreferencesKey("anatelBannerDismissed")
 
     // Velocidade contratada — MinhaConexaoScreen / Laudo (#85)
@@ -136,6 +134,7 @@ class PreferenciasAppRepository(
 
     val velocidadeContratadaUpMbpsFlow: Flow<Int> =
         context.dataStore.data.map { it[chaveVelocidadeContratadaUpMbps] ?: 0 }
+
 
     // Speedtest em rede medida (móvel)
     val speedtestPermiteHeavyMovel: Flow<Boolean> =
@@ -274,6 +273,7 @@ class PreferenciasAppRepository(
     suspend fun definirVelocidadeContratadaUpMbps(mbps: Int) {
         withContext(ioDispatcher) { context.dataStore.edit { it[chaveVelocidadeContratadaUpMbps] = mbps } }
     }
+
 
     // Setters de speedtest em rede medida (móvel)
     suspend fun setSpeedtestPermiteHeavyMovel(value: Boolean) {

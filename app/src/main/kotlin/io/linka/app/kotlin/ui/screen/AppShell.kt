@@ -233,6 +233,9 @@ fun AppShell(
     velocidadeContratadaUpMbps: Int = 0,
     onSalvarVelocidadeContratada: (downMbps: Int, upMbps: Int) -> Unit = { _, _ -> },
     onSalvarConexaoDadosCompletos: (operadora: String, estadoUf: String, cidadeNome: String, downMbps: Int, upMbps: Int) -> Unit = { _, _, _, _, _ -> },
+    // #82 — Banner Anatel dismissível
+    anatelBannerDismissed: Boolean = false,
+    onDispensarBannerAnatel: () -> Unit = {},
 ) {
     val c = LocalLkTokens.current
     // Desempacota UiState<T> → tipos opcionais para as telas filhas que ainda recebem primitivos.
@@ -337,6 +340,12 @@ fun AppShell(
                             onAbrirPerfil = { showPerfilSheet = true },
                             // NAV-B: Sinal agora é tab 2 — navega por tab em vez de overlay
                             onAbrirRedes = { selectedTab = 2 },
+                            anatelBannerDismissed = anatelBannerDismissed,
+                            onDismissAnatelBanner = onDispensarBannerAnatel,
+                            onAbrirDns = { showDnsSheet = true },
+                            onAbrirPing = {
+                                if (Overlay.Ping !in overlayStack) overlayStack.add(Overlay.Ping)
+                            },
                             onAbrirDiagnostico = {
                                 diagInteligenteAnaliseSolicitada = true
                                 diagInteligenteAiState = AiDiagnosisState.idle

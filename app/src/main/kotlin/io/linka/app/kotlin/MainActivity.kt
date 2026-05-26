@@ -156,6 +156,8 @@ class MainActivity : ComponentActivity() {
             val onboardingConcluido = viewModel.onboardingConcluido.collectAsStateWithLifecycle().value
             val diagChatHistorico by viewModel.diagChatHistorico.collectAsStateWithLifecycle()
             val diagChatCarregando by viewModel.diagChatCarregando.collectAsStateWithLifecycle()
+            // #82 — Banner Anatel dismissível
+            val anatelBannerDismissed = viewModel.anatelBannerDismissed.collectAsStateWithLifecycle().value
 
             val gatewayIpDetectado = gateways.firstOrNull()?.ip
             val darkTheme =
@@ -314,6 +316,8 @@ class MainActivity : ComponentActivity() {
                             viewModel.salvarEstadoCidade(uf, cidade)
                             viewModel.salvarVelocidadeContratada(down, up)
                         },
+                        anatelBannerDismissed = anatelBannerDismissed,
+                        onDispensarBannerAnatel = { viewModel.dispensarBannerAnatel() },
                     )
                 } // else onboardingConcluido
             }

@@ -156,6 +156,10 @@ fun HomeScreen(
     fotoUriUsuario: String?,
     connectedNetwork: RedeVizinha?,
     movelSnapshot: MovelSnapshot?,
+    anatelBannerDismissed: Boolean,
+    onDismissAnatelBanner: () -> Unit,
+    onAbrirDns: () -> Unit,
+    onAbrirPing: () -> Unit,
     onNovoTeste: () -> Unit,
     onAbrirHistorico: () -> Unit,
     onAbrirPerfil: () -> Unit,
@@ -475,7 +479,7 @@ fun HomeScreen(
                 }
             }
 
-            // 3. Experiência de uso (imediatamente após o gráfico)
+            // 3. O que você consegue fazer (ex-Experiência de Uso) — #82
             item {
                 LinkaCard(c) {
                     ExperienciaDeUsoSection(
@@ -488,7 +492,29 @@ fun HomeScreen(
                 }
             }
 
-            // 4. Signal card (WiFi tap → abre tela Redes; mobile → sheet)
+            // 4. Banner Anatel (dismissível) — #82
+            if (!anatelBannerDismissed) {
+                item {
+                    AnatelBanner(onDismiss = onDismissAnatelBanner, c = c)
+                }
+            }
+
+            // 5. Atraso extra na conexão (Bufferbloat) — #82
+            item {
+                BufferbloatCard(bufferbloatMs = ultimaMedicao?.bufferbloatMs, c = c)
+            }
+
+            // 6. Mini-cards: DNS / Ping / Diagnóstico — #82
+            item {
+                MiniCardsRow(
+                    c = c,
+                    onAbrirDns = onAbrirDns,
+                    onAbrirPing = onAbrirPing,
+                    onAbrirDiagnostico = onAbrirDiagnostico,
+                )
+            }
+
+            // 7. Signal card (WiFi tap → abre tela Redes; mobile → sheet)
             item {
                 SignalCard(
                     snapshotRede = snapshotRede,
@@ -500,14 +526,7 @@ fun HomeScreen(
                 )
             }
 
-            // 5. Qualidade shortcut — visível apenas quando algum modo de diagnóstico está ativo
-            if (FeatureFlags.DIAGNOSTICO_CHAT || FeatureFlags.DIAGNOSTICO_ITERATIVO) {
-                item {
-                    QualidadeShortcutRow(history = history, c = c, onClick = onAbrirDiagnostico)
-                }
-            }
-
-            // 6. Jogar Online shortcut
+            // 8. Jogar Online shortcut
             item {
                 GamerShortcutCard(c = c, onClick = { showGamerSheet = true })
             }
@@ -530,6 +549,213 @@ private fun LinkaCard(
     ) {
         Box(modifier = Modifier.padding(LkSpacing.lg)) {
             content()
+        }
+    }
+}
+
+// ─── #82 AnatelBanner ─────────────────────────────────────────────────────────
+
+@Composable
+private fun AnatelBanner(
+    onDismiss: () -> Unit,
+    c: LkTokens,
+) {
+    Card(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .border(1.dp, LkColors.warning.copy(alpha = 0.50f), RoundedCornerShape(LkRadius.card)),
+        colors = CardDefaults.cardColors(containerColor = LkColors.warning.copy(alpha = 0.08f)),
+        shape = RoundedCornerShape(LkRadius.card),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.CellTower,
+                contentDescription = null,
+                tint = LkColors.warning,
+                modifier = Modifier.size(20.dp),
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    stringResource(R.string.home_banner_anatel_titulo),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    stringResource(R.string.home_banner_anatel_descricao),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            androidx.compose.material3.IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = "Dispensar",
+                    tint = c.textSecondary,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+    }
+}
+
+// ─── #82 BufferbloatCard ───────────────────────────────────────────────────────
+
+@Composable
+private fun BufferbloatCard(
+    bufferbloatMs: Double?,
+    c: LkTokens,
+) {
+    if (bufferbloatMs == null) return
+    val (badgeLabel, badgeColor, badgeBg) =
+        when {
+            bufferbloatMs <= 5.0 ->
+                Triple(
+                    stringResource(R.string.home_atraso_extra_otimo),
+                    LkColors.success,
+                    LkColors.success.copy(alpha = 0.12f),
+                )
+            bufferbloatMs <= 30.0 ->
+                Triple(
+                    stringResource(R.string.home_atraso_extra_aceitavel),
+                    LkColors.warning,
+                    LkColors.warning.copy(alpha = 0.12f),
+                )
+            else ->
+                Triple(
+                    stringResource(R.string.home_atraso_extra_alto),
+                    LkColors.error,
+                    LkColors.error.copy(alpha = 0.12f),
+                )
+        }
+    LinkaCard(c) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Wifi,
+                contentDescription = null,
+                tint = LkColors.accent,
+                modifier = Modifier.size(20.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.home_atraso_extra_titulo),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.W600,
+                    color = c.textPrimary,
+                )
+                Text(
+                    stringResource(R.string.home_atraso_extra_subtexto),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.textTertiary,
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Box(
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(badgeBg)
+                            .padding(horizontal = LkSpacing.sm, vertical = LkSpacing.xs),
+                ) {
+                    Text(badgeLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.W600, color = badgeColor)
+                }
+                Text(
+                    "${bufferbloatMs.toInt()} ms",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = c.textTertiary,
+                )
+            }
+        }
+    }
+}
+
+// ─── #82 MiniCardsRow ─────────────────────────────────────────────────────────
+
+@Composable
+private fun MiniCardsRow(
+    c: LkTokens,
+    onAbrirDns: () -> Unit,
+    onAbrirPing: () -> Unit,
+    onAbrirDiagnostico: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+    ) {
+        MiniCard(
+            icon = Icons.Outlined.Language,
+            label = stringResource(R.string.home_minicard_dns),
+            onClick = onAbrirDns,
+            modifier = Modifier.weight(1f),
+            c = c,
+        )
+        MiniCard(
+            icon = Icons.Outlined.Wifi,
+            label = stringResource(R.string.home_minicard_ping),
+            onClick = onAbrirPing,
+            modifier = Modifier.weight(1f),
+            c = c,
+        )
+        MiniCard(
+            icon = Icons.Outlined.Insights,
+            label = stringResource(R.string.home_minicard_diagnostico),
+            onClick = onAbrirDiagnostico,
+            modifier = Modifier.weight(1f),
+            c = c,
+        )
+    }
+}
+
+@Composable
+private fun MiniCard(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    c: LkTokens,
+) {
+    Surface(
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(LkRadius.card))
+                .clickable(onClick = onClick),
+        shape = RoundedCornerShape(LkRadius.card),
+        color = c.bgCard,
+        border = androidx.compose.foundation.BorderStroke(1.dp, c.border),
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = LkSpacing.md, horizontal = LkSpacing.sm),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(LkSpacing.xs),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = LkColors.accent,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.W600,
+                color = c.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
