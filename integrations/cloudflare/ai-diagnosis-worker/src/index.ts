@@ -98,6 +98,38 @@ Saída esperada (campos críticos):
 - impacto.streaming: "OK" (download alto sustenta streaming)
 - impacto.videochamada: "Comprometida" ou "Instavel" (jitter 25 ms compromete chamadas)`;
 
+// Prompt e schema para modo chat (follow-up do usuário após o diagnóstico inicial).
+// O Worker detecta este modo quando `feedbackUsuario` está presente no payload.
+const CHAT_SYSTEM_PROMPT = `Você é o assistente de rede do app LINKA.
+O usuário acabou de ver o diagnóstico da conexão e tem uma pergunta de follow-up.
+Responda DIRETAMENTE à pergunta com orientações práticas e específicas.
+REGRAS:
+1. NÃO repita o diagnóstico já feito — o usuário já o leu.
+2. Vá direto à solução ou à informação pedida.
+3. Use os dados de rede do payload para contextualizar, mas o foco é responder a pergunta.
+4. Responda em português brasileiro, tom direto e prático. Máximo 5 linhas no textoLaudo.
+5. Responda exclusivamente em JSON válido seguindo o schema informado.`;
+
+const CHAT_SCHEMA_HINT = `Schema JSON de retorno (responda APENAS com este formato, sem markdown):
+{
+  "schemaVersion": "2",
+  "source": "cloudflare_ai",
+  "generatedAt": 0,
+  "modeloIa": {},
+  "status": "bom",
+  "titulo": "Resposta",
+  "resumo": "<1 frase resumindo a resposta>",
+  "textoLaudo": "<resposta direta e prática à pergunta do usuário, 3-5 linhas>",
+  "classificacaoTecnica": {"velocidade":{"avaliacao":"inconclusiva","justificativa":""},"estabilidade":{"avaliacao":"inconclusiva","justificativa":""},"wifi":{"avaliacao":"inconclusiva","justificativa":""},"dns":{"avaliacao":"inconclusiva","justificativa":""},"fibra":{"avaliacao":"inconclusiva","justificativa":""}},
+  "problemaPrincipal": {"tipo":"sem_problema","descricao":"","confianca":0.5},
+  "hipotesesDescartadas": [],
+  "impacto": {"navegacao":"OK","streaming":"OK","videochamada":"OK","jogos":"OK","trabalho":"OK"},
+  "acoesRecomendadas": [],
+  "perguntasContextuais": [],
+  "evidencias": [],
+  "limitesDaAnalise": []
+}`;
+
 // Hint do schema v2 enviado junto ao prompt do usuario. O Worker tambem
 // sobrescreve campos criticos pos-parse (modeloIa, schemaVersion, source,
 // generatedAt) para garantir consistencia mesmo se a IA divergir.
@@ -419,6 +451,13 @@ export default {
       // na resposta exibida ao usuario. Util para auditar qual modelo respondeu.
       console.log("AI diagnosis model:", model);
 
+      // Detecta modo chat: quando feedbackUsuario esta presente o cliente envia
+      // uma pergunta de follow-up — o Worker muda tom e schema para resposta direta.
+      const isChat = !!(payload as Record<string, unknown>).feedbackUsuario;
+      const systemPrompt = isChat ? CHAT_SYSTEM_PROMPT : SYSTEM_PROMPT;
+      const schemaHint = isChat ? CHAT_SCHEMA_HINT : SCHEMA_HINT;
+      console.log("AI diagnosis mode:", isChat ? "chat" : "diagnostic");
+
       // Nao usamos response_format json_schema do Workers AI nesta versao porque:
       //  - Suporte ainda e instavel/inconsistente para varios modelos do binding [ai];
       //  - Habilitar JSON Mode antes de validacao especifica para Gemma 4 26B
@@ -431,11 +470,11 @@ export default {
       try {
         aiResult = await env.AI.run(model, {
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: systemPrompt },
             {
               role: "user",
               content:
-                `Dados do diagnóstico:\n${JSON.stringify(payload)}\n\n${SCHEMA_HINT}`,
+                `Dados do diagnóstico:\n${JSON.stringify(payload)}\n\n${schemaHint}`,
             },
           ],
           // Gemma 4 26B-a4b consome tokens em um campo `reasoning` antes de
