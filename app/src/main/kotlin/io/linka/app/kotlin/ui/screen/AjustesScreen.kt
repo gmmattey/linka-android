@@ -534,7 +534,7 @@ fun AjustesScreen(
             }
             item { HorizontalDivider(color = c.border, thickness = 1.dp) }
             item {
-                val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "—"
+                val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "0 MB"
                 InfoRow(c, "Consumo em testes este mês", mbLabel)
             }
             item { Spacer(Modifier.height(16.dp)) }
