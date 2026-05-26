@@ -596,7 +596,7 @@ private fun NetworkPath(
                     label = gw.name,
                     subLabel =
                         if (isMobileNode && gw.ip == null) {
-                            movelSnapshot?.tecnologia ?: "—"
+                            labelRedeMovel(movelSnapshot)
                         } else {
                             gw.ip ?: "—"
                         },
@@ -659,6 +659,29 @@ private fun nodeDisplay(type: ConnectionNodeType): Pair<ImageVector, String> =
         ConnectionNodeType.Mobile -> Icons.Outlined.CellTower to "Antena móvel"
         ConnectionNodeType.Unknown -> Icons.Outlined.DeviceHub to "Rede"
     }
+
+private fun labelRedeMovel(
+    movelSnapshot: MovelSnapshot?,
+    fallback: String = "—",
+): String {
+    val operadora = movelSnapshot?.operadora
+        ?.trim()
+        ?.split(" ")
+        ?.joinToString(" ") { word ->
+            if (word.equals("BR", ignoreCase = true)) ""
+            else word.lowercase().replaceFirstChar { it.uppercaseChar() }
+        }
+        ?.trim()
+        ?.ifBlank { null }
+    val tecnologia = movelSnapshot?.tecnologia?.ifBlank { null }
+
+    return when {
+        operadora != null && tecnologia != null -> "$operadora · $tecnologia"
+        operadora != null -> operadora
+        tecnologia != null -> tecnologia
+        else -> fallback
+    }
+}
 
 @Composable
 private fun PathNode(
