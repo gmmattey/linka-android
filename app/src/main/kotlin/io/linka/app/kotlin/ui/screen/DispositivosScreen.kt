@@ -1,4 +1,4 @@
-package io.linka.app.kotlin.ui.screen
+﻿package io.linka.app.kotlin.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -637,7 +637,7 @@ private fun DeviceDetailSheet(
         if (mac != null) {
             item {
                 LkListRow(c = c, title = "MAC", trailing = {
-                    Text(mac, style = MaterialTheme.typography.labelSmall, color = c.textSecondary)
+                    Text(mascaraMac(mac), style = MaterialTheme.typography.labelSmall, color = c.textSecondary)
                 })
             }
         }
@@ -790,7 +790,7 @@ private fun MeshApSheet(
         if (mac != null) {
             item {
                 LkListRow(c = c, title = "MAC", trailing = {
-                    Text(mac, style = MaterialTheme.typography.labelSmall, color = c.textSecondary)
+                    Text(mascaraMac(mac), style = MaterialTheme.typography.labelSmall, color = c.textSecondary)
                 })
             }
         }
@@ -818,9 +818,11 @@ private fun SemWifiFallback(
     c: LkTokens,
     hasDadosMoveis: Boolean,
 ) {
+    // #144: mensagem spec-compliant por estado de conexão
+    val titulo = if (hasDadosMoveis) "Dispositivos da rede" else "Sem Wi-Fi"
     val subtitle =
         if (hasDadosMoveis) {
-            "Conecte-se a uma rede Wi-Fi para ver os dispositivos."
+            "Dispositivos da rede só aparecem quando você está conectado a um Wi-Fi."
         } else {
             "Sem conexão de rede. Conecte-se a uma rede Wi-Fi para escanear."
         }
@@ -837,7 +839,7 @@ private fun SemWifiFallback(
             )
             Spacer(Modifier.height(24.dp))
             Text(
-                text = "Sem Wi-Fi",
+                text = titulo,
                 style = MaterialTheme.typography.headlineSmall,
                 color = c.textPrimary,
             )
@@ -847,6 +849,7 @@ private fun SemWifiFallback(
                 style = MaterialTheme.typography.bodyMedium,
                 color = c.textSecondary,
                 lineHeight = 20.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
     }
@@ -1169,3 +1172,13 @@ private fun traduzirErroParaPortugues(erro: String): Pair<String, String> =
             "Erro ao escanear" to "Não foi possível escanear a rede. Tente novamente."
         }
     }
+
+/** Mascara os octetos 3-4 do MAC: ex. "c4:8e:de:ad:1a:2b" → "c4:8e:••:••:1a:2b" */
+private fun mascaraMac(mac: String): String {
+    val partes = mac.trim().split(":")
+    return if (partes.size == 6) {
+        "${partes[0]}:${partes[1]}:••:••:${partes[4]}:${partes[5]}"
+    } else {
+        mac
+    }
+}
