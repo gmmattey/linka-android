@@ -58,6 +58,8 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ### Fixed
 
+- **Privacidade — MAC address mascarado em DispositivosScreen (#144):** Octetos 3-4 do MAC são substituídos por `••` (ex: `c4:8e:de:ad:1a:2b` → `c4:8e:••:••:1a:2b`). Aplica em DeviceDetailSheet e MeshApSheet. Estado sem Wi-Fi exibe mensagem diferenciada "Dispositivos da rede só aparecem quando você está conectado a um Wi-Fi."
+
 - Botão de iniciar teste sempre exibe "Iniciar teste" — removido label "Repetir" do estado concluído (#91)
 - Status bar (bateria, hora, sinal) visível no modo claro — corrigido `enableEdgeToEdge` com `SystemBarStyle` condicional ao tema (#79)
 - **Acessibilidade TalkBack — Auditoria completa de telas:** Correções em `DispositivosScreen` (DispositivoItem com `role=Button` e contentDescription dinâmica), `LaudoScreen` (link Anatel com `contentDescription`; `LkListRow` recebe role apenas quando interativo), `ResultadoVelocidadeScreen` (toggle "Detalhes avançados" com `stateDescription` dinâmica), e `ProfileAvatarButton` (contentDescription dinâmica com nome do usuário). (#11)

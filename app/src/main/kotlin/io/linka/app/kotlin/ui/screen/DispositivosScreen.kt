@@ -1,4 +1,4 @@
-package io.linka.app.kotlin.ui.screen
+﻿package io.linka.app.kotlin.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -1172,7 +1172,6 @@ private fun traduzirErroParaPortugues(erro: String): Pair<String, String> =
             "Erro ao escanear" to "Não foi possível escanear a rede. Tente novamente."
         }
     }
-
 
 /** Mascara os octetos 3-4 do MAC: ex. "c4:8e:de:ad:1a:2b" → "c4:8e:••:••:1a:2b" */
 private fun mascaraMac(mac: String): String {
