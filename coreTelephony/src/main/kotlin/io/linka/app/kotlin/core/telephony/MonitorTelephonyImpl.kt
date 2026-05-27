@@ -200,7 +200,7 @@ class MonitorTelephonyImpl(
         val operadora = runCatching { tm.networkOperatorName?.takeIf { it.isNotBlank() } }.getOrNull()
         val (mcc, mnc) = parseMccMnc(tm.networkOperator)
         val roaming = runCatching { tm.isNetworkRoaming }.getOrNull()
-        val tecnologia = derivarTecnologia(tm)
+        var tecnologia = derivarTecnologia(tm)
 
         // Tenta obter CellInfo (LTE ou NR).
         val cellInfos = runCatching { tm.allCellInfo }.getOrNull().orEmpty()
@@ -243,6 +243,23 @@ class MonitorTelephonyImpl(
                 bandaMovel = bandaNrFromArfcn(earfcn) ?: id?.bands?.firstOrNull()?.let { "n$it" }
             }
             else -> { /* Outras tecnologias (CDMA/GSM) — sem RSRP. */ }
+        }
+
+        // Fallback via SignalStrength: em devices Samsung Exynos e Xiaomi MIUI 14+ que
+        // retornam allCellInfo vazio sem permissão de localização, celulaServidora fica null
+        // e o override via CellInfoNr abaixo não acontece. Se sinalAtual contém um
+        // CellSignalStrengthNr, há componente NR ativo — evidência direta de 5G NSA.
+        if (tecnologia == "4G") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val temNrSinal = runCatching {
+                    sinalAtual?.cellSignalStrengths
+                        ?.any { it is CellSignalStrengthNr } == true
+                }.getOrDefault(false)
+                if (temNrSinal) {
+                    Log.d(TAG, "Fallback 5G NSA via SignalStrength.cellSignalStrengths contém CellSignalStrengthNr.")
+                    tecnologia = "5G NSA"
+                }
+            }
         }
 
         // derivarTecnologia usa serviceState.toString() para detectar 5G NSA, o que falha
