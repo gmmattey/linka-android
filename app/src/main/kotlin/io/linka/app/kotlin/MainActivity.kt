@@ -433,7 +433,9 @@ class MainActivity : ComponentActivity() {
                     Manifest.permission.NEARBY_WIFI_DEVICES,
                 ) == PackageManager.PERMISSION_GRANTED
             if (!concedida) {
-                solicitacaoPermissaoLocalizacao.launch(Manifest.permission.NEARBY_WIFI_DEVICES)
+                // Usar launcher genérico (múltiplas permissões) para não corromper o
+                // launcher de localização (solicitacaoPermissaoLocalizacao)
+                solicitacaoPermissoes.launch(arrayOf(Manifest.permission.NEARBY_WIFI_DEVICES))
             }
         }
         // Abaixo do API 33, NEARBY_WIFI_DEVICES não existe — no-op; localização cobre o caso
