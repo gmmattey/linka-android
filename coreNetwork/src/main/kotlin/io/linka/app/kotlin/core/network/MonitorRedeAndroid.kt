@@ -25,9 +25,10 @@ class MonitorRedeAndroid(
     private val locationManager =
         applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-    private val mutableSnapshotFlow = MutableStateFlow(calcularSnapshotAtual())
-    override val snapshotFlow: StateFlow<SnapshotRede> = mutableSnapshotFlow.asStateFlow()
-
+    // ATENÇÃO — ordem de inicialização crítica:
+    // calcularSnapshotAtual() é chamado durante a inicialização de mutableSnapshotFlow.
+    // Todos os campos que calcularSnapshotAtual() acessa devem ser declarados ANTES dele,
+    // caso contrário serão null no momento da chamada → NullPointerException na inicialização.
     private var callbackRegistrado = false
     private val mainHandler = Handler(Looper.getMainLooper())
     private val runnableRetry = Runnable { if (callbackRegistrado) atualizarSnapshot() }
@@ -37,6 +38,10 @@ class MonitorRedeAndroid(
     // em captive portal, VPN corporativa ou redes de operadora com proxy.
     // AtomicInteger: acesso concorrente entre main thread (Handler) e thread do ConnectivityManager.
     private val tentativasAguardandoValidated = AtomicInteger(0)
+
+    // Inicializado após todas as dependências de calcularSnapshotAtual() acima.
+    private val mutableSnapshotFlow = MutableStateFlow(calcularSnapshotAtual())
+    override val snapshotFlow: StateFlow<SnapshotRede> = mutableSnapshotFlow.asStateFlow()
 
     // Runnable de debounce para transição ao estado desconectado.
     // onLost pode disparar antes de onAvailable durante handoff Wi-Fi → Mobile (e vice-versa).

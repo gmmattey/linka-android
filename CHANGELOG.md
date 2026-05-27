@@ -6,6 +6,14 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
+## [0.11.2] — 2026-05-27
+
+### Fixed
+
+- **Crash na abertura do app (NullPointerException em MonitorRedeAndroid):** Bug de ordem de inicialização — `calcularSnapshotAtual()` era chamado durante a inicialização de `mutableSnapshotFlow` (linha 28), antes que `tentativasAguardandoValidated`, `mainHandler` e `runnableRetry` fossem inicializados (linhas 32–39). Campos não inicializados retornam `null` na JVM → NPE ao chamar `.set(0)`. Fix: reordenar declarações para que todas as dependências de `calcularSnapshotAtual()` sejam inicializadas antes de `mutableSnapshotFlow`. Latente desde 0.11.0, amplificado em 0.11.1 com distribuição pelo Firebase (244 crashes, 81 usuários afetados em 1 dia).
+
+---
+
 ## [0.11.1] — 2026-05-27
 
 ### Fixed
