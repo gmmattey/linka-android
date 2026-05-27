@@ -541,8 +541,9 @@ private suspend fun gerarECompartilharLaudo(
 
 /** Mascara o último octeto de um IPv4 para proteger dados sensíveis no laudo.
  * Ex: "192.168.1.100" → "192.168.1.*"
- * IPs que não seguem o padrão IPv4 são retornados sem alteração. */
+ * IPv6 e formatos não-IPv4 são retornados sem alteração.
+ * Input é trimado para lidar com espaços acidentais. */
 private fun mascaraIpLocal(ip: String): String {
-    val partes = ip.split(".")
-    return if (partes.size == 4) "${partes[0]}.${partes[1]}.${partes[2]}.*" else ip
+    val partes = ip.trim().split(".")
+    return if (partes.size == 4) "${partes[0]}.${partes[1]}.${partes[2]}.*" else ip.trim()
 }
