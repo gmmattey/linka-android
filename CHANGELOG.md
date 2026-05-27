@@ -6,6 +6,38 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
+## [0.11.1] — 2026-05-27
+
+### Fixed
+
+- **Detecção de 5G NSA em Samsung Exynos / Xiaomi MIUI 14+:** Em devices que retornam `allCellInfo` vazio sem permissão de localização, o app exibia "4G" mesmo em rede 5G NSA. Adicionado terceiro mecanismo de detecção via `SignalStrength.cellSignalStrengths` (API 29+): se o objeto contém `CellSignalStrengthNr`, confirma 5G NSA independente de `allCellInfo` ou reflexão via `getNrState()`.
+
+- **Histórico móvel vazio ao filtrar por MOVEL:** Double-filter no modo controlado — AppShell passava lista já filtrada pelo ViewModel, mas `HistoricoScreen` re-filtrava internamente, resultando em lista sempre vazia. Modo controlado agora usa a lista diretamente sem re-filtrar. Estado vazio com mensagem contextual ("Nenhum teste para este filtro") quando não há resultados pós-filtro.
+
+- **Back fecha o app na tab Histórico:** Sem `BackHandler` na tab Histórico (índice 3), o back gesture do sistema encerrava o app. Agora navega para Home (tab 0).
+
+- **Trilha de rede mostra desconectado com internet ativa:** Race condition em `ConnectivityManager.NetworkCallback` — `onLost` disparava antes de `onAvailable` durante handoff Wi-Fi → Móvel, emitindo estado desconectado por 1-3s. Debounce de 2000ms adicionado: `onLost` aguarda antes de confirmar desconexão; `onAvailable` cancela o debounce pendente se a rede voltar na janela.
+
+---
+
+## [0.11.0] — 2026-05-26
+
+### Added
+
+- **Tela Fibra/Modem — Análise avançada do modem/ONT (#168):** `FibraModemScreen.kt` com 5 estados visuais: SemWifi ("A análise do modem só funciona na rede local"), SemCredenciais com CTA para Ajustes, Conectando com skeleton animado e LinearProgressIndicator, Erro com dois botões ("Tentar novamente" + "Revisar configurações"), e Concluído com chip de status geral, bloco de valores técnicos (RX/TX/temperatura/status óptico/modelo com fallback "--") e bloco de interpretação via `FibraSignalQualityEngine`. Senha do modem nunca exposta. `FibraModemUiState.kt` com sealed interface de 5 estados e função `mapearSnapshotFibra` pura.
+
+- **Tela DNS — Benchmark, recomendação e guia de configuração (#167):** `DnsScreen.kt` com 4 blocos: DNS atual (IP, nome amigável, badge "DNS Privado ativo", latência), Benchmark com 7 provedores (Cloudflare, Google, Quad9, OpenDNS, AdGuard, Registro.br, CETIC.br), Recomendação com disclaimer explícito ("Isso não troca o DNS automaticamente"), e Guia colapsável "Como trocar DNS?" com seções "Quando vale a pena" e "Quando não faz diferença". Texto educacional no topo: "DNS afeta abertura de sites, não velocidade." Extraído do AppShell para arquivo próprio.
+
+- **Onboarding — Checkbox de termos e cards de permissão (#165):** Slide 1 exige aceite obrigatório de Termos de Uso e Política de Privacidade antes de avançar (swipe e botão bloqueados). Slide 2 apresenta cards de permissão com ícone, título, descrição e botão de concessão individual para Localização/Wi-Fi (`ACCESS_FINE_LOCATION`) e Dispositivos próximos (`NEARBY_WIFI_DEVICES`, API 33+). Botão "Pular" visível apenas no slide 0. Launcher contextual usa `solicitacaoPermissoes` para não corromper callback de localização.
+
+- **Mensagens humanizadas para estados vazios (#164):** Estados 9.3, 9.4, 9.5 e 9.6 com mensagens em linguagem humana e ícones contextuais. Substitui textos técnicos por explicações práticas de limitações (permissões, offline, recursos não disponíveis).
+
+### Fixed
+
+- **Privacidade — MAC address mascarado em DispositivosScreen (#166):** Octetos 3-4 do MAC são substituídos por `••` (ex: `c4:8e:de:ad:1a:2b` → `c4:8e:••:••:1a:2b`). Aplica em DeviceDetailSheet e MeshApSheet. Estado sem Wi-Fi exibe mensagem diferenciada "Dispositivos da rede só aparecem quando você está conectado a um Wi-Fi."
+
+---
+
 ## [0.9.0] — 2026-05-20
 
 ### Added
