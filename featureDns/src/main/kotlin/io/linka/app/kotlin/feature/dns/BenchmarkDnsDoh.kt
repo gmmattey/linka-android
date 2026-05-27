@@ -105,7 +105,10 @@ class BenchmarkDnsDoh : BenchmarkDns {
                 val inicio = System.nanoTime()
                 InetAddress.getByName(hostConsulta)
                 val ms = (System.nanoTime() - inicio) / 1_000_000.0
-                if (round > 0 && ms >= 3.0) amostras.add(ms)
+                // Round 0 descartado como warmup. Rounds 1-2 sempre incluídos —
+                // o filtro anterior (>= 3ms) excluía DNS rápidos de operadora falsamente
+                // considerando-os "cache do SO". Latência real < 3ms é válida.
+                if (round > 0) amostras.add(ms)
             } catch (_: Throwable) { }
         }
         val tempo = calcularP50(amostras)

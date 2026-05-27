@@ -6,6 +6,14 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
+## [0.11.4] — 2026-05-27
+
+### Fixed
+
+- **DNS atual sem latência no comparativo:** Dois bugs independentes. (1) `resolveDnsName()` não mapeava Registro.br (200.160.0.80, 200.160.2.3) e CETIC.br (191.234.170.40), retornando "DNS do Provedor" para essas IPs. O benchmark identificava corretamente o nome via `inferirNomeSistemaDns()`, criando mismatch no lookup da latência. Adicionados os IPs ao `resolveDnsName()` em sincronia com `mapaIpParaProvedor`. (2) Filtro `>= 3ms` em `medirSistemaDns()` excluía DNS de operadora com respostas rápidas em 5G/4G, resultando em `amostras` vazio e latência null. Filtro removido — round 0 descartado como warmup, rounds 1-2 sempre incluídos independente do tempo.
+
+---
+
 ## [0.11.3] — 2026-05-27
 
 ### Fixed

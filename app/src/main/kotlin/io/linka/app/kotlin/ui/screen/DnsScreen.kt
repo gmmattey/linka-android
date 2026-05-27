@@ -691,6 +691,8 @@ private fun DnsGuideStep(
 
 // ─── Utilitário ───────────────────────────────────────────────────────────────
 
+// Deve estar sincronizado com BenchmarkDnsDoh.mapaIpParaProvedor —
+// qualquer IP adicionado lá precisa ser adicionado aqui também.
 internal fun resolveDnsName(dnsIp: String?): String =
     when (dnsIp) {
         "1.1.1.1", "1.0.0.1" -> "Cloudflare"
@@ -698,5 +700,7 @@ internal fun resolveDnsName(dnsIp: String?): String =
         "9.9.9.9", "149.112.112.112" -> "Quad9"
         "208.67.222.222", "208.67.220.220" -> "OpenDNS"
         "94.140.14.14", "94.140.15.15" -> "AdGuard"
+        "200.160.0.80", "200.160.2.3" -> "Registro.br"
+        "191.234.170.40" -> "CETIC.br"
         else -> "DNS do Provedor"
     }
