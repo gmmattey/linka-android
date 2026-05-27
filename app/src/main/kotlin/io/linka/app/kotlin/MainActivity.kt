@@ -60,6 +60,8 @@ class MainActivity : ComponentActivity() {
 
     private var temPermissaoTelefonia by mutableStateOf(false)
     private var temPermissaoLocalizacao by mutableStateOf(false)
+    // #155/9.3: permissão negada permanentemente (shouldShowRequestPermissionRationale = false E não concedida)
+    private var localizacaoBloqueadaPermanentemente by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -288,6 +290,7 @@ class MainActivity : ComponentActivity() {
                         temPermissaoTelefonia = temPermissaoTelefonia,
                         onSolicitarPermissaoTelefonia = { solicitarPermissaoTelefoniaContextual() },
                         temPermissaoLocalizacao = temPermissaoLocalizacao,
+                        localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                         onSolicitarPermissaoLocalizacao = { solicitarPermissaoLocalizacaoContextual() },
                         orbitUiState = orbitUiState,
                         movelSnapshot = movelSnapshot,
@@ -351,6 +354,9 @@ class MainActivity : ComponentActivity() {
             this,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
+        // #155/9.3: bloqueada = não concedida E não pode mais mostrar rationale
+        localizacaoBloqueadaPermanentemente = !temPermissaoLocalizacao &&
+            !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
         val emWifi = viewModel.monitorRede.snapshotFlow.value.estadoConexao == EstadoConexao.wifi
         if (emWifi) viewModel.verificarDispositivosNovos(this)
     }

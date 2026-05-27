@@ -327,10 +327,10 @@ fun DiagnosticoScreen(
                         var mostrarDetalhes by remember { mutableStateOf(false) }
                         AlertDialog(
                             onDismissRequest = { onAiStateChange(AiDiagnosisState.idle) },
-                            title = { Text("Falha na conexão com a IA") },
+                            title = { Text("IA temporariamente indisponível") },
                             text = {
                                 Column {
-                                    Text("Não foi possível conectar ao servidor de análise. Verifique sua conexão e tente novamente.")
+                                    Text("A IA não respondeu agora. O diagnóstico local continua funcionando.")
                                     if (mostrarDetalhes) {
                                         Spacer(Modifier.height(LkSpacing.sm))
                                         Text(
