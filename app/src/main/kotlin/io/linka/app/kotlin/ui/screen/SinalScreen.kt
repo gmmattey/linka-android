@@ -217,6 +217,7 @@ fun SinalScreen(
     temPermissaoTelefonia: Boolean = false,
     onSolicitarPermissaoTelefonia: () -> Unit = {},
     temPermissaoLocalizacao: Boolean = true,
+    localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
     onRefresh: () -> Unit,
     onVoltar: () -> Unit,
@@ -437,6 +438,7 @@ fun SinalScreen(
             sheetState = locSheetState,
         ) {
             PermissaoLocalizacaoContextoSheet(
+                bloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                 onConceder = {
                     showLocalizacaoSheet = false
                     onSolicitarPermissaoLocalizacao()

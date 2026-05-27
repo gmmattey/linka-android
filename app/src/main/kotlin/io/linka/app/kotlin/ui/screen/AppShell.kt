@@ -206,6 +206,7 @@ fun AppShell(
     temPermissaoTelefonia: Boolean = false,
     onSolicitarPermissaoTelefonia: () -> Unit = {},
     temPermissaoLocalizacao: Boolean = true,
+    localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
     onIniciarOrbit: (foco: String?) -> Unit,
     onResetOrbit: () -> Unit,
@@ -406,6 +407,7 @@ fun AppShell(
                             temPermissaoTelefonia = temPermissaoTelefonia,
                             onSolicitarPermissaoTelefonia = onSolicitarPermissaoTelefonia,
                             temPermissaoLocalizacao = temPermissaoLocalizacao,
+                            localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                             onSolicitarPermissaoLocalizacao = onSolicitarPermissaoLocalizacao,
                             onRefresh = onRefreshSinal,
                             onVoltar = { selectedTab = 0 },
@@ -886,7 +888,7 @@ private fun DnsComparisonSheetContent(
 
             if (snapshotDns.estado == EstadoBenchmarkDns.erro) {
                 Text(
-                    text = "Falha ao executar o benchmark. Tente novamente.",
+                    text = "Não consegui comparar DNS nesta conexão. Tente novamente quando a rede estabilizar.",
                     fontSize = 13.sp,
                     color = LkColors.error,
                 )

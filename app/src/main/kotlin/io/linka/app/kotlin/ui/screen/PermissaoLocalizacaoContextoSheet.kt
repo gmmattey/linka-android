@@ -35,6 +35,8 @@ import io.linka.app.kotlin.ui.LocalLkTokens
 fun PermissaoLocalizacaoContextoSheet(
     onConceder: () -> Unit,
     onAgoraNao: () -> Unit,
+    // #155/9.3: quando true, exibe mensagem de permissão bloqueada permanentemente
+    bloqueadaPermanentemente: Boolean = false,
 ) {
     val c = LocalLkTokens.current
     Column(
@@ -61,42 +63,75 @@ fun PermissaoLocalizacaoContextoSheet(
             modifier = Modifier.size(64.dp),
         )
         Spacer(Modifier.height(LkSpacing.lg))
-        Text(
-            "Por que precisamos da localização?",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.W600,
-            color = c.textPrimary,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(LkSpacing.md))
-        Text(
-            "O Android exige permissão de localização para identificar as redes Wi-Fi ao redor e analisar canais de interferência.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = c.textSecondary,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(LkSpacing.sm))
-        Text(
-            "Não usamos sua localização para rastrear onde você está. Ela nunca sai do dispositivo.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = c.textSecondary,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(LkSpacing.xl))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement =
-                androidx.compose.foundation.layout.Arrangement
-                    .spacedBy(LkSpacing.md),
-        ) {
-            TextButton(
-                onClick = onAgoraNao,
-                modifier = Modifier.weight(1f),
-            ) { Text("Agora não", color = c.textSecondary) }
-            Button(
-                onClick = onConceder,
-                modifier = Modifier.weight(1f),
-            ) { Text("Entendi, conceder") }
+        if (bloqueadaPermanentemente) {
+            // Estado 9.3 — permissão bloqueada permanentemente
+            Text(
+                "Permissão bloqueada",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.W600,
+                color = c.textPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(LkSpacing.md))
+            Text(
+                "A permissão foi bloqueada nas configurações do Android. Para ativar, abra os ajustes do app.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.textSecondary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(LkSpacing.xl))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(LkSpacing.md),
+            ) {
+                TextButton(
+                    onClick = onAgoraNao,
+                    modifier = Modifier.weight(1f),
+                ) { Text("Agora não", color = c.textSecondary) }
+                Button(
+                    onClick = onConceder,
+                    modifier = Modifier.weight(1f),
+                ) { Text("Abrir ajustes do Android") }
+            }
+        } else {
+            // Estado 9.2 — permissão não concedida, pode solicitar
+            Text(
+                "Por que precisamos da localização?",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.W600,
+                color = c.textPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(LkSpacing.md))
+            Text(
+                "O Android exige permissão de localização para identificar as redes Wi-Fi ao redor e analisar canais de interferência.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.textSecondary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(LkSpacing.sm))
+            Text(
+                "Não usamos sua localização para rastrear onde você está. Ela nunca sai do dispositivo.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.textSecondary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(LkSpacing.xl))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    androidx.compose.foundation.layout.Arrangement
+                        .spacedBy(LkSpacing.md),
+            ) {
+                TextButton(
+                    onClick = onAgoraNao,
+                    modifier = Modifier.weight(1f),
+                ) { Text("Agora não", color = c.textSecondary) }
+                Button(
+                    onClick = onConceder,
+                    modifier = Modifier.weight(1f),
+                ) { Text("Entendi, conceder") }
+            }
         }
         Spacer(Modifier.height(LkSpacing.md))
     }
