@@ -32,7 +32,6 @@ import java.util.UUID
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatDiagnosticoIaViewModelTest {
-
     // =========================================================================
     // Helpers e fakes
     // =========================================================================
@@ -79,13 +78,14 @@ class ChatDiagnosticoIaViewModelTest {
         status = status,
     )
 
-    private fun criaSessao(titulo: String = "Nova conversa") = SessaoChatDiagnostico(
-        id = UUID.randomUUID().toString(),
-        titulo = titulo,
-        criadoEmEpochMs = System.currentTimeMillis(),
-        atualizadoEmEpochMs = System.currentTimeMillis(),
-        status = StatusSessao.ativa,
-    )
+    private fun criaSessao(titulo: String = "Nova conversa") =
+        SessaoChatDiagnostico(
+            id = UUID.randomUUID().toString(),
+            titulo = titulo,
+            criadoEmEpochMs = System.currentTimeMillis(),
+            atualizadoEmEpochMs = System.currentTimeMillis(),
+            status = StatusSessao.ativa,
+        )
 
     // =========================================================================
     // Caso 1: onNovaSessao — cria sessão + insere 2 mensagens iniciais
@@ -96,47 +96,51 @@ class ChatDiagnosticoIaViewModelTest {
      * papel de assistente, status concluido e isLocal=true.
      */
     @Test
-    fun `mensagens boas-vindas tem conteudo correto e papel assistente`() = runTest {
-        // Simula o que onNovaSessao insere
-        val sessaoId = "sessao-inicial"
-        val mensagens = mutableListOf<ChatMensagem>()
+    fun `mensagens boas-vindas tem conteudo correto e papel assistente`() =
+        runTest {
+            // Simula o que onNovaSessao insere
+            val sessaoId = "sessao-inicial"
+            val mensagens = mutableListOf<ChatMensagem>()
 
-        val msg1 = ChatMensagem(
-            id = UUID.randomUUID().toString(),
-            sessionId = sessaoId,
-            papel = PapelChatMensagem.assistente,
-            conteudo = "Olá. Sou o Diagnóstico IA do Linka.\n\n" +
-                "Posso ajudar você a entender problemas de internet, Wi-Fi, velocidade, latência, " +
-                "perda de pacote e qualidade da sua rede. Trabalho apenas com assuntos relacionados " +
-                "à sua conexão — não sou um assistente geral e posso cometer erros. Use minhas " +
-                "respostas como apoio, não como verdade absoluta.",
-            criadoEmEpochMs = System.currentTimeMillis(),
-            status = StatusChatMensagem.concluido,
-            isLocal = true,
-        )
-        val msg2 = ChatMensagem(
-            id = UUID.randomUUID().toString(),
-            sessionId = sessaoId,
-            papel = PapelChatMensagem.assistente,
-            conteudo = "Como você quer começar?",
-            criadoEmEpochMs = System.currentTimeMillis(),
-            status = StatusChatMensagem.concluido,
-            isLocal = true,
-        )
-        mensagens.add(msg1)
-        mensagens.add(msg2)
+            val msg1 =
+                ChatMensagem(
+                    id = UUID.randomUUID().toString(),
+                    sessionId = sessaoId,
+                    papel = PapelChatMensagem.assistente,
+                    conteudo =
+                        "Olá. Sou o Diagnóstico IA do Linka.\n\n" +
+                            "Posso ajudar você a entender problemas de internet, Wi-Fi, velocidade, latência, " +
+                            "perda de pacote e qualidade da sua rede. Trabalho apenas com assuntos relacionados " +
+                            "à sua conexão — não sou um assistente geral e posso cometer erros. Use minhas " +
+                            "respostas como apoio, não como verdade absoluta.",
+                    criadoEmEpochMs = System.currentTimeMillis(),
+                    status = StatusChatMensagem.concluido,
+                    isLocal = true,
+                )
+            val msg2 =
+                ChatMensagem(
+                    id = UUID.randomUUID().toString(),
+                    sessionId = sessaoId,
+                    papel = PapelChatMensagem.assistente,
+                    conteudo = "Como você quer começar?",
+                    criadoEmEpochMs = System.currentTimeMillis(),
+                    status = StatusChatMensagem.concluido,
+                    isLocal = true,
+                )
+            mensagens.add(msg1)
+            mensagens.add(msg2)
 
-        // Verificações
-        assertEquals("Deve ter exatamente 2 mensagens iniciais", 2, mensagens.size)
-        assertTrue("Msg1 deve ser do assistente", mensagens[0].papel == PapelChatMensagem.assistente)
-        assertTrue("Msg2 deve ser do assistente", mensagens[1].papel == PapelChatMensagem.assistente)
-        assertTrue("Msg1 deve conter boas-vindas", mensagens[0].conteudo.contains("Diagnóstico IA do Linka"))
-        assertEquals("Msg2 deve ter texto exato", "Como você quer começar?", mensagens[1].conteudo)
-        assertTrue("Msg1 isLocal deve ser true", mensagens[0].isLocal)
-        assertTrue("Msg2 isLocal deve ser true", mensagens[1].isLocal)
-        assertEquals("Msg1 deve ter status concluido", StatusChatMensagem.concluido, mensagens[0].status)
-        assertEquals("Msg2 deve ter status concluido", StatusChatMensagem.concluido, mensagens[1].status)
-    }
+            // Verificações
+            assertEquals("Deve ter exatamente 2 mensagens iniciais", 2, mensagens.size)
+            assertTrue("Msg1 deve ser do assistente", mensagens[0].papel == PapelChatMensagem.assistente)
+            assertTrue("Msg2 deve ser do assistente", mensagens[1].papel == PapelChatMensagem.assistente)
+            assertTrue("Msg1 deve conter boas-vindas", mensagens[0].conteudo.contains("Diagnóstico IA do Linka"))
+            assertEquals("Msg2 deve ter texto exato", "Como você quer começar?", mensagens[1].conteudo)
+            assertTrue("Msg1 isLocal deve ser true", mensagens[0].isLocal)
+            assertTrue("Msg2 isLocal deve ser true", mensagens[1].isLocal)
+            assertEquals("Msg1 deve ter status concluido", StatusChatMensagem.concluido, mensagens[0].status)
+            assertEquals("Msg2 deve ter status concluido", StatusChatMensagem.concluido, mensagens[1].status)
+        }
 
     // =========================================================================
     // Caso 2: onEscolherOpcao(ultimoTeste) sem histórico → mensagem "não encontrei"
@@ -147,8 +151,9 @@ class ChatDiagnosticoIaViewModelTest {
         // Simula o branch de MedicaoEntity == null no ViewModel
         val ultimaMedicao: MedicaoEntity? = null
 
-        val mensagemEsperada = "Não encontrei um teste recente para analisar. " +
-            "Posso executar um novo teste agora e usar os dados para montar o diagnóstico."
+        val mensagemEsperada =
+            "Não encontrei um teste recente para analisar. " +
+                "Posso executar um novo teste agora e usar os dados para montar o diagnóstico."
 
         val chipDeveAparecer: Boolean
 
@@ -181,11 +186,12 @@ class ChatDiagnosticoIaViewModelTest {
         assertNotNull("Medicao tem latencia", medicao.latencyMs)
 
         // Verifica a transição de estado esperada
-        val estados = listOf(
-            EstadoChatDiagnostico.aguardandoIa,
-            EstadoChatDiagnostico.streaming,
-            EstadoChatDiagnostico.idle,
-        )
+        val estados =
+            listOf(
+                EstadoChatDiagnostico.aguardandoIa,
+                EstadoChatDiagnostico.streaming,
+                EstadoChatDiagnostico.idle,
+            )
         // Verifica que a sequência de estados está na ordem certa
         assertEquals(EstadoChatDiagnostico.aguardandoIa, estados[0])
         assertEquals(EstadoChatDiagnostico.streaming, estados[1])
@@ -199,29 +205,32 @@ class ChatDiagnosticoIaViewModelTest {
     @Test
     fun `novoTeste insere mensagens progressivas conforme fase do speedtest`() {
         // Simula o snapshotFlow do speedtest em diferentes fases
-        val snapshotInicial = SnapshotExecucaoSpeedtest(
-            estado = EstadoExecucaoSpeedtest.idle,
-            progressoPercentual = 0,
-            resultado = null,
-            erroMensagem = null,
-            faseAtual = FaseSpeedtest.idle,
-        )
-        val snapshotDownload = SnapshotExecucaoSpeedtest(
-            estado = EstadoExecucaoSpeedtest.executando,
-            progressoPercentual = 30,
-            resultado = null,
-            erroMensagem = null,
-            faseAtual = FaseSpeedtest.download,
-            velocidadeAtualMbps = 0.0,
-        )
-        val snapshotUpload = SnapshotExecucaoSpeedtest(
-            estado = EstadoExecucaoSpeedtest.executando,
-            progressoPercentual = 70,
-            resultado = null,
-            erroMensagem = null,
-            faseAtual = FaseSpeedtest.upload,
-            velocidadeAtualMbps = 100.0, // velocidade > 0 triggera a msg de download
-        )
+        val snapshotInicial =
+            SnapshotExecucaoSpeedtest(
+                estado = EstadoExecucaoSpeedtest.idle,
+                progressoPercentual = 0,
+                resultado = null,
+                erroMensagem = null,
+                faseAtual = FaseSpeedtest.idle,
+            )
+        val snapshotDownload =
+            SnapshotExecucaoSpeedtest(
+                estado = EstadoExecucaoSpeedtest.executando,
+                progressoPercentual = 30,
+                resultado = null,
+                erroMensagem = null,
+                faseAtual = FaseSpeedtest.download,
+                velocidadeAtualMbps = 0.0,
+            )
+        val snapshotUpload =
+            SnapshotExecucaoSpeedtest(
+                estado = EstadoExecucaoSpeedtest.executando,
+                progressoPercentual = 70,
+                resultado = null,
+                erroMensagem = null,
+                faseAtual = FaseSpeedtest.upload,
+                velocidadeAtualMbps = 100.0, // velocidade > 0 triggera a msg de download
+            )
 
         // Verificações da lógica de controle de flags
         var msgDownloadJaInserida = false
@@ -261,13 +270,14 @@ class ChatDiagnosticoIaViewModelTest {
         val medicoes = (1..5).map { criaMedicaoEntity() }
 
         val n = medicoes.size
-        val mensagem = if (n < 7) {
-            "Encontrei $n ${if (n == 1) "teste recente" else "testes recentes"}. " +
-                "Já é possível fazer uma análise básica, mas quanto mais testes existirem, melhor fica a comparação."
-        } else {
-            "Encontrei $n testes recentes no seu histórico. Vou comparar os resultados para identificar " +
-                "variações de velocidade, latência, estabilidade e possíveis padrões de queda."
-        }
+        val mensagem =
+            if (n < 7) {
+                "Encontrei $n ${if (n == 1) "teste recente" else "testes recentes"}. " +
+                    "Já é possível fazer uma análise básica, mas quanto mais testes existirem, melhor fica a comparação."
+            } else {
+                "Encontrei $n testes recentes no seu histórico. Vou comparar os resultados para identificar " +
+                    "variações de velocidade, latência, estabilidade e possíveis padrões de queda."
+            }
 
         assertTrue("Mensagem deve conter '5 testes recentes'", mensagem.contains("5 testes recentes"))
         assertTrue("Mensagem deve conter análise básica", mensagem.contains("análise básica"))
@@ -279,12 +289,13 @@ class ChatDiagnosticoIaViewModelTest {
         val medicoes = (1..7).map { criaMedicaoEntity() }
 
         val n = medicoes.size
-        val mensagem = if (n < 7) {
-            "Encontrei $n ${if (n == 1) "teste recente" else "testes recentes"}. análise básica"
-        } else {
-            "Encontrei $n testes recentes no seu histórico. Vou comparar os resultados para identificar " +
-                "variações de velocidade, latência, estabilidade e possíveis padrões de queda."
-        }
+        val mensagem =
+            if (n < 7) {
+                "Encontrei $n ${if (n == 1) "teste recente" else "testes recentes"}. análise básica"
+            } else {
+                "Encontrei $n testes recentes no seu histórico. Vou comparar os resultados para identificar " +
+                    "variações de velocidade, latência, estabilidade e possíveis padrões de queda."
+            }
 
         assertTrue("Mensagem deve conter histórico", mensagem.contains("histórico"))
         assertTrue("Mensagem deve mencionar 7", mensagem.contains("7"))
@@ -296,9 +307,10 @@ class ChatDiagnosticoIaViewModelTest {
 
     @Test
     fun `cota excedida bloqueia chamada IA e seta estado cotaExcedida`() {
-        val cotaExcedida = ResultadoCota.Excedida(
-            renovacaoEpochMs = System.currentTimeMillis() + (24 * 60 * 60 * 1000L),
-        )
+        val cotaExcedida =
+            ResultadoCota.Excedida(
+                renovacaoEpochMs = System.currentTimeMillis() + (24 * 60 * 60 * 1000L),
+            )
 
         // Simula a lógica do ViewModel ao verificar cota
         var iaFoiChamada = false
@@ -328,7 +340,9 @@ class ChatDiagnosticoIaViewModelTest {
         fun processarResultadoCota(resultado: ResultadoCota) {
             when (resultado) {
                 is ResultadoCota.Excedida -> { /* retorna sem chamar IA nem registrar */ }
-                ResultadoCota.Disponivel -> { analisesRegistradas++ }
+                ResultadoCota.Disponivel -> {
+                    analisesRegistradas++
+                }
             }
         }
 
@@ -350,11 +364,12 @@ class ChatDiagnosticoIaViewModelTest {
         val estadoEsperado = EstadoChatDiagnostico.erroRede
 
         // Verifica que IOException mapeia para erroRede (não erroModelo)
-        val resultado = when (excecao) {
-            is java.net.SocketTimeoutException -> Pair("timeout", EstadoChatDiagnostico.erroRede)
-            is java.io.IOException -> Pair(mensagemEsperada, EstadoChatDiagnostico.erroRede)
-            else -> Pair("outro", EstadoChatDiagnostico.idle)
-        }
+        val resultado =
+            when (excecao) {
+                is java.net.SocketTimeoutException -> Pair("timeout", EstadoChatDiagnostico.erroRede)
+                is java.io.IOException -> Pair(mensagemEsperada, EstadoChatDiagnostico.erroRede)
+                else -> Pair("outro", EstadoChatDiagnostico.idle)
+            }
 
         assertEquals("Mensagem deve ser a de erro de rede", mensagemEsperada, resultado.first)
         assertEquals("Estado deve ser erroRede", estadoEsperado, resultado.second)
@@ -386,9 +401,10 @@ class ChatDiagnosticoIaViewModelTest {
         // Simula a lógica de classificarErro para erros 503
         val excecao503 = RuntimeException("HTTP 503 Service Unavailable")
         val msg503 = excecao503.message ?: ""
-        val mensagem503 = msg503.contains("503") ||
-            msg503.contains("unavailable", ignoreCase = true) ||
-            msg503.contains("Service Unavailable", ignoreCase = true)
+        val mensagem503 =
+            msg503.contains("503") ||
+                msg503.contains("unavailable", ignoreCase = true) ||
+                msg503.contains("Service Unavailable", ignoreCase = true)
 
         assertTrue("Deve detectar erro 503", mensagem503)
 
@@ -408,47 +424,49 @@ class ChatDiagnosticoIaViewModelTest {
     // =========================================================================
 
     @Test
-    fun `streaming bem-sucedido registra analise exatamente uma vez`() = runTest {
-        var contagemRegistros = 0
+    fun `streaming bem-sucedido registra analise exatamente uma vez`() =
+        runTest {
+            var contagemRegistros = 0
 
-        // Simula o fluxo de streaming completo com sucesso
-        val registrarAnalise: suspend () -> Unit = {
-            contagemRegistros++
+            // Simula o fluxo de streaming completo com sucesso
+            val registrarAnalise: suspend () -> Unit = {
+                contagemRegistros++
+            }
+
+            // Simula coleta de tokens
+            val tokens = listOf("Sua ", "conexão ", "está ", "estável.")
+            var conteudoAcumulado = ""
+            tokens.forEach { token ->
+                conteudoAcumulado += token
+            }
+
+            // Ao terminar com sucesso, registra análise
+            if (conteudoAcumulado.isNotBlank()) {
+                registrarAnalise()
+            }
+
+            assertEquals("registrarAnalise deve ser chamado exatamente 1 vez", 1, contagemRegistros)
         }
-
-        // Simula coleta de tokens
-        val tokens = listOf("Sua ", "conexão ", "está ", "estável.")
-        var conteudoAcumulado = ""
-        tokens.forEach { token ->
-            conteudoAcumulado += token
-        }
-
-        // Ao terminar com sucesso, registra análise
-        if (conteudoAcumulado.isNotBlank()) {
-            registrarAnalise()
-        }
-
-        assertEquals("registrarAnalise deve ser chamado exatamente 1 vez", 1, contagemRegistros)
-    }
 
     @Test
-    fun `streaming com conteudo vazio nao registra analise`() = runTest {
-        var contagemRegistros = 0
+    fun `streaming com conteudo vazio nao registra analise`() =
+        runTest {
+            var contagemRegistros = 0
 
-        val registrarAnalise: suspend () -> Unit = {
-            contagemRegistros++
+            val registrarAnalise: suspend () -> Unit = {
+                contagemRegistros++
+            }
+
+            // Sem tokens — conteúdo fica vazio
+            val conteudoAcumulado = ""
+
+            // Se stream incompleto, não registra
+            if (conteudoAcumulado.isNotBlank()) {
+                registrarAnalise()
+            }
+
+            assertEquals("registrarAnalise NÃO deve ser chamado sem tokens", 0, contagemRegistros)
         }
-
-        // Sem tokens — conteúdo fica vazio
-        val conteudoAcumulado = ""
-
-        // Se stream incompleto, não registra
-        if (conteudoAcumulado.isNotBlank()) {
-            registrarAnalise()
-        }
-
-        assertEquals("registrarAnalise NÃO deve ser chamado sem tokens", 0, contagemRegistros)
-    }
 
     // =========================================================================
     // Caso 10: onEnviarMensagem com sessão "Nova conversa" → renomeia via derivarTituloDe
@@ -460,11 +478,12 @@ class ChatDiagnosticoIaViewModelTest {
         val texto = "Minha internet está caindo toda hora"
 
         // Simula derivarTituloDe
-        val novoTitulo = if (texto.length > 40) {
-            texto.take(40).trimEnd() + "…"
-        } else {
-            texto.trimEnd()
-        }
+        val novoTitulo =
+            if (texto.length > 40) {
+                texto.take(40).trimEnd() + "…"
+            } else {
+                texto.trimEnd()
+            }
 
         // Verifica que a sessão seria renomeada
         val deveRenomear = sessao.titulo == "Nova conversa"
@@ -477,11 +496,12 @@ class ChatDiagnosticoIaViewModelTest {
         val textoLongo = "Minha internet caiu exatamente às 19h todos os dias durante uma semana inteira"
         val tituloEsperado = "Minha internet caiu exatamente às 19h to…"
 
-        val resultado = if (textoLongo.length > 40) {
-            textoLongo.take(40).trimEnd() + "…"
-        } else {
-            textoLongo.trimEnd()
-        }
+        val resultado =
+            if (textoLongo.length > 40) {
+                textoLongo.take(40).trimEnd() + "…"
+            } else {
+                textoLongo.trimEnd()
+            }
 
         assertEquals(tituloEsperado, resultado)
         assertTrue("Título truncado deve ter ≤41 chars (40 + reticências)", resultado.length <= 41)
@@ -573,8 +593,9 @@ class ChatDiagnosticoIaViewModelTest {
 
     @Test
     fun `mensagem de timeout tem texto exato da Lia`() {
-        val mensagem = "A análise demorou mais que o esperado e foi interrompida. " +
-            "Você pode tentar novamente — os dados do teste foram preservados."
+        val mensagem =
+            "A análise demorou mais que o esperado e foi interrompida. " +
+                "Você pode tentar novamente — os dados do teste foram preservados."
 
         assertTrue("Deve mencionar 'demorou mais'", mensagem.contains("demorou mais"))
         assertTrue("Deve mencionar dados preservados", mensagem.contains("dados do teste foram preservados"))
@@ -582,8 +603,9 @@ class ChatDiagnosticoIaViewModelTest {
 
     @Test
     fun `mensagem de stream incompleto tem texto exato da Lia`() {
-        val mensagem = "Recebi uma resposta incompleta. Os dados do teste foram preservados, " +
-            "mas recomendo tentar o diagnóstico novamente."
+        val mensagem =
+            "Recebi uma resposta incompleta. Os dados do teste foram preservados, " +
+                "mas recomendo tentar o diagnóstico novamente."
 
         assertTrue("Deve mencionar resposta incompleta", mensagem.contains("resposta incompleta"))
         assertTrue("Deve recomendar tentar novamente", mensagem.contains("tentar o diagnóstico novamente"))
@@ -591,8 +613,9 @@ class ChatDiagnosticoIaViewModelTest {
 
     @Test
     fun `mensagem catch-all tem texto exato da Lia`() {
-        val mensagem = "Algo deu errado ao processar o diagnóstico. Tente novamente. " +
-            "Se o problema persistir, os dados do teste foram salvos e você pode tentar mais tarde."
+        val mensagem =
+            "Algo deu errado ao processar o diagnóstico. Tente novamente. " +
+                "Se o problema persistir, os dados do teste foram salvos e você pode tentar mais tarde."
 
         assertTrue("Deve mencionar 'Algo deu errado'", mensagem.contains("Algo deu errado"))
         assertTrue("Deve mencionar dados salvos", mensagem.contains("dados do teste foram salvos"))
@@ -604,11 +627,12 @@ class ChatDiagnosticoIaViewModelTest {
 
     @Test
     fun `contexto montado de medicao tem metricas corretas`() {
-        val medicao = criaMedicaoEntity(
-            downloadMbps = 150.0,
-            uploadMbps = 75.0,
-            latencyMs = 15.0,
-        )
+        val medicao =
+            criaMedicaoEntity(
+                downloadMbps = 150.0,
+                uploadMbps = 75.0,
+                latencyMs = 15.0,
+            )
 
         // Simula a lógica de montarContextoDeMedicao
         val download = medicao.downloadMbps
@@ -622,17 +646,19 @@ class ChatDiagnosticoIaViewModelTest {
 
     @Test
     fun `contexto de historico monta lista de AiTesteHistorico corretamente`() {
-        val medicoes = (1..5).map { i ->
-            criaMedicaoEntity(
-                downloadMbps = i * 10.0,
-                uploadMbps = i * 5.0,
-            )
-        }
+        val medicoes =
+            (1..5).map { i ->
+                criaMedicaoEntity(
+                    downloadMbps = i * 10.0,
+                    uploadMbps = i * 5.0,
+                )
+            }
 
         // Simula a montagem da lista de AiTesteHistorico
-        val ultimosTestes = medicoes.map { m ->
-            m.downloadMbps to m.uploadMbps // simplificado para o teste
-        }
+        val ultimosTestes =
+            medicoes.map { m ->
+                m.downloadMbps to m.uploadMbps // simplificado para o teste
+            }
 
         assertEquals("Deve ter 5 entradas no histórico", 5, ultimosTestes.size)
         assertEquals("Primeiro download deve ser 10.0", 10.0, ultimosTestes[0].first!!, 0.001)
@@ -661,12 +687,13 @@ class ChatDiagnosticoIaViewModelTest {
 
     @Test
     fun `snapshot idle nao dispara processamento`() {
-        val snapshot = SnapshotExecucaoSpeedtest(
-            estado = EstadoExecucaoSpeedtest.idle,
-            progressoPercentual = 0,
-            resultado = null,
-            erroMensagem = null,
-        )
+        val snapshot =
+            SnapshotExecucaoSpeedtest(
+                estado = EstadoExecucaoSpeedtest.idle,
+                progressoPercentual = 0,
+                resultado = null,
+                erroMensagem = null,
+            )
 
         var processado = false
         when (snapshot.estado) {
