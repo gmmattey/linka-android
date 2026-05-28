@@ -119,6 +119,7 @@ import kotlinx.coroutines.delay
 private enum class Overlay {
     Laudo,
     Chat,
+    /** @deprecated Substituído por [ChatDiagnosticoIa]. Mantido para fallback. Remover na próxima major. */
     DiagnosticoInteligente,
     ChatDiagnosticoIa,
     Ping,
@@ -598,6 +599,8 @@ fun AppShell(
                     localizacaoServidor = localizacaoServidorStr,
                     gemmaAvailable = gemmaAvailable,
                     onAbrirChat = {
+                        // Fallback: abre DiagnosticoInteligente (legado) a partir do ResultadoVelocidade.
+                        // Fluxo principal usa Overlay.ChatDiagnosticoIa via onAbrirDiagnostico na Home.
                         if (Overlay.DiagnosticoInteligente !in overlayStack) {
                             overlayStack.add(Overlay.DiagnosticoInteligente)
                         }
@@ -663,11 +666,13 @@ fun AppShell(
             )
         }
 
+        @Suppress("DEPRECATION")
         AnimatedVisibility(
             visible = Overlay.DiagnosticoInteligente in overlayStack,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         ) {
+            @Suppress("DEPRECATION")
             DiagnosticoScreen(
                 snapshotDiagnostico = snapshotDiagnostico,
                 onAbrirRedes = { selectedTab = 2 },

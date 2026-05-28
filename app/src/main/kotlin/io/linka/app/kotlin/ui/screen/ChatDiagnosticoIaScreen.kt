@@ -515,7 +515,7 @@ private fun formatarRenovacaoDateTime(renovacaoEpochMs: Long?): String {
             ZoneId.systemDefault(),
         )
         val agora = LocalDateTime.now(ZoneId.systemDefault())
-        val horaFormatada = DateTimeFormatter.ofPattern("HH'h'mm", Locale("pt", "BR")).format(renovacao)
+        val horaFormatada = DateTimeFormatter.ofPattern("HH'h'mm", Locale.forLanguageTag("pt-BR")).format(renovacao)
 
         when {
             renovacao.toLocalDate() == agora.toLocalDate() -> "hoje às $horaFormatada"
@@ -550,6 +550,13 @@ private fun ChatInputArea(
         }
     }
 
+    // Placeholder contextual: muda conforme o estado atual do chat
+    val placeholderAtual = when {
+        mostrarPlaceholderAguarde -> "Aguarde o resultado do teste..."
+        !enabled -> "Aguarde a resposta da IA..."
+        else -> "Pergunte sobre sua conexão, Wi-Fi ou diagnóstico..."
+    }
+
     OrbitInputArea(
         value = textFieldValue,
         onValueChange = { new ->
@@ -567,7 +574,11 @@ private fun ChatInputArea(
         chips = emptyList<OpcaoResposta>(),
         onSelecionarChip = {},
         modifier = modifier,
-        isLimitReached = !enabled || mostrarPlaceholderAguarde,
+        // isLimitReached não se aplica aqui — cota excedida troca o componente inteiro
+        // pelo CotaExcedidaBanner acima (ver ChatDiagnosticoIaScreen). O input fica
+        // disabled via `enabled` mas sem bloquear a UI com a mensagem de cota.
+        isLimitReached = false,
+        placeholder = placeholderAtual,
     )
 }
 
@@ -773,19 +784,20 @@ private fun SessaoListItem(
 private fun formatarDataRelativa(epochMs: Long): String {
     val agora = Calendar.getInstance()
     val data = Calendar.getInstance().apply { timeInMillis = epochMs }
+    val localePtBr = Locale.forLanguageTag("pt-BR")
 
     return when {
         agora.get(Calendar.DAY_OF_YEAR) == data.get(Calendar.DAY_OF_YEAR) &&
             agora.get(Calendar.YEAR) == data.get(Calendar.YEAR) -> {
-            val horaFmt = SimpleDateFormat("HH:mm", Locale("pt", "BR"))
+            val horaFmt = SimpleDateFormat("HH:mm", localePtBr)
             "Hoje, ${horaFmt.format(Date(epochMs))}"
         }
         agora.get(Calendar.DAY_OF_YEAR) - data.get(Calendar.DAY_OF_YEAR) == 1 &&
             agora.get(Calendar.YEAR) == data.get(Calendar.YEAR) -> "Ontem"
         agora.get(Calendar.YEAR) == data.get(Calendar.YEAR) -> {
-            SimpleDateFormat("dd/MM", Locale("pt", "BR")).format(Date(epochMs))
+            SimpleDateFormat("dd/MM", localePtBr).format(Date(epochMs))
         }
-        else -> SimpleDateFormat("dd/MM/yy", Locale("pt", "BR")).format(Date(epochMs))
+        else -> SimpleDateFormat("dd/MM/yy", localePtBr).format(Date(epochMs))
     }
 }
 

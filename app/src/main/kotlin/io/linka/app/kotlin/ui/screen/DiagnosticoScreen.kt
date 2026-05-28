@@ -160,6 +160,10 @@ sealed interface DiagnosticoUiData {
     ) : DiagnosticoUiData
 }
 
+@Deprecated(
+    message = "Substituída por ChatDiagnosticoIaScreen. Mantida apenas para fallback durante validação. Remover na próxima major.",
+    level = DeprecationLevel.WARNING,
+)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiagnosticoScreen(
