@@ -653,7 +653,11 @@ fun AppShell(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         ) {
-            PrivacidadeScreen(onVoltar = { overlayStack.remove(Overlay.Privacidade) })
+            PrivacidadeScreen(
+                onVoltar = { overlayStack.remove(Overlay.Privacidade) },
+                onApagarDadosLocais = onApagarDadosLocais,
+                onResetarApp = onResetarApp,
+            )
         }
 
         AnimatedVisibility(
@@ -716,11 +720,16 @@ fun AppShell(
             PingScreen(onDismiss = { overlayStack.remove(Overlay.Ping) })
         }
 
-        if (Overlay.Fibra in overlayStack) {
-            FibraStatusOverlay(
+        AnimatedVisibility(
+            visible = Overlay.Fibra in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            FibraModemScreen(
                 snapshotFibra = snapshotFibra,
-                onDismiss = { overlayStack.remove(Overlay.Fibra) },
+                onVoltar = { overlayStack.remove(Overlay.Fibra) },
                 onRetentar = { onReconectarFibra(modemHost ?: "", modemUsername, modemPassword) },
+                onAbrirAjustes = { selectedTab = 4 },
             )
         }
 
@@ -887,151 +896,3 @@ private fun ForaDoWifiDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FibraStatusOverlay(
-    snapshotFibra: SnapshotFibra,
-    onDismiss: () -> Unit,
-    onRetentar: () -> Unit = {},
-) {
-    val c = LocalLkTokens.current
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        scrimColor =
-            androidx.compose.ui.graphics.Color.Black
-                .copy(alpha = 0.32f),
-    ) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = LkSpacing.md, vertical = LkSpacing.lg)
-                    .navigationBarsPadding(),
-        ) {
-            Text(
-                "Status Fibra Óptica",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.W600,
-                color = c.textPrimary,
-                modifier = Modifier.padding(bottom = LkSpacing.md),
-            )
-
-            when (snapshotFibra.estado) {
-                EstadoFibra.conectando -> {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(40.dp))
-                        Spacer(Modifier.height(LkSpacing.md))
-                        Text("Conectando ao modem...", fontSize = 14.sp, color = c.textSecondary)
-                    }
-                }
-                EstadoFibra.concluido -> {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        snapshotFibra.gpon?.let {
-                            FibraStatusField("GPON Status", it.status, c)
-                            it.rxPowerDbm?.let { rxPower ->
-                                FibraStatusField("RX Power", "$rxPower dBm", c)
-                            }
-                        }
-                        snapshotFibra.wan?.let {
-                            FibraStatusField("IP Externo", it.externalIp ?: "N/A", c)
-                        }
-                        snapshotFibra.ppp?.let {
-                            FibraStatusField("PPP Status", it.connectionStatus, c)
-                        }
-                        snapshotFibra.deviceInfo?.let {
-                            FibraStatusField("Modelo", it.model ?: "N/A", c)
-                        }
-                    }
-                }
-                EstadoFibra.erro -> {
-                    Column(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(LkColors.error.copy(alpha = 0.1f))
-                                .padding(LkSpacing.md),
-                    ) {
-                        Text(
-                            "Erro de conexão",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.W600,
-                            color = LkColors.error,
-                        )
-                        snapshotFibra.erroMensagem?.let { chave ->
-                            val mensagemLegivel =
-                                when (chave) {
-                                    "erroModemInacessivel" -> stringResource(R.string.fibra_erro_modem_inacessivel)
-                                    "erroTimeout" -> stringResource(R.string.fibra_erro_timeout)
-                                    "erroRespostaModemInvalida" -> stringResource(R.string.fibra_erro_resposta_invalida)
-                                    "erroComunicacaoModem" -> stringResource(R.string.fibra_erro_comunicacao)
-                                    "semRede" -> stringResource(R.string.fibra_erro_sem_rede)
-                                    else -> stringResource(R.string.fibra_erro_generico)
-                                }
-                            Spacer(Modifier.height(LkSpacing.sm))
-                            Text(
-                                mensagemLegivel,
-                                fontSize = 12.sp,
-                                color = c.textSecondary,
-                            )
-                        }
-                    }
-                }
-                EstadoFibra.idle -> {}
-            }
-
-            Spacer(Modifier.height(LkSpacing.lg))
-            if (snapshotFibra.estado == EstadoFibra.erro) {
-                Button(
-                    onClick = onRetentar,
-                    modifier = Modifier.fillMaxWidth().height(44.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                    shape = RoundedCornerShape(LkRadius.button),
-                ) {
-                    Text("Tentar novamente", fontSize = 14.sp, fontWeight = FontWeight.W600)
-                }
-                Spacer(Modifier.height(LkSpacing.sm))
-                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text("Fechar", fontSize = 14.sp, color = c.textSecondary)
-                }
-            } else {
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(44.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                    shape = RoundedCornerShape(LkRadius.button),
-                ) {
-                    Text("Fechar", fontSize = 14.sp, fontWeight = FontWeight.W600)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FibraStatusField(
-    label: String,
-    value: String,
-    c: LkTokens,
-) {
-    Column(modifier = Modifier.fillMaxWidth().padding(bottom = LkSpacing.md)) {
-        Text(
-            label,
-            fontSize = 12.sp,
-            color = c.textSecondary,
-            fontWeight = FontWeight.W500,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            value,
-            fontSize = 14.sp,
-            color = c.textPrimary,
-            fontWeight = FontWeight.W500,
-        )
-    }
-}

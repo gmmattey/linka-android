@@ -7,7 +7,6 @@ import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import android.os.Environment
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,9 +23,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.Article
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,15 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import io.linka.app.kotlin.core.database.MedicaoEntity
 import io.linka.app.kotlin.feature.diagnostico.SnapshotDiagnostico
@@ -91,7 +82,6 @@ fun LaudoScreen(
 ) {
     val c = LocalLkTokens.current
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val topBarAlpha = listState.rememberTopBarAlpha()
@@ -101,6 +91,22 @@ fun LaudoScreen(
     val relatorio = snapshotDiagnostico.relatorio
     val decisao = relatorio?.decisao
 
+    val dataHora = remember {
+        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(Date())
+    }
+    val headerTitulo = buildString {
+        if (nomeUsuario.isNotBlank()) append("$nomeUsuario · ")
+        if (operadora.isNotBlank()) append(operadora)
+        if (velocidadeContratadaMbps != null && velocidadeContratadaMbps > 0) append(" $velocidadeContratadaMbps Mbps")
+    }.ifBlank { "Diagnóstico de rede" }
+    val headerSub = buildString {
+        ssid?.let { append("SSID $it") }
+        ipLocal?.let {
+            if (isNotEmpty()) append(" · ")
+            append(mascaraIpLocal(it))
+        }
+    }
+
     Scaffold(
         containerColor = c.bgPrimary,
         topBar = {
@@ -108,7 +114,7 @@ fun LaudoScreen(
                 modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                 title = {
                     Text(
-                        "Comprovante para a Anatel",
+                        "Laudo de diagnóstico",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.W600,
                     )
@@ -118,216 +124,252 @@ fun LaudoScreen(
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Voltar")
                     }
                 },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                gerando = true
+                                erro = null
+                                try {
+                                    gerarECompartilharLaudo(
+                                        context = context,
+                                        snapshotDiagnostico = snapshotDiagnostico,
+                                        ultimaMedicao = ultimaMedicao,
+                                        nomeUsuario = nomeUsuario,
+                                        operadora = operadora,
+                                        ssid = ssid,
+                                        ipLocal = ipLocal,
+                                        ipPublico = ipPublico,
+                                        velocidadeContratadaMbps = velocidadeContratadaMbps,
+                                    )
+                                } catch (e: Exception) {
+                                    erro = "Não foi possível gerar o PDF: ${e.message}"
+                                } finally {
+                                    gerando = false
+                                }
+                            }
+                        },
+                        enabled = !gerando,
+                    ) {
+                        if (gerando) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = c.textPrimary,
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Icon(
+                                Icons.Outlined.Share,
+                                contentDescription = "Compartilhar",
+                            )
+                        }
+                    }
+                },
                 colors =
                     TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = c.bgPrimary,
                         titleContentColor = c.textPrimary,
                         navigationIconContentColor = c.textPrimary,
+                        actionIconContentColor = c.textPrimary,
                     ),
             )
         },
     ) { padding ->
         LazyColumn(
             state = listState,
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-            contentPadding =
-                PaddingValues(
-                    start = LkSpacing.lg,
-                    end = LkSpacing.lg,
-                    top = 0.dp,
-                    bottom = LkSpacing.xxl,
-                ),
-            verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(
+                start = LkSpacing.lg,
+                end = LkSpacing.lg,
+                top = 0.dp,
+                bottom = LkSpacing.xxl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(LkSpacing.lg),
         ) {
+            // Header
             item {
-                Spacer(Modifier.height(LkSpacing.xs))
-                Text(
-                    "Resumo do diagnóstico de rede",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = c.textSecondary,
-                )
-            }
-
-            if (ultimaMedicao != null) {
-                item {
-                    LaudoCard(c = c, titulo = "Teste de velocidade") {
-                        LaudoRow(c, "Download", ultimaMedicao.downloadMbps?.let { "%.1f Mbps".format(it) } ?: "—")
-                        LaudoRow(c, "Upload", ultimaMedicao.uploadMbps?.let { "%.1f Mbps".format(it) } ?: "—")
-                        LaudoRow(c, "Latência", ultimaMedicao.latencyMs?.let { "%.0f ms".format(it) } ?: "—")
-                        LaudoRow(c, "Oscilação", ultimaMedicao.jitterMs?.let { "%.0f ms".format(it) } ?: "—")
-                        LaudoRow(c, "Perda de pacotes", ultimaMedicao.perdaPercentual?.let { "%.1f%%".format(it) } ?: "—")
+                Column {
+                    Text(
+                        "LAUDO TÉCNICO · $dataHora",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.W600,
+                        color = c.textTertiary,
+                        letterSpacing = 0.3.sp,
+                    )
+                    Spacer(Modifier.height(LkSpacing.xs))
+                    Text(
+                        headerTitulo,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.W700,
+                        color = c.textPrimary,
+                    )
+                    if (headerSub.isNotBlank()) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            headerSub,
+                            fontSize = 12.sp,
+                            color = c.textTertiary,
+                        )
                     }
                 }
             }
 
+            // RESUMO
             if (decisao != null) {
                 item {
-                    LaudoCard(c = c, titulo = "Diagnóstico") {
-                        LaudoRow(c, "Veredito", decisao.titulo)
-                        LaudoRow(c, "Resumo", decisao.mensagemUsuario)
-                        decisao.recomendacao?.let { LaudoRow(c, "Recomendação", it) }
-                        ultimaMedicao?.gargaloPrimario?.let { LaudoRow(c, "Gargalo primário", it) }
+                    LaudoSection(titulo = "RESUMO", c = c) {
+                        Text(
+                            decisao.mensagemUsuario,
+                            fontSize = 13.sp,
+                            color = c.textSecondary,
+                            lineHeight = 19.sp,
+                        )
                     }
                 }
             }
 
-            val linhasRede =
-                listOfNotNull(
-                    ssid?.let { "Wi-Fi (SSID)" to it },
-                    ipLocal?.let { "IP local" to mascaraIpLocal(it) },
-                    ipPublico?.let { "IP público" to it },
-                    operadora.takeIf { it.isNotBlank() }?.let { "Operadora" to it },
-                )
-            if (linhasRede.isNotEmpty()) {
+            // MÉTRICAS — grid 3×2
+            if (ultimaMedicao != null) {
                 item {
-                    LaudoCard(c = c, titulo = "Rede") {
-                        linhasRede.forEach { (label, valor) ->
-                            LaudoRow(c, label, valor)
-                        }
-                    }
-                }
-            }
-
-            item {
-                Spacer(Modifier.height(LkSpacing.sm))
-                Text(
-                    text = "Comprovante técnico de qualidade",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = c.textPrimary,
-                    fontWeight = FontWeight.W600,
-                )
-                Spacer(Modifier.height(LkSpacing.xs))
-                Text(
-                    text =
-                        "Documento com seus dados de conexão medidos pelo Linka. " +
-                            "Aceito como prova em reclamações na Anatel, no Procon e junto à sua operadora.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = c.textSecondary,
-                )
-                Spacer(Modifier.height(LkSpacing.md))
-                erro?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = LkColors.error)
-                    Spacer(Modifier.height(LkSpacing.sm))
-                }
-                Button(
-                    onClick = {
-                        scope.launch {
-                            gerando = true
-                            erro = null
-                            try {
-                                gerarECompartilharLaudo(
-                                    context = context,
-                                    snapshotDiagnostico = snapshotDiagnostico,
-                                    ultimaMedicao = ultimaMedicao,
-                                    nomeUsuario = nomeUsuario,
-                                    operadora = operadora,
-                                    ssid = ssid,
-                                    ipLocal = ipLocal,
-                                    ipPublico = ipPublico,
-                                    velocidadeContratadaMbps = velocidadeContratadaMbps,
+                    LaudoSection(titulo = "MÉTRICAS", c = c) {
+                        Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.md)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(LkSpacing.md)) {
+                                LaudoMetrica(
+                                    label = "Download",
+                                    valor = ultimaMedicao.downloadMbps?.let { "%.1f".format(it) } ?: "—",
+                                    unidade = "Mbps",
+                                    c = c,
+                                    modifier = Modifier.weight(1f),
                                 )
-                            } catch (e: Exception) {
-                                erro = "Não foi possível gerar o PDF: ${e.message}"
-                            } finally {
-                                gerando = false
+                                LaudoMetrica(
+                                    label = "Upload",
+                                    valor = ultimaMedicao.uploadMbps?.let { "%.1f".format(it) } ?: "—",
+                                    unidade = "Mbps",
+                                    c = c,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            HorizontalDivider(color = c.border, thickness = 0.5.dp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(LkSpacing.md)) {
+                                LaudoMetrica(
+                                    label = "Latência",
+                                    valor = ultimaMedicao.latencyMs?.let { "%.0f".format(it) } ?: "—",
+                                    unidade = "ms",
+                                    c = c,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                LaudoMetrica(
+                                    label = "Jitter",
+                                    valor = ultimaMedicao.jitterMs?.let { "%.0f".format(it) } ?: "—",
+                                    unidade = "ms",
+                                    c = c,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            HorizontalDivider(color = c.border, thickness = 0.5.dp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(LkSpacing.md)) {
+                                LaudoMetrica(
+                                    label = "Perda",
+                                    valor = ultimaMedicao.perdaPercentual?.let { "%.1f".format(it) } ?: "—",
+                                    unidade = "%",
+                                    c = c,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                LaudoMetrica(
+                                    label = "Bufferbloat",
+                                    valor = ultimaMedicao.bufferbloatMs?.let { "%.0f".format(it) } ?: "—",
+                                    unidade = "ms",
+                                    c = c,
+                                    modifier = Modifier.weight(1f),
+                                )
                             }
                         }
-                    },
-                    enabled = !gerando,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                    shape = RoundedCornerShape(LkRadius.button),
-                ) {
-                    if (gerando) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = c.bgPrimary,
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.Article,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
+                    }
+                }
+            }
+
+            // RECOMENDAÇÃO
+            val recomendacao = decisao?.recomendacao
+            if (!recomendacao.isNullOrBlank()) {
+                item {
+                    LaudoSection(titulo = "RECOMENDAÇÃO", c = c) {
+                        Text(
+                            recomendacao,
+                            fontSize = 13.sp,
+                            color = c.textSecondary,
+                            lineHeight = 19.sp,
                         )
                     }
-                    Spacer(Modifier.width(LkSpacing.sm))
-                    Text(if (gerando) "Gerando PDF…" else "Gerar e compartilhar comprovante")
                 }
-                Spacer(Modifier.height(LkSpacing.xs))
-                Text(
-                    text = "Registrar reclamação na Anatel →",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LkColors.accent,
-                    textAlign = TextAlign.Center,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .semantics {
-                                role = Role.Button
-                                contentDescription = "Registrar reclamação na Anatel"
-                            }.clickable { uriHandler.openUri("https://www.anatel.gov.br/consumidor") },
-                )
+            }
+
+            // Error message if PDF generation failed
+            if (erro != null) {
+                item {
+                    Text(erro!!, fontSize = 12.sp, color = LkColors.error)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun LaudoCard(
-    c: LkTokens,
+private fun LaudoSection(
     titulo: String,
+    c: LkTokens,
     content: @Composable () -> Unit,
 ) {
     Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .padding(LkSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.xs),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(LkRadius.card))
+            .background(c.bgCard)
+            .padding(LkSpacing.lg),
     ) {
         Text(
             titulo,
-            style = MaterialTheme.typography.titleSmall,
-            color = c.textPrimary,
+            fontSize = 11.sp,
             fontWeight = FontWeight.W600,
+            color = c.textTertiary,
+            letterSpacing = 0.4.sp,
         )
-        HorizontalDivider(color = c.border, thickness = 1.dp)
+        Spacer(Modifier.height(LkSpacing.sm))
         content()
     }
 }
 
 @Composable
-private fun LaudoRow(
-    c: LkTokens,
+private fun LaudoMetrica(
     label: String,
     valor: String,
+    unidade: String,
+    c: LkTokens,
+    modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
-    ) {
+    Column(modifier = modifier) {
         Text(
             label,
-            style = MaterialTheme.typography.bodySmall,
-            color = c.textSecondary,
-            modifier = Modifier.weight(0.45f),
+            fontSize = 11.sp,
+            color = c.textTertiary,
         )
-        Text(
-            valor,
-            style = MaterialTheme.typography.bodySmall,
-            color = c.textPrimary,
-            fontWeight = FontWeight.W500,
-            modifier = Modifier.weight(0.55f),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Spacer(Modifier.height(2.dp))
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                valor,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.W700,
+                color = c.textPrimary,
+            )
+            Spacer(Modifier.width(3.dp))
+            Text(
+                unidade,
+                fontSize = 11.sp,
+                color = c.textSecondary,
+                modifier = Modifier.padding(bottom = 2.dp),
+            )
+        }
     }
 }
 
