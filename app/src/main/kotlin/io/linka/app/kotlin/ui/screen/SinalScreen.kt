@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -76,8 +77,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -815,6 +817,8 @@ private fun RedesTab(
 
     // Estado para expandir/colapsar SSIDs com múltiplos BSSIDs
     var expandedSsids by remember { mutableStateOf(setOf<String>()) }
+    var mostrarTodasRedes by remember { mutableStateOf(false) }
+    val redesExibidas = if (mostrarTodasRedes) otherClassificadas else otherClassificadas.take(5)
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -893,7 +897,7 @@ private fun RedesTab(
                     )
                     Spacer(Modifier.height(LkSpacing.sm))
                 }
-                items(otherClassificadas, key = { it.ssid }) { grupo ->
+                items(redesExibidas, key = { it.ssid }) { grupo ->
                     OtherNetworkGroupItem(
                         grupo = grupo,
                         isExpanded = expandedSsids.contains(grupo.ssid),
@@ -910,6 +914,24 @@ private fun RedesTab(
                         modifier = Modifier.padding(horizontal = LkSpacing.lg),
                     )
                     HorizontalDivider(color = c.border, modifier = Modifier.padding(horizontal = LkSpacing.lg))
+                }
+                if (otherClassificadas.size > 5 && !mostrarTodasRedes) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { mostrarTodasRedes = true }
+                                .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                "Mostrar Mais (${otherClassificadas.size - 5})",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.W600,
+                                color = LkColors.accent,
+                            )
+                        }
+                    }
                 }
             } else if (!isRefreshing) {
                 if (snapshotWifi.redes.isEmpty()) {
@@ -1699,8 +1721,8 @@ private fun CanalTab(
     wifiLinkSnapshot: WifiLinkSnapshot? = null,
 ) {
     val c = LocalLkTokens.current
-    val bandasDisponiveis = listOf("2.4GHz", "5GHz", "6GHz")
-    var selectedBanda by remember { mutableStateOf(connectedNetwork?.banda ?: "2.4GHz") }
+    val bandasDisponiveis = listOf("Todos", "2.4GHz", "5GHz", "6GHz")
+    var selectedBanda by remember { mutableStateOf(connectedNetwork?.banda ?: "Todos") }
     var selectedCanal by remember { mutableStateOf<Int?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -1712,7 +1734,9 @@ private fun CanalTab(
                 "6GHz" to redes.count { it.banda == "6GHz" },
             )
         }
-    val redesBanda = remember(redes, selectedBanda) { redes.filter { it.banda == selectedBanda } }
+    val redesBanda = remember(redes, selectedBanda) {
+        if (selectedBanda == "Todos") redes else redes.filter { it.banda == selectedBanda }
+    }
     val canalAtual = remember(connectedNetwork) { connectedNetwork?.canal }
     val espectro =
         remember(redesBanda, canalAtual, selectedBanda, connectedNetwork) {
@@ -1797,7 +1821,7 @@ private fun CanalTab(
                     horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
                 ) {
                     bandasDisponiveis.forEach { banda ->
-                        val n = bandaCounts[banda] ?: 0
+                        val n = if (banda == "Todos") redes.size else (bandaCounts[banda] ?: 0)
                         val active = selectedBanda == banda
                         Box(
                             modifier =
@@ -1821,74 +1845,23 @@ private fun CanalTab(
         }
 
         val canalAtualInfo = connectedNetwork?.canal
-        val bandaAtualInfo = connectedNetwork?.banda
         val dadoCanalAtual = if (canalAtualInfo != null) espectro.dadosPorCanal.find { it.canal == canalAtualInfo } else null
-        if (canalAtualInfo != null) {
+        if (dadoCanalAtual?.nivel == NivelCongestionamento.congestionado) {
             item {
-                Row(
-                    modifier =
-                        Modifier
-                            .padding(horizontal = LkSpacing.lg)
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(LkRadius.card))
-                            .background(c.bgCard)
-                            .padding(LkSpacing.lg),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Canal atual",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = c.textTertiary,
-                        )
-                        Text(
-                            "Canal $canalAtualInfo",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.W700,
-                            color = c.textPrimary,
-                        )
-                        if (bandaAtualInfo != null) {
-                            Text(
-                                bandaAtualInfo,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = c.textSecondary,
-                            )
-                        }
-                    }
-                    if (dadoCanalAtual != null) {
-                        val chipColor = congestionColor(dadoCanalAtual.nivel)
-                        val chipLabel =
-                            when (dadoCanalAtual.nivel) {
-                                NivelCongestionamento.livre -> "Livre"
-                                NivelCongestionamento.moderado -> "Moderado"
-                                NivelCongestionamento.congestionado -> "Congestionado"
-                            }
-                        Box(
-                            modifier =
-                                Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(chipColor.copy(alpha = 0.12f))
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                        ) {
-                            Text(
-                                chipLabel,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.W600,
-                                color = chipColor,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
+                CanalCongestionadoBanner(dadoCanal = dadoCanalAtual)
                 Spacer(Modifier.height(LkSpacing.md))
             }
         }
 
         item {
             Column(Modifier.padding(horizontal = LkSpacing.lg)) {
-                SectionLabel("ESPECTRO $selectedBanda")
+                SectionLabel(if (selectedBanda == "Todos") "ESPECTRO" else "ESPECTRO $selectedBanda")
                 Spacer(Modifier.height(LkSpacing.sm))
-                SpectrumChart(espectro = espectro)
+                SpectrumChart(
+                    espectro = espectro,
+                    redesRaw = redesBanda,
+                    seuSSID = connectedNetwork?.ssid,
+                )
                 Spacer(Modifier.height(LkSpacing.lg))
             }
         }
@@ -1960,19 +1933,10 @@ private fun CanalTab(
 
         if (canalOrdenados.isNotEmpty()) {
             item {
-                Row(
-                    Modifier.fillMaxWidth().padding(horizontal = LkSpacing.lg),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text("CANAL", style = MaterialTheme.typography.labelMedium, color = c.textTertiary, fontWeight = FontWeight.W600, letterSpacing = 0.8.sp)
-                    Text(
-                        "REDES / SINAL",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = c.textTertiary,
-                        fontWeight = FontWeight.W600,
-                        letterSpacing = 0.8.sp,
-                    )
-                }
+                SectionLabel(
+                    "USO POR CANAL",
+                    modifier = Modifier.padding(horizontal = LkSpacing.lg),
+                )
                 Spacer(Modifier.height(LkSpacing.sm))
             }
             items(canalOrdenados, key = { it.canal }) { dado ->
@@ -2004,6 +1968,44 @@ private fun CanalTab(
             ) {
                 ChannelDetailSheet(dado = dadoCanal, connectedNetwork = connectedNetwork, espectro = espectro)
             }
+        }
+    }
+}
+
+// ─── Canal: banner de congestionamento ───────────────────────────────────────
+
+@Composable
+private fun CanalCongestionadoBanner(dadoCanal: DadoCanal) {
+    val c = LocalLkTokens.current
+    Row(
+        modifier = Modifier
+            .padding(horizontal = LkSpacing.lg)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(LkRadius.card))
+            .border(1.dp, LkColors.warning.copy(alpha = 0.3f), RoundedCornerShape(LkRadius.card))
+            .background(LkColors.warning.copy(alpha = 0.08f))
+            .padding(LkSpacing.lg),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Warning,
+            contentDescription = null,
+            tint = LkColors.warning,
+            modifier = Modifier.size(20.dp),
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "Canal congestionado",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.W600,
+                color = LkColors.warning,
+            )
+            Text(
+                "${dadoCanal.countTerceiros} redes vizinhas dividem o canal ${dadoCanal.canal}.",
+                style = MaterialTheme.typography.bodySmall,
+                color = c.textSecondary,
+            )
         }
     }
 }
@@ -2113,21 +2115,56 @@ private fun CanalErroState(
     }
 }
 
-// ─── Spectrum chart ───────────────────────────────────────────────────────────
+// ─── Spectrum chart (Gaussian curves) ────────────────────────────────────────
+
+private val SPECTRUM_COLORS = listOf(
+    Color(0xFF4FC3F7),
+    Color(0xFFAED581),
+    Color(0xFFFFB74D),
+    Color(0xFFBA68C8),
+    Color(0xFFFF8A65),
+    Color(0xFF4DB6AC),
+    Color(0xFFE57373),
+    Color(0xFFF06292),
+)
+
+private data class RedeParaEspectro(
+    val ssid: String,
+    val canal: Int,
+    val rssiDbm: Int,
+    val cor: Color,
+    val isSua: Boolean,
+)
 
 @Composable
-private fun SpectrumChart(espectro: SnapshotEspectroCanal) {
+private fun SpectrumChart(
+    espectro: SnapshotEspectroCanal,
+    redesRaw: List<RedeVizinha> = emptyList(),
+    seuSSID: String? = null,
+) {
     val c = LocalLkTokens.current
     val dados = espectro.dadosPorCanal
-
     val accentColor = LkColors.accent
-    val successColor = LkColors.success
-    val warningColor = LkColors.warning
-    val errorColor = LkColors.error
     val gridColor = c.border.copy(alpha = 0.35f)
     val textTertiary = c.textTertiary
-
     val textMeasurer = rememberTextMeasurer()
+
+    val redesParaDesenhar = remember(redesRaw, seuSSID) {
+        redesRaw
+            .filter { it.canal != null }
+            .sortedByDescending { it.rssiDbm }
+            .take(20)
+            .mapIndexed { idx, rede ->
+                val isSua = seuSSID != null && rede.ssid == seuSSID
+                RedeParaEspectro(
+                    ssid = rede.ssid ?: "Oculta",
+                    canal = rede.canal!!,
+                    rssiDbm = rede.rssiDbm,
+                    cor = if (isSua) accentColor else SPECTRUM_COLORS[idx % SPECTRUM_COLORS.size],
+                    isSua = isSua,
+                )
+            }
+    }
 
     Column(
         Modifier
@@ -2136,135 +2173,125 @@ private fun SpectrumChart(espectro: SnapshotEspectroCanal) {
             .background(c.bgSecondary)
             .padding(horizontal = LkSpacing.md, vertical = LkSpacing.md),
     ) {
-        // Legenda
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-        ) {
-            LegendaItem(label = "Livre", cor = successColor, c = c)
-            LegendaItem(label = "Moderado", cor = warningColor, c = c)
-            LegendaItem(label = "Congestionado", cor = errorColor, c = c)
-        }
-
-        Spacer(Modifier.height(LkSpacing.sm))
-
-        if (dados.isEmpty()) {
+        if (redesParaDesenhar.isEmpty() && dados.isEmpty()) {
             Box(Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
-                Text("Sem dados", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Normal, color = c.textTertiary)
+                Text("Sem redes visíveis", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Normal, color = c.textTertiary)
             }
             return@Column
         }
 
-        // Canvas principal: barras + gridlines + labels Y e X
-        val barAreaHeight = 130.dp
+        val chartAreaHeight = 140.dp
         val xAxisHeight = 20.dp
         val yAxisWidth = 30.dp
+
+        val canais = remember(dados) { dados.map { it.canal }.sorted() }
+        val canalMin = canais.firstOrNull() ?: 1
+        val canalMax = canais.lastOrNull() ?: 13
 
         Canvas(
             Modifier
                 .fillMaxWidth()
-                .height(barAreaHeight + xAxisHeight),
+                .height(chartAreaHeight + xAxisHeight),
         ) {
             val leftPx = yAxisWidth.toPx()
-            val barAreaH = barAreaHeight.toPx()
+            val chartH = chartAreaHeight.toPx()
             val xAxisH = xAxisHeight.toPx()
             val chartW = size.width - leftPx
 
             val labelStyle = TextStyle(fontSize = 9.sp, color = textTertiary)
 
-            // Gridlines e labels Y (-30, -50, -70 dBm)
             listOf(-30 to "-30", -50 to "-50", -70 to "-70").forEach { (dBm, label) ->
                 val frac = 1f - ((dBm + 90f) / 70f)
-                val y = barAreaH * frac
-
+                val y = chartH * frac
                 drawLine(gridColor, Offset(leftPx, y), Offset(size.width, y), strokeWidth = 0.5.dp.toPx())
-
                 val textLayout = textMeasurer.measure(label, labelStyle)
                 drawText(textLayout, topLeft = Offset(0f, y - textLayout.size.height / 2f))
             }
 
-            // Barras
-            val n = dados.size
-            val gap = if (n > 1) 2.dp.toPx() else 0f
-            val barW = ((chartW - gap * (n - 1)) / n).coerceAtLeast(4f)
+            val range = (canalMax - canalMin).coerceAtLeast(1).toFloat()
+            fun canalToX(canal: Float): Float = leftPx + ((canal - canalMin + 1f) / (range + 2f)) * chartW
 
-            dados.forEachIndexed { idx, dado ->
-                val barX = leftPx + idx * (barW + gap)
+            val is24Ghz = canalMin <= 14
+            val halfWidthChannels = if (is24Ghz) 2.5f else 4f
+            val sigma = halfWidthChannels / 2.355f
 
-                val barColor =
-                    when {
-                        dado.ehCanalAtual -> accentColor
-                        else -> congestionColor(dado.nivel)
-                    }
+            redesParaDesenhar.reversed().forEach { rede ->
+                val centerX = canalToX(rede.canal.toFloat())
+                val heightFraction = ((rede.rssiDbm + 90).coerceIn(0, 70)) / 70f
 
-                val rssiDbm = dado.maxRssiDbm
-                if (rssiDbm != null) {
-                    val fraction = ((rssiDbm + 90).coerceIn(0, 70)) / 70f
-                    val barH = (barAreaH * fraction).coerceAtLeast(4.dp.toPx())
-                    val barTop = barAreaH - barH
+                val path = Path()
+                val steps = 60
+                val xSpread = halfWidthChannels * 2f
+                val startCanal = rede.canal - xSpread
+                val endCanal = rede.canal + xSpread
+                val step = (endCanal - startCanal) / steps
 
-                    drawRect(barColor.copy(alpha = 0.85f), topLeft = Offset(barX, barTop), size = Size(barW, barH))
-
-                    // Borda verde no canal recomendado (quando não é o atual)
-                    if (dado.ehCanalRecomendado && !dado.ehCanalAtual) {
-                        drawRect(
-                            successColor,
-                            topLeft = Offset(barX - 1f, barTop - 1f),
-                            size = Size(barW + 2f, barH + 2f),
-                            style = Stroke(width = 1.5.dp.toPx()),
-                        )
-                    }
-
-                    // Contagem de redes acima da barra
-                    if (dado.count > 0) {
-                        val countLayout =
-                            textMeasurer.measure(
-                                "${dado.count}",
-                                TextStyle(fontSize = 8.sp, color = barColor, fontWeight = FontWeight.W600),
-                            )
-                        val countX = barX + barW / 2 - countLayout.size.width / 2
-                        val countY = barTop - countLayout.size.height - 2.dp.toPx()
-                        if (countY >= 0) drawText(countLayout, topLeft = Offset(countX, countY))
-                    }
-                } else {
-                    drawRect(
-                        c.textTertiary.copy(alpha = 0.2f),
-                        topLeft = Offset(barX, barAreaH - 2.dp.toPx()),
-                        size = Size(barW, 2.dp.toPx()),
-                    )
+                for (i in 0..steps) {
+                    val canalPos = startCanal + i * step
+                    val x = canalToX(canalPos)
+                    val dist = (canalPos - rede.canal) / sigma
+                    val gauss = kotlin.math.exp(-0.5 * dist * dist).toFloat()
+                    val y = chartH - (chartH * heightFraction * gauss)
+                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
                 }
 
-                // Label do canal no eixo X
-                val xLabelColor = if (dado.ehCanalAtual) accentColor else textTertiary
-                val xLabelWeight = if (dado.ehCanalAtual) FontWeight.Bold else FontWeight.Normal
-                val xLayout =
-                    textMeasurer.measure(
-                        "${dado.canal}",
-                        TextStyle(fontSize = 9.sp, color = xLabelColor, fontWeight = xLabelWeight),
-                    )
+                drawPath(path, color = rede.cor, style = Stroke(width = 2.dp.toPx()))
+
+                val fillPath = Path()
+                fillPath.addPath(path)
+                fillPath.lineTo(canalToX(endCanal), chartH)
+                fillPath.lineTo(canalToX(startCanal), chartH)
+                fillPath.close()
+                drawPath(fillPath, color = rede.cor.copy(alpha = 0.15f), style = Fill)
+            }
+
+            canais.forEach { canal ->
+                val x = canalToX(canal.toFloat())
+                val isAtual = canal == espectro.canalAtual
+                val xLabelColor = if (isAtual) accentColor else textTertiary
+                val xLabelWeight = if (isAtual) FontWeight.Bold else FontWeight.Normal
+                val xLayout = textMeasurer.measure(
+                    "$canal",
+                    TextStyle(fontSize = 9.sp, color = xLabelColor, fontWeight = xLabelWeight),
+                )
                 drawText(
                     xLayout,
-                    topLeft =
-                        Offset(
-                            barX + barW / 2 - xLayout.size.width / 2,
-                            barAreaH + (xAxisH - xLayout.size.height) / 2,
-                        ),
+                    topLeft = Offset(x - xLayout.size.width / 2, chartH + (xAxisH - xLayout.size.height) / 2),
                 )
+            }
+        }
+
+        Spacer(Modifier.height(LkSpacing.sm))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
+        ) {
+            redesParaDesenhar.take(8).forEach { rede ->
+                LegendaRedeItem(ssid = rede.ssid, cor = rede.cor, c = c)
             }
         }
     }
 }
 
 @Composable
-private fun LegendaItem(
-    label: String,
+private fun LegendaRedeItem(
+    ssid: String,
     cor: Color,
     c: LkTokens,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(8.dp).clip(CircleShape).background(cor))
         Spacer(Modifier.width(4.dp))
-        Text(label, style = MaterialTheme.typography.labelMedium, color = c.textSecondary)
+        Text(
+            ssid,
+            style = MaterialTheme.typography.labelSmall,
+            color = c.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -2426,94 +2453,77 @@ private fun ChannelItem(
     onClick: () -> Unit,
 ) {
     val c = LocalLkTokens.current
-    val corFundo =
-        when {
-            isConnected -> LkColors.accent.copy(alpha = 0.08f)
-            else -> Color.Transparent
-        }
-    val corCongestionamento = congestionColor(dado.nivel)
+    val corStatus = congestionColor(dado.nivel)
+    val labelStatus = when (dado.nivel) {
+        NivelCongestionamento.livre -> "Livre"
+        NivelCongestionamento.moderado -> "Moderado"
+        NivelCongestionamento.congestionado -> "Congestionado"
+    }
+    val fracaoUso = (dado.count / 8f).coerceIn(0f, 1f)
 
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(corFundo)
-            .then(
-                if (isConnected) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = LkColors.accent.copy(alpha = 0.4f),
-                        shape = RoundedCornerShape(8.dp),
-                    )
-                } else {
-                    Modifier
-                },
-            ).minimumInteractiveComponentSize()
+            .minimumInteractiveComponentSize()
             .clickable(onClick = onClick)
             .padding(horizontal = LkSpacing.lg, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
     ) {
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Canal ${dado.canal}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.W600,
-                    color = if (isConnected) LkColors.accent else c.textPrimary,
-                )
-                if (isConnected) {
-                    Spacer(Modifier.width(8.dp))
-                    Box(
-                        modifier =
-                            Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(LkColors.success.copy(alpha = 0.14f))
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                    ) {
-                        Text("Você está aqui", fontSize = 10.sp, fontWeight = FontWeight.W600, color = LkColors.success)
-                    }
-                }
-            }
-            if (dado.countProprios > 0 || dado.countTerceiros > 0) {
-                Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (dado.countProprios > 0) {
-                        Text(
-                            "Seus: ${dado.countProprios}",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.W500,
-                            color = LkColors.accent,
-                        )
-                    }
-                    if (dado.countProprios > 0 && dado.countTerceiros > 0) {
-                        Text("·", style = MaterialTheme.typography.bodySmall, color = c.textTertiary)
-                    }
-                    if (dado.countTerceiros > 0) {
-                        Text(
-                            "Outros: ${dado.countTerceiros}",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.W500,
-                            color = corCongestionamento,
-                        )
-                    }
-                }
-            }
+        Text(
+            "Canal ${dado.canal}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (isConnected) FontWeight.W700 else FontWeight.W500,
+            color = if (isConnected) LkColors.accent else c.textPrimary,
+            modifier = Modifier.widthIn(min = 60.dp),
+        )
+        if (isConnected) {
+            InlineBadge("SEU CANAL", LkColors.accent)
+        } else if (dado.ehCanalRecomendado) {
+            InlineBadge("RECOMENDADO", LkColors.accent)
         }
-        Spacer(Modifier.width(LkSpacing.md))
-        Column(horizontalAlignment = Alignment.End) {
-            if (dado.maxRssiDbm != null) {
-                Text("${dado.maxRssiDbm} dBm", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.W600, color = c.textPrimary)
-            }
-            Text(
-                when (dado.nivel) {
-                    NivelCongestionamento.livre -> "Livre"
-                    NivelCongestionamento.moderado -> "Moderado"
-                    NivelCongestionamento.congestionado -> "Congestionado"
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = corCongestionamento,
-            )
-        }
+        LinearProgressBar(
+            fraction = fracaoUso,
+            color = corStatus,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            labelStatus,
+            style = MaterialTheme.typography.labelSmall,
+            color = corStatus,
+            fontWeight = FontWeight.W600,
+        )
+    }
+}
+
+@Composable
+private fun InlineBadge(label: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 6.dp, vertical = 3.dp),
+    ) {
+        Text(label, fontSize = 9.sp, fontWeight = FontWeight.W700, color = color)
+    }
+}
+
+@Composable
+private fun LinearProgressBar(fraction: Float, color: Color, modifier: Modifier = Modifier) {
+    val c = LocalLkTokens.current
+    Box(
+        modifier = modifier
+            .height(6.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .background(c.bgSecondary),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(fraction)
+                .clip(RoundedCornerShape(3.dp))
+                .background(color),
+        )
     }
 }
 
