@@ -207,7 +207,6 @@ fun HomeScreen(
     var showGatewaySheet by remember { mutableStateOf<GatewayInfo?>(null) }
     var showInternetSheet by remember { mutableStateOf(false) }
     var showCellularSheet by remember { mutableStateOf(false) }
-    var showGamerSheet by remember { mutableStateOf(false) }
     var showMedicaoTipoSheet by remember { mutableStateOf(false) }
 
     if (showDeviceSheet) {
@@ -259,23 +258,6 @@ fun HomeScreen(
                 publicIp = publicIp,
                 movelSnapshot = movelSnapshot,
                 c = c,
-            )
-        }
-    }
-    if (showGamerSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showGamerSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = c.bgSecondary,
-        ) {
-            GamerSheet(
-                resultado = lastResult,
-                ultimaMedicao = ultimaMedicao,
-                c = c,
-                onIrParaTeste = {
-                    showGamerSheet = false
-                    showMedicaoTipoSheet = true
-                },
             )
         }
     }
@@ -517,10 +499,6 @@ fun HomeScreen(
                 )
             }
 
-            // 7. Jogar Online shortcut
-            item {
-                GamerShortcutCard(c = c, onClick = { showGamerSheet = true })
-            }
         }
     }
 }
@@ -2205,7 +2183,7 @@ private fun SheetInfoRow(
 // ─── Gamer shortcut card ──────────────────────────────────────────────────────
 
 @Composable
-private fun GamerShortcutCard(
+internal fun GamerShortcutCard(
     c: LkTokens,
     onClick: () -> Unit,
 ) {
@@ -2258,7 +2236,7 @@ private fun GamerShortcutCard(
 // ─── GamerSheet ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun GamerSheet(
+internal fun GamerSheet(
     resultado: ResultadoSpeedtest?,
     ultimaMedicao: MedicaoEntity?,
     c: LkTokens,
