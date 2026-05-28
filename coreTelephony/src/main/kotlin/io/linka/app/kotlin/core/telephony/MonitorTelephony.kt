@@ -1,5 +1,6 @@
 package io.linka.app.kotlin.core.telephony
 
+import android.content.Context
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -24,4 +25,16 @@ interface MonitorTelephony {
 
     /** Para de observar e libera callbacks. Idempotente. */
     fun encerrar()
+
+    /**
+     * Captura snapshot de todos os SIMs ativos no dispositivo.
+     *
+     * Usa SubscriptionManager para listar os SIMs e TelephonyManager por subscriptionId
+     * para obter tecnologia e RSRP de cada um. Seguro: envolto em runCatching internamente
+     * (SecurityException pode ocorrer em MIUI). Retorna lista vazia se sem permissao ou SIM.
+     *
+     * @param context ApplicationContext.
+     * @return Lista de [MovelSimSnapshot], uma por SIM ativo. Pode ser vazia.
+     */
+    fun captureSimsAtivos(context: Context): List<MovelSimSnapshot>
 }

@@ -14,6 +14,7 @@ import android.telephony.CellSignalStrengthNr
 import android.telephony.PhoneStateListener
 import android.telephony.ServiceState
 import android.telephony.SignalStrength
+import android.telephony.SubscriptionManager
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import android.util.Log
@@ -92,6 +93,101 @@ class MonitorTelephonyImpl(
         } catch (t: Throwable) {
             Log.w(TAG, "Falha ao iniciar MonitorTelephony: ${t.message}")
             iniciou = false
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // captureSimsAtivos — dual SIM (#179 Task C)
+    // -------------------------------------------------------------------------
+
+    @SuppressLint("MissingPermission")
+    override fun captureSimsAtivos(context: Context): List<MovelSimSnapshot> {
+        if (!possuiPermissaoReadPhoneState()) return emptyList()
+        val sm = runCatching {
+            context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+        }.getOrNull() ?: return emptyList()
+
+        val sims = runCatching {
+            sm.activeSubscriptionInfoList.orEmpty()
+        }.getOrElse { return emptyList() }
+
+        return sims.mapNotNull { info ->
+            runCatching {
+                val subId = info.subscriptionId
+                val simIndex = info.simSlotIndex + 1
+                val operadora = info.carrierName?.toString()?.ifBlank { null }
+                val emRoaming = info.dataRoaming == SubscriptionManager.DATA_ROAMING_ENABLE
+
+                val tm = applicationContext
+                    .getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    ?: return@runCatching null
+                val tmSub = runCatching {
+                    tm.createForSubscriptionId(subId)
+                }.getOrNull() ?: return@runCatching null
+
+                val tecnologiaRede = runCatching { derivarTecnologiaSim(tmSub) }.getOrNull()
+
+                // RSRP via allCellInfo do TM do sub — pode retornar vazio em alguns OEMs
+                val rsrpDbm = runCatching {
+                    val cellInfos = tmSub.allCellInfo.orEmpty()
+                    val servidora = cellInfos.firstOrNull { it.isRegistered }
+                    when (servidora) {
+                        is CellInfoLte -> servidora.cellSignalStrength.rsrp.takeIf { it != Int.MAX_VALUE }
+                        is CellInfoNr -> {
+                            val s = servidora.cellSignalStrength as? CellSignalStrengthNr
+                            s?.csiRsrp?.takeIf { it != Int.MAX_VALUE }
+                                ?: s?.ssRsrp?.takeIf { it != Int.MAX_VALUE }
+                        }
+                        else -> null
+                    }
+                }.getOrNull()
+
+                MovelSimSnapshot(
+                    subId = subId,
+                    simIndex = simIndex,
+                    operadora = operadora,
+                    tecnologiaRede = tecnologiaRede,
+                    rsrpDbm = rsrpDbm,
+                    emRoaming = emRoaming,
+                )
+            }.getOrNull()
+        }
+    }
+
+    @Suppress("DEPRECATION", "MissingPermission")
+    private fun derivarTecnologiaSim(tm: TelephonyManager): String? {
+        val dataNetType = runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                tm.dataNetworkType
+            } else {
+                tm.networkType
+            }
+        }.getOrNull() ?: return null
+
+        return when (dataNetType) {
+            TelephonyManager.NETWORK_TYPE_NR -> "5G SA"
+            TelephonyManager.NETWORK_TYPE_LTE -> {
+                // Verifica 5G NSA via serviceState
+                val nsa = runCatching {
+                    val ss = tm.serviceState
+                    if (ss != null) detectarNrAtivo(ss) else false
+                }.getOrDefault(false)
+                if (nsa) "5G NSA" else "4G"
+            }
+            TelephonyManager.NETWORK_TYPE_HSPAP,
+            TelephonyManager.NETWORK_TYPE_HSPA,
+            TelephonyManager.NETWORK_TYPE_HSDPA,
+            TelephonyManager.NETWORK_TYPE_HSUPA,
+            TelephonyManager.NETWORK_TYPE_UMTS,
+            TelephonyManager.NETWORK_TYPE_EVDO_0,
+            TelephonyManager.NETWORK_TYPE_EVDO_A,
+            TelephonyManager.NETWORK_TYPE_EVDO_B -> "3G"
+            TelephonyManager.NETWORK_TYPE_GPRS,
+            TelephonyManager.NETWORK_TYPE_EDGE,
+            TelephonyManager.NETWORK_TYPE_CDMA,
+            TelephonyManager.NETWORK_TYPE_1xRTT,
+            TelephonyManager.NETWORK_TYPE_IDEN -> "2G"
+            else -> null
         }
     }
 

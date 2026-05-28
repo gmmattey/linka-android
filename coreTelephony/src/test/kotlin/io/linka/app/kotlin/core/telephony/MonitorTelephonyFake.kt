@@ -1,5 +1,6 @@
 package io.linka.app.kotlin.core.telephony
 
+import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +31,11 @@ class MonitorTelephonyFake(
     override fun encerrar() {
         encerrarCount.incrementAndGet()
     }
+
+    // simsAtivos configuravel para testes de dual SIM
+    var simsAtivosParaTeste: List<MovelSimSnapshot> = emptyList()
+
+    override fun captureSimsAtivos(context: Context): List<MovelSimSnapshot> = simsAtivosParaTeste
 
     fun emitir(snap: MovelSnapshot?) {
         mutable.value = snap
