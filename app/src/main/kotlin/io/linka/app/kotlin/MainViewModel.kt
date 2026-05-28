@@ -46,7 +46,6 @@ import io.linka.app.kotlin.feature.history.ObservadorHistoricoRoom
 import io.linka.app.kotlin.feature.history.ResumoHistorico
 import io.linka.app.kotlin.feature.history.UptimeChartUseCase
 import io.linka.app.kotlin.feature.history.UptimeNarrativaEngine
-import io.linka.app.kotlin.feature.speedtest.EstadoExecucaoSpeedtest
 import io.linka.app.kotlin.feature.speedtest.ExecutorSpeedtest
 import io.linka.app.kotlin.feature.speedtest.ModoSpeedtest
 import io.linka.app.kotlin.feature.wifi.ScannerRedesWifi
@@ -76,7 +75,6 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -397,7 +395,6 @@ class MainViewModel
         private var infoLocalRedeColetada = false
         private var ispInfoColetada = false
         private var localizacaoServidorColetada = false
-        private var ultimoResultadoPersistidoEpochMs: Long? = null
         private var ultimoBenchmarkDnsEpochMs: Long? = null
         private var ssidAoDispararDns: String? = null
         private var estadoConexaoAoDispararDns: EstadoConexao? = null
@@ -407,40 +404,7 @@ class MainViewModel
         }
 
         private fun iniciarObservadores() {
-            viewModelScope.launch {
-                executorSpeedtest.snapshotFlow.collect { snapshot ->
-                    if (snapshot.estado == EstadoExecucaoSpeedtest.concluido) {
-                        val resultado = snapshot.resultado ?: return@collect
-                        if (ultimoResultadoPersistidoEpochMs == resultado.timestampEpochMs) return@collect
-                        ultimoResultadoPersistidoEpochMs = resultado.timestampEpochMs
-                        bancoDados.medicaoDao().salvar(
-                            MedicaoEntity(
-                                id = UUID.randomUUID().toString(),
-                                timestampEpochMs = resultado.timestampEpochMs,
-                                connectionType = monitorRede.snapshotFlow.value.estadoConexao.name,
-                                connectionTypeStart = resultado.connectionTypeStart,
-                                connectionTypeEnd = resultado.connectionTypeEnd,
-                                contaminado = resultado.contaminado,
-                                speedtestMode = resultado.modo.name,
-                                specVersion = resultado.specVersion,
-                                downloadMbps = resultado.downloadMbps,
-                                uploadMbps = resultado.uploadMbps,
-                                latencyMs = resultado.latenciaMs,
-                                jitterMs = resultado.jitterMs,
-                                perdaPercentual = resultado.perdaPercentual,
-                                bufferbloatMs = resultado.bufferbloatMs,
-                                packetLossSource = resultado.packetLossSource,
-                                vereditoStreaming = resultado.diagnosticoQualidade.vereditoStreaming.name,
-                                vereditoGamer = resultado.diagnosticoQualidade.vereditoGamer.name,
-                                vereditoVideoChamada = resultado.diagnosticoQualidade.vereditoVideoChamada.name,
-                                gargaloPrimario = resultado.diagnosticoQualidade.gargaloPrimario.name,
-                                operadoraMovel = monitorTelephony.snapshotFlow.value?.operadora,
-                            ),
-                        )
-                    }
-                }
-            }
-
+            // Persistência do speedtest delegada ao SpeedtestPersistenceCoordinator (issues #184/#185).
             viewModelScope.launch {
                 executorFibra.snapshotFlow.collect { snapshot ->
                     if (snapshot.estado != EstadoFibra.concluido) return@collect
@@ -580,7 +544,6 @@ class MainViewModel
             infoLocalRedeColetada = false
             ispInfoColetada = false
             localizacaoServidorColetada = false
-            ultimoResultadoPersistidoEpochMs = null
             viewModelScope.launch {
                 // Guarda de rede medida: se movel, modo pesado e usuario nao autorizou,
                 // suspende e aguarda confirmacao via dialog (Task 4). Sem dialog agora.
