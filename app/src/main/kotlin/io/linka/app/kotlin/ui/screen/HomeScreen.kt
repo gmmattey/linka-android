@@ -326,7 +326,7 @@ fun HomeScreen(
                         if (estaConectado) {
                             Text(
                                 text = topBarSubtitulo(snapshotRede, movelSnapshot),
-                                style = MaterialTheme.typography.labelMedium,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = c.textSecondary,
                             )
                         }
