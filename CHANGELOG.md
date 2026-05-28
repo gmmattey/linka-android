@@ -6,6 +6,15 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
+## [0.13.3] — 2026-05-28
+
+### Fixed
+- **Fibra:** removida abertura automática da tela Fibra/modem ao iniciar o app (só abre por ação do usuário)
+- **Home/Móvel:** IP público na sheet de rede móvel não exibe mais o IP do Wi-Fi quando ambas redes estão ativas
+- **Sinal/Móvel:** aba Móvel agora detecta 5G NSA corretamente (adicionados fallbacks TelephonyDisplayInfo, CellSignalStrengthNr e CellInfoNr)
+
+---
+
 ## [0.13.2] — 2026-05-28
 
 ### Fixed
