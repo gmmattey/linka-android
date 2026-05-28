@@ -6,7 +6,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
-## [0.12.0] — 2026-05-27
+## [0.12.0] — 2026-05-28
 
 ### Added
 
@@ -22,6 +22,20 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 - **Componentes Compose adaptados:** `OrbitAiMessageBubble` ganhou parâmetro `isProgressMessage: Boolean` que suprime métricas, ações e detalhes técnicos para mensagens de progresso do teste. `OrbitInputArea` ganhou parâmetro `placeholder: String` customizável para sinalizar "Aguarde o resultado do teste..." e "Aguarde a resposta da IA..." sem reaproveitar gambiarra de `isLimitReached`. Ambos parâmetros têm default que preserva callers existentes.
 
+- **TopBar contextual na Home**: exibe o SSID da rede Wi-Fi ou o nome da operadora móvel no subtítulo da TopBar (#180 / PR #194)
+
+- **Card "Sua Conexão" na tela Sinal**: card visualmente destacado para a rede conectada, separado das redes vizinhas (#176 / PR #195)
+
+- **Redesign dos itens de rede na tela Sinal**: layout com ícone Router/Wi-Fi, SSID, força do sinal, frequência, canal e metadados na segunda linha (#177 / PR #195)
+
+- **Mini-cards DNS, PING e Diagnóstico IA na Home**: atalhos rápidos abaixo do botão "Medir Velocidade" (#179 parcial / PR #196)
+
+- **Seletor Android/Roteador na aba Canal**: passo a passo para troca de canal via Android ou painel do roteador (#178 / PR #196)
+
+- **Chip de segurança Wi-Fi no card de sinal**: exibe WPA3, WPA2, WPA ou Open com cor contextual (#179 / PR #197)
+
+- **Card de rede móvel com suporte a dual SIM**: exibe operadora, tecnologia (4G/5G), qualidade de sinal e status de roaming por chip ativo (#179 / PR #197)
+
 ### Changed
 
 - **Entry point do botão "Diagnóstico":** Passa a empilhar `Overlay.ChatDiagnosticoIa` em vez de `Overlay.DiagnosticoInteligente`. Bottom nav já oculta durante speedtest reaproveitada — quando o chat dispara um novo teste, a navbar global desaparece pelo mesmo gate. `BackHandler` integrado fecha o overlay.
@@ -32,25 +46,34 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 - **`DiagnosticoScreen` (chat inline antigo) marcada como `@Deprecated`:** Mantida no codebase como fallback de emergência via `Overlay.DiagnosticoInteligente` (também deprecado por KDoc, já que Kotlin não honra `@Deprecated` em entries de enum/sealed para warning de uso). Call sites internos do `AppShell` que ainda referenciam o overlay antigo têm `@Suppress("DEPRECATION")` documentando a intencionalidade. Será removida em próxima major.
 
+### Fixed
+
+- Remover card "O QUE VOCÊ CONSEGUE FAZER" da tela Home (#170 / PR #186)
+- Migrar card REGULAÇÃO ANATEL da Home para a tela Resultado de Velocidade (#171 / PR #187)
+- Migrar card "Atraso extra na conexão" (bufferbloat) da Home para Resultado de Velocidade (#172 / PR #188)
+- Migrar card "Jogar Online" da Home para Resultado de Velocidade (#173 / PR #189)
+- Remover mini-cards DNS, PING e Diagnóstico da tela Velocidade (#174 / PR #190)
+- Remover status "Carregando" do card Servidor na tela de medição (#175 / PR #191)
+- Corrigir `operadoraMovel = null` em medições salvas via chat de diagnóstico IA (#185 / PR #192)
+- Lint: corrigir erro de desugaring `java.time` em `ChatDiagnosticoIaScreen` (#198)
+
+### Refactored
+
+- `SpeedtestPersistenceCoordinator`: centralizar persistência de resultados de speedtest, eliminando race condition entre `MainViewModel` e `ChatDiagnosticoIaViewModel` (#184 / PR #192)
+
 ### Technical
 
 - **Migration Room v9 → v10** com SQL alinhado ao schema gerado pelo Room (`10.json`, identityHash `97f676bb…`). Schema antigo no repositório continha entidades fantasma (`fibra_config`, `movel_chip_config`, `localizacao_config`) sem código correspondente — resíduo de branch nunca mergeada — sobrescrito com schema correto.
 
-- **11 testes unitários para `CotaIaRepository`** (rolling 24h, expiração de ciclo, reset automático, renovação, observabilidade reativa) com clock injetável (`clock: () -> Long = System::currentTimeMillis`) para simular passagem de tempo sem `Thread.sleep`.
-
-- **25 testes unitários para `ChatDiagnosticoIaViewModel`** cobrindo os 3 fluxos de opção inicial, cota excedida pré-chamada, erros de rede/modelo/timeout/resposta incompleta, renomeação automática de sessão e persistência de medição via chat.
-
-- **AndroidTests para `ChatSessionDao` (7 casos), `Migration_9_10` (`MigrationTestHelper`) e `ChatDiagnosticoIaRepository` (19 casos)** compilados e prontos. Execução em device ficou pendente — recomendada antes de release.
-
 - **`ChatDiagnosticoIaViewModel` injetado via `viewModels()` na MainActivity** seguindo padrão do `MainViewModel` (projeto não tem `hilt-navigation-compose` no catálogo). Repositories de chat e cota construídos via `by lazy` recebendo `LinkaDatabase` e `@ApplicationContext`.
 
-### Known Limitations
+### Tests
 
-- **Race condition residual com `MainViewModel`:** Ambos ViewModels observam o mesmo `executorSpeedtest.snapshotFlow`. Guard `ultimoResultadoSpeedtestPersistidoEpochMs` em ambos previne dupla persistência no Room, mas só é seguro enquanto a Screen do chat e a Screen do speedtest não estiverem ativas simultaneamente — o que é garantido pelo overlay stack hoje.
-
-- **`operadoraMovel = null`** em `MedicaoEntity` persistida quando o teste é disparado pelo chat (sem `MonitorTelephony` injetado no novo ViewModel). Documentado para correção em PR de polish.
-
-- **Smoke tests Compose ausentes** — setup Robolectric não configurado no módulo `:app`. Validação visual da Screen depende de teste manual ou device farm.
+- Setup Robolectric + 7 smoke tests Compose para `ChatDiagnosticoIaScreen` (#183 / PR #193)
+- 9 testes unitários para `SpeedtestPersistenceCoordinator` (PR #192)
+- 11 testes unitários para `CotaIaRepository` (rolling 24h, expiração de ciclo, reset automático, renovação, observabilidade reativa) com clock injetável para simular passagem de tempo sem `Thread.sleep`
+- 25 testes unitários para `ChatDiagnosticoIaViewModel` cobrindo os 3 fluxos de opção inicial, cota excedida pré-chamada, erros de rede/modelo/timeout/resposta incompleta, renomeação automática de sessão e persistência de medição via chat
+- AndroidTests para `ChatSessionDao` (7 casos), `Migration_9_10` (`MigrationTestHelper`) e `ChatDiagnosticoIaRepository` (19 casos) — compilados e prontos; execução em device recomendada antes de release
 
 ---
 
