@@ -126,9 +126,6 @@ class ChatDiagnosticoIaViewModel
         // Mensagem placeholder de streaming atual — para atualizar tokens in-place
         private var mensagemStreamingAtual: ChatMensagem? = null
 
-        // Previne dupla persistência de resultado do speedtest (mesmo padrão do MainViewModel)
-        private var ultimoResultadoSpeedtestPersistidoEpochMs: Long? = null
-
         // Rastreia se a mensagem de download já foi inserida durante o novoTeste
         private var msgDownloadJaInserida = false
         private var msgUploadJaInserida = false
@@ -444,34 +441,7 @@ class ChatDiagnosticoIaViewModel
                                     adicionarMensagemAoState(msg3)
                                 }
 
-                                // Persiste a medição no Room (equivalente ao MainViewModel:412-441)
-                                if (ultimoResultadoSpeedtestPersistidoEpochMs != resultado.timestampEpochMs) {
-                                    ultimoResultadoSpeedtestPersistidoEpochMs = resultado.timestampEpochMs
-                                    bancoDados.medicaoDao().salvar(
-                                        MedicaoEntity(
-                                            id = UUID.randomUUID().toString(),
-                                            timestampEpochMs = resultado.timestampEpochMs,
-                                            connectionType = resultado.connectionType ?: "unknown",
-                                            connectionTypeStart = resultado.connectionTypeStart,
-                                            connectionTypeEnd = resultado.connectionTypeEnd,
-                                            contaminado = resultado.contaminado,
-                                            speedtestMode = resultado.modo.name,
-                                            specVersion = resultado.specVersion,
-                                            downloadMbps = resultado.downloadMbps,
-                                            uploadMbps = resultado.uploadMbps,
-                                            latencyMs = resultado.latenciaMs,
-                                            jitterMs = resultado.jitterMs,
-                                            perdaPercentual = resultado.perdaPercentual,
-                                            bufferbloatMs = resultado.bufferbloatMs,
-                                            packetLossSource = resultado.packetLossSource,
-                                            vereditoStreaming = resultado.diagnosticoQualidade.vereditoStreaming.name,
-                                            vereditoGamer = resultado.diagnosticoQualidade.vereditoGamer.name,
-                                            vereditoVideoChamada = resultado.diagnosticoQualidade.vereditoVideoChamada.name,
-                                            gargaloPrimario = resultado.diagnosticoQualidade.gargaloPrimario.name,
-                                            operadoraMovel = null, // não disponível aqui sem MonitorTelephony
-                                        ),
-                                    )
-                                }
+                                // Persistência delegada ao SpeedtestPersistenceCoordinator (issues #184/#185).
 
                                 // Mensagem 4 — dados coletados, analisando
                                 val displayName = _uiState.value.modeloDisplayName
