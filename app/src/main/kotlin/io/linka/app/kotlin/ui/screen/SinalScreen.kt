@@ -959,11 +959,12 @@ private fun NoTreeItem(
                 }
                 // #177 — segunda linha: banda, RSSI, canal
                 val canalNo = rede.canal
-                val metaPartsNo = buildList {
-                    add("Banda: ${rede.banda}")
-                    add("RSSI: ${rede.rssiDbm} dBm")
-                    if (canalNo != null) add("Canal: $canalNo")
-                }
+                val metaPartsNo =
+                    buildList {
+                        add("Banda: ${rede.banda}")
+                        add("RSSI: ${rede.rssiDbm} dBm")
+                        if (canalNo != null) add("Canal: $canalNo")
+                    }
                 Text(
                     metaPartsNo.joinToString("  "),
                     style = MaterialTheme.typography.labelSmall,
@@ -1041,11 +1042,12 @@ private fun OtherNetworkGroupItem(
                     }
                     // #177 — segunda linha: banda, RSSI, canal
                     val canalSingle = rede.canal
-                    val metaPartsSingle = buildList {
-                        add("Banda: ${rede.banda}")
-                        add("RSSI: ${rede.rssiDbm} dBm")
-                        if (canalSingle != null) add("Canal: $canalSingle")
-                    }
+                    val metaPartsSingle =
+                        buildList {
+                            add("Banda: ${rede.banda}")
+                            add("RSSI: ${rede.rssiDbm} dBm")
+                            if (canalSingle != null) add("Canal: $canalSingle")
+                        }
                     Text(
                         metaPartsSingle.joinToString("  "),
                         style = MaterialTheme.typography.labelSmall,
@@ -1179,11 +1181,12 @@ private fun OtherNetworkGroupItem(
                                 )
                                 // #177 — segunda linha: banda, RSSI, canal
                                 val canalMulti = rede.canal
-                                val metaPartsMulti = buildList {
-                                    add("Banda: ${rede.banda}")
-                                    add("RSSI: ${rede.rssiDbm} dBm")
-                                    if (canalMulti != null) add("Canal: $canalMulti")
-                                }
+                                val metaPartsMulti =
+                                    buildList {
+                                        add("Banda: ${rede.banda}")
+                                        add("RSSI: ${rede.rssiDbm} dBm")
+                                        if (canalMulti != null) add("Canal: $canalMulti")
+                                    }
                                 Text(
                                     metaPartsMulti.joinToString("  "),
                                     style = MaterialTheme.typography.labelSmall,
