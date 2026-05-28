@@ -171,10 +171,9 @@ class MonitorTelephonyImpl(
             }
         }.getOrNull() ?: return null
 
-        return when (dataNetType) {
+        var tecnologia = when (dataNetType) {
             TelephonyManager.NETWORK_TYPE_NR -> "5G SA"
             TelephonyManager.NETWORK_TYPE_LTE -> {
-                // Verifica 5G NSA via serviceState
                 val nsa = runCatching {
                     val ss = tm.serviceState
                     if (ss != null) detectarNrAtivo(ss) else false
@@ -196,6 +195,37 @@ class MonitorTelephonyImpl(
             TelephonyManager.NETWORK_TYPE_IDEN -> "2G"
             else -> null
         }
+
+        // Fallback 1: TelephonyDisplayInfo — overrideNetworkType é o mesmo indicador da status bar
+        if (tecnologia == "4G" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val override = overrideNetworkType
+            if (override >= 3) {
+                tecnologia = "5G NSA"
+            }
+        }
+
+        // Fallback 2: SignalStrength contém CellSignalStrengthNr → NR ativo
+        if (tecnologia == "4G" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val temNrSinal = runCatching {
+                sinalAtual?.cellSignalStrengths
+                    ?.any { it is CellSignalStrengthNr } == true
+            }.getOrDefault(false)
+            if (temNrSinal) {
+                tecnologia = "5G NSA"
+            }
+        }
+
+        // Fallback 3: CellInfoNr registrado em allCellInfo → NR ativo
+        if (tecnologia == "4G") {
+            val temNrCellInfo = runCatching {
+                tm.allCellInfo.orEmpty().any { it.isRegistered && it is CellInfoNr }
+            }.getOrDefault(false)
+            if (temNrCellInfo) {
+                tecnologia = "5G NSA"
+            }
+        }
+
+        return tecnologia
     }
 
     override fun encerrar() {

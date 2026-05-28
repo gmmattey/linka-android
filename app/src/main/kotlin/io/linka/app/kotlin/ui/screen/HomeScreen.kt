@@ -293,6 +293,7 @@ fun HomeScreen(
                 ispInfo = ispInfo,
                 publicIp = publicIp,
                 movelSnapshot = movelSnapshot,
+                wifiAtivo = isOnWifi,
                 c = c,
             )
         }
@@ -2362,11 +2363,14 @@ private fun CellularInfoSheet(
     ispInfo: IspInfo?,
     publicIp: String?,
     movelSnapshot: MovelSnapshot?,
+    wifiAtivo: Boolean = false,
     c: LkTokens,
 ) {
     val operadora = movelSnapshot?.operadora?.takeIf { it.isNotBlank() }
         ?: ispInfo?.isp?.takeIf { it.isNotEmpty() }
-    val ip = ispInfo?.ip ?: publicIp
+    // IP público via HTTP usa a rede ativa do SO. Android prefere Wi-Fi sobre Móvel,
+    // portanto quando Wi-Fi está ativo o IP retornado é da Wi-Fi, não da móvel.
+    val ip = if (!wifiAtivo) ispInfo?.ip ?: publicIp else null
     val tec = movelSnapshot?.tecnologia?.ifBlank { null }
     val banda = movelSnapshot?.bandaMovel?.ifBlank { null }
     val rsrp = movelSnapshot?.rsrpDbm

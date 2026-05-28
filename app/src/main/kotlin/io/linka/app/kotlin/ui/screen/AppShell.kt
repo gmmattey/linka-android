@@ -87,7 +87,6 @@ import io.linka.app.kotlin.feature.diagnostico.ai.DiagChatEntry
 import io.linka.app.kotlin.feature.diagnostico.chat.TipoDiagnostico
 import io.linka.app.kotlin.feature.diagnostico.pulse.OpcaoResposta
 import io.linka.app.kotlin.feature.dns.SnapshotBenchmarkDns
-import io.linka.app.kotlin.feature.fibra.EstadoFibra
 import io.linka.app.kotlin.feature.fibra.SnapshotFibra
 import io.linka.app.kotlin.feature.history.ResumoHistorico
 import io.linka.app.kotlin.feature.speedtest.EstadoExecucaoSpeedtest
@@ -294,12 +293,6 @@ fun AppShell(
                 }
             }
             else -> {}
-        }
-    }
-
-    LaunchedEffect(snapshotFibra.estado) {
-        if (snapshotFibra.estado != EstadoFibra.idle) {
-            if (Overlay.Fibra !in overlayStack) overlayStack.add(Overlay.Fibra)
         }
     }
 
