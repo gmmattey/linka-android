@@ -6,6 +6,48 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
+## [0.13.2] — 2026-05-28
+
+### Fixed
+- **Home:** nome da operadora agora vem do snapshot móvel (não do ISP lookup externo)
+- **Home:** card SIM duplicado removido em dispositivos single-SIM (exibe apenas para dual-SIM)
+- **MonitorRede:** SSID Wi-Fi aparecendo como nulo no Android 12+ — fallback via `WifiManager.connectionInfo`
+- **Sinal/Wi-Fi:** filtro de banda 2.4GHz agora exibe banner "Conectado em 5GHz" para consistência visual com a view 5GHz
+
+### Changed
+- **Sinal/Móvel:** SimCard redesenhado — nome da operadora em destaque (headlineSmall), badge "EM USO" verde, layout SINAL/QUALIDADE em duas colunas, descrição contextual
+- **SpeedTest:** removidos cards abaixo do seletor de modo (CardContextoUso, Anatel, Bufferbloat, ExploreTools)
+
+---
+
+## [0.13.0] — 2026-05-28
+
+### Changed — Mockup v2 UI (PR #206)
+
+#### HomeScreen
+
+- **LazyColumn reordenada:** nova ordem fixa — NetworkPath → Medições → MiniCards → SignalCard → SimChips. Cards de sinal e chips de SIM movidos para depois do bloco de medições.
+- **SignalCard restyled:** ícone em círculo de 44dp com fundo `success@10%` (Wi-Fi) ou `accent@10%` (móvel). Overline em uppercase com ponto médio: `WI-FI · 5 GHZ` ou `REDE MÓVEL · LTE`. Qualidade exibida como palavra trailing (`Forte` / `Regular` / `Fraco`) em vez de percentual. Branch móvel exibe barras de sinal + RSRP (dBm).
+- **CardMovelDualSim convertido para SimChips:** layout anterior (card expandido) substituído por dois chips compactos lado a lado — operadora, tecnologia e indicador de chip ativo em linha única por chip.
+
+#### SinalScreen
+
+- **Tabs sempre presentes:** TabRow fixo com 3 abas (`Wi-Fi` / `Canal` / `Móvel`) independente do tipo de conexão ativa. Removida bifurcação condicional que ocultava abas conforme conectividade.
+- **Novos composables:** `MovelTab` (conteúdo da aba Móvel com suporte a chip único e dual SIM) e `WifiEmptyState` (estado vazio exibido na aba Wi-Fi quando o usuário está só em rede móvel).
+- **Cor de fundo do card de rede conectada:** alterada de `successContainer` a 45% de opacidade para `success` a 12% de opacidade (`${LK.success}1F`).
+
+#### SpeedTestScreen
+
+- **Título alterado** de "Velocidade" com legenda fixa para "Velocidade" com subtítulo condicional (exibe plano contratado quando disponível, ou vazio).
+- **ModeSelector** (`Rápido` / `Completo` / `Triplo`): cores neutras — fundo do seletor usa `bgSecondary`; opção ativa usa `bgPrimary` com sombra leve; opções inativas em `textSecondary`. Removido uso de `accent` como cor de seleção.
+- **LastResultCard reescrito:** layout de 3 colunas métricas (Download / Upload / Latência) em linha única com valor numérico em destaque (`fontSize 20`, bold) + unidade sobrescrita + label abaixo. Eliminado layout anterior com valores em prosa.
+
+#### ResultadoVelocidadeScreen
+
+- **Grade circle removido:** círculo com letra de nota (A/B/C) eliminado do topo da tela. Título da avaliação ("Conexão excelente") exibido diretamente no topo com `fontSize 20 / fontWeight 600`, seguido de subtítulo descritivo em `textSecondary`.
+
+---
+
 ## [0.12.0] — 2026-05-28
 
 ### Added
