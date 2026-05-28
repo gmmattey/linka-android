@@ -40,6 +40,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
@@ -47,6 +48,7 @@ import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -123,6 +125,7 @@ fun ResultadoVelocidadeScreen(
 
     var expandida by remember { mutableStateOf(false) }
     var compartilhando by remember { mutableStateOf(false) }
+    var showGamerSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -158,6 +161,21 @@ fun ResultadoVelocidadeScreen(
                 else -> LkColors.error
             }
         }
+
+    if (showGamerSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showGamerSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = c.bgSecondary,
+        ) {
+            GamerSheet(
+                resultado = resultado,
+                ultimaMedicao = null,
+                c = c,
+                onIrParaTeste = { showGamerSheet = false },
+            )
+        }
+    }
 
     Scaffold(
         containerColor = c.bgPrimary,
@@ -571,6 +589,10 @@ fun ResultadoVelocidadeScreen(
                 // 11. Card Bufferbloat — migrado da Home #172
                 Spacer(Modifier.height(LkSpacing.md))
                 BufferbloatCard(bufferbloatMs = resultado.bufferbloatMs.takeIf { it > 0.0 }, c = c)
+
+                // 11b. Card Jogar Online — migrado da Home #173
+                Spacer(Modifier.height(LkSpacing.md))
+                GamerShortcutCard(c = c, onClick = { showGamerSheet = true })
 
                 // 12. Banner Anatel (dismissível) — migrado da Home #171
                 if (!anatelBannerDismissed) {
