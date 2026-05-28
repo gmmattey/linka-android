@@ -25,6 +25,7 @@ firebaseBom = "33.1.0"
 firebaseCrashlytics = "3.0.2"
 hilt = "2.56.2"
 detekt = "1.23.7"
+desugarJdkLibs = "2.1.5"
 timber = "5.0.1"
 profileinstaller = "1.4.1"
 
@@ -64,6 +65,7 @@ androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profi
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
 [plugins]
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

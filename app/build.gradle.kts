@@ -1,3 +1,4 @@
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import java.util.Properties
 
 plugins {
@@ -158,6 +159,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
         encoding = "UTF-8"
+        isCoreLibraryDesugaringEnabled = true
     }
 
     buildFeatures {
@@ -208,6 +210,8 @@ dependencies {
     implementation(project(":featureFibra"))
     implementation(project(":featureHistory"))
     implementation(project(":featureSettings"))
+
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.ktx)
