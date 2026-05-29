@@ -35,11 +35,13 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import io.linka.app.kotlin.ui.BancoOperadoras
 import io.linka.app.kotlin.ui.ContatoOperadora
 import io.linka.app.kotlin.ui.LkColors
@@ -53,11 +55,52 @@ private val corOperadora: Map<String, Color> =
         "claro_net" to Color(0xFFED1C24),
         "tim_live" to Color(0xFF003D8F),
         "oi_fibra" to Color(0xFFFF8C00),
+        "nio" to Color(0xFF00B4D8),
+        "algar" to Color(0xFF0066CC),
+        "unifique" to Color(0xFF00A651),
+        "brisanet" to Color(0xFFFF6600),
+        "desktop" to Color(0xFF1E3A5F),
+        "ligga" to Color(0xFF8BC53F),
+        "vero" to Color(0xFF7B2D8E),
+        "giga_mais" to Color(0xFF00AEEF),
     )
 
 private val idsMajores = listOf("vivo_fibra", "claro_net", "tim_live", "oi_fibra")
 
 private fun corParaId(id: String): Color = corOperadora[id] ?: LkColors.accent
+
+@Composable
+private fun OperadoraLogo(
+    operadora: ContatoOperadora,
+    size: Int = 40,
+) {
+    val cor = corParaId(operadora.id)
+    if (operadora.logoUrl != null) {
+        AsyncImage(
+            model = operadora.logoUrl,
+            contentDescription = operadora.nome,
+            modifier =
+                Modifier
+                    .size(size.dp)
+                    .clip(CircleShape),
+        )
+    } else {
+        Box(
+            modifier =
+                Modifier
+                    .size(size.dp)
+                    .background(cor, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = operadora.nome.first().uppercase(),
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = (size * 0.45).sp,
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,7 +128,7 @@ fun OperadoraBottomSheet(
         if (connectionType?.equals("movel", ignoreCase = true) == true) "SIM ativo · plano móvel" else "rede fixa"
 
     val outrasOperadoras =
-        BancoOperadoras.lista.filter { it.id in idsMajores && it.id != operadoraDetectada?.id }
+        BancoOperadoras.lista.filter { it.id != operadoraDetectada?.id }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -207,7 +250,6 @@ private fun OperadoraDetectadaSection(
 ) {
     val c = LocalLkTokens.current
     val context = LocalContext.current
-    val cor = corParaId(operadora.id)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Identificacao
@@ -215,20 +257,7 @@ private fun OperadoraDetectadaSection(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(40.dp)
-                        .background(cor, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = operadora.nome.first().uppercase(),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                )
-            }
+            OperadoraLogo(operadora = operadora, size = 40)
             Spacer(Modifier.width(LkSpacing.md))
             Column {
                 Text(
@@ -326,26 +355,12 @@ private fun OperadoraDetectadaSection(
 private fun OutraOperadoraRow(operadora: ContatoOperadora) {
     val c = LocalLkTokens.current
     val context = LocalContext.current
-    val cor = corParaId(operadora.id)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(36.dp)
-                    .background(cor, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = operadora.nome.first().uppercase(),
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-            )
-        }
+        OperadoraLogo(operadora = operadora, size = 36)
 
         Spacer(Modifier.width(LkSpacing.md))
 

@@ -232,6 +232,8 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.timber)
     implementation(libs.androidx.profileinstaller)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)

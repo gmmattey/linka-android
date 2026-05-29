@@ -525,6 +525,7 @@ function extractJson(text: string): string {
 //    <think>...</think> e não filtra tags inline.
 function createStreamNormalizer(upstream: ReadableStream, passThinking = false): ReadableStream {
   let insideThink = false;
+  let inReasoning = false; // rastreia bloco contínuo de reasoning_content
   let buffer = "";
   let sentDone = false;
 
@@ -543,6 +544,11 @@ function createStreamNormalizer(upstream: ReadableStream, passThinking = false):
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
+            // Se stream terminou dentro de reasoning, fecha a tag
+            if (passThinking && inReasoning) {
+              emit("</think>\n\n");
+              inReasoning = false;
+            }
             if (!sentDone) {
               controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             }
@@ -559,6 +565,10 @@ function createStreamNormalizer(upstream: ReadableStream, passThinking = false):
 
             const data = line.slice(6).trim();
             if (data === "[DONE]") {
+              if (passThinking && inReasoning) {
+                emit("</think>\n\n");
+                inReasoning = false;
+              }
               sentDone = true;
               controller.enqueue(encoder.encode("data: [DONE]\n\n"));
               continue;
@@ -574,13 +584,18 @@ function createStreamNormalizer(upstream: ReadableStream, passThinking = false):
                 if (delta) {
                   if (delta.reasoning_content !== undefined && typeof delta.reasoning_content === "string") {
                     if (passThinking && delta.reasoning_content) {
-                      // Passa thinking tokens envolvidos em tags para o cliente
-                      emit("<think>");
+                      if (!inReasoning) {
+                        emit("<think>");
+                        inReasoning = true;
+                      }
                       emit(delta.reasoning_content);
-                      emit("</think>");
                     }
-                    // Em ambos os modos, não há conteúdo normal neste chunk — próximo
                     continue;
+                  }
+                  // Chegou content normal — se estávamos em reasoning, fecha a tag
+                  if (passThinking && inReasoning) {
+                    emit("</think>\n\n");
+                    inReasoning = false;
                   }
                   token = delta.content ?? "";
                 }
