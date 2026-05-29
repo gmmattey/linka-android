@@ -36,7 +36,7 @@ Classifique a tarefa antes de rotear:
 | **BUGFIX** | ≤5 arquivos, comportamento claro, sem mudança de contrato | Cláudio (instrução objetiva) → Camilo/Renan → Gema |
 | **FEATURE** | Nova tela, novo fluxo, novo domínio de dado | Fluxo completo |
 | **REFACTOR** | Mudança interna sem alteração de comportamento visível | Cláudio → anti-overengineering → Camilo/Renan → Gema |
-| **DIAGNÓSTICO** | Envolve engines, DNS, Wi-Fi, speedtest, IA | Cláudio + /diagnostic-engine → Otávio (se crítico) → Camilo |
+| **DIAGNÓSTICO** | Envolve engines, DNS, Wi-Fi, speedtest, IA | Cláudio + /diagnostic-engine → /android-platform-rules (se crítico) → Camilo |
 | **UI-UX** | Mudança visual, microcopy, estados de tela | Lia → Camilo/Renan → Gema + Lia |
 | **DOCS** | Documentação, changelog, versionamento | Nina direto |
 
@@ -49,8 +49,8 @@ Para BUGFIX: Cláudio fornece instrução objetiva, não planejamento completo. 
 1. **Claudete** — se a tarefa for macro ou de produto, defina objetivo e prioridade primeiro.
 2. **Cláudio** — quebre a tarefa em passos técnicos e mapeie impacto antes de implementar.
 3. **Lia** — se houver impacto em UI/UX, valide experiência visual e estados **antes** de implementar.
-4. **Otávio** — se a task Android tocar permissão, Wi-Fi, DNS, background ou OEM, acione **antes do Camilo**.
-   `[Invocando Otávio — task toca [domínio crítico], validação de device obrigatória antes de Camilo]`
+4. **`/android-platform-rules`** — se a task Android tocar permissão, Wi-Fi, DNS, background ou OEM, invocar **antes do Camilo**.
+   `[Invocando /android-platform-rules — task toca [domínio crítico], validação obrigatória antes de Camilo]`
 5. **Camilo** — implementação Android. **Renan** — implementação PWA.
 6. **Gema** — revise o resultado antes de fechar.
 7. **Nina** — documente, versione e atualize changelog.
@@ -67,7 +67,7 @@ Ao acionar um agente, anuncie explicitamente: `[Invocando <Agente> — motivo em
 - → Se não: devolver ao Cláudio para redividir. NÃO passar task monstruosa para Camilo/Renan.
 
 **CP2 — pré-implementação Android:**
-- [ ] Task toca permissão, Wi-Fi, DNS, background service? → Otávio obrigatório.
+- [ ] Task toca permissão, Wi-Fi, DNS, background service? → `/android-platform-rules` obrigatório.
 - [ ] Task tem impacto visual? → Lia obrigatória antes de Camilo.
 
 **CP3 — pós-implementação:**

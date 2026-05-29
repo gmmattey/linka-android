@@ -1,5 +1,7 @@
 # Documentação Funcional — Android Linka
 
+> **[DESATUALIZADO]** Documento gerado para v0.8.1 (2026-05-19). Versão atual: v0.14.4. Reescrita completa pendente — acionar Taisa.
+
 **Público-alvo:** Desenvolvedor humano e agentes de IA
 **Plataforma:** Android exclusivo
 **Última atualização:** 2026-05-19 (v0.8.1 — thresholds Wi-Fi por banda, MetricCards dinâmicos, DNS-03, FibraScreen loading + hint RX, DiagnosticoScreen tipo conexão real, acessibilidade)

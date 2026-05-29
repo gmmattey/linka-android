@@ -1,5 +1,7 @@
 # Documentação Técnica — Android Linka
 
+> **[DESATUALIZADO]** Documento gerado para v0.8.1 (2026-05-19). Versão atual: v0.14.4. Reescrita completa pendente — acionar Taisa.
+
 **Público-alvo:** Desenvolvedor humano e agentes de IA
 **Plataforma:** Android exclusivo — Kotlin, Jetpack Compose, Material Design 3
 **Última atualização:** 2026-05-19 (v0.8.1 — thresholds Wi-Fi por banda, DNS-03, FibraScreen loading dinâmico + hint RX, DiagnosticoScreen tipo conexão real, semântica TalkBack)

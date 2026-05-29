@@ -9,7 +9,7 @@ $ARGUMENTS
 
 Agentes recomendados por fase:
 - **Cláudio** — planeja e mapeia impacto
-- **Otávio** — valida comportamento real em device (DNS, Wi-Fi, NetworkCallback)
+- **`/android-platform-rules`** — valida comportamento real em device (DNS, Wi-Fi, NetworkCallback, OEM quirks)
 - **Camilo** — implementa Android
 - **Lia** — valida impacto visual e estados de UI
 - **Gema** — revisão final
@@ -27,9 +27,9 @@ Antes de propor nova engine, orchestrator ou use case de diagnóstico:
 
 ---
 
-## Gatilho Otávio — OBRIGATÓRIO
+## Gatilho `/android-platform-rules` — OBRIGATÓRIO
 
-Se a tarefa de diagnóstico envolver qualquer um destes, **Otávio é obrigatório**:
+Se a tarefa de diagnóstico envolver qualquer um destes, **consultar `/android-platform-rules` é obrigatório**:
 
 - DNS real (não mock) — resolução, servidores, privateDns
 - Wi-Fi scan, RSSI, frequência, padrão de conexão, NetworkCapabilities
@@ -37,9 +37,9 @@ Se a tarefa de diagnóstico envolver qualquer um destes, **Otávio é obrigatór
 - Comportamento de rede em background/Doze mode
 - Restrições de permissão (ACCESS_FINE_LOCATION para Wi-Fi)
 
-→ Acionar **Otávio** antes de Camilo implementar.
+→ Invocar `/android-platform-rules` antes de Camilo implementar.
 
-`[PRÓXIMO: Otávio — task envolve [DNS/Wi-Fi/NetworkCallback], validação de device obrigatória antes de Camilo]`
+`[PRÓXIMO: /android-platform-rules — task envolve [DNS/Wi-Fi/NetworkCallback], validação obrigatória antes de Camilo]`
 
 ---
 
@@ -66,4 +66,4 @@ Se a tarefa de diagnóstico envolver qualquer um destes, **Otávio é obrigatór
 5. **Riscos** — o que pode regredir no diagnóstico ou na experiência do usuário
 6. **Testes necessários** — cenários de rede que devem ser validados
 
-[PRÓXIMO: Otávio (se domínio crítico) | Cláudio (planejamento) | Camilo (implementação)]
+[PRÓXIMO: /android-platform-rules (se domínio crítico) | Cláudio (planejamento) | Camilo (implementação)]
