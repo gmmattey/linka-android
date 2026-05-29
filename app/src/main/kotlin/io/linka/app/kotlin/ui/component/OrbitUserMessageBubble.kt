@@ -41,6 +41,7 @@ fun OrbitUserMessageBubble(
                 text = text,
                 color = c.textPrimary,
                 style = MaterialTheme.typography.bodyMedium,
+                maxLines = Int.MAX_VALUE,
             )
         }
     }

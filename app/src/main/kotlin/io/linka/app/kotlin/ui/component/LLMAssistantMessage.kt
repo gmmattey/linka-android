@@ -1,17 +1,32 @@
 package io.linka.app.kotlin.ui.component
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +46,7 @@ fun LLMAssistantMessage(
     modifier: Modifier = Modifier,
 ) {
     val c = LocalLkTokens.current
+    val (thinkingText, responseText) = remember(content) { parseThinkingContent(content) }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -62,17 +78,86 @@ fun LLMAssistantMessage(
 
         Spacer(modifier = Modifier.height(LkSpacing.md))
 
-        val displayText = if (isStreaming && content.isNotEmpty()) "$content▌" else content
+        if (thinkingText != null) {
+            ThinkingCompletedSection(thinkingText, c)
+        }
 
-        Text(
-            text = displayText,
-            style =
-                MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 14.sp,
-                    lineHeight = (14 * 1.6).sp,
-                    color = c.textPrimary,
-                ),
-        )
+        val displayText = if (isStreaming && responseText.isNotEmpty()) "$responseText▌" else responseText
+        val finalText = if (thinkingText != null) responseText else content
+
+        if (finalText.isNotBlank()) {
+            Text(
+                text = if (isStreaming && finalText.isNotEmpty()) "$finalText▌" else finalText,
+                style =
+                    MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 14.sp,
+                        lineHeight = (14 * 1.6).sp,
+                        color = c.textPrimary,
+                    ),
+                maxLines = Int.MAX_VALUE,
+            )
+        }
+    }
+}
+
+private fun parseThinkingContent(text: String): Pair<String?, String> {
+    val thinkStart = text.indexOf("<think>")
+    if (thinkStart == -1) return Pair(null, text)
+
+    val thinkEnd = text.indexOf("</think>", thinkStart)
+    return if (thinkEnd == -1) {
+        val partial = text.substring(thinkStart + 7).trim()
+        Pair(partial.ifBlank { null }, "")
+    } else {
+        val thinkContent = text.substring(thinkStart + 7, thinkEnd).trim()
+        val responseContent = (text.substring(0, thinkStart) + text.substring(thinkEnd + 8)).trim()
+        Pair(thinkContent.ifBlank { null }, responseContent)
+    }
+}
+
+@Composable
+private fun ThinkingCompletedSection(
+    thinkingText: String,
+    c: io.linka.app.kotlin.ui.LkTokens,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val estimatedSeconds = (thinkingText.length / 100).coerceAtLeast(1)
+
+    Column {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(
+                imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = c.textTertiary,
+            )
+            Text(
+                text = "Pensou por ${estimatedSeconds}s",
+                style = MaterialTheme.typography.labelSmall,
+                color = c.textTertiary,
+            )
+        }
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(animationSpec = tween(200)),
+            exit = shrinkVertically(animationSpec = tween(200)),
+        ) {
+            Text(
+                text = thinkingText,
+                style = MaterialTheme.typography.bodySmall,
+                color = c.textTertiary,
+                modifier = Modifier.padding(start = 20.dp, top = LkSpacing.xs),
+                maxLines = Int.MAX_VALUE,
+            )
+        }
     }
 }
 
