@@ -8,6 +8,7 @@ Revise a tela ou feature abaixo do ponto de vista de UX/UI:
 $ARGUMENTS
 
 Use a **Lia** para análise visual e implementação de UI.
+Consultar `.claude/skills/linka-design/` como fonte de verdade de tokens e componentes antes de qualquer decisão visual.
 
 [Invocando Lia — revisão de UX/UI]
 

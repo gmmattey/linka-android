@@ -51,8 +51,12 @@ Camilo executa no máximo 1 task Android ativa por vez. Se ocupado, próximas ta
 - `/network-diagnostic-rules` — thresholds e diagnóstico de rede (substitui Bernardo)
 - `/speedtest-flow` — fluxo de speedtest Android
 - `/release-ready-android` — checklist de release Android
-- `/design-system` — componentes, tokens, padrões visuais do Linka (design system)
+- `/linka-design` — design system oficial do Linka: tokens, componentes, padrões visuais
 - `/software-engineer` — engenharia de software, arquitetura, patterns e melhores práticas
+
+## Design System — OBRIGATÓRIO antes de implementar UI
+
+Antes de criar ou editar qualquer Composable visual, consulte `.claude/skills/linka-design/` e use `LinkaTheme.kt` como fonte de verdade para cores, tipografia e espaçamento. Componentes de referência estão em `.claude/skills/linka-design/ui_kits/android/`.
 
 ## Delegação ao Marcelo — OBRIGATÓRIO antes de explorar código
 

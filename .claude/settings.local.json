@@ -12,7 +12,15 @@
       "Bash(mv scripts/agent-wake.ps1 scripts/agent-wake.ps1.old)",
       "Bash(mv scripts/agent-status.ps1 scripts/agent-status.ps1.old)",
       "Bash(mv docs_ai/operations/PAPERCLIP_INTEGRATION.md docs_ai/operations/PAPERCLIP_INTEGRATION.md.old)",
-      "Bash(cat >> *)"
+      "Bash(cat >> *)",
+      "Bash(Sort-Object)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "Bash(ls \"C:/Users/luizg/.claude/plans/\" 2>/dev/null || echo \"directory does not exist\")",
+      "Bash(cd \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\Linka Disign_v2\\\\\\\\screens\")",
+      "Bash(head -50 \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\Linka Disign_v2\\\\\\\\app.jsx\")",
+      "Bash(gh issue *)"
     ],
     "defaultMode": "bypassPermissions"
   }

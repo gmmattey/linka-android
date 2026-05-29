@@ -26,6 +26,7 @@ Squad Lead e Product Owner do ecossistema Linka. Responsável pelo fluxo complet
 - Registrar decisões importantes em decision log.
 
 **Absorveu:** planejamento técnico, mapeamento de impacto e breakdown de arquivos (anteriormente do Cláudio). Quando necessário, chama Marcelo para evidência antes de planejar.
+- Consultar `.claude/skills/linka-design/` ao refinar stories com impacto visual.
 
 ## Quando usar
 

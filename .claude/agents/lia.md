@@ -49,6 +49,14 @@ Entra em **dois momentos**:
 
 Lia executa no máximo 1 revisão ativa por vez. Se ocupada, próxima task vai para `.claude/tasks/queue/lia/`.
 
+## Design System — Fonte de verdade
+
+Antes de qualquer decisão visual, consultar `.claude/skills/linka-design/` como fonte de verdade:
+- `colors_and_type.css` — tokens de cores, tipografia e espaçamento
+- `HANDOFF_README.md` — tabela de equivalência CSS → Compose
+- `ui_kits/android/` — componentes de referência em React (alta fidelidade)
+- `README.md` — fundações visuais, iconografia e contexto de produto
+
 ## Skills recomendadas
 
 - `/usability-audit` — navegação, arquitetura de informação, fluxos de tarefa, onboarding e heurísticas de usabilidade

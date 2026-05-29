@@ -2,12 +2,18 @@
 description: Checklist de conformidade com Material Design 3 para telas Android e PWA do Linka. Executada por Lia em modo Haiku para revisões simples.
 ---
 
+## Fonte de verdade
+
+Tokens oficiais: `.claude/skills/linka-design/colors_and_type.css` e `LinkaTheme.kt`.
+Tabela de equivalência CSS → Compose: `.claude/skills/linka-design/HANDOFF_README.md`.
+Componentes de referência: `.claude/skills/linka-design/ui_kits/android/`.
+
 ## Quando usar
 Após implementação de tela nova ou modificação visual. Antes de Gema fechar Done.
 
 ## Checklist
 ### Cores e tema
-- [ ] Usa tokens do `MaterialTheme` / `LocalLkTokens` — sem hardcode de cor.
+- [ ] Usa tokens do `MaterialTheme` / `LocalLkTokens` conforme `colors_and_type.css` — sem hardcode de cor.
 - [ ] Dark mode funciona sem quebrar contraste.
 - [ ] Cores seguem role MD3: primary, secondary, surface, on-surface, etc.
 

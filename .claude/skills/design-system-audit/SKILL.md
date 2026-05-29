@@ -17,6 +17,19 @@ $ARGUMENTS
 
 ---
 
+## Fonte de verdade
+
+O design system oficial do Linka está em `.claude/skills/linka-design/`:
+- `colors_and_type.css` — tokens de cores, tipografia, espaçamento e raios
+- `LinkaTheme.kt` (Android) — tema Compose com os mesmos tokens
+- `HANDOFF_README.md` — tabela de equivalência CSS → Compose
+- `ui_kits/android/` — componentes de referência em alta fidelidade
+- `README.md` — fundações visuais, iconografia e contexto de produto
+
+Toda auditoria deve comparar tokens implementados contra esta fonte de verdade.
+
+---
+
 ## Passos
 
 ### 1. Mapear tokens existentes (via Marcelo)

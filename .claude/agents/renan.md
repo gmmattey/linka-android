@@ -53,6 +53,11 @@ Renan executa no máximo 1 task PWA ativa por vez. Se ocupado, próximas tasks v
 - `/android-pwa-parity` — verificar paridade com Android
 - `/browser-limitations` — documentar limitações reais do navegador
 - `/pwa-release-check` — checklist de release PWA
+- `/linka-design` — design system oficial do Linka: tokens, componentes, padrões visuais
+
+## Design System — OBRIGATÓRIO antes de implementar UI
+
+Importar `colors_and_type.css` como referência de tokens no PWA. Consultar `.claude/skills/linka-design/HANDOFF_README.md` para equivalência CSS → Tailwind/Compose.
 
 ## Delegação ao Marcelo — OBRIGATÓRIO antes de explorar código
 

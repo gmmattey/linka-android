@@ -69,6 +69,13 @@ Se a task for BUGFIX (≤5 arquivos, sem mudança de contrato de módulo), pule 
 - Máximo 3 seções: Objetivo técnico / Arquivos prováveis / Critério de aceite
 - Não gere plano de execução com 8 passos para bugfix de 5 linhas
 
+## Design System — OBRIGATÓRIO em planos com UI
+
+Ao planejar tasks com impacto visual, referencie `.claude/skills/linka-design/` no plano técnico:
+- Nomeie os tokens exatos de `colors_and_type.css` / `LinkaTheme.kt` que devem ser usados.
+- Liste componentes existentes em `.claude/skills/linka-design/ui_kits/android/` que podem ser reaproveitados.
+- Consulte `HANDOFF_README.md` para a tabela de equivalência CSS → Compose.
+
 ## Regras
 
 - Não edite código.

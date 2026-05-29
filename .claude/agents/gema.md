@@ -26,6 +26,7 @@ QA, Release e Hygiene. Gate de Done. Responsável pela qualidade final de implem
   - Documentação afetada revisada e consistente.
   - Task file atualizado e fechado.
 - **Gate de Done**: entrega só fecha quando Gema confirmar que todos os critérios estão OK.
+- Verificar se tokens de implementação correspondem ao design system (`.claude/skills/linka-design/`).
 - Validar organização do workspace.
 
 ## Quando usar
