@@ -312,6 +312,8 @@ class MainActivity : ComponentActivity() {
                         onSelecionarChip = { chip -> viewModel.selecionarChipOrbit(chip) },
                         onResponderPergunta = { opcao -> viewModel.responderPerguntaOrbit(opcao) },
                         gemmaAvailable = gemmaAvailable,
+                        operadoraMovel = simsAtivos.firstOrNull { it.isDefaultData }?.operadora
+                            ?: simsAtivos.firstOrNull()?.operadora,
                         onVerificarGemma = { viewModel.verificarDisponibilidadeGemma() },
                         onIniciarOrbitComResultado = { resultado, foco ->
                             solicitarPermissaoTelefoniaSeNecessario()

@@ -217,6 +217,7 @@ fun AppShell(
     onSelecionarChip: (OpcaoResposta) -> Unit,
     onResponderPergunta: (OpcaoResposta) -> Unit,
     gemmaAvailable: Boolean = false,
+    operadoraMovel: String? = null,
     onVerificarGemma: () -> Unit = {},
     onIniciarOrbitComResultado: (ResultadoSpeedtest, String?) -> Unit = { _, _ -> },
     // T6.2/T6.5: mensagens digitadas têm fluxo separado do selecionarChip
@@ -610,13 +611,13 @@ fun AppShell(
                     },
                     onVoltar = { overlayStack.remove(Overlay.ResultadoVelocidade) },
                     localizacaoServidor = localizacaoServidorStr,
-                    gemmaAvailable = gemmaAvailable,
                     onAbrirChat = {
                         if (Overlay.LLMChat !in overlayStack) {
                             overlayStack.add(Overlay.LLMChat)
                         }
                     },
                     ispInfo = ispInfoData,
+                    operadoraMovel = operadoraMovel,
                     anatelBannerDismissed = anatelBannerDismissed,
                     onDismissAnatelBanner = onDispensarBannerAnatel,
                 )

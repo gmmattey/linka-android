@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.CellTower
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -84,6 +85,7 @@ import io.linka.app.kotlin.ui.LkSpacing
 import io.linka.app.kotlin.ui.LkTokens
 import io.linka.app.kotlin.ui.LocalLkTokens
 import io.linka.app.kotlin.ui.ResultadoBitmapGenerator
+import io.linka.app.kotlin.ui.component.OperadoraBottomSheet
 import io.linka.app.kotlin.ui.component.OperadoraContactCard
 import io.linka.app.kotlin.ui.component.rememberTopBarAlpha
 import kotlinx.coroutines.launch
@@ -97,9 +99,9 @@ fun ResultadoVelocidadeScreen(
     onIrParaHome: () -> Unit,
     onVoltar: () -> Unit = {},
     localizacaoServidor: String? = null,
-    gemmaAvailable: Boolean = false,
     onAbrirChat: () -> Unit = {},
     ispInfo: IspInfo? = null,
+    operadoraMovel: String? = null,
     anatelBannerDismissed: Boolean = true,
     onDismissAnatelBanner: () -> Unit = {},
 ) {
@@ -113,6 +115,7 @@ fun ResultadoVelocidadeScreen(
     var expandida by remember { mutableStateOf(false) }
     var compartilhando by remember { mutableStateOf(false) }
     var showGamerSheet by remember { mutableStateOf(false) }
+    var showOperadoraSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -577,46 +580,16 @@ fun ResultadoVelocidadeScreen(
                         .navigationBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                if (gemmaAvailable && FeatureFlags.DIAGNOSTICO_CHAT) {
-                    Button(
+                if (FeatureFlags.DIAGNOSTICO_CHAT) {
+                    OutlinedButton(
                         onClick = onAbrirChat,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(LkRadius.button),
-                        colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
                     ) {
                         OrbitSymbolSmall()
                         Spacer(Modifier.width(LkSpacing.sm))
                         Text(
-                            text = "Conversar com IA",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                        )
-                    }
-                    Spacer(Modifier.height(LkSpacing.sm))
-                }
-                if (resultado.uploadNaoDetectado) {
-                    Button(
-                        onClick = onTestarNovamente,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(LkRadius.button),
-                        colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                    ) {
-                        Text(
-                            text = "Testar upload novamente",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                        )
-                    }
-                    Spacer(Modifier.height(LkSpacing.sm))
-                }
-                if (!resultado.uploadNaoDetectado) {
-                    OutlinedButton(
-                        onClick = onTestarNovamente,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(LkRadius.button),
-                    ) {
-                        Text(
-                            text = "Testar novamente",
+                            text = "Tirar dúvidas com a Linka",
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = c.textPrimary,
@@ -624,15 +597,43 @@ fun ResultadoVelocidadeScreen(
                     }
                     Spacer(Modifier.height(LkSpacing.sm))
                 }
-                TextButton(onClick = onIrParaHome) {
+                Button(
+                    onClick = onTestarNovamente,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(LkRadius.button),
+                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(LkSpacing.sm))
                     Text(
-                        text = "Ir para o início",
+                        text = if (resultado.uploadNaoDetectado) "Testar upload novamente" else "Refazer teste",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                    )
+                }
+                Spacer(Modifier.height(LkSpacing.sm))
+                TextButton(onClick = { showOperadoraSheet = true }) {
+                    Text(
+                        text = "Falar com a operadora",
                         color = c.textSecondary,
                         fontSize = 14.sp,
                     )
                 }
             }
         }
+    }
+
+    if (showOperadoraSheet) {
+        OperadoraBottomSheet(
+            connectionType = resultado.connectionType,
+            ispNome = ispInfo?.isp,
+            operadoraMovel = operadoraMovel,
+            onDismiss = { showOperadoraSheet = false },
+        )
     }
 }
 
