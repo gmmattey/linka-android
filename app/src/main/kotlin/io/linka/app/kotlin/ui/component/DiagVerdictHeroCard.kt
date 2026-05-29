@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -43,8 +42,6 @@ fun DiagVerdictHeroCard(
 ) {
     val gradient = Brush.linearGradient(
         colors = listOf(Color(0xFF1A0B2E), Color(0xFF0D0D1A)),
-        start = Offset(0f, 0f),
-        end = Offset(Float.MAX_VALUE, Float.MAX_VALUE),
     )
 
     Column(

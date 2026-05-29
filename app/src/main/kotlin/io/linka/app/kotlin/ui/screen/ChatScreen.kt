@@ -253,7 +253,7 @@ private fun ChatContent(
                             )
                         }
                     }
-                    item(key = "ai_${analysis.timestamp}") {
+                    item(key = "ai_${analysis.id}") {
                         OrbitAiMessageBubble(
                             analysis = analysis,
                             isLatest = !isAnalyzing && idx == s.analyses.lastIndex,
