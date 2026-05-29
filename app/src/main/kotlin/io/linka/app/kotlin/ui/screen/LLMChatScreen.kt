@@ -30,11 +30,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -61,6 +65,7 @@ import io.linka.app.kotlin.ui.component.LLMAssistantMessage
 import io.linka.app.kotlin.ui.component.OrbitUserMessageBubble
 import java.util.UUID
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LLMChatScreen(
     mensagens: List<ChatMensagem>,
@@ -76,125 +81,96 @@ fun LLMChatScreen(
 ) {
     val c = LocalLkTokens.current
 
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(c.bgPrimary)
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .windowInsetsPadding(WindowInsets.ime),
-    ) {
-        LLMChatHeader(
-            onVoltar = onVoltar,
-            onNovaSessao = onNovaSessao,
-            borderColor = c.border,
-        )
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = c.bgPrimary,
+        contentWindowInsets = WindowInsets.systemBars,
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Linka",
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .size(6.dp)
+                                        .background(
+                                            color = LkColors.success,
+                                            shape = RoundedCornerShape(999.dp),
+                                        ),
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Assistente de conexão",
+                                style =
+                                    MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 11.sp,
+                                        color = c.textSecondary,
+                                    ),
+                            )
+                        }
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onVoltar) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNovaSessao) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "Nova sessão",
+                        )
+                    }
+                },
+                colors =
+                    TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = c.bgPrimary,
+                    ),
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .windowInsetsPadding(WindowInsets.ime),
+        ) {
+            LLMChatMensagens(
+                mensagens = mensagens,
+                isStreaming = isStreaming,
+                modifier = Modifier.weight(1f),
+            )
 
-        LLMChatMensagens(
-            mensagens = mensagens,
-            isStreaming = isStreaming,
-            modifier = Modifier.weight(1f),
-        )
+            if (chips.isNotEmpty() && !isStreaming) {
+                LLMChatChips(
+                    chips = chips,
+                    onSelecionarChip = onSelecionarChip,
+                    borderColor = c.border,
+                )
+            }
 
-        if (chips.isNotEmpty() && !isStreaming) {
-            LLMChatChips(
-                chips = chips,
-                onSelecionarChip = onSelecionarChip,
+            LLMChatInput(
+                draft = draft,
+                isStreaming = isStreaming,
+                onAtualizarDraft = onAtualizarDraft,
+                onEnviarMensagem = onEnviarMensagem,
                 borderColor = c.border,
             )
         }
-
-        LLMChatInput(
-            draft = draft,
-            isStreaming = isStreaming,
-            onAtualizarDraft = onAtualizarDraft,
-            onEnviarMensagem = onEnviarMensagem,
-            borderColor = c.border,
-        )
-    }
-}
-
-@Composable
-private fun LLMChatHeader(
-    onVoltar: () -> Unit,
-    onNovaSessao: () -> Unit,
-    borderColor: Color,
-) {
-    val c = LocalLkTokens.current
-
-    Column {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = LkSpacing.sm, vertical = LkSpacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = onVoltar,
-                modifier = Modifier.size(32.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar",
-                    tint = c.textPrimary,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "Linka",
-                    style =
-                        MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp,
-                        ),
-                    color = c.textPrimary,
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(6.dp)
-                                .background(
-                                    color = LkColors.success,
-                                    shape = RoundedCornerShape(999.dp),
-                                ),
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Assistente de conexão",
-                        style =
-                            MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 11.sp,
-                                color = c.textSecondary,
-                            ),
-                    )
-                }
-            }
-
-            IconButton(
-                onClick = onNovaSessao,
-                modifier = Modifier.size(32.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = "Nova sessão",
-                    tint = c.textTertiary,
-                    modifier = Modifier.size(19.dp),
-                )
-            }
-        }
-
-        HorizontalDivider(color = borderColor)
     }
 }
 
