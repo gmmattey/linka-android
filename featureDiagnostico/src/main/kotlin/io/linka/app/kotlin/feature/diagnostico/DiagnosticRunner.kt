@@ -1,24 +1,44 @@
 package io.linka.app.kotlin.feature.diagnostico
 
+enum class DiagnosticArea {
+    VELOCIDADE,
+    WIFI_SINAL,
+    LATENCIA,
+    FIBRA,
+    DNS,
+}
+
 /**
  * Executor puro do diagnostico (sem Android/Flow/Log) para facilitar testes unitarios.
  * O DiagnosticOrchestrator so faz o "plumbing" e publica snapshots.
  */
 object DiagnosticRunner {
 
-    fun run(input: DiagnosticInput): DiagnosticReport {
+    fun run(
+        input: DiagnosticInput,
+        enabledAreas: Set<DiagnosticArea> = DiagnosticArea.entries.toSet(),
+    ): DiagnosticReport {
+        val rodarWifi = DiagnosticArea.WIFI_SINAL in enabledAreas && input.connectionType == ConnectionType.wifi
+        val rodarInternet = DiagnosticArea.VELOCIDADE in enabledAreas || DiagnosticArea.LATENCIA in enabledAreas
+        val rodarFibra = DiagnosticArea.FIBRA in enabledAreas
+        val rodarDns = DiagnosticArea.DNS in enabledAreas
+
         val wifiQuality =
-            if (input.connectionType == ConnectionType.wifi) {
+            if (rodarWifi) {
                 WifiSignalQualityEngine.avaliar(input.wifi)
             } else {
                 WifiQualityResult(emptyList(), confiavelParaTeste = true)
             }
 
         val internetResultados =
-            InternetDiagnosticEngine.avaliar(
-                input = input.internet,
-                wifiConfiavelParaTeste = wifiQuality.confiavelParaTeste,
-            )
+            if (rodarInternet) {
+                InternetDiagnosticEngine.avaliar(
+                    input = input.internet,
+                    wifiConfiavelParaTeste = wifiQuality.confiavelParaTeste,
+                )
+            } else {
+                emptyList()
+            }
 
         val mobileResultados =
             MobileSignalDiagnosticEngine.avaliar(
@@ -26,11 +46,11 @@ object DiagnosticRunner {
                 input = input.mobile,
             )
 
-        val fibraResultados = FibraSignalQualityEngine.avaliar(input.fibra)
-        val dnsResultados = DnsDiagnosticEngine.avaliar(input.dns)
+        val fibraResultados = if (rodarFibra) FibraSignalQualityEngine.avaliar(input.fibra) else emptyList()
+        val dnsResultados = if (rodarDns) DnsDiagnosticEngine.avaliar(input.dns) else emptyList()
         val historicoResultados = HistoricalDegradationEngine.avaliar(input.historico)
         val wifiCanalResultados =
-            if (input.connectionType == ConnectionType.wifi) {
+            if (rodarWifi) {
                 WifiChannelDiagnosticEngine.avaliar(
                     wifi = input.wifi,
                     scan = input.wifiScan,

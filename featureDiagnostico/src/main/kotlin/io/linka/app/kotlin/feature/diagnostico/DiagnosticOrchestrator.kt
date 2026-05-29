@@ -40,14 +40,17 @@ class DiagnosticOrchestrator {
         )
     }
 
-    fun executar(input: DiagnosticInput) {
+    fun executar(
+        input: DiagnosticInput,
+        enabledAreas: Set<DiagnosticArea> = DiagnosticArea.entries.toSet(),
+    ) {
         try {
             Log.i(
                 TAG,
                 "iniciando diagnostico tipo=${input.connectionType} dl=${input.internet?.downloadMbps} ul=${input.internet?.uploadMbps} lat=${input.internet?.latencyMs} rssi=${input.wifi?.rssiDbm} fibra=${input.fibra?.isUp} dnsMs=${input.dns?.currentDnsLatencyMs}",
             )
 
-            val relatorio = DiagnosticRunner.run(input)
+            val relatorio = DiagnosticRunner.run(input, enabledAreas)
 
             Log.i(
                 TAG,

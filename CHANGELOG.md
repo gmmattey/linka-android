@@ -6,6 +6,43 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
+## [0.14.0] — 2026-05-29
+
+### Added — Redesign Diagnóstico IA (fluxo de laudo + assistente)
+
+#### Novo fluxo de diagnóstico (substitui o chat)
+- **DiagSetup:** tela de seleção de sinais — usuário escolhe o que analisar (Velocidade, Wi-Fi & Sinal, Latência & Bufferbloat, Modem/Fibra GPON, DNS) com cards toggle on/off
+- **DiagAnalyzing:** estado de carregamento com OrbitSymbol animado, barra de progresso e checklist de steps (done/run/wait) filtrada pelos sinais selecionados
+- **DiagResult:** laudo completo em tela única scrollável — hero card escuro gradiente com veredito da IA, causa-raiz identificada, impacto por atividade (streaming, chamadas, jogos), recomendações numeradas com prioridade (alta/média/baixa) e "Ver passo a passo", grid de métricas colapsável, rodapé com "Compartilhar laudo" e "Falar com a operadora"
+
+#### Assistente LLM (tela standalone)
+- **LLMChatScreen:** chat com IA limpo e moderno — header "Linka · Assistente de conexão", mensagens do assistente full-width sem bolha (label "● LINKA"), bolhas do usuário à direita, chips de follow-up, input com send, disclaimer on-device
+- **CHAT_SYSTEM_PROMPT reescrito:** respostas completas com passo a passo detalhado, sem limite de tamanho, conversa livre até resolver o problema, sempre restrito ao tema conexão/rede
+
+#### Componentes UI novos
+- `OnDevicePill` — pill "Processado no aparelho · Gemma 4" (clara/escura)
+- `SignalToggleCard` — card toggle para seleção de sinais
+- `DiagVerdictHeroCard` — card hero escuro com gradiente para veredito IA
+- `DiagRootCauseCard` — card de causa-raiz (error-tinted)
+- `DiagImpactCard` — seção de impacto por atividade com badges de status
+- `DiagRecommendationCard` — card numerado com badge de prioridade
+- `DiagMetricsGrid` — grid 2 colunas colapsável com dots de status
+- `DiagActionFooter` — rodapé com ações (compartilhar, refazer, operadora)
+- `LLMAssistantMessage` — mensagem IA full-width sem bolha
+
+#### Motor de diagnóstico
+- `DiagSignalSelection` — modelo de seleção de sinais com defaults (tudo on exceto DNS)
+- `DiagnosticArea` enum — áreas filtráveis (Velocidade, Wi-Fi, Latência, Fibra, DNS)
+- `DiagnosticRunner.run()` — aceita `enabledAreas` para rodar apenas engines selecionados
+- Worker `max_tokens` elevado para 8000 no modo chat
+
+### Changed
+- **Navegação:** Home → "Diagnóstico IA" agora abre o fluxo de laudo (não mais o chat); ResultadoVelocidade → abre LLMChat
+- **DiagnosticoScreen:** removida annotation `@Deprecated`, refatorado para novo fluxo Setup→Analyzing→Result
+- **Chat inline removido** de DiagnosticoScreen — toda interação chat agora é no LLMChatScreen standalone
+
+---
+
 ## [0.13.3] — 2026-05-28
 
 ### Fixed

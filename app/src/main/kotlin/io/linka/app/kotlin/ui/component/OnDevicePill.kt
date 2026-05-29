@@ -1,0 +1,65 @@
+package io.linka.app.kotlin.ui.component
+
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.linka.app.kotlin.ui.LkColors
+import io.linka.app.kotlin.ui.LocalLkTokens
+import io.linka.app.kotlin.ui.LinkaTheme
+
+@Composable
+fun OnDevicePill(
+    dark: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    val c = LocalLkTokens.current
+    val color = if (dark) Color.White.copy(alpha = 0.55f) else c.textTertiary
+
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.Shield,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(12.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            text = "Processado no aparelho · Gemma 4",
+            fontSize = 10.5.sp,
+            fontWeight = FontWeight.Medium,
+            color = color,
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Composable
+private fun OnDevicePillLightPreview() {
+    LinkaTheme {
+        OnDevicePill(dark = false)
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0D0D1A)
+@Composable
+private fun OnDevicePillDarkPreview() {
+    LinkaTheme {
+        OnDevicePill(dark = true)
+    }
+}

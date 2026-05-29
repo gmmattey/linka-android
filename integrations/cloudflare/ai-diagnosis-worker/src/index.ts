@@ -19,14 +19,15 @@ type Env = {
 };
 
 const MAX_BODY_BYTES = 64_000;
-// Modelo padrao: Gemma 7B-IT (Google) via binding Cloudflare Workers AI.
-// Modelo @cf/ nativo — suporta formato messages, sem reasoning tokens,
-// termina inferencia em <15s no free tier.
+// Modelo padrao: Qwen3 30B MoE FP8 (Alibaba/Qwen) via Cloudflare Workers AI.
+// MoE com 30B total / 3B ativos — inferencia rapida, boa qualidade para JSON
+// estruturado e portugues. FP8 quantizado, sem reasoning tokens extras.
 // Modelos descartados:
+//   @cf/google/gemma-7b-it       — Gemma v1, 8K contexto, deprecation planejado, fraco para prompt complexo
 //   @cf/google/gemma-4-26b-a4b-it — gerava 2500+ tokens de reasoning → timeout >30s
 //   @hf/google/gemma-2-9b-it     — formato @hf/ incompativel com messages API
 // Llama/Meta NAO e padrao nem fallback cloud — politica do projeto.
-const DEFAULT_MODEL = "@cf/google/gemma-7b-it";
+const DEFAULT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
 
 // SCHEMA versionado do payload de saida; o cliente Kotlin precisa aceitar 1 e 2.
 const SCHEMA_VERSION = "2" as const;
@@ -100,15 +101,48 @@ Saída esperada (campos críticos):
 
 // Prompt e schema para modo chat (follow-up do usuário após o diagnóstico inicial).
 // O Worker detecta este modo quando `feedbackUsuario` está presente no payload.
-const CHAT_SYSTEM_PROMPT = `Você é o assistente de rede do app LINKA.
-O usuário acabou de ver o diagnóstico da conexão e tem uma pergunta de follow-up.
-Responda DIRETAMENTE à pergunta com orientações práticas e específicas.
-REGRAS:
-1. NÃO repita o diagnóstico já feito — o usuário já o leu.
-2. Vá direto à solução ou à informação pedida.
-3. Use os dados de rede do payload para contextualizar, mas o foco é responder a pergunta.
-4. Responda em português brasileiro, tom direto e prático. Máximo 5 linhas no textoLaudo.
-5. Responda exclusivamente em JSON válido seguindo o schema informado.`;
+const CHAT_SYSTEM_PROMPT = `Você é a Linka, assistente técnica de conexão à internet.
+
+COMPORTAMENTO:
+1. Responda com resolução COMPLETA incluindo passo a passo detalhado.
+   - Para ajustes técnicos (trocar canal Wi-Fi, configurar DNS, acessar painel do roteador),
+     explique cada etapa: onde acessar, o que clicar, que valor colocar, como salvar.
+   - Inclua IPs de painel comuns (192.168.0.1, 192.168.1.1) e caminhos de menu quando relevante.
+   - Não limite o tamanho da resposta. Qualidade e completude valem mais que brevidade.
+
+2. Faça perguntas de volta quando necessário para dar instruções mais precisas.
+   - Exemplos: "Qual a marca e modelo do seu roteador?", "Está usando Wi-Fi 2.4 ou 5 GHz?",
+     "O problema acontece em todos os dispositivos ou só neste?"
+   - Continue a conversa até entender e resolver o problema do usuário.
+
+3. RESTRIÇÃO DE TEMA — INVIOLÁVEL.
+   Responda APENAS sobre: internet, Wi-Fi, roteador, modem, velocidade, latência, DNS, fibra,
+   sinal, rede móvel (4G/5G), operadora, configuração de rede, e uso de aplicativos
+   QUANDO relacionado a conexão (streaming travando, jogo com lag, chamada caindo).
+
+   Para qualquer outro assunto, responda educadamente:
+   "Só posso ajudar com questões de conexão e rede. Para [tema], consulte [sugestão]."
+
+   Não responda perguntas sobre: saúde, finanças, religião, política, receitas, código,
+   matemática, história, entretenimento, ou qualquer tema não relacionado a redes.
+
+4. USE DADOS DO PAYLOAD quando disponíveis.
+   - Referencie métricas reais: "sua latência de 22 ms está boa, mas o bufferbloat de 182 ms
+     explica as travadas durante chamadas".
+   - Personalize com base no contexto da rede: operadora, tipo de conexão, SSID, sinal.
+   - Não invente dados que não estão no payload.
+
+5. TOM E FORMATO.
+   - Tom: técnico mas acessível, direto, sem enrolação.
+   - Use listas numeradas para passos sequenciais.
+   - Use bullet points para alternativas ou opções.
+   - Negrito para termos-chave (**SQM**, **canal 1 ou 11**, **5 GHz**).
+   - Não use emojis.
+   - Responda em português brasileiro com "você".
+   - Não se apresente — o usuário já sabe que está falando com a Linka.
+
+6. Responda exclusivamente em JSON válido seguindo o schema informado. Não use markdown,
+   não explique fora do JSON e não adicione texto antes ou depois.`;
 
 const CHAT_SCHEMA_HINT = `Schema JSON de retorno (responda APENAS com este formato, sem markdown):
 {
@@ -225,7 +259,41 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
   const id = model || "";
   const lower = id.toLowerCase();
 
-  // Gemma 7B-IT — modelo padrao atual. Match cobre "@cf/google/gemma-7b-it".
+  // Qwen3 30B MoE FP8 — modelo padrao atual. Match cobre "@cf/qwen/qwen3-30b-a3b-fp8".
+  if (/qwen3.*30b/.test(lower)) {
+    return {
+      idInterno: id,
+      provedor: "cloudflare_workers_ai",
+      familia: "Qwen",
+      versao: "3",
+      tamanho: "30B",
+      variante: lower.includes("fp8") ? "FP8" : null,
+      nomeExibicao: "Qwen3 30B",
+      nomeCompletoComercial: "Linka IA — Qwen3 30B",
+      descricaoComercial: "Diagnóstico inteligente de conexão",
+      textoRodape: "Motor de análise: Linka IA — Qwen3 30B",
+    };
+  }
+
+  // Qwen generico (qualquer outra versao Qwen configurada manualmente).
+  if (lower.includes("qwen")) {
+    const tamanho = (lower.match(/(\d+)b/) || [])[1];
+    const versao = (lower.match(/qwen-?(\d+(?:\.\d+)?)/) || [])[1] || null;
+    return {
+      idInterno: id,
+      provedor: "cloudflare_workers_ai",
+      familia: "Qwen",
+      versao,
+      tamanho: tamanho ? `${tamanho}B` : null,
+      variante: lower.includes("fp8") ? "FP8" : lower.includes("instruct") ? "Instruct" : null,
+      nomeExibicao: "Qwen",
+      nomeCompletoComercial: "Linka IA — Qwen",
+      descricaoComercial: "Diagnóstico inteligente de conexão",
+      textoRodape: "Motor de análise: Linka IA — Qwen",
+    };
+  }
+
+  // Gemma 7B-IT. Match cobre "@cf/google/gemma-7b-it".
   if (/gemma-?7b/.test(lower)) {
     return {
       idInterno: id,
@@ -420,15 +488,134 @@ function extractRawText(aiResult: unknown): string {
   return "";
 }
 
+// Remove blocos <think>...</think> que modelos com reasoning (Qwen3, DeepSeek,
+// QwQ) emitem antes da resposta real. Caso o bloco nao esteja fechado (thinking
+// truncado), remove do <think> ate o fim do texto.
+function stripThinkingTokens(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<think>[\s\S]*$/, "").trim();
+}
+
 function extractJson(text: string): string {
+  // Remove thinking tokens antes de extrair JSON
+  const cleaned = stripThinkingTokens(text);
   // Remove blocos markdown ``` se a IA insistir em usa-los apesar do prompt
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const fenced = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenced) return fenced[1].trim();
   // Recorta entre o primeiro { e o ultimo }
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start !== -1 && end > start) return text.slice(start, end + 1);
-  return text.trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start !== -1 && end > start) return cleaned.slice(start, end + 1);
+  return cleaned.trim();
+}
+
+// Normaliza o stream SSE upstream para o formato simples que o cliente Android
+// espera: "data: {\"response\":\"token\"}\n\n" + "data: [DONE]\n\n".
+//
+// Modelos no Workers AI emitem dois formatos de SSE:
+//  1) Formato simples (Workers AI legado): data: {"response":"token"}
+//  2) Formato OpenAI Chat Completions (Qwen3, etc.):
+//     data: {"choices":[{"delta":{"content":"token"}}]}
+//     com thinking em: {"choices":[{"delta":{"reasoning_content":"..."}}]}
+//
+// Este transform:
+//  - Detecta o formato automaticamente
+//  - Extrai o token de conteudo real (ignora reasoning_content)
+//  - Re-emite no formato simples {"response":"token"}
+//  - Filtra tokens <think>...</think> inline (caso o modelo use esse formato)
+function createStreamNormalizer(upstream: ReadableStream): ReadableStream {
+  let insideThink = false;
+  let buffer = "";
+  let sentDone = false;
+
+  return new ReadableStream({
+    async start(controller) {
+      const reader = upstream.getReader();
+      const decoder = new TextDecoder();
+      const encoder = new TextEncoder();
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (!sentDone) {
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            }
+            controller.close();
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") {
+              sentDone = true;
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              continue;
+            }
+
+            let token = "";
+            try {
+              const parsed = JSON.parse(data);
+
+              // Formato OpenAI: choices[0].delta.content
+              if (parsed.choices && Array.isArray(parsed.choices) && parsed.choices.length > 0) {
+                const delta = parsed.choices[0]?.delta;
+                if (delta) {
+                  // reasoning_content = thinking tokens — ignorar
+                  if (delta.reasoning_content !== undefined) continue;
+                  token = delta.content ?? "";
+                }
+              }
+              // Formato simples Workers AI: response
+              else if (typeof parsed.response === "string") {
+                token = parsed.response;
+              }
+            } catch {
+              continue;
+            }
+
+            if (!token) continue;
+
+            // Filtra <think>...</think> inline (fallback para modelos que usam tags)
+            if (token.includes("<think>")) {
+              insideThink = true;
+              const before = token.slice(0, token.indexOf("<think>"));
+              if (before) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: before })}\n\n`));
+              }
+              if (token.includes("</think>")) {
+                insideThink = false;
+                const after = token.slice(token.indexOf("</think>") + 8);
+                if (after) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: after })}\n\n`));
+                }
+              }
+              continue;
+            }
+            if (insideThink) {
+              if (token.includes("</think>")) {
+                insideThink = false;
+                const after = token.slice(token.indexOf("</think>") + 8);
+                if (after) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: after })}\n\n`));
+                }
+              }
+              continue;
+            }
+
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ response: token })}\n\n`));
+          }
+        }
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
 }
 
 // =============================================================================
@@ -460,9 +647,9 @@ export default {
 
       // Modo streaming SSE: ativado via ?stream=true. Retorna ReadableStream com
       // chunks no formato "data: {\"response\":\"token\"}\n\n" e termina com
-      // "data: [DONE]\n\n". O Workers AI para gemma-7b-it emite este formato
-      // nativamente com stream:true — nao e necessario transformar o stream.
-      // O endpoint sem ?stream=true continua retornando JSON completo (inalterado).
+      // "data: [DONE]\n\n". Workers AI emite este formato nativamente com
+      // stream:true. O stream passa por createThinkingFilterStream para suprimir
+      // tokens de <think>...</think> que modelos reasoning podem emitir.
       const isStream = url.searchParams.get("stream") === "true";
       if (isStream) {
         let streamResult: ReadableStream;
@@ -475,7 +662,7 @@ export default {
                 content: `Dados do diagnóstico:\n${JSON.stringify(payload)}\n\n${schemaHint}`,
               },
             ],
-            max_tokens: 5000,
+            max_tokens: isChat ? 8000 : 5000,
             temperature: 0.2,
             stream: true,
           }) as ReadableStream;
@@ -484,7 +671,7 @@ export default {
           console.error("env.AI.run stream FAILED, model:", model, "error:", errMsg);
           return errorResponse("ai_run_failed", 503);
         }
-        return new Response(streamResult, {
+        return new Response(createStreamNormalizer(streamResult), {
           headers: {
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
@@ -492,14 +679,10 @@ export default {
         });
       }
 
-      // Nao usamos response_format json_schema do Workers AI nesta versao porque:
-      //  - Suporte ainda e instavel/inconsistente para varios modelos do binding [ai];
-      //  - Habilitar JSON Mode antes de validacao especifica para Gemma 4 26B
-      //    pode quebrar o fluxo (resposta vazia, truncada ou nao-JSON).
-      // Preferimos schema hint forte no prompt + extracao tolerante (extractJson)
-      // + sobrescrita defensiva pos-parse. Quando houver validacao clara de que
-      // JSON Mode nao quebra Gemma/Workers AI, trocar para
-      // response_format: { type: "json_schema", json_schema: ... }.
+      // Nao usamos response_format json_schema do Workers AI nesta versao porque
+      // o suporte ainda e instavel/inconsistente para varios modelos do binding [ai].
+      // Preferimos schema hint forte no prompt + extracao tolerante (extractJson
+      // com stripThinkingTokens) + sobrescrita defensiva pos-parse.
       let aiResult: unknown;
       try {
         aiResult = await env.AI.run(model, {
@@ -511,12 +694,7 @@ export default {
                 `Dados do diagnóstico:\n${JSON.stringify(payload)}\n\n${schemaHint}`,
             },
           ],
-          // Gemma 4 26B-a4b consome tokens em um campo `reasoning` antes de
-          // emitir `content`. Reasoning: 500-2500 tokens; JSON final: 700-1100.
-          // Total tipico: ~3500 tokens. 5000 garante margem sem ultrapassar
-          // o budget de inferencia — reduzido de 6000 pois o gargalo real era
-          // o readTimeout de 30 s no Android (agora 90 s).
-          max_tokens: 5000,
+          max_tokens: isChat ? 8000 : 5000,
           temperature: 0.2,
         });
         console.log("env.AI.run completed, model:", model, "result type:", typeof aiResult);

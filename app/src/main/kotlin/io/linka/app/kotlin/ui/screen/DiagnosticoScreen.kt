@@ -1,78 +1,54 @@
 package io.linka.app.kotlin.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.StartOffset
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.CellTower
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.NetworkWifi
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Router
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -86,69 +62,54 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.linka.app.kotlin.R
 import io.linka.app.kotlin.feature.diagnostico.ConnectionType
-import io.linka.app.kotlin.feature.diagnostico.DiagnosticInput
+import io.linka.app.kotlin.feature.diagnostico.DiagSignalSelection
 import io.linka.app.kotlin.feature.diagnostico.EstadoDiagnostico
 import io.linka.app.kotlin.feature.diagnostico.SnapshotDiagnostico
-import io.linka.app.kotlin.feature.diagnostico.ai.AiAcaoRecomendada
 import io.linka.app.kotlin.feature.diagnostico.ai.AiDiagnosisRepository
 import io.linka.app.kotlin.feature.diagnostico.ai.AiDiagnosisResult
 import io.linka.app.kotlin.feature.diagnostico.ai.AiDiagnosisState
 import io.linka.app.kotlin.feature.diagnostico.ai.AiFallbackFactory
-import io.linka.app.kotlin.feature.diagnostico.ai.DiagChatAutor
+import io.linka.app.kotlin.feature.diagnostico.ai.ClassificacaoTecnica
 import io.linka.app.kotlin.feature.diagnostico.ai.DiagChatEntry
 import io.linka.app.kotlin.feature.diagnostico.ai.DiagnosisAiContextFactory
-import io.linka.app.kotlin.feature.diagnostico.ai.normalizeClassificacaoLabel
+import io.linka.app.kotlin.feature.diagnostico.pulse.OrbitState
 import io.linka.app.kotlin.ui.LkColors
 import io.linka.app.kotlin.ui.LkRadius
 import io.linka.app.kotlin.ui.LkSpacing
 import io.linka.app.kotlin.ui.LkTokens
 import io.linka.app.kotlin.ui.LocalLkTokens
+import io.linka.app.kotlin.ui.component.DiagActionFooter
+import io.linka.app.kotlin.ui.component.DiagImpactCard
+import io.linka.app.kotlin.ui.component.DiagMetricsGrid
+import io.linka.app.kotlin.ui.component.DiagRecommendationCard
+import io.linka.app.kotlin.ui.component.DiagRootCauseCard
+import io.linka.app.kotlin.ui.component.DiagVerdictHeroCard
+import io.linka.app.kotlin.ui.component.ImpactItem
+import io.linka.app.kotlin.ui.component.MetricItem
+import io.linka.app.kotlin.ui.component.MetricStatus
+import io.linka.app.kotlin.ui.component.OnDevicePill
+import io.linka.app.kotlin.ui.component.OrbitSymbol
+import io.linka.app.kotlin.ui.component.SignalToggleCard
 import io.linka.app.kotlin.ui.state.UiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 private const val AI_BASE_URL = "https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev"
 
-/**
- * Fase de carregamento do DiagnosticoScreen.
- * Distingue loading das engines de rede do loading da analise de IA.
- */
 enum class DiagnosticoFase { Engines, Ia }
 
-/**
- * Dado de UI do DiagnosticoScreen.
- *
- * [Carregando] representa qualquer fase intermediaria — engines ou IA.
- * [Resultado] representa o estado final com o laudo da IA.
- *
- * Mapeamento para UiState<DiagnosticoUiData>:
- *   - UiState.Empty         → tela inicial (Idle), nenhuma analise solicitada
- *   - UiState.Success(Carregando(Engines)) → engines de rede em execucao
- *   - UiState.Success(Carregando(Ia))      → IA consultando resultado
- *   - UiState.Success(Resultado(...))      → laudo disponivel
- *   - UiState.Error(message)               → falha no diagnostico
- */
 sealed interface DiagnosticoUiData {
     data class Carregando(
         val fase: DiagnosticoFase,
@@ -160,27 +121,28 @@ sealed interface DiagnosticoUiData {
     ) : DiagnosticoUiData
 }
 
-@Deprecated(
-    message = "Substituída por ChatDiagnosticoIaScreen. Mantida apenas para fallback durante validação. Remover na próxima major.",
-    level = DeprecationLevel.WARNING,
-)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiagnosticoScreen(
     snapshotDiagnostico: SnapshotDiagnostico,
-    onAbrirRedes: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onAbrirRedes: () -> Unit,
     onIniciarDiagnostico: () -> Unit,
     analiseSolicitada: Boolean,
     onAnaliseSolicitadaChange: (Boolean) -> Unit,
     aiState: AiDiagnosisState,
     onAiStateChange: (AiDiagnosisState) -> Unit,
     onVoltar: () -> Unit,
-    chatHistorico: List<DiagChatEntry> = emptyList(),
-    chatCarregando: Boolean = false,
-    onEnviarChat: (String) -> Unit = {},
+    onCompartilhar: () -> Unit = {},
+    onRefazer: () -> Unit = {},
+    onFalarOperadora: () -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") chatHistorico: List<DiagChatEntry> = emptyList(),
+    @Suppress("UNUSED_PARAMETER") chatCarregando: Boolean = false,
+    @Suppress("UNUSED_PARAMETER") onEnviarChat: (String) -> Unit = {},
 ) {
     val c = LocalLkTokens.current
     val scope = rememberCoroutineScope()
+
+    var signalSelection by remember { mutableStateOf(DiagSignalSelection()) }
 
     val aiRepository =
         remember {
@@ -202,23 +164,17 @@ fun DiagnosticoScreen(
     Scaffold(
         containerColor = c.bgPrimary,
         topBar = {
+            val uiStateForBar = resolveUiState(snapshotDiagnostico, aiState, analiseSolicitada)
+            val showShare = uiStateForBar is UiState.Success &&
+                (uiStateForBar as UiState.Success).data is DiagnosticoUiData.Resultado
             CenterAlignedTopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.Speed,
-                            contentDescription = null,
-                            tint = c.textPrimary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(LkSpacing.xs))
-                        Text(
-                            stringResource(R.string.diagnostico_titulo),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.W600,
-                            color = c.textPrimary,
-                        )
-                    }
+                    Text(
+                        "Diagnóstico IA",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.W600,
+                        color = c.textPrimary,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onVoltar) {
@@ -227,6 +183,18 @@ fun DiagnosticoScreen(
                             contentDescription = "Voltar",
                             tint = c.textPrimary,
                         )
+                    }
+                },
+                actions = {
+                    if (showShare) {
+                        IconButton(onClick = onCompartilhar) {
+                            Icon(
+                                imageVector = Icons.Outlined.Share,
+                                contentDescription = "Compartilhar",
+                                tint = c.textPrimary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
@@ -242,33 +210,20 @@ fun DiagnosticoScreen(
         ) {
             when (uiState) {
                 UiState.Empty -> {
-                    // Estado 1 — sem dados: nunca houve relatorio gerado (relatorio null + estado idle)
-                    val semDados =
-                        snapshotDiagnostico.relatorio == null &&
-                            snapshotDiagnostico.estado == EstadoDiagnostico.idle
-
-                    // TODO #141: aguardando campo `telephonyPermissionGranted: Boolean` no SnapshotDiagnostico
-                    // val semPermissao = !snapshotDiagnostico.telephonyPermissionGranted
-
-                    // TODO #141: aguardando campo `timestampUltimoTeste: Long?` no SnapshotDiagnostico
-                    // val dadosAntigos = snapshotDiagnostico.timestampUltimoTeste?.let {
-                    //     (System.currentTimeMillis() - it) > 24 * 60 * 60 * 1000L
-                    // } ?: false
-
-                    DiagnosticoIdleContent(
+                    DiagSetupContent(
                         c = c,
-                        semDados = semDados,
-                        // semPermissao = semPermissao,  // TODO #141
-                        // dadosAntigos = dadosAntigos,  // TODO #141
-                        onAnalisar = {
-                            onAnaliseSolicitadaChange(true)
-                            onAiStateChange(AiDiagnosisState.idle)
-                            onIniciarDiagnostico()
+                        selection = signalSelection,
+                        onToggle = { area ->
+                            signalSelection = when (area) {
+                                "velocidade" -> signalSelection.copy(velocidade = !signalSelection.velocidade)
+                                "wifi" -> signalSelection.copy(wifiSinal = !signalSelection.wifiSinal)
+                                "latencia" -> signalSelection.copy(latencia = !signalSelection.latencia)
+                                "fibra" -> signalSelection.copy(fibra = !signalSelection.fibra)
+                                "dns" -> signalSelection.copy(dns = !signalSelection.dns)
+                                else -> signalSelection
+                            }
                         },
-                        onPermitirAnalise = {
-                            // TODO #141: abrir sheet de permissão de telefonia quando campo disponível
-                        },
-                        onAtualizarDiagnostico = {
+                        onDiagnosticar = {
                             onAnaliseSolicitadaChange(true)
                             onAiStateChange(AiDiagnosisState.idle)
                             onIniciarDiagnostico()
@@ -277,44 +232,29 @@ fun DiagnosticoScreen(
                 }
 
                 UiState.Loading -> {
-                    // Nao utilizado — loading com fase usa Success<Carregando>
+                    // não utilizado — loading com fase usa Success<Carregando>
                 }
 
                 is UiState.Success -> {
                     when (val data = uiState.data) {
                         is DiagnosticoUiData.Carregando ->
-                            DiagnosticoLoadingContent(
+                            DiagAnalyzingContent(
                                 c = c,
+                                selection = signalSelection,
                                 isAiPhase = data.fase == DiagnosticoFase.Ia,
                             )
 
                         is DiagnosticoUiData.Resultado ->
-                            DiagnosticoResultadoContent(
+                            DiagResultContent(
                                 c = c,
                                 result = data.result,
-                                isFallback = data.isFallback,
-                                input = snapshotDiagnostico.input,
-                                onReanalisar = {
-                                    scope.launch {
-                                        val relatorio = snapshotDiagnostico.relatorio ?: return@launch
-                                        onAiStateChange(AiDiagnosisState.loading)
-                                        val connectionType =
-                                            snapshotDiagnostico.input?.connectionType ?: ConnectionType.desconhecido
-                                        val ctx =
-                                            DiagnosisAiContextFactory.from(
-                                                relatorio,
-                                                snapshotDiagnostico.input,
-                                                connectionType,
-                                            )
-                                        onAiStateChange(
-                                            aiRepository.explainDiagnosis(ctx) { AiFallbackFactory.fromLocal(relatorio) },
-                                        )
-                                    }
+                                onCompartilhar = onCompartilhar,
+                                onRefazer = {
+                                    onAnaliseSolicitadaChange(false)
+                                    onAiStateChange(AiDiagnosisState.idle)
+                                    onRefazer()
                                 },
-                                onAbrirRedes = onAbrirRedes,
-                                chatHistorico = chatHistorico,
-                                chatCarregando = chatCarregando,
-                                onEnviarChat = onEnviarChat,
+                                onFalarOperadora = onFalarOperadora,
                             )
                     }
                 }
@@ -413,368 +353,301 @@ private fun resolveUiState(
     return UiState.Success(DiagnosticoUiData.Carregando(DiagnosticoFase.Engines))
 }
 
-// ─── Estados da tela ──────────────────────────────────────────────────────────
+// ─── DiagSetup ────────────────────────────────────────────────────────────────
 
 @Composable
-private fun DiagnosticoIdleContent(
+private fun DiagSetupContent(
     c: LkTokens,
-    onAnalisar: () -> Unit,
-    semDados: Boolean = false,
-    semPermissao: Boolean = false, // TODO #141: aguardando campo telephonyPermissionGranted no SnapshotDiagnostico
-    dadosAntigos: Boolean = false, // TODO #141: aguardando campo timestampUltimoTeste no SnapshotDiagnostico
-    onPermitirAnalise: () -> Unit = {},
-    onAtualizarDiagnostico: () -> Unit = {},
+    selection: DiagSignalSelection,
+    onToggle: (String) -> Unit,
+    onDiagnosticar: () -> Unit,
 ) {
-    val gradient =
-        remember {
-            Brush.linearGradient(colors = listOf(LkColors.accent, LkColors.accentBlue))
-        }
-    Column(
-        modifier =
-            Modifier
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(LkSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.lg),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(LkRadius.card))
-                    .background(gradient)
-                    .padding(LkSpacing.xxl),
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
+            // Intro
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top,
             ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(LkColors.linkaTextOnDark.copy(alpha = 0.18f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Analytics,
-                        contentDescription = null,
-                        tint = LkColors.linkaTextOnDark,
-                        modifier = Modifier.size(40.dp),
+                Icon(
+                    imageVector = Icons.Outlined.AutoAwesome,
+                    contentDescription = null,
+                    tint = LkColors.accent,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .padding(top = 2.dp),
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "A IA lê os sinais da sua conexão e entrega um diagnóstico pronto.",
+                        fontSize = 14.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = c.textPrimary,
+                        lineHeight = 20.sp,
+                    )
+                    Text(
+                        text = "Sem conversa: você escolhe o que medir, ela interpreta e aponta a causa.",
+                        fontSize = 12.sp,
+                        color = c.textSecondary,
+                        lineHeight = 17.sp,
                     )
                 }
-                Spacer(Modifier.height(LkSpacing.xs))
-                Text(
-                    stringResource(R.string.diagnostico_idle_titulo),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.W800,
-                    color = LkColors.linkaTextOnDark,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 30.sp,
-                )
-                Text(
-                    stringResource(R.string.diagnostico_idle_descricao),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LkColors.linkaTextOnDark.copy(alpha = 0.85f),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp,
-                )
             }
-        }
 
-        // Estado 1 — sem dados suficientes
-        if (semDados) {
-            DiagnosticoEstadoEspecialBanner(
-                c = c,
-                icone = Icons.Outlined.Info,
-                iconeTint = LkColors.accent,
-                mensagem = stringResource(R.string.diagnostico_sem_dados_msg),
-                textoBotao = stringResource(R.string.diagnostico_sem_dados_btn),
-                onBotao = onAnalisar,
-            )
-        }
-
-        // Estado 2 — sem permissão de telefonia
-        // TODO #141: habilitar quando campo telephonyPermissionGranted estiver em SnapshotDiagnostico
-        if (semPermissao) {
-            DiagnosticoEstadoEspecialBanner(
-                c = c,
-                icone = Icons.Outlined.Security,
-                iconeTint = LkColors.warning,
-                mensagem = stringResource(R.string.diagnostico_sem_permissao_msg),
-                textoBotao = stringResource(R.string.diagnostico_sem_permissao_btn),
-                onBotao = onPermitirAnalise,
-            )
-        }
-
-        // Estado 3 — dados antigos (último teste > 24h)
-        // TODO #141: habilitar quando campo timestampUltimoTeste estiver em SnapshotDiagnostico
-        if (dadosAntigos) {
-            DiagnosticoEstadoEspecialBanner(
-                c = c,
-                icone = Icons.Outlined.Refresh,
-                iconeTint = c.textSecondary,
-                mensagem = stringResource(R.string.diagnostico_dados_antigos_msg),
-                textoBotao = stringResource(R.string.diagnostico_dados_antigos_btn),
-                onBotao = onAtualizarDiagnostico,
-            )
-        }
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(LkRadius.card))
-                    .background(c.bgCard)
-                    .padding(LkSpacing.lg),
-            verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
-        ) {
+            // Overline
             Text(
-                stringResource(R.string.diagnostico_idle_secao_analisa),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.W700,
+                text = "O QUE ANALISAR",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
                 color = c.textTertiary,
-                letterSpacing = 0.8.sp,
+                letterSpacing = 0.5.sp,
             )
-            HorizontalDivider(color = c.border)
-            DiagnosticoFeatureItem(stringResource(R.string.diagnostico_feature_1), c)
-            DiagnosticoFeatureItem(stringResource(R.string.diagnostico_feature_2), c)
-            DiagnosticoFeatureItem(stringResource(R.string.diagnostico_feature_3), c)
-            DiagnosticoFeatureItem(stringResource(R.string.diagnostico_feature_4), c)
-        }
 
-        Spacer(Modifier.height(LkSpacing.sm))
-
-        Button(
-            onClick = onAnalisar,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-            shape = RoundedCornerShape(LkRadius.button),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Analytics,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(LkSpacing.sm))
-            Text(
-                stringResource(R.string.diagnostico_btn_iniciar),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.W600,
-            )
-        }
-
-        Spacer(Modifier.height(LkSpacing.lg))
-    }
-}
-
-/**
- * Banner de estado especial exibido no DiagnosticoIdleContent.
- * Usado para "sem dados", "sem permissão" e "dados antigos" (#141).
- */
-@Composable
-private fun DiagnosticoEstadoEspecialBanner(
-    c: LkTokens,
-    icone: ImageVector,
-    iconeTint: Color,
-    mensagem: String,
-    textoBotao: String,
-    onBotao: () -> Unit,
-) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.md),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-    ) {
-        Icon(
-            imageVector = icone,
-            contentDescription = null,
-            tint = iconeTint,
-            modifier =
-                Modifier
-                    .size(20.dp)
-                    .padding(top = 2.dp),
-        )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(
-                text = mensagem,
-                style = MaterialTheme.typography.bodyMedium,
-                color = c.textSecondary,
-                lineHeight = 20.sp,
-            )
-            TextButton(
-                onClick = onBotao,
-                contentPadding = PaddingValues(0.dp),
-            ) {
-                Text(
-                    text = textoBotao,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.W600,
-                    color = LkColors.accent,
+            // Signal cards
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SignalToggleCard(
+                    icon = Icons.Outlined.BarChart,
+                    title = "Velocidade",
+                    subtitle = "Download, upload e estabilidade",
+                    enabled = selection.velocidade,
+                    onToggle = { onToggle("velocidade") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                SignalToggleCard(
+                    icon = Icons.Outlined.Wifi,
+                    title = "Wi-Fi & Sinal",
+                    subtitle = "Potência, canal e congestionamento",
+                    enabled = selection.wifiSinal,
+                    onToggle = { onToggle("wifi") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                SignalToggleCard(
+                    icon = Icons.Outlined.SwapVert,
+                    title = "Latência & Bufferbloat",
+                    subtitle = "Atraso ocioso e sob carga",
+                    enabled = selection.latencia,
+                    onToggle = { onToggle("latencia") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                SignalToggleCard(
+                    icon = Icons.Outlined.CellTower,
+                    title = "Modem / Fibra (GPON)",
+                    subtitle = "Potência óptica e status PPP",
+                    enabled = selection.fibra,
+                    onToggle = { onToggle("fibra") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                SignalToggleCard(
+                    icon = Icons.Outlined.Language,
+                    title = "DNS",
+                    subtitle = "Tempo de resolução de nomes",
+                    enabled = selection.dns,
+                    onToggle = { onToggle("dns") },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
+
+        // Footer fixo
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(c.bgPrimary)
+                .border(width = 1.dp, color = c.border, shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp))
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Button(
+                onClick = onDiagnosticar,
+                enabled = selection.anySelected,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(LkRadius.button),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LkColors.accent,
+                    disabledContainerColor = LkColors.accent.copy(alpha = 0.4f),
+                ),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AutoAwesome,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Diagnosticar conexão",
+                    fontSize = 14.5.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            OnDevicePill(dark = false)
+        }
     }
 }
 
-@Composable
-private fun DiagnosticoFeatureItem(
-    text: String,
-    c: LkTokens,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.CheckCircle,
-            contentDescription = null,
-            tint = LkColors.accent,
-            modifier = Modifier.size(18.dp),
-        )
-        Text(
-            text,
-            style = MaterialTheme.typography.titleSmall,
-            color = c.textPrimary,
-            lineHeight = 19.sp,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
+// ─── DiagAnalyzing ────────────────────────────────────────────────────────────
 
-// ENGINE_STEPS agora são resource IDs — resolvidos via stringResource() em DiagnosticoLoadingContent
-private val ENGINE_STEP_RES_IDS =
-    listOf(
-        R.string.diagnostico_step_1,
-        R.string.diagnostico_step_2,
-        R.string.diagnostico_step_3,
-    )
+private enum class AnalysisStepStatus { Wait, Run, Done }
 
-private enum class StepEstado { Pendente, Ativo, Concluido }
+private data class AnalysisStep(
+    val label: String,
+    val status: AnalysisStepStatus,
+)
 
 @Composable
-private fun DiagnosticoLoadingContent(
+private fun DiagAnalyzingContent(
     c: LkTokens,
+    selection: DiagSignalSelection,
     isAiPhase: Boolean,
 ) {
-    val engineSteps = ENGINE_STEP_RES_IDS.map { stringResource(it) }
+    val steps = buildList {
+        if (selection.velocidade) add("Velocidade medida")
+        if (selection.wifiSinal) add("Wi-Fi e canais lidos")
+        if (selection.latencia) add("Latência sob carga")
+        if (selection.fibra) add("Modem / fibra")
+        if (selection.dns) add("DNS resolvido")
+        add("IA analisando")
+    }
 
-    var stepsVisiveis by remember(isAiPhase) {
-        mutableIntStateOf(if (isAiPhase) engineSteps.size else 0)
+    var completedCount by remember(isAiPhase) {
+        mutableIntStateOf(if (isAiPhase) steps.size - 1 else 0)
     }
 
     LaunchedEffect(isAiPhase) {
         if (!isAiPhase) {
-            engineSteps.indices.forEach { i ->
-                delay(if (i == 0) 500L else 750L)
-                stepsVisiveis = i + 1
+            val signalStepCount = steps.size - 1
+            signalStepCount.let { count ->
+                for (i in 0 until count) {
+                    delay(if (i == 0) 600L else 900L)
+                    completedCount = i + 1
+                }
             }
         }
     }
 
-    Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = LkSpacing.xl),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            Text(
-                if (isAiPhase) stringResource(R.string.diagnostico_loading_ia) else stringResource(R.string.diagnostico_loading_engines),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.W700,
-                color = c.textPrimary,
-            )
-            Spacer(Modifier.height(LkSpacing.xl))
+    val progress = if (steps.isEmpty()) 0f else completedCount.toFloat() / steps.size
 
-            engineSteps.forEachIndexed { index, texto ->
-                AnimatedVisibility(
-                    visible = index < stepsVisiveis,
-                    enter = fadeIn(tween(300)) + expandVertically(tween(300)),
-                ) {
-                    StepRow(c = c, texto = texto, estado = StepEstado.Concluido)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            OrbitSymbol(
+                state = OrbitState.Analyzing,
+                size = 96.dp,
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = "Analisando sua conexão",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = c.textPrimary,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = "A IA está cruzando os sinais para encontrar o que está limitando você.",
+                fontSize = 12.5.sp,
+                color = c.textSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp,
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth(),
+                color = LkColors.accent,
+                trackColor = c.bgSecondary,
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                steps.forEachIndexed { index, label ->
+                    val stepStatus = when {
+                        index < completedCount -> AnalysisStepStatus.Done
+                        index == completedCount -> AnalysisStepStatus.Run
+                        else -> AnalysisStepStatus.Wait
+                    }
+                    AnalysisStepRow(c = c, label = label, status = stepStatus)
                 }
             }
-
-            AnimatedVisibility(
-                visible = stepsVisiveis == engineSteps.size,
-                enter = fadeIn(tween(300)) + expandVertically(tween(300)),
-            ) {
-                StepRow(
-                    c = c,
-                    texto = stringResource(R.string.diagnostico_step_ia),
-                    estado = if (isAiPhase) StepEstado.Ativo else StepEstado.Pendente,
-                )
-            }
         }
+
+        OnDevicePill(
+            dark = false,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp),
+        )
     }
 }
 
 @Composable
-private fun StepRow(
+private fun AnalysisStepRow(
     c: LkTokens,
-    texto: String,
-    estado: StepEstado,
+    label: String,
+    status: AnalysisStepStatus,
 ) {
-    val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(
+    val pulse by androidx.compose.animation.core.rememberInfiniteTransition(label = "step-pulse").animateFloat(
         initialValue = 0.4f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(animation = tween(900), repeatMode = RepeatMode.Reverse),
         label = "pulse-alpha",
     )
 
-    val estadoDescricao =
-        when (estado) {
-            StepEstado.Concluido -> "concluído"
-            StepEstado.Ativo -> "em andamento"
-            StepEstado.Pendente -> "pendente"
-        }
+    val statusDesc = when (status) {
+        AnalysisStepStatus.Done -> "concluído"
+        AnalysisStepStatus.Run -> "em andamento"
+        AnalysisStepStatus.Wait -> "pendente"
+    }
 
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = LkSpacing.sm)
-                .semantics(mergeDescendants = true) {
-                    contentDescription = "$texto — $estadoDescricao"
-                    stateDescription = estadoDescricao
-                },
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$label — $statusDesc"
+                stateDescription = statusDesc
+            },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
     ) {
-        when (estado) {
-            StepEstado.Concluido ->
+        when (status) {
+            AnalysisStepStatus.Done ->
                 Icon(
                     imageVector = Icons.Outlined.CheckCircle,
                     contentDescription = null,
                     tint = LkColors.success,
                     modifier = Modifier.size(20.dp),
                 )
-            StepEstado.Ativo ->
+            AnalysisStepStatus.Run ->
                 CircularProgressIndicator(
                     color = LkColors.accent,
                     strokeWidth = 2.dp,
                     modifier = Modifier.size(20.dp),
                 )
-            StepEstado.Pendente ->
+            AnalysisStepStatus.Wait ->
                 Icon(
                     imageVector = Icons.Outlined.RadioButtonUnchecked,
                     contentDescription = null,
@@ -783,18 +656,140 @@ private fun StepRow(
                 )
         }
         Text(
-            texto,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (estado == StepEstado.Ativo) FontWeight.W600 else FontWeight.W400,
-            color =
-                when (estado) {
-                    StepEstado.Concluido -> c.textSecondary
-                    StepEstado.Ativo -> c.textPrimary.copy(alpha = pulse)
-                    StepEstado.Pendente -> c.textTertiary
-                },
+            text = label,
+            fontSize = 13.sp,
+            fontWeight = if (status == AnalysisStepStatus.Run) FontWeight.W500 else FontWeight.W400,
+            color = when (status) {
+                AnalysisStepStatus.Done -> c.textSecondary
+                AnalysisStepStatus.Run -> c.textPrimary.copy(alpha = pulse)
+                AnalysisStepStatus.Wait -> c.textTertiary
+            },
         )
     }
 }
+
+// ─── DiagResult ───────────────────────────────────────────────────────────────
+
+@Composable
+private fun DiagResultContent(
+    c: LkTokens,
+    result: AiDiagnosisResult,
+    onCompartilhar: () -> Unit,
+    onRefazer: () -> Unit,
+    onFalarOperadora: () -> Unit,
+) {
+    var metricsExpanded by remember { mutableStateOf(false) }
+
+    val statusColor = diagStatusToColor(result.status, c)
+    val statusLabel = diagStatusToLabel(result.status)
+    val confiancaLabel = diagConfiancaLabel(result.problemaPrincipal.confianca)
+
+    val impactItems = buildImpactItems(result)
+    val metricItems = buildMetricItems(result)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 4.dp,
+                bottom = 100.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            // 1. Herói
+            item {
+                DiagVerdictHeroCard(
+                    titulo = "DIAGNÓSTICO IA",
+                    veredito = result.textoLaudo.ifBlank { result.resumo },
+                    statusLabel = statusLabel,
+                    statusColor = statusColor,
+                    confianca = "Confiança $confiancaLabel",
+                )
+            }
+
+            // 2. Causa-raiz
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "CAUSA-RAIZ IDENTIFICADA",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = c.textTertiary,
+                        letterSpacing = 0.5.sp,
+                    )
+                    DiagRootCauseCard(
+                        icon = iconForProblemaTipo(result.problemaPrincipal.tipo),
+                        title = result.problemaPrincipal.tipo.replaceFirstChar { it.uppercaseChar() },
+                        subtitle = result.problemaPrincipal.descricao,
+                    )
+                    val secundarias = buildSecondaryRootCauses(result)
+                    secundarias.forEach { (icon, title, subtitle) ->
+                        DiagRootCauseCard(
+                            icon = icon,
+                            title = title,
+                            subtitle = subtitle,
+                        )
+                    }
+                }
+            }
+
+            // 3. Impacto
+            if (impactItems.isNotEmpty()) {
+                item { DiagImpactCard(items = impactItems) }
+            }
+
+            // 4. Recomendações
+            if (result.acoesRecomendadas.isNotEmpty()) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "O QUE FAZER · EM ORDEM",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = c.textTertiary,
+                            letterSpacing = 0.5.sp,
+                        )
+                        result.acoesRecomendadas.forEachIndexed { idx, acao ->
+                            DiagRecommendationCard(
+                                index = idx + 1,
+                                title = acao.titulo,
+                                description = acao.descricao,
+                                priority = acao.prioridade.uppercase(),
+                                priorityColor = priorityToColor(acao.prioridade),
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 5. Métricas colapsável
+            if (metricItems.isNotEmpty()) {
+                item {
+                    DiagMetricsGrid(
+                        metrics = metricItems,
+                        expanded = metricsExpanded,
+                        onToggleExpand = { metricsExpanded = !metricsExpanded },
+                    )
+                }
+            }
+
+            item { Spacer(Modifier.height(8.dp)) }
+        }
+
+        DiagActionFooter(
+            onShare = onCompartilhar,
+            onRefresh = onRefazer,
+            onContactIsp = onFalarOperadora,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .background(c.bgPrimary),
+        )
+    }
+}
+
+// ─── Erro ─────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun DiagnosticoErroContent(
@@ -802,10 +797,9 @@ private fun DiagnosticoErroContent(
     onTentar: () -> Unit,
 ) {
     Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = LkSpacing.xl),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = LkSpacing.xl),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -839,1125 +833,135 @@ private fun DiagnosticoErroContent(
     }
 }
 
-// ─── Tela de resultado — redesign ────────────────────────────────────────────
+// ─── Helpers de mapeamento de dados ──────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DiagnosticoResultadoContent(
-    c: LkTokens,
-    result: AiDiagnosisResult,
-    isFallback: Boolean,
-    input: DiagnosticInput?,
-    onReanalisar: () -> Unit,
-    onAbrirRedes: () -> Unit,
-    chatHistorico: List<DiagChatEntry> = emptyList(),
-    chatCarregando: Boolean = false,
-    onEnviarChat: (String) -> Unit = {},
-) {
-    var chatInput by remember { mutableStateOf("") }
-    val chipsSomidos = chatHistorico.isNotEmpty()
-    val limiteAtingido = chatHistorico.count { it.autor == DiagChatAutor.Usuario } >= 5
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(chatHistorico.size, chatCarregando) {
-        val totalItems = listState.layoutInfo.totalItemsCount
-        if (totalItems > 0) listState.animateScrollToItem(totalItems - 1)
-    }
-
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(c.bgPrimary)
-                .windowInsetsPadding(WindowInsets.ime),
-    ) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.weight(1f),
-            contentPadding =
-                PaddingValues(
-                    start = LkSpacing.lg,
-                    end = LkSpacing.lg,
-                    top = LkSpacing.md,
-                    bottom = LkSpacing.lg,
-                ),
-            verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
-        ) {
-            // Card 1 — StatusDiagnosticoCard
-            item {
-                StaggeredCard(index = 0) {
-                    StatusDiagnosticoCard(c = c, result = result)
-                }
-            }
-
-            // Card 2 — PrincipalPontoCard (só se houver problema principal com descrição)
-            if (result.problemaPrincipal.descricao.isNotBlank()) {
-                item {
-                    StaggeredCard(index = 1) {
-                        PrincipalPontoCard(
-                            c = c,
-                            result = result,
-                            onAbrirRedes = onAbrirRedes,
-                        )
-                    }
-                }
-            }
-
-            // Card 3 — OQueFazerCard (só se houver ações)
-            if (result.acoesRecomendadas.isNotEmpty()) {
-                item {
-                    StaggeredCard(index = 2) {
-                        OQueFazerCard(
-                            c = c,
-                            actions = result.acoesRecomendadas,
-                            onAbrirRedes = onAbrirRedes,
-                            onReanalisar = onReanalisar,
-                        )
-                    }
-                }
-            }
-
-            // Seção duas colunas — Evidências + Análise por categoria
-            val temEvidencias = result.evidencias.isNotEmpty()
-            val classificacao = result.classificacaoTecnica
-            val temClassificacao =
-                listOfNotNull(
-                    classificacao.velocidade,
-                    classificacao.estabilidade,
-                    classificacao.wifi,
-                    classificacao.dns,
-                    classificacao.fibra,
-                ).any { it.avaliacao?.isNotBlank() == true }
-
-            if (temEvidencias || temClassificacao) {
-                item {
-                    StaggeredCard(index = 3) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-                        ) {
-                            if (temEvidencias) {
-                                EvidenciasColuna(
-                                    c = c,
-                                    evidencias = result.evidencias,
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                            if (temClassificacao) {
-                                AnaliseCategoriasColuna(
-                                    c = c,
-                                    classificacao = classificacao,
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Separador visual antes do chat — distingue diagnóstico local de respostas IA
-            if (chatHistorico.isNotEmpty() || chatCarregando) {
-                item {
-                    Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = LkSpacing.xs),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-                    ) {
-                        HorizontalDivider(modifier = Modifier.weight(1f), color = c.border)
-                        Icon(
-                            imageVector = Icons.Outlined.AutoAwesome,
-                            contentDescription = null,
-                            tint = LkColors.accent,
-                            modifier = Modifier.size(14.dp),
-                        )
-                        Text(
-                            text = "Assistente IA",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = c.textTertiary,
-                        )
-                        HorizontalDivider(modifier = Modifier.weight(1f), color = c.border)
-                    }
-                }
-            }
-
-            // Mensagens do chat inline
-            items(chatHistorico, key = { it.timestamp }) { entry ->
-                DiagChatMensagem(
-                    entry = entry,
-                    c = c,
-                    onRetry = {
-                        val ultimaPergunta =
-                            chatHistorico
-                                .lastOrNull {
-                                    it.autor == DiagChatAutor.Usuario
-                                }?.texto ?: ""
-                        if (ultimaPergunta.isNotBlank()) onEnviarChat(ultimaPergunta)
-                    },
-                )
-            }
-
-            if (chatCarregando) {
-                item { DiagChatLoadingItem(c = c) }
-            }
-
-            // Card Final — ChatCard
-            item {
-                ChatCard(
-                    c = c,
-                    perguntasContextuais = result.perguntasContextuais.map { it.pergunta }.take(3),
-                    chatInput = chatInput,
-                    onChatInputChange = { chatInput = it },
-                    onEnviar = { pergunta ->
-                        onEnviarChat(pergunta)
-                        chatInput = ""
-                    },
-                    chipsSomidos = chipsSomidos,
-                    limiteAtingido = limiteAtingido,
-                )
-            }
-
-            // Rodapé: fonte + botão de reanálise
-            item {
-                val sdf = remember { SimpleDateFormat("dd/MM HH:mm", Locale.forLanguageTag("pt-BR")) }
-                val horario = sdf.format(Date(result.generatedAt))
-                val fonteLabel = if (isFallback) "Diagnóstico do dispositivo" else result.modeloIa.nomeExibicao.ifBlank { "Linka IA" }
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        "$fonteLabel · $horario",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = c.textTertiary,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                    OutlinedButton(
-                        onClick = onReanalisar,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(LkRadius.button),
-                    ) {
-                        Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(LkSpacing.xs))
-                        Text(stringResource(R.string.diagnostico_btn_reanalisar), fontSize = 13.sp)
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ─── Animação escalonada de entrada ──────────────────────────────────────────
-
-@Composable
-private fun StaggeredCard(
-    index: Int,
-    content: @Composable () -> Unit,
-) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(index * 120L)
-        visible = true
-    }
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 5 },
-    ) {
-        content()
-    }
-}
-
-// ─── Card 1 — StatusDiagnosticoCard ──────────────────────────────────────────
-
-@Composable
-private fun StatusDiagnosticoCard(
-    c: LkTokens,
-    result: AiDiagnosisResult,
-) {
-    val statusColor = statusToColor(result.status, c)
-    val isAtencao = result.status.lowercase() in setOf("regular", "ruim", "critico")
-
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            // Ícone escudo com fundo circular
-            Box(
-                modifier =
-                    Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(LkColors.accentBlue.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Security,
-                    contentDescription = null,
-                    tint = LkColors.accentBlue,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-            ) {
-                Text(
-                    result.titulo.ifBlank { "Diagnóstico concluído" },
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = c.textPrimary,
-                    fontSize = 18.sp,
-                )
-                Text(
-                    result.textoLaudo.ifBlank { result.resumo },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = c.textSecondary,
-                    lineHeight = 20.sp,
-                )
-            }
-        }
-
-        // Chip de status / atenção
-        if (isAtencao) {
-            Row(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(100.dp))
-                        .border(1.dp, c.onWarningContainer.copy(alpha = 0.5f), RoundedCornerShape(100.dp))
-                        .background(c.warningContainer)
-                        .padding(horizontal = LkSpacing.md, vertical = LkSpacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-            ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(statusColor),
-                )
-                Text(
-                    when (result.status.lowercase()) {
-                        "critico" -> "Problema crítico"
-                        "ruim" -> "Conexão com problemas"
-                        else -> "Atenção no Wi-Fi"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.W600,
-                    color = c.onWarningContainer,
-                )
-            }
-        }
-
-        MetricsRow(c = c, result = result, statusColor = statusColor)
-    }
-}
-
-// ─── Card 2 — PrincipalPontoCard ──────────────────────────────────────────────
-
-@Composable
-private fun PrincipalPontoCard(
-    c: LkTokens,
-    result: AiDiagnosisResult,
-    onAbrirRedes: () -> Unit,
-) {
-    val isWifiOuRede =
-        result.problemaPrincipal.tipo.lowercase() in
-            setOf("wifi", "roteador", "canal", "rede", "isp")
-    val tipCard = result.problemaPrincipal.descricao.isNotBlank()
-
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
-    ) {
-        Text(
-            "Principal ponto encontrado",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = c.textPrimary,
-            fontSize = 16.sp,
-        )
-
-        Row(
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(LkColors.accent.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = iconForProblemaTipo(result.problemaPrincipal.tipo),
-                    contentDescription = null,
-                    tint = LkColors.accent,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-            ) {
-                Text(
-                    result.problemaPrincipal.tipo.replaceFirstChar { it.uppercaseChar() },
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = c.textPrimary,
-                    fontSize = 15.sp,
-                )
-                Text(
-                    result.problemaPrincipal.descricao,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = c.textSecondary,
-                    lineHeight = 18.sp,
-                )
-            }
-        }
-
-        // Tip card âmbar
-        if (tipCard) {
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = c.amberSurface,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(LkSpacing.md),
-                    horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = null,
-                        tint = c.onWarningContainer,
-                        modifier =
-                            Modifier
-                                .padding(top = 2.dp)
-                                .size(14.dp),
-                    )
-                    Text(
-                        result.resumo.ifBlank { result.problemaPrincipal.descricao },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = c.onWarningContainer,
-                        lineHeight = 17.sp,
-                    )
-                }
-            }
-        }
-
-        // Link — "Ver dispositivo" para ações de rede/Wi-Fi
-        if (isWifiOuRede) {
-            Row(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(LkRadius.button))
-                        .clickable(onClick = onAbrirRedes)
-                        .padding(vertical = LkSpacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-            ) {
-                Text(
-                    "Ver redes Wi-Fi",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LkColors.accent,
-                    fontWeight = FontWeight.W600,
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-                    contentDescription = null,
-                    tint = LkColors.accent,
-                    modifier = Modifier.size(12.dp),
-                )
-            }
-        }
-    }
-}
-
-// ─── Card 3 — OQueFazerCard ────────────────────────────────────────────────────
-
-@Composable
-private fun OQueFazerCard(
-    c: LkTokens,
-    actions: List<AiAcaoRecomendada>,
-    onAbrirRedes: () -> Unit,
-    onReanalisar: () -> Unit,
-) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
-    ) {
-        Text(
-            "O que fazer agora",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = c.textPrimary,
-            fontSize = 16.sp,
-        )
-
-        // Lista de ações com ícone
-        actions.take(4).forEachIndexed { index, acao ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-                verticalAlignment = Alignment.Top,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .padding(top = 2.dp)
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(LkColors.accent.copy(alpha = 0.10f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = iconForAcaoIndex(index),
-                        contentDescription = null,
-                        tint = LkColors.accent,
-                        modifier = Modifier.size(12.dp),
-                    )
-                }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        acao.titulo,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.W600,
-                        color = c.textPrimary,
-                    )
-                    if (acao.descricao.isNotBlank()) {
-                        Text(
-                            acao.descricao,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = c.textSecondary,
-                            lineHeight = 17.sp,
-                        )
-                    }
-                }
-            }
-        }
-
-        // Botões de ação rápida
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-        ) {
-            OutlinedButton(
-                onClick = onReanalisar,
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = LkSpacing.sm, vertical = LkSpacing.xs),
-                shape = RoundedCornerShape(LkRadius.button),
-            ) {
-                Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(12.dp))
-                Spacer(Modifier.width(LkSpacing.xs))
-                Text("Reanalisar", style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            }
-            OutlinedButton(
-                onClick = onAbrirRedes,
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = LkSpacing.sm, vertical = LkSpacing.xs),
-                shape = RoundedCornerShape(LkRadius.button),
-            ) {
-                Icon(Icons.Outlined.NetworkWifi, contentDescription = null, modifier = Modifier.size(12.dp))
-                Spacer(Modifier.width(LkSpacing.xs))
-                Text("Wi-Fi", style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            }
-            OutlinedButton(
-                onClick = onAbrirRedes,
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = LkSpacing.sm, vertical = LkSpacing.xs),
-                shape = RoundedCornerShape(LkRadius.button),
-            ) {
-                Icon(Icons.Outlined.Router, contentDescription = null, modifier = Modifier.size(12.dp))
-                Spacer(Modifier.width(LkSpacing.xs))
-                Text("Redes", style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            }
-        }
-    }
-}
-
-// ─── Seção de duas colunas ─────────────────────────────────────────────────────
-
-@Composable
-private fun EvidenciasColuna(
-    c: LkTokens,
-    evidencias: List<io.linka.app.kotlin.feature.diagnostico.ai.AiEvidenceOut>,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.md),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-    ) {
-        Text(
-            "Evidências usadas",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = c.textPrimary,
-            fontSize = 15.sp,
-        )
-        evidencias.take(5).forEach { ev ->
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Outlined.CheckCircle,
-                    contentDescription = null,
-                    tint = LkColors.accent.copy(alpha = 0.7f),
-                    modifier =
-                        Modifier
-                            .padding(top = 2.dp)
-                            .size(12.dp),
-                )
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                    Text(
-                        ev.label.substringAfter(":").ifBlank { ev.label },
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.W600,
-                        color = c.textPrimary,
-                        lineHeight = 15.sp,
-                    )
-                    if (ev.valor.isNotBlank()) {
-                        Text(
-                            ev.valor,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = c.textSecondary,
-                            lineHeight = 14.sp,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AnaliseCategoriasColuna(
-    c: LkTokens,
-    classificacao: io.linka.app.kotlin.feature.diagnostico.ai.ClassificacaoTecnica,
-    modifier: Modifier = Modifier,
-) {
-    val categorias =
-        buildList {
-            classificacao.velocidade?.let { add("Velocidade" to it) }
-            classificacao.estabilidade?.let { add("Estabilidade" to it) }
-            classificacao.wifi?.let { add("Wi-Fi" to it) }
-            classificacao.dns?.let { add("DNS" to it) }
-            classificacao.fibra?.let { add("Fibra" to it) }
-        }.filter { (_, item) -> item.avaliacao?.isNotBlank() == true }
-
-    Column(
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.md),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-    ) {
-        Text(
-            "Análise por categoria",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = c.textPrimary,
-            fontSize = 15.sp,
-        )
-        categorias.forEach { (nome, item) ->
-            val label = normalizeClassificacaoLabel(item.avaliacao)
-            val isBom = item.avaliacao?.lowercase() in setOf("boa", "bom")
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    nome,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = c.textSecondary,
-                    modifier = Modifier.weight(1f),
-                )
-                Box(
-                    modifier =
-                        Modifier
-                            .clip(RoundedCornerShape(100.dp))
-                            .background(if (isBom) c.successContainer else c.warningContainer)
-                            .padding(horizontal = 6.dp, vertical = 2.dp),
-                ) {
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isBom) c.onSuccessContainer else c.onWarningContainer,
-                        fontWeight = FontWeight.W600,
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ─── Card Final — ChatCard ─────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ChatCard(
-    c: LkTokens,
-    perguntasContextuais: List<String>,
-    chatInput: String,
-    onChatInputChange: (String) -> Unit,
-    onEnviar: (String) -> Unit = {},
-    chipsSomidos: Boolean = false,
-    limiteAtingido: Boolean = false,
-) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
-    ) {
-        Text(
-            "Perguntar sobre este diagnóstico",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = c.textPrimary,
-            fontSize = 16.sp,
-        )
-
-        // Chips de sugestão — somem quando há histórico de chat
-        AnimatedVisibility(
-            visible = !chipsSomidos && perguntasContextuais.isNotEmpty(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                perguntasContextuais.take(3).forEach { pergunta ->
-                    SuggestionChip(
-                        onClick = { onChatInputChange(pergunta) },
-                        label = {
-                            Text(
-                                pergunta.take(30).let { if (pergunta.length > 30) "$it..." else it },
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                            )
-                        },
-                        colors =
-                            SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = c.bgSecondary,
-                                labelColor = c.textSecondary,
-                            ),
-                        border =
-                            SuggestionChipDefaults.suggestionChipBorder(
-                                enabled = true,
-                                borderColor = c.border,
-                            ),
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        }
-
-        // Campo de texto pill
-        OutlinedTextField(
-            value = chatInput,
-            onValueChange = onChatInputChange,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !limiteAtingido,
-            placeholder = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-                ) {
-                    Icon(
-                        Icons.Outlined.Search,
-                        contentDescription = null,
-                        tint = c.textTertiary,
-                        modifier = Modifier.size(14.dp),
-                    )
-                    Text(
-                        "Pergunte sobre sua rede...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = c.textTertiary,
-                    )
-                }
-            },
-            trailingIcon = {
-                val filled = chatInput.isNotBlank() && !limiteAtingido
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-                    contentDescription = if (filled) "Enviar" else null,
-                    tint = if (filled) LkColors.accent else c.textTertiary,
-                    modifier =
-                        Modifier
-                            .clip(CircleShape)
-                            .background(
-                                if (filled) {
-                                    LkColors.accent.copy(alpha = 0.10f)
-                                } else {
-                                    Color.Transparent
-                                },
-                            ).size(32.dp)
-                            .then(
-                                if (filled) {
-                                    Modifier.clickable { onEnviar(chatInput) }
-                                } else {
-                                    Modifier
-                                },
-                            ).padding(LkSpacing.sm),
-                )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(24.dp),
-            colors =
-                OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = LkColors.accent,
-                    unfocusedBorderColor = c.border,
-                    focusedContainerColor = c.bgCard,
-                    unfocusedContainerColor = c.bgCard,
-                    focusedTextColor = c.textPrimary,
-                    unfocusedTextColor = c.textPrimary,
-                    cursorColor = LkColors.accent,
-                ),
-        )
-
-        if (limiteAtingido) {
-            Text(
-                "Limite da sessão atingido. Reinicie o diagnóstico para continuar.",
-                style = MaterialTheme.typography.labelSmall,
-                color = c.textTertiary,
-            )
-        }
-    }
-}
-
-// ─── Helpers internos reutilizados ────────────────────────────────────────────
-
-@Composable
-private fun MetricsRow(
-    c: LkTokens,
-    result: AiDiagnosisResult,
-    statusColor: Color,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .clip(RoundedCornerShape(100.dp))
-                    .background(statusColor.copy(alpha = 0.10f))
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(6.dp)
-                        .clip(CircleShape)
-                        .background(statusColor),
-            )
-            Text(
-                result.status.replaceFirstChar { it.uppercaseChar() },
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.W600,
-                color = statusColor,
-            )
-        }
-        if (result.problemaPrincipal.confianca > 0.0) {
-            Text(
-                "${(result.problemaPrincipal.confianca * 100).toInt()}% confiança",
-                style = MaterialTheme.typography.bodySmall,
-                color = c.textTertiary,
-            )
-        }
-    }
-}
-
-// ─── Helpers de ícone ─────────────────────────────────────────────────────────
-
-private fun iconForProblemaTipo(tipo: String): ImageVector =
-    when (tipo.lowercase()) {
-        "wifi", "canal", "sinal" -> Icons.Outlined.NetworkWifi
-        "roteador", "gateway" -> Icons.Outlined.Router
-        "dispositivo" -> Icons.Outlined.DeviceHub
-        "isp", "operadora" -> Icons.Outlined.Speed
-        else -> Icons.Outlined.Info
-    }
-
-private fun iconForAcaoIndex(index: Int): ImageVector =
-    when (index) {
-        0 -> Icons.Outlined.Router
-        1 -> Icons.Outlined.NetworkWifi
-        2 -> Icons.Outlined.DeviceHub
-        3 -> Icons.Outlined.Refresh
-        else -> Icons.Outlined.CheckCircle
-    }
-
-// ─── Chat inline composables ──────────────────────────────────────────────────
-
-@Composable
-private fun DiagChatMensagem(
-    entry: DiagChatEntry,
-    c: LkTokens,
-    onRetry: () -> Unit,
-) {
-    when (entry.autor) {
-        DiagChatAutor.Usuario -> {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                Box(
-                    modifier =
-                        Modifier
-                            .widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.8f)
-                            .background(
-                                color = LkColors.accent.copy(alpha = 0.12f),
-                                shape =
-                                    RoundedCornerShape(
-                                        topStart = 16.dp,
-                                        topEnd = 16.dp,
-                                        bottomStart = 16.dp,
-                                        bottomEnd = 4.dp,
-                                    ),
-                            ).padding(horizontal = 12.dp, vertical = 8.dp),
-                ) {
-                    Text(
-                        entry.texto,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = c.textPrimary,
-                    )
-                }
-            }
-        }
-        DiagChatAutor.Ia -> DiagChatIaBubble(entry = entry, c = c, onRetry = onRetry)
-    }
-}
-
-@Composable
-private fun DiagChatIaBubble(
-    entry: DiagChatEntry,
-    c: LkTokens,
-    onRetry: () -> Unit,
-) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.AutoAwesome,
-            contentDescription = null,
-            tint = LkColors.accent,
-            modifier =
-                Modifier
-                    .size(16.dp)
-                    .padding(top = 2.dp),
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = entry.nomeModelo ?: "Linka IA",
-                style = MaterialTheme.typography.labelSmall,
-                color = c.textTertiary,
-            )
-            if (entry.isErro) {
-                DiagChatErroContent(onRetry = onRetry, c = c)
-            } else if (entry.isParcial) {
-                DiagChatTextoComCursor(texto = entry.texto, c = c)
-            } else {
-                Text(
-                    text = entry.texto,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = c.textPrimary,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DiagChatLoadingItem(c: LkTokens) {
-    val infiniteTransition = rememberInfiniteTransition(label = "diagChatLoading")
-
-    @Composable
-    fun PulseDot(delayMs: Int): Float {
-        val alpha by infiniteTransition.animateFloat(
-            initialValue = 0.3f,
-            targetValue = 1f,
-            animationSpec =
-                infiniteRepeatable(
-                    animation =
-                        keyframes {
-                            durationMillis = 900
-                            0.3f at 0
-                            1f at 300
-                            0.3f at 600
-                        },
-                    initialStartOffset = StartOffset(delayMs),
-                ),
-            label = "dot$delayMs",
-        )
-        return alpha
-    }
-
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.AutoAwesome,
-            contentDescription = null,
-            tint = LkColors.accent,
-            modifier =
-                Modifier
-                    .size(16.dp)
-                    .padding(top = 2.dp),
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                "Linka IA",
-                style = MaterialTheme.typography.labelSmall,
-                color = c.textTertiary,
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                repeat(3) { i ->
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(6.dp)
-                                .background(
-                                    color = LkColors.accent.copy(alpha = PulseDot(i * 150)),
-                                    shape = CircleShape,
-                                ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DiagChatTextoComCursor(
-    texto: String,
-    c: LkTokens,
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "cursor")
-    val cursorAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0f,
-        animationSpec =
-            infiniteRepeatable(
-                animation = tween(500, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        label = "cursorAlpha",
-    )
-    Text(
-        text =
-            buildAnnotatedString {
-                append(texto)
-                withStyle(SpanStyle(color = LkColors.accent.copy(alpha = cursorAlpha))) {
-                    append("|")
-                }
-            },
-        style = MaterialTheme.typography.bodyMedium,
-        color = c.textPrimary,
-    )
-}
-
-@Composable
-private fun DiagChatErroContent(
-    onRetry: () -> Unit,
-    c: LkTokens,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.ErrorOutline,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(14.dp),
-            )
-            Text(
-                "Não consegui responder agora.",
-                style = MaterialTheme.typography.bodySmall,
-                color = c.textSecondary,
-            )
-        }
-        TextButton(
-            onClick = onRetry,
-            contentPadding = PaddingValues(0.dp),
-        ) {
-            Text(
-                "Tentar de novo",
-                style = MaterialTheme.typography.labelSmall,
-                color = LkColors.accent,
-            )
-        }
-    }
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-private fun statusToColor(
-    status: String,
-    c: LkTokens,
-): Color =
+private fun diagStatusToColor(status: String, c: LkTokens): Color =
     when (status.lowercase()) {
         "excelente", "bom" -> LkColors.success
         "regular" -> LkColors.warning
         "ruim", "critico" -> LkColors.error
         else -> c.textTertiary
     }
+
+private fun diagStatusToLabel(status: String): String =
+    when (status.lowercase()) {
+        "excelente" -> "EXCELENTE"
+        "bom" -> "BOM"
+        "regular" -> "ATENÇÃO"
+        "ruim" -> "RUIM"
+        "critico" -> "CRÍTICO"
+        else -> status.uppercase()
+    }
+
+private fun diagConfiancaLabel(confianca: Double): String =
+    when {
+        confianca >= 0.85 -> "alta"
+        confianca >= 0.60 -> "média"
+        confianca > 0.0 -> "baixa"
+        else -> "indeterminada"
+    }
+
+private fun priorityToColor(prioridade: String): Color =
+    when (prioridade.lowercase()) {
+        "alta" -> LkColors.error
+        "media", "média" -> LkColors.warning
+        else -> LkColors.success
+    }
+
+private fun iconForProblemaTipo(tipo: String): ImageVector =
+    when (tipo.lowercase()) {
+        "wifi", "canal", "sinal" -> Icons.Outlined.Wifi
+        "velocidade", "isp", "operadora" -> Icons.Outlined.Speed
+        "latencia", "latência", "bufferbloat" -> Icons.Outlined.SwapVert
+        "dns" -> Icons.Outlined.Language
+        "fibra", "gpon", "modem" -> Icons.Outlined.CellTower
+        else -> Icons.Outlined.NetworkWifi
+    }
+
+private data class RootCauseEntry(val icon: ImageVector, val title: String, val subtitle: String)
+
+private fun buildSecondaryRootCauses(result: AiDiagnosisResult): List<RootCauseEntry> {
+    val cl = result.classificacaoTecnica
+    val tipoLower = result.problemaPrincipal.tipo.lowercase()
+    val candidates = mutableListOf<RootCauseEntry>()
+
+    fun addIfBad(avaliacao: String?, label: String, icon: ImageVector, justificativa: String?) {
+        if (avaliacao?.lowercase() in setOf("ruim", "regular") && !justificativa.isNullOrBlank()) {
+            candidates.add(RootCauseEntry(icon, label, justificativa))
+        }
+    }
+
+    if (tipoLower !in setOf("velocidade", "isp", "operadora")) {
+        addIfBad(cl.velocidade?.avaliacao, "Velocidade", Icons.Outlined.BarChart, cl.velocidade?.justificativa)
+    }
+    if (tipoLower !in setOf("wifi", "canal", "sinal")) {
+        addIfBad(cl.wifi?.avaliacao, "Wi-Fi", Icons.Outlined.Wifi, cl.wifi?.justificativa)
+    }
+    if (tipoLower !in setOf("latencia", "latência", "bufferbloat")) {
+        addIfBad(cl.estabilidade?.avaliacao, "Latência & Bufferbloat", Icons.Outlined.SwapVert, cl.estabilidade?.justificativa)
+    }
+    if (tipoLower !in setOf("fibra", "gpon", "modem")) {
+        addIfBad(cl.fibra?.avaliacao, "Modem / Fibra", Icons.Outlined.CellTower, cl.fibra?.justificativa)
+    }
+    if (tipoLower !in setOf("dns")) {
+        addIfBad(cl.dns?.avaliacao, "DNS", Icons.Outlined.Language, cl.dns?.justificativa)
+    }
+    return candidates.take(2)
+}
+
+private fun buildImpactItems(result: AiDiagnosisResult): List<ImpactItem> {
+    val imp = result.impacto
+    return buildList {
+        fun addImpact(icon: ImageVector, label: String, raw: String) {
+            if (raw.isBlank()) return
+            val (status, color) = impactoToStatusAndColor(raw)
+            add(ImpactItem(icon, label, status, color))
+        }
+        addImpact(Icons.Outlined.Language, "Navegação", imp.navegacao)
+        addImpact(Icons.Outlined.BarChart, "Streaming", imp.streaming)
+        addImpact(Icons.Outlined.NetworkWifi, "Videochamadas", imp.videochamada)
+        addImpact(Icons.Outlined.Speed, "Jogos", imp.jogos)
+        addImpact(Icons.Outlined.Refresh, "Trabalho remoto", imp.trabalho)
+    }.filter { it.status.isNotBlank() }
+}
+
+private fun impactoToStatusAndColor(raw: String): Pair<String, Color> {
+    val lower = raw.trim().lowercase()
+    return when {
+        lower == "ok" -> "OK" to LkColors.success
+        lower in setOf("lento", "instavel", "instável", "alta latencia", "alta latência") -> "Atenção" to LkColors.warning
+        lower in setOf("indisponivel", "indisponível", "comprometido", "comprometida") -> "Ruim" to LkColors.error
+        else -> raw to LkColors.success
+    }
+}
+
+private fun buildMetricItems(result: AiDiagnosisResult): List<MetricItem> {
+    val cl = result.classificacaoTecnica
+    return result.evidencias.mapNotNull { ev ->
+        val label = ev.label.substringAfter(":").ifBlank { ev.label }
+        val valor = ev.valor.ifBlank { return@mapNotNull null }
+        val status = inferMetricStatus(ev.label, cl)
+        MetricItem(label = label, value = valor, status = status)
+    }
+}
+
+private fun inferMetricStatus(
+    label: String,
+    cl: ClassificacaoTecnica,
+): MetricStatus {
+    val lower = label.lowercase()
+    val avaliacao: String? = when {
+        "download" in lower || "upload" in lower || "velocidade" in lower -> cl.velocidade?.avaliacao
+        "wifi" in lower || "rssi" in lower || "sinal" in lower -> cl.wifi?.avaliacao
+        "latencia" in lower || "latência" in lower || "jitter" in lower || "bufferbloat" in lower || "perda" in lower -> cl.estabilidade?.avaliacao
+        "dns" in lower -> cl.dns?.avaliacao
+        "fibra" in lower || "gpon" in lower || "ppp" in lower -> cl.fibra?.avaliacao
+        else -> null
+    }
+    return when (avaliacao?.lowercase()) {
+        "boa", "bom" -> MetricStatus.OK
+        "regular" -> MetricStatus.WARN
+        "ruim" -> MetricStatus.BAD
+        else -> MetricStatus.OK
+    }
+}

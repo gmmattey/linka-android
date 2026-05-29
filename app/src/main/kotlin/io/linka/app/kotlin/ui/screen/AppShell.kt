@@ -115,6 +115,7 @@ private enum class Overlay {
     /** @deprecated Substituído por [ChatDiagnosticoIa]. Mantido para fallback. Remover na próxima major. */
     DiagnosticoInteligente,
     ChatDiagnosticoIa,
+    LLMChat,
     Ping,
     Privacidade,
     Novidades,
@@ -374,8 +375,8 @@ fun AppShell(
                                 if (Overlay.Ping !in overlayStack) overlayStack.add(Overlay.Ping)
                             },
                             onAbrirDiagnostico = {
-                                if (Overlay.ChatDiagnosticoIa !in overlayStack) {
-                                    overlayStack.add(Overlay.ChatDiagnosticoIa)
+                                if (Overlay.DiagnosticoInteligente !in overlayStack) {
+                                    overlayStack.add(Overlay.DiagnosticoInteligente)
                                 }
                             },
                         )
@@ -591,10 +592,8 @@ fun AppShell(
                     localizacaoServidor = localizacaoServidorStr,
                     gemmaAvailable = gemmaAvailable,
                     onAbrirChat = {
-                        // Fallback: abre DiagnosticoInteligente (legado) a partir do ResultadoVelocidade.
-                        // Fluxo principal usa Overlay.ChatDiagnosticoIa via onAbrirDiagnostico na Home.
-                        if (Overlay.DiagnosticoInteligente !in overlayStack) {
-                            overlayStack.add(Overlay.DiagnosticoInteligente)
+                        if (Overlay.LLMChat !in overlayStack) {
+                            overlayStack.add(Overlay.LLMChat)
                         }
                     },
                     ispInfo = ispInfoData,
@@ -706,6 +705,24 @@ fun AppShell(
                 onNovaSessao = onChatDiagNovaSessao,
                 onToggleDrawer = onChatDiagToggleDrawer,
                 onCancelarAcaoAtual = onChatDiagCancelarAcaoAtual,
+            )
+        }
+
+        AnimatedVisibility(
+            visible = Overlay.LLMChat in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            LLMChatScreen(
+                mensagens = emptyList(),
+                draft = "",
+                isStreaming = false,
+                chips = emptyList(),
+                onEnviarMensagem = { },
+                onAtualizarDraft = { },
+                onSelecionarChip = { },
+                onNovaSessao = { },
+                onVoltar = { overlayStack.removeLastOrNull() },
             )
         }
 
