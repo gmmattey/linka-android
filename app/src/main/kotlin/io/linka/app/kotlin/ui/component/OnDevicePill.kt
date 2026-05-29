@@ -23,10 +23,12 @@ import io.linka.app.kotlin.ui.LinkaTheme
 @Composable
 fun OnDevicePill(
     dark: Boolean = false,
+    modelName: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val c = LocalLkTokens.current
     val color = if (dark) Color.White.copy(alpha = 0.55f) else c.textTertiary
+    val displayName = modelName?.takeIf { it.isNotBlank() } ?: "Linka IA"
 
     Row(
         modifier = modifier,
@@ -40,7 +42,7 @@ fun OnDevicePill(
         )
         Spacer(Modifier.width(4.dp))
         Text(
-            text = "Processado no aparelho · Gemma 4",
+            text = "Processado no aparelho · $displayName",
             fontSize = 10.5.sp,
             fontWeight = FontWeight.Medium,
             color = color,

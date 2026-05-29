@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -163,6 +165,7 @@ fun DiagnosticoScreen(
 
     Scaffold(
         containerColor = c.bgPrimary,
+        contentWindowInsets = WindowInsets.systemBars,
         topBar = {
             val uiStateForBar = resolveUiState(snapshotDiagnostico, aiState, analiseSolicitada)
             val showShare = uiStateForBar is UiState.Success &&
@@ -706,6 +709,7 @@ private fun DiagResultContent(
                     statusLabel = statusLabel,
                     statusColor = statusColor,
                     confianca = "Confiança $confiancaLabel",
+                    modelName = result.modeloIa.nomeExibicao.takeIf { it.isNotBlank() },
                 )
             }
 

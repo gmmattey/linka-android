@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -95,31 +92,30 @@ fun DiagMetricsGrid(
 
 @Composable
 private fun MetricsGridContent(metrics: List<MetricItem>) {
-    val rowCount = (metrics.size + 1) / 2
-    val gridHeight = (rowCount * 76 + (rowCount - 1) * 8).dp
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(gridHeight),
-        userScrollEnabled = false,
-    ) {
-        items(metrics) { metric ->
-            MetricCell(metric = metric)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        metrics.chunked(2).forEach { row ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                row.forEach { metric ->
+                    MetricCell(metric = metric, modifier = Modifier.weight(1f))
+                }
+                if (row.size == 1) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun MetricCell(metric: MetricItem) {
+private fun MetricCell(metric: MetricItem, modifier: Modifier = Modifier) {
     val c = LocalLkTokens.current
     val statusColor = metric.status.color()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .background(c.bgSecondary)
             .padding(horizontal = 11.dp, vertical = 9.dp),

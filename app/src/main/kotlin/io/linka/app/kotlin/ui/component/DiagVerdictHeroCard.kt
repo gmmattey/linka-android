@@ -38,6 +38,7 @@ fun DiagVerdictHeroCard(
     statusColor: Color,
     confianca: String,
     dark: Boolean = true,
+    modelName: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val gradient = Brush.linearGradient(
@@ -105,7 +106,7 @@ fun DiagVerdictHeroCard(
                 fontWeight = FontWeight.Medium,
                 color = LkColors.success,
             )
-            OnDevicePill(dark = true)
+            OnDevicePill(dark = true, modelName = modelName)
         }
     }
 }
