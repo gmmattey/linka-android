@@ -82,12 +82,12 @@ fun LLMAssistantMessage(
             ThinkingCompletedSection(thinkingText, c)
         }
 
-        val displayText = if (isStreaming && responseText.isNotEmpty()) "$responseText▌" else responseText
-        val finalText = if (thinkingText != null) responseText else content
+        val textToShow = if (thinkingText != null) responseText else content
+        val displayText = if (isStreaming && textToShow.isNotEmpty()) "$textToShow▌" else textToShow
 
-        if (finalText.isNotBlank()) {
+        if (displayText.isNotBlank()) {
             Text(
-                text = if (isStreaming && finalText.isNotEmpty()) "$finalText▌" else finalText,
+                text = displayText,
                 style =
                     MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 14.sp,

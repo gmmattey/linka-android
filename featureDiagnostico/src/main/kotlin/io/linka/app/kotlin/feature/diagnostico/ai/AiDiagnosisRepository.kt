@@ -2,10 +2,12 @@ package io.linka.app.kotlin.feature.diagnostico.ai
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -35,6 +37,7 @@ sealed class AiDiagnosisState {
     data class success(val result: AiDiagnosisResult) : AiDiagnosisState()
     data class fallback(val result: AiDiagnosisResult) : AiDiagnosisState()
     data class error(val code: String) : AiDiagnosisState()
+    data object timeout : AiDiagnosisState()
 }
 
 class AiDiagnosisRepository(
@@ -100,48 +103,51 @@ class AiDiagnosisRepository(
         cache[key]?.let { return AiDiagnosisState.success(it.copy(source = "cache")) }
 
         return withContext(Dispatchers.IO) {
-            try {
-                val url = baseUrl.trimEnd('/') + "/api/ai/diagnostico-conexao"
-                val json = contextToJson(context).toString()
-                val body = json.toRequestBody("application/json; charset=utf-8".toMediaType())
-                val req =
-                    Request.Builder()
-                        .url(url)
-                        .post(body)
-                        .build()
+            val result = withTimeoutOrNull(15_000L) {
+                try {
+                    val url = baseUrl.trimEnd('/') + "/api/ai/diagnostico-conexao"
+                    val json = contextToJson(context).toString()
+                    val body = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+                    val req =
+                        Request.Builder()
+                            .url(url)
+                            .post(body)
+                            .build()
 
-                client.newCall(req).execute().use { resp ->
-                    if (!resp.isSuccessful) {
-                        val errorBody = resp.body?.string()?.take(300) ?: "(vazio)"
-                        Log.w(TAG, "Worker HTTP ${resp.code} — body: $errorBody — ativando fallback local")
-                        return@withContext AiDiagnosisState.fallback(localFallback())
+                    client.newCall(req).execute().use { resp ->
+                        if (!resp.isSuccessful) {
+                            val errorBody = resp.body?.string()?.take(300) ?: "(vazio)"
+                            Log.w(TAG, "Worker HTTP ${resp.code} — body: $errorBody — ativando fallback local")
+                            return@use AiDiagnosisState.fallback(localFallback())
+                        }
+                        val txt = resp.body?.string()
+                        if (txt.isNullOrBlank()) {
+                            Log.w(TAG, "Worker retornou body vazio — ativando fallback local")
+                            return@use AiDiagnosisState.fallback(localFallback())
+                        }
+                        val parsed = parseResult(txt)
+                        if (parsed == null) {
+                            Log.w(TAG, "Falha ao parsear JSON do Worker — ativando fallback local. Body: ${txt.take(200)}")
+                            return@use AiDiagnosisState.fallback(localFallback())
+                        }
+                        val normalized = parsed.copy(
+                            status = normalizeStatus(
+                                aiStatus = parsed.status,
+                                decisaoStatus = decisaoLocalStatus,
+                                problemaPrincipalTipo = parsed.problemaPrincipal.tipo,
+                                hasSpeedtestData = context.metricasAtuais?.downloadMbps != null,
+                            ),
+                        )
+                        Log.d(TAG, "IA respondeu com sucesso: status=${normalized.status} modelo=${normalized.modeloIa.nomeExibicao}")
+                        cache[key] = normalized
+                        AiDiagnosisState.success(normalized)
                     }
-                    val txt = resp.body?.string()
-                    if (txt.isNullOrBlank()) {
-                        Log.w(TAG, "Worker retornou body vazio — ativando fallback local")
-                        return@withContext AiDiagnosisState.fallback(localFallback())
-                    }
-                    val parsed = parseResult(txt)
-                    if (parsed == null) {
-                        Log.w(TAG, "Falha ao parsear JSON do Worker — ativando fallback local. Body: ${txt.take(200)}")
-                        return@withContext AiDiagnosisState.fallback(localFallback())
-                    }
-                    val normalized = parsed.copy(
-                        status = normalizeStatus(
-                            aiStatus = parsed.status,
-                            decisaoStatus = decisaoLocalStatus,
-                            problemaPrincipalTipo = parsed.problemaPrincipal.tipo,
-                            hasSpeedtestData = context.metricasAtuais?.downloadMbps != null,
-                        ),
-                    )
-                    Log.d(TAG, "IA respondeu com sucesso: status=${normalized.status} modelo=${normalized.modeloIa.nomeExibicao}")
-                    cache[key] = normalized
-                    AiDiagnosisState.success(normalized)
+                } catch (t: Throwable) {
+                    Log.e(TAG, "explainDiagnosis falhou: ${t::class.simpleName} — ${t.message}")
+                    AiDiagnosisState.fallback(localFallback())
                 }
-            } catch (t: Throwable) {
-                Log.e(TAG, "explainDiagnosis falhou: ${t::class.simpleName} — ${t.message}")
-                AiDiagnosisState.fallback(localFallback())
             }
+            result ?: AiDiagnosisState.timeout
         }
     }
 

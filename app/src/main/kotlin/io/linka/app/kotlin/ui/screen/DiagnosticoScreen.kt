@@ -354,6 +354,9 @@ private fun resolveUiState(
         val code = if (ai is AiDiagnosisState.error) ai.code else "ERR_SERVIDOR_INDISPONIVEL"
         return UiState.Error(code)
     }
+    if (ai is AiDiagnosisState.timeout) {
+        return UiState.Error("timeout")
+    }
     if (ai is AiDiagnosisState.loading) {
         return UiState.Success(DiagnosticoUiData.Carregando(DiagnosticoFase.Ia))
     }
