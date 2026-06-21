@@ -2,39 +2,45 @@ package io.veloo.app.feature.devices
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
 import android.net.wifi.WifiManager
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.stealthcopter.networktools.ARPInfo
 import com.stealthcopter.networktools.SubnetDevices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.net.MulticastSocket
 import java.net.NetworkInterface
 import java.net.Socket
 import java.net.SocketException
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.jmdns.JmDNS
+import javax.jmdns.ServiceEvent
+import javax.jmdns.ServiceInfo
+import javax.jmdns.ServiceListener
+import kotlin.coroutines.resume
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.coroutines.resume
 
 /**
  * Motor de scan de dispositivos de rede.
@@ -44,20 +50,18 @@ import kotlin.coroutines.resume
  *     Substitui InetAddress.isReachable() que requeria root em Android 10+.
  *  2. ARPInfo.getMacFromIPAddress() — obtém MAC do cache ARP do kernel por host encontrado.
  *     Funciona sem root quando o kernel já tem o host em cache (o SubnetDevices popula isso).
- *  3. mDNS — Bonjour/Avahi, identifica nomes de instância e tipos de serviço.
- *  4. SSDP/UPnP — identifica nomes amigáveis de dispositivos smart home.
+ *  3. mDNS via jmDNS — Bonjour/Avahi com suporte a TXT records (fn=, md=, model=).
+ *     Substitui o parser de pacotes DNS binários artesanal.
+ *  4. SSDP/UPnP — faz HTTP GET do XML de descrição (LOCATION header) para obter
+ *     friendlyName, manufacturer e modelName reais.
  *  5. TCP probe — como complemento para hosts que bloqueiam ICMP mas têm portas abertas.
  *     Limitado por Semaphore(50) para não estourar file descriptors.
  *
- * NBNS (NetBIOS) foi aposentado: retorna praticamente zero resultados em redes modernas
- * (Windows 10+ usa mDNS/LLMNR por padrão; broadcast UDP na porta 137 é bloqueado por
- * roteadores modernos). A slot de progresso que ele ocupava foi redistribuída.
+ * Pipeline de naming (melhor → pior):
+ *   friendlyName SSDP(XML) > nome amigável mDNS TXT/instância(jmDNS) > reverse DNS > "Host ativo"
  *
- * Gating de permissão:
- *  - Scan principal (SubnetDevices/ping/TCP/mDNS/SSDP) NÃO requer permissão nenhuma.
- *  - Apenas o Wi-Fi scan (WifiManager) requer NEARBY_WIFI_DEVICES (API 33+) /
- *    ACCESS_FINE_LOCATION — mas esse módulo não faz Wi-Fi scan, então a permissão
- *    era desnecessária aqui. Removida do gating obrigatório.
+ * Pipeline de fabricante (melhor → pior):
+ *   manufacturer UPnP(XML) > fabricante mDNS TXT > OUI(MAC) > null
  *
  * Guarda Wi-Fi: o scan só roda em Wi-Fi (EstadoConexao.wifi). Em rede móvel,
  * emite erro semântico "naoWifi" imediatamente.
@@ -79,6 +83,15 @@ class ScannerDispositivosAndroid(
         )
 
     override val snapshotFlow: StateFlow<SnapshotScanDispositivos> = mutableSnapshotFlow.asStateFlow()
+
+    /** OkHttpClient compartilhado para fetch de XMLs UPnP — timeout curto. */
+    private val okHttpClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(1500, TimeUnit.MILLISECONDS)
+            .readTimeout(1500, TimeUnit.MILLISECONDS)
+            .followRedirects(false)
+            .build()
+    }
 
     override suspend fun iniciarScan(profundo: Boolean) {
         withContext(Dispatchers.IO) {
@@ -132,13 +145,13 @@ class ScannerDispositivosAndroid(
                     arp.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 50)
 
-                    // 3. mDNS — nomes Bonjour/Avahi
-                    val mdns = coletarViaMdns()
-                    Log.d("SignallQDevices", "mdns: ${mdns.size} dispositivos")
+                    // 3. mDNS via jmDNS — nomes Bonjour/Avahi com TXT records (coleta concorrente)
+                    val mdns = coletarViaMdnsJmDns()
+                    Log.d("SignallQDevices", "mdns(jmDNS): ${mdns.size} dispositivos")
                     mdns.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 65)
 
-                    // 4. SSDP/UPnP — nomes amigáveis de smart home
+                    // 4. SSDP/UPnP com fetch de XML de descrição
                     val ssdp = coletarViaSsdp()
                     Log.d("SignallQDevices", "ssdp: ${ssdp.size} dispositivos")
                     ssdp.forEach { adicionarDispositivo(dispositivos, it) }
@@ -149,8 +162,6 @@ class ScannerDispositivosAndroid(
                     Log.d("SignallQDevices", "tcpProbe: ${tcpProbe.size} dispositivos")
                     tcpProbe.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 90)
-
-                    // NBNS aposentado: retorna ~zero em redes modernas (Windows 10+ usa mDNS/LLMNR).
                 } else {
                     // Scan leve: SubnetDevices + ARP legado
                     val hostsDescobertos = descobrirViaSubnetDevices()
@@ -166,7 +177,6 @@ class ScannerDispositivosAndroid(
                     "Serviço mDNS", "Dispositivo SSDP",
                 )
                 val dispositivosEnriquecidos = dispositivos.values.map { d ->
-                    // Tenta obter MAC via ARPInfo para hosts sem MAC (quando não veio do SubnetDevices)
                     val macResolvido: String? = if (d.mac != null) {
                         d.mac
                     } else {
@@ -178,19 +188,23 @@ class ScannerDispositivosAndroid(
                             } catch (_: Throwable) { null }
                         } else null
                     }
-                    val fabricante = OuiDatabase.lookupFabricante(macResolvido)
-                    val tipo = ClassificadorDispositivoRede.classificar(d, fabricante)
+                    // Prioridade de fabricante: manufacturer UPnP(XML) > fabricante mDNS TXT > OUI(MAC)
+                    val fabricanteOui = OuiDatabase.lookupFabricante(macResolvido)
+                    val fabricanteResolvido = d.fabricante ?: fabricanteOui
+                    val tipo = ClassificadorDispositivoRede.classificar(d, fabricanteResolvido)
                     val hostname = if (d.ip != null && d.fonteNome != "gateway") resolverHostname(d.ip) else null
+                    // Prioridade de nome: fonteNome com alta prioridade já vem enriquecido (ssdpXml/mdnsJmDns)
+                    // Só cai para hostname/fabricante se ainda é genérico
                     val nomeResolvido = when {
                         d.fonteNome == "gateway" -> d.nomeExibicao
-                        hostname != null -> hostname
                         d.nomeExibicao !in genericosParaResolver -> d.nomeExibicao
-                        fabricante != null -> fabricante
+                        hostname != null -> hostname
+                        fabricanteResolvido != null -> fabricanteResolvido
                         else -> d.ip ?: d.nomeExibicao
                     }
                     d.copy(
                         mac = macResolvido,
-                        fabricante = fabricante,
+                        fabricante = fabricanteResolvido,
                         tipoDispositivo = tipo,
                         nomeExibicao = nomeResolvido,
                         esteDispositivo = localIp != null && d.ip == localIp,
@@ -240,14 +254,6 @@ class ScannerDispositivosAndroid(
 
     // ── Descoberta via SubnetDevices (AndroidNetworkTools) ────────────────────
 
-    /**
-     * Usa [SubnetDevices.fromLocalAddress] para descobrir hosts via ping nativo.
-     * O ping usa /system/bin/ping com fallback TCP — funciona sem root em Android 10+.
-     * Subnet é inferida automaticamente pela lib a partir do endereço local.
-     *
-     * Complementamos o resultado com o prefixo correto de rede via [LinkAddress.getPrefixLength()]
-     * para garantir coerência nos cálculos de broadcast/range usados pelo mDNS/SSDP.
-     */
     private suspend fun descobrirViaSubnetDevices(): List<DispositivoRede> =
         suspendCancellableCoroutine { cont ->
             val resultados = mutableListOf<DispositivoRede>()
@@ -283,8 +289,6 @@ class ScannerDispositivosAndroid(
     // ── ARP legado (/proc/net/arp) ──────────────────────────────────────────────
 
     private fun coletarViaArpLegado(): List<DispositivoRede> {
-        // /proc/net/arp está restrito em Android 10+ (target SDK 29+).
-        // A tentativa não aborta o scan — retorna lista vazia se negado.
         return try {
             val arquivo = java.io.File("/proc/net/arp")
             if (!arquivo.exists()) return emptyList()
@@ -312,10 +316,6 @@ class ScannerDispositivosAndroid(
 
     // ── TCP probe (Semaphore limitado) ─────────────────────────────────────────
 
-    /**
-     * Limita a concorrência via Semaphore(50) para evitar estouro de file descriptors
-     * em ranges /24 (254 alvos x N portas = muitas conexões simultâneas sem limite).
-     */
     private suspend fun coletarViaTcpProbe(gatewayIp: String?, localIp: String?): List<DispositivoRede> = coroutineScope {
         val base = inferirPrefixoRedeCorreto() ?: inferirPrefixoRede(gatewayIp) ?: return@coroutineScope emptyList()
         val portas = intArrayOf(80, 443, 22, 53, 139, 445, 8080, 8443)
@@ -345,99 +345,196 @@ class ScannerDispositivosAndroid(
         tarefas.awaitAll().filterNotNull()
     }
 
-    // ── mDNS ────────────────────────────────────────────────────────────────────
+    // ── mDNS via jmDNS ─────────────────────────────────────────────────────────
 
     /**
-     * Fase 1: queries para tipos comuns (900ms) + coleta de tipos anunciados via _services.
-     * Fase 2: se restarem dispositivos sem nome, consulta os tipos descobertos na fase 1 (1200ms).
+     * Descoberta mDNS/Bonjour usando jmDNS (Apache-2.0) — coleta CONCORRENTE.
      *
-     * O MulticastSocket é criado sem porta fixa (porta 0) para evitar conflito com outros
-     * processos que possam estar ouvindo na 5353. O bind na porta de envio é implícito.
-     * O multicastLock é liberado em finally — garante liberação mesmo em erro.
+     * Padrão correto de jmDNS: registra [ServiceListener] para TODOS os tipos de serviço
+     * de uma vez, aguarda uma ÚNICA janela de tempo (~4,5s) e coleta o acumulado.
+     * Tempo total da fase: ~4–5s independente do número de tipos (antes: até 36s sequencial).
+     *
+     * Fluxo:
+     * 1. MulticastLock adquirida antes de criar JmDNS, liberada em finally.
+     * 2. JmDNS criada no IPv4 da interface Wi-Fi — não loopback.
+     * 3. Um único [ServiceListener] registrado para todos os 18 tipos simultaneamente.
+     * 4. [serviceAdded] → chama [JmDNS.requestServiceInfo] para forçar resolução do TXT.
+     * 5. [serviceResolved] → acumula em [ConcurrentHashMap] (thread-safe).
+     * 6. [delay(4500)] — janela única fixa.
+     * 7. Remove listeners, coleta mapa, fecha JmDNS.
+     *
+     * TXT records extraídos de cada [ServiceInfo]:
+     * - IPv4 (`inet4Addresses[0]`)
+     * - nome: `fn` > `name` > instância > `md` > `ty`
+     * - fabricante: `manufacturer` / `mf`
+     * - modelo: `md` / `model`
      */
-    private fun coletarViaMdns(): List<DispositivoRede> {
-        val resultados = mutableMapOf<String, DispositivoRede>()
-        val tiposDescobertos = mutableSetOf<String>()
-        val tiposPorIp = mutableMapOf<String, MutableSet<String>>()
+    private suspend fun coletarViaMdnsJmDns(): List<DispositivoRede> = withContext(Dispatchers.IO) {
+        val acumulado = ConcurrentHashMap<String, DispositivoRede>()
 
         val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val multicastLock = wm.createMulticastLock("signallq_mdns")
+        val multicastLock = wm.createMulticastLock("signallq_jmdns")
         multicastLock.setReferenceCounted(false)
         multicastLock.acquire()
 
-        val grupo = InetAddress.getByName("224.0.0.251")
-        val grupoAddr = InetSocketAddress(grupo, 5353)
-        val ifaceWifi = obterInterfaceWifi()
-        val socket = MulticastSocket(0)
+        val ipLocalWifi = obterIpv4InterfaceWifi()
+
+        val tiposServico = listOf(
+            "_googlecast._tcp.local.",
+            "_airplay._tcp.local.",
+            "_raop._tcp.local.",
+            "_spotify-connect._tcp.local.",
+            "_ipp._tcp.local.",
+            "_ipps._tcp.local.",
+            "_printer._tcp.local.",
+            "_pdl-datastream._tcp.local.",
+            "_http._tcp.local.",
+            "_workstation._tcp.local.",
+            "_smb._tcp.local.",
+            "_ssh._tcp.local.",
+            "_afpovertcp._tcp.local.",
+            "_homekit._tcp.local.",
+            "_hap._tcp.local.",
+            "_amzn-wplay._tcp.local.",
+            "_googlezone._tcp.local.",
+            "_device-info._tcp.local.",
+        )
+
         try {
-            socket.timeToLive = 1
-            socket.soTimeout = 300
-            socket.broadcast = false
-            socket.joinGroup(grupoAddr, ifaceWifi)
+            val jmdns = if (ipLocalWifi != null) {
+                JmDNS.create(ipLocalWifi, "signallq-scanner")
+            } else {
+                JmDNS.create()
+            }
 
-            val consulta1 = construirConsultaMdnsMulti()
-            socket.send(DatagramPacket(consulta1, consulta1.size, grupo, 5353))
-
-            val inicio1 = System.currentTimeMillis()
-            while (System.currentTimeMillis() - inicio1 < 900) {
-                try {
-                    val buf = ByteArray(1500)
-                    val resp = DatagramPacket(buf, buf.size)
-                    socket.receive(resp)
-                    val ip = resp.address?.hostAddress ?: continue
-                    if (!validarIpv4(ip)) continue
-                    val tiposDoIp = extrairTiposServicoMdns(buf, resp.length)
-                    tiposDescobertos.addAll(tiposDoIp)
-                    tiposPorIp.getOrPut(ip) { mutableSetOf() }.addAll(tiposDoIp)
-                    val nome = extrairNomeMdnsDoPayload(buf, resp.length)
-                    if (nome != null) {
-                        resultados[ip] = DispositivoRede(id = "mdns:$ip", ip = ip, mac = null, nomeExibicao = nome, fonteNome = "mdns", tiposServicoMdns = tiposPorIp[ip] ?: emptySet())
-                    } else if (!resultados.containsKey(ip)) {
-                        resultados[ip] = DispositivoRede(id = "mdns:$ip", ip = ip, mac = null, nomeExibicao = "Serviço mDNS", fonteNome = "mdns", tiposServicoMdns = tiposPorIp[ip] ?: emptySet())
+            try {
+                // Listener único — acumula resolvidos na ConcurrentHashMap
+                val listener = object : ServiceListener {
+                    override fun serviceAdded(event: ServiceEvent) {
+                        // Força resolução do TXT — jmDNS não resolve automaticamente em addServiceListener
+                        try {
+                            jmdns.requestServiceInfo(event.type, event.name, 1000)
+                        } catch (_: Throwable) {}
                     }
-                } catch (_: java.net.SocketTimeoutException) {}
-            }
 
-            // Fase 2: consultar tipos descobertos para obter nomes de instância
-            val tiposParaConsultar = tiposDescobertos
-                .filter { !it.startsWith("_services") }
-                .take(8)
-            val temSemNome = resultados.values.any { it.nomeExibicao == "Serviço mDNS" }
-            if (temSemNome && tiposParaConsultar.isNotEmpty()) {
-                val consulta2 = construirConsultaMdnsParaTipos(tiposParaConsultar)
-                socket.send(DatagramPacket(consulta2, consulta2.size, grupo, 5353))
+                    override fun serviceRemoved(event: ServiceEvent) { /* não nos importa */ }
 
-                val inicio2 = System.currentTimeMillis()
-                while (System.currentTimeMillis() - inicio2 < 1200) {
-                    try {
-                        val buf = ByteArray(1500)
-                        val resp = DatagramPacket(buf, buf.size)
-                        socket.receive(resp)
-                        val ip = resp.address?.hostAddress ?: continue
-                        if (!validarIpv4(ip)) continue
-                        val nome = extrairNomeMdnsDoPayload(buf, resp.length) ?: continue
-                        val existente = resultados[ip]
-                        if (existente == null || existente.nomeExibicao == "Serviço mDNS") {
-                            resultados[ip] = DispositivoRede(
-                                id = "mdns:$ip", ip = ip, mac = null, nomeExibicao = nome, fonteNome = "mdns",
-                                tiposServicoMdns = (existente?.tiposServicoMdns ?: emptySet()) + (tiposPorIp[ip] ?: emptySet()),
-                            )
-                        }
-                    } catch (_: java.net.SocketTimeoutException) {}
+                    override fun serviceResolved(event: ServiceEvent) {
+                        val info = event.info ?: return
+                        processarServiceInfo(info, event.type, acumulado)
+                    }
                 }
+
+                // Registra para todos os tipos de uma vez — disparo concorrente
+                for (tipo in tiposServico) {
+                    try {
+                        jmdns.addServiceListener(tipo, listener)
+                    } catch (e: Throwable) {
+                        Log.d("SignallQDevices", "jmDNS: falha ao registrar listener para $tipo: ${e.message}")
+                    }
+                }
+
+                // Janela única de coleta — todos os tipos respondem em paralelo
+                delay(4500L)
+
+                // Remove listeners antes de fechar
+                for (tipo in tiposServico) {
+                    try {
+                        jmdns.removeServiceListener(tipo, listener)
+                    } catch (_: Throwable) {}
+                }
+
+                Log.d("SignallQDevices", "jmDNS: janela concluída, ${acumulado.size} dispositivos resolvidos")
+            } finally {
+                try { jmdns.close() } catch (_: Throwable) {}
             }
+        } catch (e: Throwable) {
+            Log.e("SignallQDevices", "jmDNS: falha ao criar instância — ROM incompatível? ${e.message}")
+            // não derruba o scan — retorna o que conseguiu
         } finally {
-            try { socket.leaveGroup(grupoAddr, null) } catch (_: Throwable) {}
-            socket.close()
             if (multicastLock.isHeld) multicastLock.release()
         }
-        return resultados.values.toList()
+
+        acumulado.values.toList()
     }
 
-    // ── SSDP/UPnP ──────────────────────────────────────────────────────────────
+    /**
+     * Extrai campos de um [ServiceInfo] resolvido e acumula/enriquece no mapa thread-safe.
+     * Chamado de dentro do [ServiceListener.serviceResolved] — pode ser chamado de múltiplas threads.
+     */
+    private fun processarServiceInfo(
+        info: ServiceInfo,
+        tipo: String,
+        acumulado: ConcurrentHashMap<String, DispositivoRede>,
+    ) {
+        val ipv4 = info.inet4Addresses.firstOrNull()?.hostAddress ?: return
+        if (!validarIpv4(ipv4)) return
 
+        val tipoServico = tipo.removeSuffix(".")
+
+        val txtFn = info.getPropertyString("fn")?.takeIf { it.isNotBlank() }
+        val txtName = info.getPropertyString("name")?.takeIf { it.isNotBlank() }
+        val txtMd = info.getPropertyString("md")?.takeIf { it.isNotBlank() }
+        val txtTy = info.getPropertyString("ty")?.takeIf { it.isNotBlank() }
+        val txtModel = info.getPropertyString("model")?.takeIf { it.isNotBlank() }
+        val txtMf = info.getPropertyString("mf")?.takeIf { it.isNotBlank() }
+        val txtManufacturer = info.getPropertyString("manufacturer")?.takeIf { it.isNotBlank() }
+
+        // Prioridade de nome: fn > name > instância > md/ty
+        val nomeAmigavel = txtFn
+            ?: txtName
+            ?: info.getName().takeIf { it.isNotBlank() && !it.startsWith("_") }
+            ?: txtMd
+            ?: txtTy
+            ?: "Serviço mDNS"
+
+        val fabricanteMdns = txtManufacturer ?: txtMf
+        val modeloMdns = txtMd ?: txtModel
+
+        // merge atômico via compute — garante thread-safety sem lock externo
+        acumulado.merge(
+            ipv4,
+            DispositivoRede(
+                id = "mdns:$ipv4",
+                ip = ipv4,
+                mac = null,
+                nomeExibicao = nomeAmigavel,
+                fonteNome = "mdnsJmDns",
+                fabricante = fabricanteMdns,
+                modeloDispositivo = modeloMdns,
+                tiposServicoMdns = setOf(tipoServico),
+            ),
+        ) { existente, novo ->
+            val nomeMelhor = when {
+                existente.nomeExibicao == "Serviço mDNS" -> novo.nomeExibicao
+                novo.nomeExibicao != "Serviço mDNS" && txtFn != null -> novo.nomeExibicao
+                else -> existente.nomeExibicao
+            }
+            existente.copy(
+                nomeExibicao = nomeMelhor,
+                fabricante = existente.fabricante ?: novo.fabricante,
+                modeloDispositivo = existente.modeloDispositivo ?: novo.modeloDispositivo,
+                tiposServicoMdns = existente.tiposServicoMdns + novo.tiposServicoMdns,
+            )
+        }
+    }
+
+    // ── SSDP/UPnP com fetch do XML de descrição ────────────────────────────────
+
+    /**
+     * Envia M-SEARCH multicast, coleta respostas, lê o header LOCATION de cada resposta
+     * e faz HTTP GET do XML de descrição UPnP para extrair `friendlyName`, `manufacturer`
+     * e `modelName`. Fallback para nome extraído dos headers se o fetch falhar.
+     *
+     * Limite de concorrência para os fetches HTTP: Semaphore(8) para não explodir
+     * conexões em redes com muitos dispositivos UPnP.
+     */
     private fun coletarViaSsdp(): List<DispositivoRede> {
-        val resultados = mutableMapOf<String, Pair<DispositivoRede, Int>>()
+        // Mapa: ip → (DispositivoRede, qualidadeNome, locationUrl)
+        data class SsdpEntry(val dispositivo: DispositivoRede, val qualidade: Int, val locationUrl: String?)
+
+        val entradas = mutableMapOf<String, SsdpEntry>()
+
         val payload = (
             "M-SEARCH * HTTP/1.1\r\n" +
                 "HOST: 239.255.255.250:1900\r\n" +
@@ -459,12 +556,15 @@ class ScannerDispositivosAndroid(
                     socket.receive(resp)
                     val ip = resp.address?.hostAddress ?: continue
                     if (!validarIpv4(ip)) continue
-                    val (nome, qualidade) = extrairNomeSsdpComQualidade(buf, resp.length)
-                    val existente = resultados[ip]
-                    if (existente == null || qualidade > existente.second) {
-                        resultados[ip] = Pair(
+                    val texto = try { String(buf, 0, resp.length, Charsets.UTF_8) } catch (_: Throwable) { continue }
+                    val (nome, qualidade) = extrairNomeSsdpComQualidade(texto)
+                    val locationUrl = extrairLocationHeader(texto)
+                    val existente = entradas[ip]
+                    if (existente == null || qualidade > existente.qualidade) {
+                        entradas[ip] = SsdpEntry(
                             DispositivoRede(id = "ssdp:$ip", ip = ip, mac = null, nomeExibicao = nome, fonteNome = "ssdp"),
                             qualidade,
+                            locationUrl,
                         )
                     }
                 } catch (_: java.net.SocketTimeoutException) {}
@@ -472,16 +572,60 @@ class ScannerDispositivosAndroid(
         } finally {
             socket.close()
         }
-        return resultados.values.map { it.first }
+
+        // Fetch dos XMLs de descrição em paralelo com limite de concorrência
+        val semaphore = Semaphore(8)
+        val resultados = entradas.values.map { entry ->
+            val locationUrl = entry.locationUrl
+            if (locationUrl.isNullOrBlank()) {
+                entry.dispositivo
+            } else {
+                semaphore.acquire()
+                try {
+                    val descricao = fetchDescricaoUpnp(locationUrl)
+                    if (descricao != null) {
+                        val nomeFinal = descricao.friendlyName.takeIf { it.isNotBlank() } ?: entry.dispositivo.nomeExibicao
+                        entry.dispositivo.copy(
+                            nomeExibicao = nomeFinal,
+                            fonteNome = "ssdpXml",
+                            fabricante = descricao.manufacturer.takeIf { it.isNotBlank() },
+                            modeloDispositivo = descricao.modelName.takeIf { it.isNotBlank() },
+                        )
+                    } else {
+                        entry.dispositivo
+                    }
+                } catch (_: Throwable) {
+                    entry.dispositivo
+                } finally {
+                    semaphore.release()
+                }
+            }
+        }
+
+        return resultados
+    }
+
+    // ── Fetch + parse do XML de descrição UPnP ─────────────────────────────────
+
+    /**
+     * Faz HTTP GET da URL de descrição UPnP e parseia os campos relevantes via [XmlDescricaoUpnpParser].
+     * Retorna null se o fetch falhar ou o XML não contiver friendlyName.
+     */
+    private fun fetchDescricaoUpnp(url: String): XmlDescricaoUpnpParser.Descricao? {
+        return try {
+            val request = Request.Builder().url(url).get().build()
+            okHttpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return null
+                val body = response.body?.string() ?: return null
+                XmlDescricaoUpnpParser.parsear(body)
+            }
+        } catch (_: Throwable) {
+            null
+        }
     }
 
     // ── Helpers de rede ─────────────────────────────────────────────────────────
 
-    /**
-     * Deriva o prefixo de rede correto via ConnectivityManager.getLinkProperties,
-     * usando [LinkAddress.getPrefixLength()] em vez de assumir /24.
-     * Suporta redes como 192.168.1.0/24, 10.0.0.0/24, 172.16.x.x/20, etc.
-     */
     @SuppressLint("MissingPermission")
     fun inferirPrefixoRedeCorreto(): String? {
         return try {
@@ -499,20 +643,16 @@ class ScannerDispositivosAndroid(
         } catch (_: Throwable) { null }
     }
 
-    /** Converte IP string para Int (big-endian). */
     internal fun ipToInt(ip: String): Int {
         val parts = ip.split(".")
         return (parts[0].toInt() shl 24) or (parts[1].toInt() shl 16) or
             (parts[2].toInt() shl 8) or parts[3].toInt()
     }
 
-    /** Converte IP network int para prefixo de 3 octetos (ex: "192.168.1" para /24)
-     *  ou prefixo completo sem o octeto de host para outros prefixos. */
     internal fun intToIpPrefix(networkInt: Int, prefixLen: Int): String? {
         val a = (networkInt shr 24) and 0xFF
         val b = (networkInt shr 16) and 0xFF
         val c = (networkInt shr 8) and 0xFF
-        // Para /24 exato ou maior, retorna os 3 octetos (comportamento existente)
         return if (prefixLen >= 24) "$a.$b.$c" else null
     }
 
@@ -557,7 +697,8 @@ class ScannerDispositivosAndroid(
 
     private fun enriquecer(dispositivos: List<DispositivoRede>): List<DispositivoRede> =
         dispositivos.map { d ->
-            val fabricante = OuiDatabase.lookupFabricante(d.mac)
+            val fabricanteOui = OuiDatabase.lookupFabricante(d.mac)
+            val fabricante = d.fabricante ?: fabricanteOui
             d.copy(
                 fabricante = fabricante,
                 tipoDispositivo = ClassificadorDispositivoRede.classificar(d, fabricante),
@@ -584,8 +725,16 @@ class ScannerDispositivosAndroid(
             return
         }
 
-        // Prioridade de fonte: ssdp > mdns > subnetMdns > arp > subnet > tcpProbe
-        val prioFonte = mapOf("ssdp" to 5, "mdns" to 4, "subnetMdns" to 3, "arp" to 2, "subnet" to 1, "tcpProbe" to 0)
+        // Prioridade de fonte: ssdpXml > ssdp > mdnsJmDns > subnetMdns > arp > subnet > tcpProbe
+        val prioFonte = mapOf(
+            "ssdpXml" to 6,
+            "ssdp" to 5,
+            "mdnsJmDns" to 4,
+            "subnetMdns" to 3,
+            "arp" to 2,
+            "subnet" to 1,
+            "tcpProbe" to 0,
+        )
         val prioExistente = prioFonte[existente.fonteNome] ?: 0
         val prioNova = prioFonte[dispositivo.fonteNome] ?: 0
         val genericos = setOf("Dispositivo não identificado", "Host ativo", "Serviço mDNS", "Dispositivo SSDP")
@@ -595,12 +744,21 @@ class ScannerDispositivosAndroid(
             else -> existente.nomeExibicao
         }
         val fonte = if (prioNova > prioExistente) dispositivo.fonteNome else existente.fonteNome
+        // Fabricante: prefere o mais específico (ssdpXml > mdnsJmDns > OUI)
+        val fabricanteMerge = when {
+            prioNova > prioExistente && dispositivo.fabricante != null -> dispositivo.fabricante
+            else -> existente.fabricante ?: dispositivo.fabricante
+        }
+        val modeloMerge = existente.modeloDispositivo ?: dispositivo.modeloDispositivo
+
         mapa[chave] =
             existente.copy(
                 ip = existente.ip ?: dispositivo.ip,
                 mac = existente.mac ?: dispositivo.mac,
                 nomeExibicao = nome,
                 fonteNome = fonte,
+                fabricante = fabricanteMerge,
+                modeloDispositivo = modeloMerge,
                 tiposServicoMdns = existente.tiposServicoMdns + dispositivo.tiposServicoMdns,
                 portasAbertas = existente.portasAbertas + dispositivo.portasAbertas,
             )
@@ -608,15 +766,16 @@ class ScannerDispositivosAndroid(
 
     // ── Helpers de interface/IP ─────────────────────────────────────────────────
 
-    /** Prefere interface wlan* para evitar que usb0/rmnet0 seja selecionada. */
-    private fun obterInterfaceWifi(): NetworkInterface? =
+    /** Retorna o endereço InetAddress IPv4 da interface Wi-Fi para uso no jmDNS. */
+    private fun obterIpv4InterfaceWifi(): InetAddress? =
         try {
             val candidatos = NetworkInterface.getNetworkInterfaces()?.toList()
                 ?.filter { iface ->
                     iface.isUp && !iface.isLoopback && iface.supportsMulticast() &&
                         iface.inetAddresses.toList().any { it is Inet4Address && !it.isLoopbackAddress }
                 } ?: emptyList()
-            candidatos.firstOrNull { it.name.startsWith("wlan") } ?: candidatos.firstOrNull()
+            val iface = candidatos.firstOrNull { it.name.startsWith("wlan") } ?: candidatos.firstOrNull()
+            iface?.inetAddresses?.toList()?.firstOrNull { it is Inet4Address && !it.isLoopbackAddress }
         } catch (_: Throwable) { null }
 
     private fun inferirPrefixoRede(gatewayIp: String?): String? {
@@ -662,17 +821,15 @@ class ScannerDispositivosAndroid(
             else hostname.removeSuffix(".local").removeSuffix(".").takeIf { it.isNotBlank() }
         } catch (_: Throwable) { null }
 
-    // ── Extração de nomes dos protocolos ────────────────────────────────────────
+    // ── Helpers de extração de headers SSDP ────────────────────────────────────
 
-    private fun extrairNomeSsdpComQualidade(payload: ByteArray, tamanho: Int): Pair<String, Int> {
-        val texto = try { String(payload, 0, tamanho, Charsets.UTF_8) } catch (_: Throwable) { return Pair("Dispositivo SSDP", 0) }
+    /**
+     * Extrai o melhor nome disponível dos headers SSDP (sem fetch de XML).
+     * Retorna (nome, qualidade) onde qualidade 1 = nome do header SERVER, 0 = genérico.
+     * O nome real (friendlyName) vem do XML — este método é só fallback.
+     */
+    private fun extrairNomeSsdpComQualidade(texto: String): Pair<String, Int> {
         val linhas = texto.split("\r\n", "\n")
-        for (linha in linhas) {
-            if (linha.lowercase().startsWith("friendlyname")) {
-                val nome = linha.substringAfter(":").trim()
-                if (nome.isNotBlank()) return Pair(nome, 2)
-            }
-        }
         for (linha in linhas) {
             if (linha.lowercase().startsWith("server:")) {
                 val server = linha.substringAfter(":").trim()
@@ -688,220 +845,41 @@ class ScannerDispositivosAndroid(
         return Pair("Dispositivo SSDP", 0)
     }
 
-    private fun extrairNomeMdnsDoPayload(payload: ByteArray, tamanho: Int): String? {
-        if (tamanho < 12) return null
-        val reservados = setOf("local", "tcp", "udp", "ip6", "ipv6", "arpa", "in-addr")
-        return try {
-            val numPerguntas  = ((payload[4].toInt() and 0xFF) shl 8) or (payload[5].toInt() and 0xFF)
-            val numRespostas  = ((payload[6].toInt() and 0xFF) shl 8) or (payload[7].toInt() and 0xFF)
-            val numAuthority  = ((payload[8].toInt() and 0xFF) shl 8) or (payload[9].toInt() and 0xFF)
-            val numAdicionais = ((payload[10].toInt() and 0xFF) shl 8) or (payload[11].toInt() and 0xFF)
-
-            var pos = 12
-            repeat(numPerguntas) {
-                val novo = pularNomeDns(payload, pos)
-                pos = if (novo >= 0 && novo + 4 <= tamanho) novo + 4 else tamanho
-            }
-
-            var nomeInstancia: String? = null
-            var nomeTxt: String? = null
-
-            fun candidatoValido(nome: String?) =
-                !nome.isNullOrBlank() && !nome.startsWith("_") &&
-                    nome.lowercase() !in reservados && nome.any { it.isLetterOrDigit() }
-
-            repeat(numRespostas + numAuthority + numAdicionais) {
-                if (pos >= tamanho) return@repeat
-                val rNomeOffset = pos
-                val aposNome = pularNomeDns(payload, pos)
-                if (aposNome < 0 || aposNome + 10 > tamanho) { pos = tamanho; return@repeat }
-                val tipo  = ((payload[aposNome].toInt() and 0xFF) shl 8) or (payload[aposNome + 1].toInt() and 0xFF)
-                val rdlen = ((payload[aposNome + 8].toInt() and 0xFF) shl 8) or (payload[aposNome + 9].toInt() and 0xFF)
-                val rdataOffset = aposNome + 10
-                pos = rdataOffset + rdlen
-
-                when (tipo) {
-                    0x000C -> if (nomeInstancia == null) {
-                        val nome = lerPrimeiroLabelDns(payload, rdataOffset)
-                        if (candidatoValido(nome)) nomeInstancia = nome
-                    }
-                    0x0001, 0x001C -> if (nomeInstancia == null) {
-                        val nome = lerPrimeiroLabelDns(payload, rNomeOffset)
-                        if (candidatoValido(nome)) nomeInstancia = nome
-                    }
-                    0x0010 -> if (nomeTxt == null) {
-                        nomeTxt = extrairNomeTxtMdns(payload, rdataOffset, rdlen)
-                    }
+    /** Extrai o valor do header LOCATION da resposta SSDP. */
+    private fun extrairLocationHeader(texto: String): String? {
+        val linhas = texto.split("\r\n", "\n")
+        for (linha in linhas) {
+            if (linha.lowercase().startsWith("location:")) {
+                val url = linha.substringAfter(":").trim().let {
+                    // "location: http://..." — o substringAfter acima pega só o que vem depois do primeiro ":"
+                    // mas URLs HTTP têm ":", precisamos reconstruir
+                    val loc = linha.substringAfterFirst(":")
+                    loc.trim()
                 }
-            }
-            nomeTxt ?: nomeInstancia
-        } catch (_: Throwable) { null }
-    }
-
-    private fun extrairNomeTxtMdns(payload: ByteArray, rdataOffset: Int, rdlen: Int): String? {
-        val prioridade = listOf("fn", "name", "n", "md", "model", "integrator", "manufacturer")
-        val encontrados = mutableMapOf<String, String>()
-        var pos = rdataOffset
-        val fim = (rdataOffset + rdlen).coerceAtMost(payload.size)
-        try {
-            while (pos < fim) {
-                val len = payload[pos].toInt() and 0xFF
-                pos++
-                if (pos + len > fim) break
-                val entrada = String(payload, pos, len, Charsets.UTF_8)
-                pos += len
-                val sep = entrada.indexOf('=')
-                if (sep < 1) continue
-                val chave = entrada.substring(0, sep).lowercase().trim()
-                val valor = entrada.substring(sep + 1).trim()
-                if (valor.isNotBlank()) encontrados[chave] = valor
-            }
-        } catch (_: Throwable) {}
-        return prioridade.firstNotNullOfOrNull { encontrados[it] }
-    }
-
-    private fun extrairTiposServicoMdns(payload: ByteArray, tamanho: Int): List<String> {
-        val tipos = mutableListOf<String>()
-        if (tamanho < 12) return tipos
-        try {
-            val numPerguntas  = ((payload[4].toInt() and 0xFF) shl 8) or (payload[5].toInt() and 0xFF)
-            val numRespostas  = ((payload[6].toInt() and 0xFF) shl 8) or (payload[7].toInt() and 0xFF)
-            val numAuthority  = ((payload[8].toInt() and 0xFF) shl 8) or (payload[9].toInt() and 0xFF)
-            val numAdicionais = ((payload[10].toInt() and 0xFF) shl 8) or (payload[11].toInt() and 0xFF)
-            var pos = 12
-            repeat(numPerguntas) {
-                pos = pularNomeDns(payload, pos).also { if (it < 0) return@repeat } + 4
-            }
-            repeat(numRespostas + numAuthority + numAdicionais) {
-                val aposNome = pularNomeDns(payload, pos).also { if (it < 0) return@repeat }
-                if (aposNome + 10 > tamanho) return@repeat
-                val tipo  = ((payload[aposNome].toInt() and 0xFF) shl 8) or (payload[aposNome + 1].toInt() and 0xFF)
-                val rdlen = ((payload[aposNome + 8].toInt() and 0xFF) shl 8) or (payload[aposNome + 9].toInt() and 0xFF)
-                val rdataOffset = aposNome + 10
-                pos = rdataOffset + rdlen
-                if (tipo == 0x000C) {
-                    val nomeCompleto = lerNomeDnsCompleto(payload, rdataOffset)
-                    if (nomeCompleto != null && nomeCompleto.startsWith("_")) tipos.add(nomeCompleto)
-                }
-            }
-        } catch (_: Throwable) {}
-        return tipos
-    }
-
-    // ── Construção de queries ───────────────────────────────────────────────────
-
-    private fun construirConsultaMdnsMulti(): ByteArray {
-        val tiposServico = listOf(
-            listOf("_http", "_tcp", "local"),
-            listOf("_https", "_tcp", "local"),
-            listOf("_airplay", "_tcp", "local"),
-            listOf("_googlecast", "_tcp", "local"),
-            listOf("_ipp", "_tcp", "local"),
-            listOf("_smb", "_tcp", "local"),
-            listOf("_afpovertcp", "_tcp", "local"),
-            listOf("_ssh", "_tcp", "local"),
-            listOf("_raop", "_tcp", "local"),
-            listOf("_companion-link", "_tcp", "local"),
-            listOf("_services", "_dns-sd", "_udp", "local"),
-        )
-        return buildList<Byte> {
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            add(0x00); add(tiposServico.size.toByte())
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            for (labels in tiposServico) {
-                for (label in labels) {
-                    add(label.length.toByte())
-                    label.forEach { add(it.code.toByte()) }
-                }
-                add(0x00)
-                add(0x00); add(0x0C)
-                add(0x00); add(0x01)
-            }
-        }.toByteArray()
-    }
-
-    private fun construirConsultaMdnsParaTipos(tipos: List<String>): ByteArray {
-        return buildList<Byte> {
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            add(0x00); add(tipos.size.toByte())
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            for (tipo in tipos) {
-                for (label in tipo.split(".")) {
-                    add(label.length.toByte())
-                    label.forEach { add(it.code.toByte()) }
-                }
-                add(0x00)
-                add(0x00); add(0x0C)
-                add(0x00); add(0x01)
-            }
-        }.toByteArray()
-    }
-
-    // ── DNS helpers ─────────────────────────────────────────────────────────────
-
-    private fun pularNomeDns(payload: ByteArray, offset: Int): Int {
-        var pos = offset
-        while (pos < payload.size) {
-            val len = payload[pos].toInt() and 0xFF
-            when {
-                (len and 0xC0) == 0xC0 -> return pos + 2
-                len == 0               -> return pos + 1
-                len in 1..63           -> pos += len + 1
-                else                   -> return -1
-            }
-        }
-        return -1
-    }
-
-    private fun lerPrimeiroLabelDns(payload: ByteArray, offset: Int): String? {
-        var pos = offset
-        val visitados = mutableSetOf<Int>()
-        while (pos < payload.size) {
-            if (!visitados.add(pos)) return null
-            val len = payload[pos].toInt() and 0xFF
-            when {
-                (len and 0xC0) == 0xC0 -> {
-                    if (pos + 1 >= payload.size) return null
-                    pos = ((len and 0x3F) shl 8) or (payload[pos + 1].toInt() and 0xFF)
-                }
-                len == 0 -> return null
-                len in 1..63 -> {
-                    if (pos + 1 + len > payload.size) return null
-                    return String(payload, pos + 1, len, Charsets.UTF_8)
-                }
-                else -> return null
+                // Reconstruir URL completa: o header pode ser "LOCATION: http://192.168.1.1:49152/desc.xml"
+                // substringAfter(":") retorna "//192.168.1.1:49152/desc.xml" — precisa do "http:"
+                val urlCompleta = extrairUrlLocation(linha)
+                if (!urlCompleta.isNullOrBlank()) return urlCompleta
             }
         }
         return null
     }
 
-    private fun lerNomeDnsCompleto(payload: ByteArray, offset: Int): String? {
-        val labels = mutableListOf<String>()
-        var pos = offset
-        val visitados = mutableSetOf<Int>()
-        while (pos < payload.size) {
-            if (!visitados.add(pos)) return null
-            val len = payload[pos].toInt() and 0xFF
-            when {
-                (len and 0xC0) == 0xC0 -> {
-                    if (pos + 1 >= payload.size) return null
-                    pos = ((len and 0x3F) shl 8) or (payload[pos + 1].toInt() and 0xFF)
-                }
-                len == 0 -> break
-                len in 1..63 -> {
-                    if (pos + 1 + len > payload.size) return null
-                    labels.add(String(payload, pos + 1, len, Charsets.UTF_8))
-                    pos += len + 1
-                }
-                else -> return null
-            }
+    /** Extrai a URL completa do header LOCATION, tratando o ":" do scheme HTTP. */
+    private fun extrairUrlLocation(headerLinha: String): String? {
+        val sep = headerLinha.indexOf(':')
+        if (sep < 0) return null
+        val resto = headerLinha.substring(sep + 1).trim()
+        // resto pode ser "http://..." ou "//..." (raro)
+        return when {
+            resto.startsWith("http://") || resto.startsWith("https://") -> resto
+            resto.startsWith("//") -> "http:$resto"
+            else -> null
         }
-        return if (labels.isEmpty()) null else labels.joinToString(".")
+    }
+
+    private fun String.substringAfterFirst(delimiter: String): String {
+        val idx = indexOf(delimiter)
+        return if (idx < 0) this else substring(idx + delimiter.length)
     }
 }
