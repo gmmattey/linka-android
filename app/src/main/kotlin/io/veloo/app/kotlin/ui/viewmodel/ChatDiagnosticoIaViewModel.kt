@@ -83,11 +83,12 @@ data class ChatDiagUiState(
  * é atualizado dinamicamente quando a IA responde (via ModeloIa.nomeExibicao).
  * Fallback: "o modelo de IA" (especificado pela Lia no design-specs).
  *
- * AiDiagnosisRepository é instanciado por lazy — mesmo padrão do MainViewModel
- * (não está no grafo Hilt, pois featureDiagnostico não tem módulo Hilt).
+ * AiDiagnosisRepository injetada pelo Hilt como @Singleton via DiagnosticoModule.
+ * Antes era instanciada localmente via lazy (terceira instancia independente, alem
+ * das instancias em MainViewModel e SignallQOrchestrator).
  *
- * CotaIaRepository e ChatDiagnosticoIaRepository também instanciados localmente
- * com Context e SignallQDatabase.
+ * CotaIaRepository e ChatDiagnosticoIaRepository ainda instanciados localmente
+ * com Context e SignallQDatabase (nao sao @Singleton e dependem de Context/DB).
  */
 @HiltViewModel
 class ChatDiagnosticoIaViewModel
@@ -96,28 +97,23 @@ class ChatDiagnosticoIaViewModel
         @ApplicationContext private val context: Context,
         private val executorSpeedtest: ExecutorSpeedtest,
         private val bancoDados: SignallQDatabase,
+        /** AiDiagnosisRepository injetada pelo Hilt como @Singleton (DiagnosticoModule).
+         *  Garante que o mesmo cache de diagnostico e compartilhado com MainViewModel
+         *  e SignallQOrchestrator. */
+        private val aiRepository: AiDiagnosisRepository,
     ) : ViewModel() {
         companion object {
             private const val TAG = "ChatDiagnosticoIaVM"
-            private const val AI_BASE_URL =
-                "https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev"
             private const val MODELO_DISPLAY_NAME = "Qwen3 30B"
         }
 
         // -------------------------------------------------------------------------
-        // Dependências não-Hilt — mesma estratégia do MainViewModel
+        // Dependências não-Hilt
         // -------------------------------------------------------------------------
 
         private val chatRepository by lazy { ChatDiagnosticoIaRepository(bancoDados) }
 
         private val cotaRepository by lazy { CotaIaRepository(context) }
-
-        private val aiRepository by lazy {
-            AiDiagnosisRepository(
-                baseUrl = AI_BASE_URL,
-                isAuthorized = { true },
-            )
-        }
 
         private var monitorRedeInicializado = false
         private val monitorRede by lazy {
