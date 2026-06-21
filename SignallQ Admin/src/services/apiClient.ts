@@ -34,9 +34,16 @@ class ApiClient {
       mocksEnabled,
     };
 
-    // Inicializa token do env — evita chamada manual de setToken() em cada página
-    const secret = import.meta.env.VITE_ADMIN_API_SECRET ?? "";
-    if (secret) this.authToken = secret;
+    // Token: env var (dev) > localStorage (login flow em produção)
+    const envSecret = import.meta.env.VITE_ADMIN_API_SECRET ?? "";
+    const stored = typeof localStorage !== "undefined"
+      ? localStorage.getItem("signallq_admin_token")
+      : null;
+    this.authToken = envSecret || stored || null;
+  }
+
+  public getToken(): string | null {
+    return this.authToken;
   }
 
   public setEnvironment(env: AppEnvironment) {

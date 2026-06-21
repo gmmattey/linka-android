@@ -12,6 +12,7 @@ interface AppLayoutProps {
   onPeriodChange: (p: string) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
+  onLogout?: () => void;
   children: React.ReactNode;
   id?: string;
 }
@@ -25,6 +26,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onPeriodChange,
   onRefresh,
   isRefreshing,
+  onLogout,
   children,
   id,
 }) => {
@@ -77,6 +79,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           onPeriodChange={onPeriodChange}
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
+          onLogout={onLogout}
         />
 
         {/* 3. Main scrollable panel */}

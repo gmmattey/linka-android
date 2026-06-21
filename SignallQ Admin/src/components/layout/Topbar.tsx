@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw, Download, Database, HelpCircle } from "lucide-react";
+import { RefreshCw, Download, Database, LogOut } from "lucide-react";
 import { AppEnvironment } from "../../types/admin";
 import { PERIOD_FILTERS } from "../../config/constants";
 
@@ -11,6 +11,7 @@ interface TopbarProps {
   onPeriodChange: (period: string) => void;
   onRefresh?: () => void;
   onExport?: () => void;
+  onLogout?: () => void;
   isRefreshing?: boolean;
   id?: string;
 }
@@ -23,6 +24,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   onPeriodChange,
   onRefresh,
   onExport,
+  onLogout,
   isRefreshing = false,
   id,
 }) => {
@@ -108,6 +110,17 @@ export const Topbar: React.FC<TopbarProps> = ({
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
             <span>Refresh</span>
+          </button>
+        )}
+
+        {/* Action: Logout */}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="p-2 rounded-xl border border-[#262626] bg-[#111111] text-[#6B7280] hover:text-red-400 hover:border-red-500/30 transition-all cursor-pointer"
+            title="Sair"
+          >
+            <LogOut className="w-4 h-4" />
           </button>
         )}
       </div>

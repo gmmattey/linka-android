@@ -3,7 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2026-06-21"
 
 [vars]
-ALLOWED_ORIGIN = "https://admin.signallq.app"
+ALLOWED_ORIGIN = "*"
 FIREBASE_PROJECT_ID = "device-streaming-ef179de4"
 FIREBASE_GA4_PROPERTY_ID = "542463828"
 

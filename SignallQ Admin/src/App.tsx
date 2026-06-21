@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { AppLayout } from "./components/layout/AppLayout";
 import { PageHeader } from "./components/layout/PageHeader";
 import { AppEnvironment } from "./types/admin";
+import { LoginPage } from "./auth/LoginPage";
+import { apiClient } from "./services/apiClient";
 
 // Tab/Feature Components
 import { OverviewTab } from "./features/overview/OverviewTab";
@@ -18,11 +20,34 @@ import { SettingsTab } from "./features/settings/SettingsTab";
 import { Sparkles, Activity, AlertTriangle } from "lucide-react";
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    () => !!apiClient.getToken()
+  );
   const [currentPath, setCurrentPath] = useState<string>("/overview");
   const [environment, setEnvironment] = useState<AppEnvironment>("production");
   const [period, setPeriod] = useState<string>("7d");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [refreshCounter, setRefreshCounter] = useState<number>(0);
+
+  const handleLogin = useCallback((token: string) => {
+    localStorage.setItem("signallq_admin_token", token);
+    apiClient.setToken(token);
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("signallq_admin_token");
+    apiClient.setToken(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  useEffect(() => {
+    apiClient.onAuthError(handleLogout);
+  }, [handleLogout]);
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   // Hash Routing Synchronizer for a native visual feel
   useEffect(() => {
@@ -180,6 +205,7 @@ export default function App() {
       onPeriodChange={handlePeriodChange}
       onRefresh={handleRefresh}
       isRefreshing={isRefreshing}
+      onLogout={handleLogout}
     >
       {/* Dynamic Sub-header */}
       <PageHeader
