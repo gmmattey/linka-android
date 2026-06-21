@@ -1,6 +1,6 @@
 ---
 name: android-device-rules
-description: Centraliza regras operacionais Android por API level, APIs deprecated, OEM quirks e restrições Play Store para o Linka. Consulte antes de implementar permissões, Wi-Fi, DNS, background service ou conectividade.
+description: Centraliza regras operacionais Android por API level, APIs deprecated, OEM quirks e restrições Play Store para o SignallQ. Consulte antes de implementar permissões, Wi-Fi, DNS, background service ou conectividade.
 ---
 
 Consulte as regras Android relevantes para a tarefa abaixo:
@@ -11,7 +11,7 @@ $ARGUMENTS
 
 ---
 
-## API Levels suportados pelo Linka
+## API Levels suportados pelo SignallQ
 
 - **Mínimo:** Android 8.0 (API 26)
 - **Target:** Android 15 (API 35)
@@ -88,7 +88,7 @@ $ARGUMENTS
 
 ---
 
-## Restrições Play Store relevantes ao Linka
+## Restrições Play Store relevantes ao SignallQ
 
 | Restrição | Impacto |
 |---|---|

@@ -20,6 +20,6 @@ adb shell dumpsys power | Select-String wake_lock
 ```
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Impacto estimado: -10–15% energia em monitoramento passivo em redes ruins
 - Dependências: depende de #20 (cache de config)

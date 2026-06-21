@@ -7,7 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.veloo.app.core.database.CoreDatabaseModulo
-import io.veloo.app.core.database.VelooDatabase
+import io.veloo.app.core.database.SignallQDatabase
 import io.veloo.app.core.database.MedicaoDao
 import io.veloo.app.core.datastore.PreferenciasAppRepository
 import io.veloo.app.core.network.CoreNetworkModulo
@@ -51,7 +51,7 @@ object AppModule {
     @Singleton
     fun provideBancoDados(
         @ApplicationContext ctx: Context,
-    ): VelooDatabase = CoreDatabaseModulo.criarBanco(ctx)
+    ): SignallQDatabase = CoreDatabaseModulo.criarBanco(ctx)
 
     @Provides
     @Singleton
@@ -118,7 +118,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMedicaoDao(bancoDados: VelooDatabase): MedicaoDao = bancoDados.medicaoDao()
+    fun provideMedicaoDao(bancoDados: SignallQDatabase): MedicaoDao = bancoDados.medicaoDao()
 
     @Provides
     @Singleton

@@ -3,10 +3,10 @@
     "allow": [
       "Bash(gh auth *)",
       "Bash(gh repo *)",
-      "Bash(Select-String -Pattern \"linka\")",
-      "Skill(linka)",
-      "Skill(linka:*)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Projetos\\\\Linka Android\" -Force)",
+      "Bash(Select-String -Pattern \"SignallQ\")",
+      "Skill(SignallQ)",
+      "Skill(SignallQ:*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Projetos\\\\SignallQ Android\" -Force)",
       "Bash(Select-Object Name, Mode)",
       "Bash(mv scripts/agent-delegate.ps1 scripts/agent-delegate.ps1.old)",
       "Bash(mv scripts/agent-wake.ps1 scripts/agent-wake.ps1.old)",
@@ -18,8 +18,8 @@
       "mcp__Claude_in_Chrome__navigate",
       "mcp__Claude_in_Chrome__computer",
       "Bash(ls \"C:/Users/luizg/.claude/plans/\" 2>/dev/null || echo \"directory does not exist\")",
-      "Bash(cd \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\Linka Disign_v2\\\\\\\\screens\")",
-      "Bash(head -50 \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\Linka Disign_v2\\\\\\\\app.jsx\")",
+      "Bash(cd \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\SignallQ Disign_v2\\\\\\\\screens\")",
+      "Bash(head -50 \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\SignallQ Disign_v2\\\\\\\\app.jsx\")",
       "Bash(gh issue *)"
     ],
     "defaultMode": "bypassPermissions"

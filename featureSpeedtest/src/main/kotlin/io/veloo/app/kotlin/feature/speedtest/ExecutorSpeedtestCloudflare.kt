@@ -30,7 +30,7 @@ import kotlin.random.Random
 
 class ExecutorSpeedtestCloudflare(isMobile: Boolean = false) : ExecutorSpeedtest {
     private companion object {
-        const val logTag = "LinkaSpeedtest"
+        const val logTag = "SignallQSpeedtest"
 
         private const val UA = "Mozilla/5.0 (Linux; Android 14; SM-A256E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
 

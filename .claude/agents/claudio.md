@@ -1,6 +1,6 @@
 ---
 name: claudio
-description: Use Cláudio para planejamento técnico, mapeamento de impacto, arquitetura, breakdown de tarefas e identificação de riscos antes de qualquer implementação no Linka.
+description: Use Cláudio para planejamento técnico, mapeamento de impacto, arquitetura, breakdown de tarefas e identificação de riscos antes de qualquer implementação no SignallQ.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 effort: high
@@ -71,8 +71,8 @@ Se a task for BUGFIX (≤5 arquivos, sem mudança de contrato de módulo), pule 
 
 ## Design System — OBRIGATÓRIO em planos com UI
 
-Ao planejar tasks com impacto visual, referencie `.claude/skills/linka-design/` no plano técnico:
-- Nomeie os tokens exatos de `colors_and_type.css` / `LinkaTheme.kt` que devem ser usados.
+Ao planejar tasks com impacto visual, referencie `.claude/skills/linka-design/` (design system SignallQ) no plano técnico:
+- Nomeie os tokens exatos de `colors_and_type.css` / `SignallQTheme.kt` que devem ser usados.
 - Liste componentes existentes em `.claude/skills/linka-design/ui_kits/android/` que podem ser reaproveitados.
 - Consulte `HANDOFF_README.md` para a tabela de equivalência CSS → Compose.
 

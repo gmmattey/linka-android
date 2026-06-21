@@ -1,6 +1,6 @@
 ---
 name: map-impact
-description: Mapeia impacto técnico antes de implementar uma feature, refactor ou correção no Linka. Use antes de qualquer tarefa média ou grande.
+description: Mapeia impacto técnico antes de implementar uma feature, refactor ou correção no SignallQ. Use antes de qualquer tarefa média ou grande.
 ---
 
 Mapeie o impacto da tarefa abaixo:

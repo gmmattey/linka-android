@@ -1,10 +1,10 @@
 ---
-description: Checklist de conformidade com Material Design 3 para telas Android e PWA do Linka. Executada por Lia em modo Haiku para revisões simples.
+description: Checklist de conformidade com Material Design 3 para telas Android e PWA do SignallQ. Executada por Lia em modo Haiku para revisões simples.
 ---
 
 ## Fonte de verdade
 
-Tokens oficiais: `.claude/skills/linka-design/colors_and_type.css` e `LinkaTheme.kt`.
+Tokens oficiais: `.claude/skills/linka-design/colors_and_type.css` e `SignallQTheme.kt`.
 Tabela de equivalência CSS → Compose: `.claude/skills/linka-design/HANDOFF_README.md`.
 Componentes de referência: `.claude/skills/linka-design/ui_kits/android/`.
 

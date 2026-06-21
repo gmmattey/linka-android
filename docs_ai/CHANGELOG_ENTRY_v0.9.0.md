@@ -1,6 +1,6 @@
 # Changelog Entry — v0.9.0 (draft)
 
-**Para copiar em:** `linka-android-kotlin/CHANGELOG.md`  
+**Para copiar em:** `signallq-android-kotlin/CHANGELOG.md`  
 **Formato:** Keep a Changelog + SemVer  
 **Status:** Pronto para merge
 
@@ -38,13 +38,13 @@
 
 ### Technical
 
-- **New: io.linka.app.kotlin.feature.speedtest.PingExecutor** (object, ~150 LOC)
+- **New: io.veloo.app.kotlin.feature.speedtest.PingExecutor** (object, ~150 LOC)
   - Companion object: OkHttpClient singleton com HTTP/2, 4s timeouts, User-Agent Desktop, Cache-Control: no-store
   - `suspend fun executar(count: Int = 20, onProgresso: (Int) -> Unit): PingResultado`
   - Algoritmo: 1ª amostra descartada (warmup), 2-20 válidas. Filtra outliers (≤3× mediana). Calcula mediana (latência), stdDev (jitter), perda%.
   - Coroutine-safe: usa Dispatchers.IO, withContext()
 
-- **New: io.linka.app.kotlin.feature.speedtest.PingResultado** (data class)
+- **New: io.veloo.app.kotlin.feature.speedtest.PingResultado** (data class)
   ```kotlin
   data class PingResultado(
     val latenciaMs: Double,
@@ -54,23 +54,23 @@
   )
   ```
 
-- **New: io.linka.app.kotlin.ui.screen.PingScreenViewModel** (class, ~40 LOC)
+- **New: io.veloo.app.kotlin.ui.screen.PingScreenViewModel** (class, ~40 LOC)
   - MutableStateFlow<PingScreenState> internal
   - `suspend fun executarPing()` — dispara executor, atualiza estado
   - `fun resetar()` — volta para Idle
   - Sealed interface PingScreenState: Idle, Executando(progresso: Int), Resultado(resultado), Erro(mensagem)
 
-- **New: io.linka.app.kotlin.ui.screen.PingScreen** (Composable, ~200 LOC)
+- **New: io.veloo.app.kotlin.ui.screen.PingScreen** (Composable, ~200 LOC)
   - ModalBottomSheet com temas LkTokens (bgCard, border, textPrimary, etc.)
   - Estados renderizados: Idle (botão "Iniciar"), Executando (LinearProgressIndicator), Resultado (Column de 3 métricas), Erro (texto + botão retry)
   - Padrão Screen/ViewModel separado, StateFlow.collectAsState()
 
-- **Modified: io.linka.app.kotlin.feature.dns.BenchmarkDnsDoh**
+- **Modified: io.veloo.app.kotlin.feature.dns.BenchmarkDnsDoh**
   - Linhas 51-59: adicionados 2 provedores ao `provedoresPublicos` list
   - Nenhuma mudança em assinatura ou algoritmo, apenas mais 2 loops no forEach (7 vs 5)
   - Logging atualizado (continua com TAG = "LinkaDnsBenchmark")
 
-- **Modified: io.linka.app.kotlin.ui.screen.SpeedTestScreen**
+- **Modified: io.veloo.app.kotlin.ui.screen.SpeedTestScreen**
   - Função `ExploreToolsRow` (novo composable, ~60 LOC) substitui acesso anterior a `ExploreToolsSheet`
   - Composable `FerramentaCard` (novo, ~50 LOC) — padrão reutilizável com icon, título, descrição, badge, disabled state
   - `StatusCard` expandida (novo ~40 LOC adicional) — agora com servidor "Cloudflare · Carregando…"
@@ -89,18 +89,18 @@
 
 ### Tests
 
-- **io.linka.app.kotlin.feature.speedtest.PingExecutorTest** (novo)
+- **io.veloo.app.kotlin.feature.speedtest.PingExecutorTest** (novo)
   - `testExecutarComAmostraValida()` — 5 amostras, resultado.latenciaMs > 0, jitter ≥ 0, perda 0-100%
   - `testProgressoCallback()` — callback reporta progresso 1 a count
   - `testTimeoutHandling()` — sem conexão, gera Erro
 
-- **io.linka.app.kotlin.ui.screen.PingScreenTest** (novo)
+- **io.veloo.app.kotlin.ui.screen.PingScreenTest** (novo)
   - `testIdleState()` — renderiza botão "Iniciar"
   - `testExecutandoState()` — LinearProgressIndicator visível
   - `testResultadoState()` — 3 métricas exibidas (latência, jitter, perda)
   - `testErroState()` — mensagem erro + botão retry
 
-- **io.linka.app.kotlin.feature.dns.BenchmarkDnsDohTest** (expansão)
+- **io.veloo.app.kotlin.feature.dns.BenchmarkDnsDohTest** (expansão)
   - `testProveedoresIncluemBrasileiros()` — verifica Registro.br + CETIC.br na lista
 
 - **UI Snapshot Tests** (temas, spacing, radius)

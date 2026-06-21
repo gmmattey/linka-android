@@ -20,5 +20,5 @@ foreach ($perm in @("ACCESS_FINE_LOCATION","READ_PHONE_STATE","ACCESS_WIFI_STATE
 ```
 
 ## Notas para o agente
-- Skills: `linka-arch`, `linka-docs`
+- Skills: `signallq-arch`, `signallq-docs`
 - Dependências: independente

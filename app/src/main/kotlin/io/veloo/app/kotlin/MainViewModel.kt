@@ -7,7 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.veloo.app.core.database.ApelidoDispositivoEntity
-import io.veloo.app.core.database.VelooDatabase
+import io.veloo.app.core.database.SignallQDatabase
 import io.veloo.app.core.database.MedicaoEntity
 import io.veloo.app.core.datastore.PreferenciasAppRepository
 import io.veloo.app.core.network.DispatcherProvider
@@ -51,15 +51,15 @@ import io.veloo.app.feature.speedtest.ExecutorSpeedtest
 import io.veloo.app.feature.speedtest.ModoSpeedtest
 import io.veloo.app.feature.wifi.ScannerRedesWifi
 import io.veloo.app.monitoramento.MonitoramentoScheduler
-import io.veloo.app.notificacao.VelooNotificationHelper
-import io.veloo.app.pulse.OrbitOrchestrator
-import io.veloo.app.pulse.OrbitUiStateMapper
+import io.veloo.app.notificacao.SignallQNotificationHelper
+import io.veloo.app.pulse.SignallQOrchestrator
+import io.veloo.app.pulse.SignallQUiStateMapper
 import io.veloo.app.ui.ConnectionNodeType
 import io.veloo.app.ui.FiltroConexaoHistorico
 import io.veloo.app.ui.GatewayInfo
 import io.veloo.app.ui.HistoryPoint
 import io.veloo.app.ui.IspInfo
-import io.veloo.app.ui.screen.OrbitUiState
+import io.veloo.app.ui.screen.SignallQUiState
 import io.veloo.app.ui.state.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -97,11 +97,11 @@ class MainViewModel
          *  (rede movel ativa + permissao concedida). Em Wi-Fi/Ethernet, o monitor
          *  fica idle e nao consome bateria com callbacks de TelephonyManager. */
         val monitorTelephony: MonitorTelephony,
-        private val bancoDados: VelooDatabase,
+        private val bancoDados: SignallQDatabase,
         private val dispatchers: DispatcherProvider,
     ) : AndroidViewModel(application) {
         private companion object {
-            const val LOG_TAG = "LinkaSpeedtestSuite"
+            const val LOG_TAG = "SignallQSpeedtestSuite"
             const val DNS_CACHE_TTL_MS = 15 * 60 * 1_000L
         }
 
@@ -117,8 +117,8 @@ class MainViewModel
         // para nao crashar a UI antes da captura. Nao chama startScan() — usa dados cacheados.
         private val _simsAtivos = MutableStateFlow<List<MovelSimSnapshot>>(emptyList())
         val simsAtivos: StateFlow<List<MovelSimSnapshot>> = _simsAtivos
-        val orbitOrchestrator by lazy {
-            OrbitOrchestrator(
+        val signallQOrchestrator by lazy {
+            SignallQOrchestrator(
                 executorSpeedtest = executorSpeedtest,
                 diagnosticOrchestrator = diagnosticOrchestrator,
                 monitorRede = monitorRede,
@@ -128,10 +128,10 @@ class MainViewModel
                 networkCapabilitiesProvider = networkCapabilitiesProvider,
             )
         }
-        val orbitUiStateFlow by lazy {
-            orbitOrchestrator.snapshotFlow
-                .map { OrbitUiStateMapper.from(it) }
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OrbitUiState.Idle)
+        val signallQUiStateFlow by lazy {
+            signallQOrchestrator.snapshotFlow
+                .map { SignallQUiStateMapper.from(it) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SignallQUiState.Idle)
         }
 
         val onboardingConcluido: StateFlow<Boolean> by lazy {
@@ -318,7 +318,7 @@ class MainViewModel
 
         fun verificarDisponibilidadeGemma() {
             viewModelScope.launch {
-                gemmaAvailable.value = orbitOrchestrator.checkAiAvailability()
+                gemmaAvailable.value = signallQOrchestrator.checkAiAvailability()
             }
         }
 
@@ -793,7 +793,7 @@ class MainViewModel
                     DiagChatEntry(
                         autor = DiagChatAutor.Ia,
                         texto = "",
-                        nomeModelo = "Veloo IA",
+                        nomeModelo = "SignallQ IA",
                         isParcial = true,
                         timestamp = tsEntradaIa,
                     )
@@ -833,7 +833,7 @@ class MainViewModel
                                     Triple(
                                         resultado.result.textoLaudo.ifBlank { resultado.result.resumo },
                                         resultado.result.modeloIa.nomeExibicao
-                                            .ifBlank { "Veloo IA" },
+                                            .ifBlank { "SignallQ IA" },
                                         false,
                                     )
                                 else -> Triple("", null, true)
@@ -864,7 +864,7 @@ class MainViewModel
                                     Triple(
                                         resultado.result.textoLaudo.ifBlank { resultado.result.resumo },
                                         resultado.result.modeloIa.nomeExibicao
-                                            .ifBlank { "Veloo IA" },
+                                            .ifBlank { "SignallQ IA" },
                                         false,
                                     )
                                 else -> Triple("", null, true)
@@ -1098,7 +1098,7 @@ class MainViewModel
                             .filter { mac -> mac !in macsConhecidos }
 
                     novosMACs.forEach { mac ->
-                        VelooNotificationHelper.notificarDispositivoNovo(context, mac)
+                        SignallQNotificationHelper.notificarDispositivoNovo(context, mac)
                         bancoDados.apelidoDispositivoDao().inserirSilencioso(
                             ApelidoDispositivoEntity(mac = mac, apelido = null),
                         )
@@ -1113,37 +1113,37 @@ class MainViewModel
             viewModelScope.launch { scannerRedesWifi.escanear() }
         }
 
-        fun iniciarOrbit(
+        fun iniciarSignallQ(
             foco: String? = null,
             forcarNovoSpeedtest: Boolean = false,
         ) {
-            viewModelScope.launch { orbitOrchestrator.iniciarDiagnostico(foco, forcarNovoSpeedtest) }
+            viewModelScope.launch { signallQOrchestrator.iniciarDiagnostico(foco, forcarNovoSpeedtest) }
         }
 
-        fun iniciarOrbitComResultado(
+        fun iniciarSignallQComResultado(
             resultado: io.veloo.app.feature.speedtest.ResultadoSpeedtest,
             foco: String? = null,
         ) {
-            viewModelScope.launch { orbitOrchestrator.iniciarDiagnosticoComResultado(resultado, foco) }
+            viewModelScope.launch { signallQOrchestrator.iniciarDiagnosticoComResultado(resultado, foco) }
         }
 
         /** Volta ao intent picker (Idle) sem iniciar diagnostico. */
-        fun resetOrbit() {
-            orbitOrchestrator.reset()
+        fun resetSignallQ() {
+            signallQOrchestrator.reset()
         }
 
-        fun selecionarChipOrbit(chip: OpcaoResposta) {
-            viewModelScope.launch { orbitOrchestrator.selecionarChip(chip) }
+        fun selecionarChipSignallQ(chip: OpcaoResposta) {
+            viewModelScope.launch { signallQOrchestrator.selecionarChip(chip) }
         }
 
-        fun responderPerguntaOrbit(opcao: OpcaoResposta) {
-            viewModelScope.launch { orbitOrchestrator.responderPergunta(opcao) }
+        fun responderPerguntaSignallQ(opcao: OpcaoResposta) {
+            viewModelScope.launch { signallQOrchestrator.responderPergunta(opcao) }
         }
 
         /** Processa mensagem digitada livremente pelo usuario no chat.
          *  Aplica guard off-topic e incrementa [userTurnCount] apenas se aprovada. */
-        fun enviarMensagemTextoOrbit(texto: String) {
-            viewModelScope.launch { orbitOrchestrator.enviarMensagemTexto(texto) }
+        fun enviarMensagemTextoSignallQ(texto: String) {
+            viewModelScope.launch { signallQOrchestrator.enviarMensagemTexto(texto) }
         }
 
         fun coletarInfoLocalRede() {
@@ -1216,7 +1216,7 @@ class MainViewModel
                             .openConnection() as HttpURLConnection
                     connection.connectTimeout = 6_000
                     connection.readTimeout = 6_000
-                    connection.setRequestProperty("User-Agent", "Veloo/1.0")
+                    connection.setRequestProperty("User-Agent", "SignallQ/1.0")
                     val body = connection.inputStream.bufferedReader().use { it.readText() }
                     connection.disconnect()
                     val json = JSONObject(body)
@@ -1259,7 +1259,7 @@ class MainViewModel
 
         /**
          * Coleta TODOS os dados brutos disponiveis no app que possam ajudar a IA a
-         * diagnosticar. Chamada pelo OrbitOrchestrator antes de cada explainDiagnosis.
+         * diagnosticar. Chamada pelo SignallQOrchestrator antes de cada explainDiagnosis.
          *
          * Politica: dado que nao existe -> null (omitido do payload). Nao inventa.
          * NAO inclui analise local, classificacao ou rotulos. So dados crus.

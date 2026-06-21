@@ -35,7 +35,7 @@
 
 ## Backlog pos-migracao
 
-- Criar um repositorio Git novo para `C:\Projetos\Linka Android`.
+- Criar um repositorio Git novo para `C:\Projetos\SignallQ Android`.
 - Decidir se `integrations/cloudflare/ai-diagnosis-worker` vira workspace proprio ou permanece como integracao local.
 - Revisar `docs_ai` para remover mencoes residuais ao Flutter/PWA quando nao forem referencia comparativa.
 - Manter os segredos locais migrados fora do Git e validar que `.gitignore` continua cobrindo `.env`, `key.properties`, keystores, certificados e chaves.

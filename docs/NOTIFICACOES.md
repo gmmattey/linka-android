@@ -1,4 +1,4 @@
-# Notificações do Squad LINKA — Slack + Discord
+# Notificações do Squad SIGNALLQ — Slack + Discord
 
 Os 11 agentes do squad notificam o usuário em cada handoff via scripts em `scripts/`.
 
@@ -36,7 +36,7 @@ scripts/notify.sh claudete "sprint encerrada: 4 issues fechadas" success
 Já configurado em `.env` como `DISCORD_WEBHOOK_LINKA`. Os agentes chamam `scripts/discord_notify.sh` diretamente.
 
 ### 2. Slack (via MCP, não webhook)
-O canal `#projeto-linka` (`C0B4NSGSK1D`, workspace `squaddispatch`) já está configurado em `.env` (`SLACK_CHANNEL_LINKA_ID`). O envio é feito pelo orquestrador (Claude) usando o MCP do Slack — **não precisa webhook**.
+O canal `#projeto-signallq` (`C0B4NSGSK1D`, workspace `squaddispatch`) já está configurado em `.env` (`SLACK_CHANNEL_LINKA_ID`). O envio é feito pelo orquestrador (Claude) usando o MCP do Slack — **não precisa webhook**.
 
 `SLACK_WEBHOOK_LINKA` no `.env` é opcional: se preenchido, o `slack_notify.sh` posta direto via curl (útil para agentes rodando fora do contexto MCP). Se vazio, o script é no-op e o orquestrador é quem entrega via MCP.
 
@@ -44,13 +44,13 @@ O canal `#projeto-linka` (`C0B4NSGSK1D`, workspace `squaddispatch`) já está co
 
 **Slack** — via app oficial do GitHub:
 ```
-/github subscribe gmmattey/linka-android issues pulls reviews commits
+/github subscribe gmmattey/signallq-android issues pulls reviews commits
 ```
 
 **Discord** — via webhook nativo:
 1. Discord → canal → ⚙️ Webhooks → copie URL
 2. Acrescente `/github` no fim da URL
-3. GitHub → `gmmattey/linka-android` → Settings → Webhooks → Add webhook
+3. GitHub → `gmmattey/signallq-android` → Settings → Webhooks → Add webhook
 4. Cole a URL com `/github`, content-type `application/json`, eventos: Issues, Pull requests, Pull request reviews, Push
 
 ## Resumo diário
@@ -58,7 +58,7 @@ O canal `#projeto-linka` (`C0B4NSGSK1D`, workspace `squaddispatch`) já está co
 Para receber um resumo às 18h BRT, configure via skill `/schedule`:
 
 ```bash
-/schedule "Resumo diário do squad LINKA" "scripts/notify.sh claudete \"$(gh issue list --repo gmmattey/linka-android --json number,title,labels --jq 'length') issues abertas hoje\" info" "0 18 * * 1-5"
+/schedule "Resumo diário do squad SIGNALLQ" "scripts/notify.sh claudete \"$(gh issue list --repo gmmattey/signallq-android --json number,title,labels --jq 'length') issues abertas hoje\" info" "0 18 * * 1-5"
 ```
 
 ## Teste rápido

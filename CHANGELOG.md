@@ -1,4 +1,4 @@
-# Changelog — Linka Android
+# Changelog — SignallQ Android
 
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
@@ -16,7 +16,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 - **DiagResult:** laudo completo em tela única scrollável — hero card escuro gradiente com veredito da IA, causa-raiz identificada, impacto por atividade (streaming, chamadas, jogos), recomendações numeradas com prioridade (alta/média/baixa) e "Ver passo a passo", grid de métricas colapsável, rodapé com "Compartilhar laudo" e "Falar com a operadora"
 
 #### Assistente LLM (tela standalone)
-- **LLMChatScreen:** chat com IA limpo e moderno — header "Linka · Assistente de conexão", mensagens do assistente full-width sem bolha (label "● LINKA"), bolhas do usuário à direita, chips de follow-up, input com send, disclaimer on-device
+- **LLMChatScreen:** chat com IA limpo e moderno — header "SignallQ · Assistente de conexão", mensagens do assistente full-width sem bolha (label "● SIGNALLQ"), bolhas do usuário à direita, chips de follow-up, input com send, disclaimer on-device
 - **CHAT_SYSTEM_PROMPT reescrito:** respostas completas com passo a passo detalhado, sem limite de tamanho, conversa livre até resolver o problema, sempre restrito ao tema conexão/rede
 
 #### Componentes UI novos
@@ -263,7 +263,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 - **Onboarding — Checkbox de termos e cards de permissão (#128):** Slide 1 exige aceite obrigatório de Termos de Uso e Política de Privacidade antes de avançar (swipe e botão bloqueados). Slide 2 apresenta cards de permissão com ícone, título, descrição e botão de concessão individual para Localização/Wi-Fi (`ACCESS_FINE_LOCATION`) e Dispositivos próximos (`NEARBY_WIFI_DEVICES`, API 33+). Botão "Pular" visível apenas no slide 0. Launcher contextual usa `solicitacaoPermissoes` para não corromper callback de localização.
 
-- **Chat inline "Perguntar sobre diagnóstico" com LLM na DiagnosticoScreen:** O card "Perguntar sobre diagnóstico" agora integra chat com **Gemma 4 26B** (via Cloudflare Workers AI) inline, sem sair da tela. Visual estilo ChatGPT/Claude: mensagem do usuário alinhada à direita com pill sutil; resposta da IA sem bubble, com header `[ícone] Linka IA` em texto secundário. Chips de sugestão desaparecem com animação após o primeiro envio. Loading visível com 3 pontos pulsantes. Limite de 5 perguntas por sessão, enforçado no ViewModel (campo desabilitado com mensagem ao atingir limite). Histórico de chat persiste no ViewModel (sobrevive rotação de tela). Sem novo endpoint no Cloudflare Worker — usa campo `feedbackUsuario` do payload existente. (#66)
+- **Chat inline "Perguntar sobre diagnóstico" com LLM na DiagnosticoScreen:** O card "Perguntar sobre diagnóstico" agora integra chat com **Gemma 4 26B** (via Cloudflare Workers AI) inline, sem sair da tela. Visual estilo ChatGPT/Claude: mensagem do usuário alinhada à direita com pill sutil; resposta da IA sem bubble, com header `[ícone] SignallQ IA` em texto secundário. Chips de sugestão desaparecem com animação após o primeiro envio. Loading visível com 3 pontos pulsantes. Limite de 5 perguntas por sessão, enforçado no ViewModel (campo desabilitado com mensagem ao atingir limite). Histórico de chat persiste no ViewModel (sobrevive rotação de tela). Sem novo endpoint no Cloudflare Worker — usa campo `feedbackUsuario` do payload existente. (#66)
 
 - **Histórico: Gráfico de testes e cards de velocidade média:** HistoricoScreen agora exibe gráfico Canvas Compose com dados de download e upload ao longo do tempo (cores accent e accentBlue). Cards "Download médio" e "Upload médio" calculam a média com base no histórico filtrado. Filtros por tipo de rede (Wi-Fi / Rede móvel / Todos) com dropdown de operadora aparecendo quando rede móvel é selecionada. Toggle e dropdown afetam gráfico, cards e lista simultaneamente. Enum `FiltroConexaoHistorico` e `historicoFiltrado` StateFlow no ViewModel. (#95)
 
@@ -381,7 +381,7 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 - **HomeScreen**: `internetLabel` em conexão móvel retorna "Internet" fixo — evitava operadora duplicada na trilha
 - **HomeScreen**: nó móvel sem IP exibe tecnologia (ex: "5G") como sublabel direto, sem "—" prefixado
 - **AjustesScreen**: `PerfilEditSheet` exibe nome da operadora em conexão móvel (era "Rede móvel" fixo)
-- **AjustesScreen**: item duplicado "Dados usados pelo Linka" removido — informação já coberta por "Privacidade e dados"
+- **AjustesScreen**: item duplicado "Dados usados pelo SignallQ" removido — informação já coberta por "Privacidade e dados"
 
 ---
 

@@ -173,7 +173,7 @@ class ExportadorHistoricoPDF {
 
                                 try {
                                     // minSdk=24 > LOLLIPOP(21) — createPrintDocumentAdapter(String) sempre disponível
-                                    val printAdapter = view?.createPrintDocumentAdapter("historico_linka")
+                                    val printAdapter = view?.createPrintDocumentAdapter("historico_signallq")
 
                                     if (printAdapter == null) {
                                         cont.resume(false)
@@ -239,7 +239,7 @@ class ExportadorHistoricoPDF {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relatório Veloo</title>
+  <title>Relatório SignallQ</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Arial', sans-serif; font-size: 12px; color: #212121; margin: 24px; background: #fff; }
@@ -274,7 +274,7 @@ class ExportadorHistoricoPDF {
 </head>
 <body>
   <div class="header">
-    <h1>Relatório de Medições — Veloo</h1>
+    <h1>Relatório de Medições — SignallQ</h1>
     <p class="subtitle">Gerado em: $dataGeracao &nbsp;|&nbsp; Total de registros: $totalMedicoes</p>
   </div>
 
@@ -309,7 +309,7 @@ ${if (medicoes.isEmpty()) "      <tr><td colspan=\"5\" class=\"empty\">Nenhuma m
   </table>
 
   <div class="footer">
-    Veloo — monitoramento inteligente de rede &nbsp;|&nbsp; Relatório gerado automaticamente
+    SignallQ — monitoramento inteligente de rede &nbsp;|&nbsp; Relatório gerado automaticamente
   </div>
 </body>
 </html>"""
@@ -325,7 +325,7 @@ ${if (medicoes.isEmpty()) "      <tr><td colspan=\"5\" class=\"empty\">Nenhuma m
     ): Float {
         var y = MARGEM + 24f
 
-        canvas.drawText("Relatório de Medições — Veloo", MARGEM, y, paintTitulo)
+        canvas.drawText("Relatório de Medições — SignallQ", MARGEM, y, paintTitulo)
         y += 6f
         canvas.drawLine(MARGEM, y, PAGINA_LARGURA_PX - MARGEM, y, paintCabecalhoFundo.apply { strokeWidth = 1.5f })
         y += 10f
@@ -401,7 +401,7 @@ ${if (medicoes.isEmpty()) "      <tr><td colspan=\"5\" class=\"empty\">Nenhuma m
         val yRodape = PAGINA_ALTURA_PX - MARGEM + 10f
         canvas.drawLine(MARGEM, yRodape - 10f, PAGINA_LARGURA_PX - MARGEM, yRodape - 10f, paintLinhaSeparador)
         canvas.drawText(
-            "Veloo — monitoramento inteligente de rede  |  $totalMedicoes medições exportadas",
+            "SignallQ — monitoramento inteligente de rede  |  $totalMedicoes medições exportadas",
             MARGEM,
             yRodape,
             paintRodape,

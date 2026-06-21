@@ -9,7 +9,7 @@
 
 ## 1. O que é a Feature Wi-Fi
 
-O módulo `:featureWifi` fornece diagnóstico e análise de redes Wi-Fi no Linka Android. Seu papel é coletar informações sobre a rede conectada e redes vizinhas para:
+O módulo `:featureWifi` fornece diagnóstico e análise de redes Wi-Fi no SignallQ Android. Seu papel é coletar informações sobre a rede conectada e redes vizinhas para:
 
 - Exibir resumo da conexão atual (banda, canal, sinal, velocidade de link)
 - Escanear redes Wi-Fi próximas e exibir lista ordenada por sinal
@@ -22,7 +22,7 @@ O módulo NÃO implementa speedtest — isso é responsabilidade de `:featureSpe
 
 ## 2. Arquivos do Módulo
 
-**Localização:** `linkaAndroidKotlin/linka-android-kotlin/featureWifi/src/main/kotlin/io/linka/app/kotlin/feature/wifi/`
+**Localização:** `linkaAndroidKotlin/signallq-android-kotlin/featureWifi/src/main/kotlin/io/signallq/app/kotlin/feature/wifi/`
 
 | Arquivo | Responsabilidade |
 |---|---|
@@ -118,7 +118,7 @@ data class SnapshotScanWifi(
 
 ### Campos exibidos por rede
 
-A feature Wi-Fi na tela principal do Linka (ResumoPrincipal) exibe:
+A feature Wi-Fi na tela principal do SignallQ (ResumoPrincipal) exibe:
 - SSID da rede conectada
 - RSSI em dBm
 - Banda (2.4GHz / 5GHz / 6GHz)

@@ -1,5 +1,5 @@
 ---
-description: Checklist pré-release PWA Linka — build, manifest, Service Worker, Cloudflare Pages deploy e verificação de regressão.
+description: Checklist pré-release PWA SignallQ — build, manifest, Service Worker, Cloudflare Pages deploy e verificação de regressão.
 ---
 
 ## Quando usar

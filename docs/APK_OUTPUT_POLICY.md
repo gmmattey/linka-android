@@ -9,13 +9,13 @@ builds/apk/<buildType>/<versionName>/
 ## Nome obrigatorio
 
 ```text
-linka-android-v<versionName>+<versionCode>-<buildType>-<yyyyMMdd-HHmmss>.apk
+signallq-android-v<versionName>+<versionCode>-<buildType>-<yyyyMMdd-HHmmss>.apk
 ```
 
 Exemplo:
 
 ```text
-builds/apk/release/0.9.1/linka-android-v0.9.1+26-release-20260523-112233.apk
+builds/apk/release/0.9.1/signallq-android-v0.9.1+26-release-20260523-112233.apk
 ```
 
 ## Comandos oficiais

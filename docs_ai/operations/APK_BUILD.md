@@ -1,30 +1,30 @@
 # APK Build - Geracao, Nome E Localizacao
 
-Esta e a regra oficial para gerar APKs do Linka Android.
+Esta e a regra oficial para gerar APKs do SignallQ Android.
 
 ## Pasta oficial
 
 ```text
-C:\Projetos\Linka Android\builds\apk\<buildType>\<versionName>\
+C:\Projetos\SignallQ Android\builds\apk\<buildType>\<versionName>\
 ```
 
 Exemplos:
 
 ```text
-C:\Projetos\Linka Android\builds\apk\debug\0.9.1\
-C:\Projetos\Linka Android\builds\apk\release\0.9.1\
+C:\Projetos\SignallQ Android\builds\apk\debug\0.9.1\
+C:\Projetos\SignallQ Android\builds\apk\release\0.9.1\
 ```
 
 ## Nome oficial
 
 ```text
-linka-android-v<versionName>+<versionCode>-<buildType>-<yyyyMMdd-HHmmss>.apk
+signallq-android-v<versionName>+<versionCode>-<buildType>-<yyyyMMdd-HHmmss>.apk
 ```
 
 Exemplo:
 
 ```text
-linka-android-v0.9.1+26-release-20260523-112233.apk
+signallq-android-v0.9.1+26-release-20260523-112233.apk
 ```
 
 ## Comandos oficiais
@@ -83,7 +83,7 @@ Release usa:
 
 ```text
 key.properties
-segredos/linka.jks
+segredos/signallq.jks
 ```
 
 Esses arquivos sao locais e ficam fora do Git.

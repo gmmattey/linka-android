@@ -20,5 +20,5 @@
 ```
 
 ## Notas para o agente
-- Skills: `linka-design`, `linka-arch`
+- Skills: `signallq-design`, `signallq-arch`
 - Dependências: depende de #10 (strings em xml)

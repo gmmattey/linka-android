@@ -1,5 +1,5 @@
 ---
-description: Referência rápida das limitações do browser para o PWA Linka — o que é impossível, o que é parcial, e como comunicar honestamente ao usuário.
+description: Referência rápida das limitações do browser para o PWA SignallQ — o que é impossível, o que é parcial, e como comunicar honestamente ao usuário.
 ---
 
 ## Quando usar

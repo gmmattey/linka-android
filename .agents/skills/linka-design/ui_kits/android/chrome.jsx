@@ -1,4 +1,4 @@
-/* Linka UI Kit — phone chrome + shared primitives
+/* SignallQ UI Kit — phone chrome + shared primitives
    Exposes: Icon, SignalBars, Badge, Avatar, PhoneFrame, TopBar, BottomNav, LK */
 
 const LK = {

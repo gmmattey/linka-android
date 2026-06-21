@@ -267,10 +267,10 @@ data class ModeloIa(
     val versao: String? = null,
     val tamanho: String? = null,
     val variante: String? = null,
-    val nomeExibicao: String = "Veloo IA",
-    val nomeCompletoComercial: String = "Veloo IA",
+    val nomeExibicao: String = "SignallQ IA",
+    val nomeCompletoComercial: String = "SignallQ IA",
     val descricaoComercial: String = "",
-    val textoRodape: String = "Motor de análise: Veloo IA",
+    val textoRodape: String = "Motor de análise: SignallQ IA",
 ) {
     companion object {
         fun unknown(): ModeloIa = ModeloIa()
@@ -280,9 +280,9 @@ data class ModeloIa(
             provedor = "local",
             familia = "Local",
             nomeExibicao = "Diagnóstico local",
-            nomeCompletoComercial = "Diagnóstico local do Veloo",
+            nomeCompletoComercial = "Diagnóstico local do SignallQ",
             descricaoComercial = "Análise feita pelo próprio app, sem IA externa.",
-            textoRodape = "Motor de análise: Diagnóstico local do Veloo",
+            textoRodape = "Motor de análise: Diagnóstico local do SignallQ",
         )
     }
 }
@@ -372,7 +372,7 @@ object DiagnosisAiContextFactory {
 
     /**
      * Overload media — recebe tambem o `DiagnosticInput` (metricas crus do
-     * speedtest + Wi-Fi). Usada hoje pelo OrbitOrchestrator.
+     * speedtest + Wi-Fi). Usada hoje pelo SignallQOrchestrator.
      */
     fun from(
         report: DiagnosticReport,
@@ -584,7 +584,7 @@ object DiagnosisAiContextFactory {
 
 /**
  * Contexto adicional bruto que o app coleta fora do `DiagnosticInput` mas
- * agrega ao payload v3. Chamada via lambda do OrbitOrchestrator pra manter
+ * agrega ao payload v3. Chamada via lambda do SignallQOrchestrator pra manter
  * o feature module desacoplado do MainViewModel/host.
  */
 data class AdditionalAiContext(
@@ -627,7 +627,7 @@ data class SpeedtestExtras(
 // =============================================================================
 // Quando a IA falha (sem auth, timeout, !2xx, JSON invalido), produzimos um
 // AiDiagnosisResult valido a partir do diagnostico local. O `modeloIa` e
-// preenchido como "Diagnostico local do Linka" — nao mente sobre uso de IA.
+// preenchido como "Diagnostico local do SignallQ" — nao mente sobre uso de IA.
 
 object AiFallbackFactory {
     fun fromLocal(report: DiagnosticReport): AiDiagnosisResult {
@@ -640,7 +640,7 @@ object AiFallbackFactory {
                 DiagnosticStatus.inconclusive -> "inconclusivo"
             }
 
-        val mensagem = report.decisao.mensagemUsuario.ifBlank { "Diagnóstico concluído pelo Veloo." }
+        val mensagem = report.decisao.mensagemUsuario.ifBlank { "Diagnóstico concluído pelo SignallQ." }
 
         return AiDiagnosisResult(
             schemaVersion = "3",

@@ -3,7 +3,7 @@
 Scripts ficam em:
 
 ```text
-C:\Projetos\Linka Android\scripts\
+C:\Projetos\SignallQ Android\scripts\
 ```
 
 ## Build APK
@@ -17,7 +17,7 @@ C:\Projetos\Linka Android\scripts\
 Saida:
 
 ```text
-builds/apk/debug/<versionName>/linka-android-v<versionName>+<versionCode>-debug-<yyyyMMdd-HHmmss>.apk
+builds/apk/debug/<versionName>/signallq-android-v<versionName>+<versionCode>-debug-<yyyyMMdd-HHmmss>.apk
 ```
 
 ### Release
@@ -29,7 +29,7 @@ builds/apk/debug/<versionName>/linka-android-v<versionName>+<versionCode>-debug-
 Saida:
 
 ```text
-builds/apk/release/<versionName>/linka-android-v<versionName>+<versionCode>-release-<yyyyMMdd-HHmmss>.apk
+builds/apk/release/<versionName>/signallq-android-v<versionName>+<versionCode>-release-<yyyyMMdd-HHmmss>.apk
 ```
 
 Tambem existem tarefas Gradle equivalentes:

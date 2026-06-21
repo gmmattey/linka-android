@@ -1,6 +1,6 @@
 ---
 name: token-audit
-description: Detecta desperdício de tokens no ecossistema Linka. Identifica prompts gigantes, leitura excessiva de arquivos, repetição de contexto e padrões que inflam custo sem valor. Use quando sessão parecer cara ou lenta.
+description: Detecta desperdício de tokens no ecossistema SignallQ. Identifica prompts gigantes, leitura excessiva de arquivos, repetição de contexto e padrões que inflam custo sem valor. Use quando sessão parecer cara ou lenta.
 ---
 
 Audite o desperdício de tokens na sessão ou contexto abaixo:

@@ -1,8 +1,8 @@
-# Linka — Design System
+# SignallQ — Design System
 
-> **Linka** (app store name "linka app", package `io.linka.app.kotlin`) is a native **Android** smart internet-diagnostics app, built in **Kotlin / Jetpack Compose / Material Design 3**. It analyzes a home connection in real time — speed, latency, Wi-Fi signal & channels, DNS, fiber (GPON) modem, 4G/5G mobile signal — and uses on-device AI to explain *why* the internet is slow, unstable, or down, in clear, non-technical **Brazilian Portuguese**. All processing happens on-device; no personal data leaves the phone.
+> **SignallQ** (app store name "SignallQ app", package `io.linka.app.kotlin`) is a native **Android** smart internet-diagnostics app, built in **Kotlin / Jetpack Compose / Material Design 3**. It analyzes a home connection in real time — speed, latency, Wi-Fi signal & channels, DNS, fiber (GPON) modem, 4G/5G mobile signal — and uses on-device AI to explain *why* the internet is slow, unstable, or down, in clear, non-technical **Brazilian Portuguese**. All processing happens on-device; no personal data leaves the phone.
 >
-> The product is sometimes referred to commercially as **"Pulse — Speedtest Inteligente"**; inside the codebase the brand is **Linka**, with two named sub-systems: **Orbit** (the conversational AI assistant) and **LinkaPulse** (passive background monitoring).
+> The product is sometimes referred to commercially as **"Pulse — Speedtest Inteligente"**; inside the codebase the brand is **SignallQ**, with two named sub-systems: **SignallQ** (the conversational AI assistant) and **SignallQ Pulse** (passive background monitoring).
 
 ---
 
@@ -12,15 +12,15 @@ This design system was reverse-engineered from a single attached, read-only code
 
 | Source | Path | What it gave us |
 |---|---|---|
-| Android codebase | `Linka Android/` (mounted, read-only) | Source of truth for all tokens, components & screens |
-| Theme tokens | `Linka Android/app/src/main/kotlin/io/linka/app/kotlin/ui/LinkaTheme.kt` | `LkColors`, `LkSpacing`, `LkRadius`, `linkaTypography` |
-| Design-system docs | `Linka Android/docs_ai/design-system/*.md` | COLORS, TYPOGRAPHY, SPACING, COMPONENTS_ANDROID, MD3_GUIDELINES |
-| Functional spec | `Linka Android/docs_ai/ANDROID_FUNCIONAL.md` | Screen-by-screen behaviour, flows, copy |
-| Mockup v2 spec | `Linka Android/.claude/design-specs/mockup-v2-ui-screens.md` | Pixel specs for Home / Sinal / SpeedTest / Resultado |
-| Screen composables | `Linka Android/app/src/main/kotlin/io/linka/app/kotlin/ui/screen/*.kt` | Layout, exact labels, metric thresholds |
-| Components | `…/ui/component/*.kt` (25 custom composables) | Orbit, SpeedTest, Pulse, layout primitives |
-| Screenshots | `Linka Android/linka_*.png` (copied to `_ref/`) | Visual ground-truth: SpeedTest, Sinal, Fibra, store listing |
-| Launcher icon | `…/res/mipmap-xxxhdpi/ic_launcher*.png` (copied to `assets/`) | App icon / wordmark "linka" |
+| Android codebase | `SignallQ Android/` (mounted, read-only) | Source of truth for all tokens, components & screens |
+| Theme tokens | `SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/SignallQTheme.kt` | `LkColors`, `LkSpacing`, `LkRadius`, `linkaTypography` |
+| Design-system docs | `SignallQ Android/docs_ai/design-system/*.md` | COLORS, TYPOGRAPHY, SPACING, COMPONENTS_ANDROID, MD3_GUIDELINES |
+| Functional spec | `SignallQ Android/docs_ai/ANDROID_FUNCIONAL.md` | Screen-by-screen behaviour, flows, copy |
+| Mockup v2 spec | `SignallQ Android/.claude/design-specs/mockup-v2-ui-screens.md` | Pixel specs for Home / Sinal / SpeedTest / Resultado |
+| Screen composables | `SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/screen/*.kt` | Layout, exact labels, metric thresholds |
+| Components | `…/ui/component/*.kt` (25 custom composables) | SignallQ, SpeedTest, Pulse, layout primitives |
+| Screenshots | `SignallQ Android/linka_*.png` (copied to `_ref/`) | Visual ground-truth: SpeedTest, Sinal, Fibra, store listing |
+| Launcher icon | `…/res/mipmap-xxxhdpi/ic_launcher*.png` (copied to `assets/`) | App icon / wordmark "SignallQ" |
 
 **AI worker (referenced, external):** `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev` (Cloudflare Worker, Gemma model). Contact in store listing: `giammattey.luiz@gmail.com`.
 
@@ -48,7 +48,7 @@ The product talks to a **non-technical Brazilian** whose internet "is acting up.
 
 A **clean, bright, neutral Material Design 3** surface where a single **electric violet** does all the highlighting and **traffic-light semantics** (green / amber / red) carry connection quality. Nothing decorative competes with the data.
 
-- **Color vibe.** Mostly **white & light-grey**; one saturated brand color, **violet `#6C2BFF`**, used sparingly for the active nav tab, primary CTAs, selection, and the speedtest button. A secondary **blue `#2563EB`** appears in the profile-avatar gradient and "Móvel" data. Status colors are the workhorses for meaning. There is a full **dark theme** (`#000` bg, `#111` cards, `#1A1A1A` secondary) and a permanently-dark **Orbit** palette (`#0D0D1A` / `#1A0B2E` / `#1E1130`) for the AI surfaces only.
+- **Color vibe.** Mostly **white & light-grey**; one saturated brand color, **violet `#6C2BFF`**, used sparingly for the active nav tab, primary CTAs, selection, and the speedtest button. A secondary **blue `#2563EB`** appears in the profile-avatar gradient and "Móvel" data. Status colors are the workhorses for meaning. There is a full **dark theme** (`#000` bg, `#111` cards, `#1A1A1A` secondary) and a permanently-dark **SignallQ** palette (`#0D0D1A` / `#1A0B2E` / `#1E1130`) for the AI surfaces only.
 - **Backgrounds.** Flat solids — **no photographic imagery, no full-bleed hero images, no repeating patterns/textures, no decorative gradients** on surfaces. Gradients exist in exactly two places: the **profile avatar** (linear accent→accentBlue) and the **Diagnóstico/AI header** (same linear gradient). The speedtest "Iniciar" button is a solid violet disc with a soft same-color glow ring.
 - **Type.** System **Roboto** (Android default), Material 3 scale. Bold/SemiBold for headings & metric values, Regular for body. Big numeral + small unit is the signature metric treatment. Two custom animated text components: **TypewriterText** (AI replies type in char-by-char) and **RotatingMessageText** (looping hints, fade in/out).
 - **Spacing.** Strict **8dp grid** (`4/8/12/16/24/32`). 16dp is the standard screen padding and card inner padding. 56dp minimum touch target.
@@ -76,7 +76,7 @@ A **clean, bright, neutral Material Design 3** surface where a single **electric
 - **In this design system:** we link **Material Symbols (Outlined)** from the Google Fonts CDN — it is the exact icon family the app uses, so no substitution is needed. Use `<span class="material-symbols-outlined">wifi</span>`.
 - **Emoji:** never used as iconography.
 - **Unicode glyphs:** the middle dot `·` as a separator and a check `✓` inside the connected badge are the only non-icon glyphs; everything else is a Material icon.
-- **Logo / brand mark:** the **"linka" wordmark** — soft, rounded, lowercase letterforms in brand violet on a light circular field (see `assets/ic_launcher.png`, `assets/ic_launcher_foreground.png`). There is no separate horizontal logotype in the codebase; the launcher mark is the brand mark. The **Orbit** AI mark (`OrbitSymbol`) and **LinkaPulse** mark (`LinkaPulseSymbol`) are animated in-app glyphs that change color by state (accent / success / warning / error).
+- **Logo / brand mark:** the **"SignallQ" wordmark** — soft, rounded, lowercase letterforms in brand violet on a light circular field (see `assets/ic_launcher.png`, `assets/ic_launcher_foreground.png`). There is no separate horizontal logotype in the codebase; the launcher mark is the brand mark. The **SignallQ** AI mark (`SignallQSymbol`) and **SignallQ Pulse** mark (`SignallQPulseSymbol`) are animated in-app glyphs that change color by state (accent / success / warning / error).
 
 ---
 
@@ -94,4 +94,4 @@ A **clean, bright, neutral Material Design 3** surface where a single **electric
 
 ### UI kits
 
-- **`ui_kits/android/`** — the Linka Android app. Interactive click-through across the 5 core surfaces: **Início (Home)**, **Velocidade (SpeedTest → running → Resultado)**, **Sinal (Wi-Fi)**, **Histórico**, plus **Diagnóstico/Orbit AI**. Built from the real composables and mockup v2 spec.
+- **`ui_kits/android/`** — the SignallQ Android app. Interactive click-through across the 5 core surfaces: **Início (Home)**, **Velocidade (SpeedTest → running → Resultado)**, **Sinal (Wi-Fi)**, **Histórico**, plus **Diagnóstico/SignallQ AI**. Built from the real composables and mockup v2 spec.

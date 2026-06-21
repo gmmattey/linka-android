@@ -328,7 +328,7 @@ fun OnboardingScreen(
                             ) {
                                 Text(
                                     text = stringResource(R.string.onboarding_btn_comecar),
-                                    color = LkColors.velooTextOnDark,
+                                    color = LkColors.signallQTextOnDark,
                                     fontWeight = FontWeight.W600,
                                 )
                             }

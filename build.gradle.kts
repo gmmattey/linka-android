@@ -16,8 +16,8 @@ tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
 
-val linkaVersionName = libs.versions.versionName.get()
-val linkaVersionCode = libs.versions.versionCode.get()
+val signallQVersionName = libs.versions.versionName.get()
+val signallQVersionCode = libs.versions.versionCode.get()
 
 fun registerApkArchiveTask(
     taskName: String,
@@ -27,7 +27,7 @@ fun registerApkArchiveTask(
 ) {
     tasks.register<Copy>(taskName) {
         group = "distribution"
-        description = "Gera e arquiva o APK $buildType com versao e timestamp em builds/apk/$buildType/$linkaVersionName."
+        description = "Gera e arquiva o APK $buildType com versao e timestamp em builds/apk/$buildType/$signallQVersionName."
 
         dependsOn(assembleTaskPath)
 
@@ -35,11 +35,11 @@ fun registerApkArchiveTask(
             java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
         }
         val apkFileName = timestamp.map {
-            "linka-android-v$linkaVersionName+$linkaVersionCode-$buildType-$it.apk"
+            "signallq-android-v$signallQVersionName+$signallQVersionCode-$buildType-$it.apk"
         }
 
         from(layout.projectDirectory.file("app/build/outputs/apk/$buildType/$rawApkName"))
-        into(layout.projectDirectory.dir("builds/apk/$buildType/$linkaVersionName"))
+        into(layout.projectDirectory.dir("builds/apk/$buildType/$signallQVersionName"))
         rename { apkFileName.get() }
 
         doFirst {

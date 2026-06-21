@@ -1,4 +1,4 @@
-# Storage — Android Linka
+# Storage — Android SignallQ
 
 **Última atualização:** 2026-05-17
 **Fonte:** código real (Marcelo, 2026-05-17)

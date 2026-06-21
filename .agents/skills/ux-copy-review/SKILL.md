@@ -13,7 +13,7 @@ Sempre que houver texto novo ou modificado visível ao usuário. Lia executa em 
 - [ ] Erros explicam o que aconteceu E o que fazer. Não só "Erro".
 - [ ] Loading states comunicam o que está acontecendo. Não só "Carregando...".
 - [ ] Respostas de IA não usam "Olá!" ou "Claro!" como abertura.
-- [ ] Nomes próprios do produto corretos: "Linka", "linka SpeedTest".
+- [ ] Nomes próprios do produto corretos: "SignallQ", "SignallQ SpeedTest".
 
 ## Output
 Lista de itens: ✅ OK | ❌ Problema + sugestão de correção.

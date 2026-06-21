@@ -1,5 +1,5 @@
 # Performance & Energy Optimization Deep Dive
-## LINKA Android v0.9.3 — Eficiência
+## SIGNALLQ Android v0.9.3 — Eficiência
 
 **Última atualização**: 2026-05-23  
 **Responsáveis**: Camilo (Arquitetura), Brás (Mobile UX)  
@@ -334,7 +334,7 @@ fun OrbitSymbolSmall() {
 fun OrbitSymbolSmall() {
   Icon(
     imageVector = rememberOrbitIcon(),  // cached ImageVector
-    contentDescription = "Orbit"
+    contentDescription = "SignallQ"
   )
 }
 ```

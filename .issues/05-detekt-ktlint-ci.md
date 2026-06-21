@@ -22,6 +22,6 @@ Não há Detekt, Ktlint ou Spotless configurados, nem workflow de CI no reposit�
 PR de teste deve ter checks verdes no GitHub.
 
 ## Notas para o agente
-- Skills: `linka-arch`, `linka-docs`
+- Skills: `signallq-arch`, `signallq-docs`
 - Manter custo de execução baixo: rodar Detekt incremental por módulo
 - Dependências: bloqueia #4 (regras de `!!` são aplicadas via Detekt)

@@ -1,6 +1,6 @@
 ---
 name: write-tests
-description: Escrever testes automatizados para uma feature ou módulo específico do Linka. Use quando testes estiverem faltando após implementação ou quando Gema reprovar por ausência de cobertura. Acione com `/write-tests <escopo>`.
+description: Escrever testes automatizados para uma feature ou módulo específico do SignallQ. Use quando testes estiverem faltando após implementação ou quando Gema reprovar por ausência de cobertura. Acione com `/write-tests <escopo>`.
 ---
 
 ## Objetivo

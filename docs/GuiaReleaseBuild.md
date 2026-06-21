@@ -1,4 +1,4 @@
-# Guia De Release Build - Linka Android
+# Guia De Release Build - SignallQ Android
 
 Use este guia para gerar APK release assinado sem perder versao, nome ou local do artefato.
 
@@ -7,19 +7,19 @@ Use este guia para gerar APK release assinado sem perder versao, nome ou local d
 Todo APK release deve ficar em:
 
 ```text
-C:\Projetos\Linka Android\builds\apk\release\<versionName>\
+C:\Projetos\SignallQ Android\builds\apk\release\<versionName>\
 ```
 
 Nome obrigatorio:
 
 ```text
-linka-android-v<versionName>+<versionCode>-release-<yyyyMMdd-HHmmss>.apk
+signallq-android-v<versionName>+<versionCode>-release-<yyyyMMdd-HHmmss>.apk
 ```
 
 Exemplo:
 
 ```text
-C:\Projetos\Linka Android\builds\apk\release\0.9.1\linka-android-v0.9.1+26-release-20260523-112233.apk
+C:\Projetos\SignallQ Android\builds\apk\release\0.9.1\signallq-android-v0.9.1+26-release-20260523-112233.apk
 ```
 
 ## Pre-requisitos
@@ -28,12 +28,12 @@ C:\Projetos\Linka Android\builds\apk\release\0.9.1\linka-android-v0.9.1+26-relea
 - Java/JDK disponivel via `JAVA_HOME` ou `PATH`.
 - Android SDK configurado por `local.properties` ou `ANDROID_HOME`.
 - `key.properties` na raiz do projeto.
-- `segredos/linka.jks` presente localmente.
+- `segredos/signallq.jks` presente localmente.
 
 `key.properties` deve apontar para:
 
 ```properties
-storeFile=segredos/linka.jks
+storeFile=segredos/signallq.jks
 ```
 
 ## Versionamento
@@ -55,7 +55,7 @@ Use `minor`, `major` ou `build` quando fizer sentido. `versionCode` nunca deve d
 ## Build release oficial
 
 ```powershell
-cd "C:\Projetos\Linka Android"
+cd "C:\Projetos\SignallQ Android"
 .\scripts\build-apk-release.ps1
 ```
 
@@ -72,17 +72,17 @@ O arquivo `app/build/outputs/apk/release/app-release.apk` e apenas uma saida bru
 **Credenciais locais — Fora do Git:**
 
 - `key.properties` — configuração local com senhas, NUNCA commitada (`.gitignore` linha 17)
-- `segredos/linka.jks` — keystore local, NUNCA commitada (`.gitignore` linha 18)
+- `segredos/signallq.jks` — keystore local, NUNCA commitada (`.gitignore` linha 18)
 - `key.properties.template` — template sem credenciais, RASTREADO no git (referência)
 
-**Setup inicial:** copie `key.properties.template` para `key.properties`, preencha com as credenciais reais, e coloque `linka.jks` em `segredos/`.
+**Setup inicial:** copie `key.properties.template` para `key.properties`, preencha com as credenciais reais, e coloque `signallq.jks` em `segredos/`.
 
 **Para detalhes completos** sobre setup, credenciais CI (GitHub Secrets) e geração de novo keystore, leia `docs_ai/operations/SIGNING.md`.
 
 ## Validacao pos-build
 
 ```powershell
-$apk = "C:\Projetos\Linka Android\builds\apk\release\<versionName>\<arquivo>.apk"
+$apk = "C:\Projetos\SignallQ Android\builds\apk\release\<versionName>\<arquivo>.apk"
 aapt dump badging $apk | findstr version
 jarsigner -verify $apk
 adb install -r $apk
@@ -93,7 +93,7 @@ adb install -r $apk
 - [ ] `versionCode` incrementado.
 - [ ] `versionName` correto.
 - [ ] `key.properties` presente (copiado de `.template`).
-- [ ] `segredos/linka.jks` presente.
+- [ ] `segredos/signallq.jks` presente.
 - [ ] APK salvo em `builds/apk/release/<versionName>/`.
 - [ ] Nome contem `versionName`, `versionCode`, `release` e timestamp.
 - [ ] APK validado com `aapt`.

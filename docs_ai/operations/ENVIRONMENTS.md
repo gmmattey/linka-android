@@ -2,7 +2,7 @@
 
 ## Objective
 
-This document outlines the different environments the Linka Android Kotlin application interacts with or targets, detailing their purpose and key configuration aspects.
+This document outlines the different environments the SignallQ Android Kotlin application interacts with or targets, detailing their purpose and key configuration aspects.
 
 ## Environment Types
 

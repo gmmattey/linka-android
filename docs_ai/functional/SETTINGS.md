@@ -2,14 +2,14 @@
 
 ## Objective
 
-This document details the settings functionality, mapping specific components and interactions within the Linka Android Kotlin application.
+This document details the settings functionality, mapping specific components and interactions within the SignallQ Android Kotlin application.
 
 ## Settings Management
 
 User preferences and configurations are managed via the `featureSettings` module.
 
 1.  **Accessing Settings**:
-    -   **Entry Point**: UI elements in `linka-android-kotlin/featureSettings/ui/SettingsScreen.kt` (*inferential path*), likely accessible from `featureHome/ui/HomeScreen.kt` (*inferential path*).
+    -   **Entry Point**: UI elements in `signallq-android-kotlin/featureSettings/ui/SettingsScreen.kt` (*inferential path*), likely accessible from `featureHome/ui/HomeScreen.kt` (*inferential path*).
 
 2.  **Settings Categories and Mappings**:
     -   **General**: Theme (`coreui/Theme.kt` - *inferential path*), Language.
@@ -25,13 +25,13 @@ User preferences and configurations are managed via the `featureSettings` module
 
 ## Persistence
 
--   Settings are persisted using `coreDatastore/` (e.g., `linka-android-kotlin/coreDatastore/src/main/kotlin/com/linka/coredatastore/AppSettingsDataSource.kt` - *inferential path*).
+-   Settings are persisted using `coreDatastore/` (e.g., `signallq-android-kotlin/coreDatastore/src/main/kotlin/com/signallq/coredatastore/AppSettingsDataSource.kt` - *inferential path*).
 
 ## Key Files/Modules
 
--   **`linka-android-kotlin/featureSettings/`**: Contains `SettingsScreen.kt` and `SettingsViewModel.kt` (*inferential paths*).
--   **`linka-android-kotlin/coreDatastore/`**: Provides data storage for preferences.
--   **`linka-android-kotlin/featureDns/`, `featureSpeedtest/`, `featureDiagnostico/`**: Modules whose settings are configured here.
+-   **`signallq-android-kotlin/featureSettings/`**: Contains `SettingsScreen.kt` and `SettingsViewModel.kt` (*inferential paths*).
+-   **`signallq-android-kotlin/coreDatastore/`**: Provides data storage for preferences.
+-   **`signallq-android-kotlin/featureDns/`, `featureSpeedtest/`, `featureDiagnostico/`**: Modules whose settings are configured here.
 
 ## Known Risks
 

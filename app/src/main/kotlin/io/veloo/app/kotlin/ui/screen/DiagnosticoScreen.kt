@@ -86,7 +86,7 @@ import io.veloo.app.feature.diagnostico.ai.AiFallbackFactory
 import io.veloo.app.feature.diagnostico.ai.ClassificacaoTecnica
 import io.veloo.app.feature.diagnostico.ai.DiagChatEntry
 import io.veloo.app.feature.diagnostico.ai.DiagnosisAiContextFactory
-import io.veloo.app.feature.diagnostico.pulse.OrbitState
+import io.veloo.app.feature.diagnostico.pulse.SignallQState
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkRadius
 import io.veloo.app.ui.LkSpacing
@@ -102,7 +102,7 @@ import io.veloo.app.ui.component.ImpactItem
 import io.veloo.app.ui.component.MetricItem
 import io.veloo.app.ui.component.MetricStatus
 import io.veloo.app.ui.component.OnDevicePill
-import io.veloo.app.ui.component.OrbitSymbol
+import io.veloo.app.ui.component.SignallQSymbol
 import io.veloo.app.ui.component.SignalToggleCard
 import io.veloo.app.ui.state.UiState
 import kotlinx.coroutines.delay
@@ -583,8 +583,8 @@ private fun DiagAnalyzingContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            OrbitSymbol(
-                state = OrbitState.Analyzing,
+            SignallQSymbol(
+                state = SignallQState.Analyzing,
                 size = 96.dp,
             )
 

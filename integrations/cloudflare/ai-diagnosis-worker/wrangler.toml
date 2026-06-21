@@ -3,7 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2026-05-09"
 
 [vars]
-# Modelo padrao do diagnostico Linka: Qwen3 30B MoE FP8 (Alibaba/Qwen) via
+# Modelo padrao do diagnostico SignallQ: Qwen3 30B MoE FP8 (Alibaba/Qwen) via
 # Cloudflare Workers AI. MoE com 30B total / 3B ativos — inferencia rapida,
 # excelente para JSON estruturado e portugues brasileiro. FP8 quantizado.
 # Politica do projeto: Llama/Meta NAO deve ser configurado aqui — nem como

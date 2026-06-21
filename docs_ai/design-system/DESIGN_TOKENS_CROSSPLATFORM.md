@@ -1,6 +1,6 @@
 # Design Tokens Cross-Platform — Android ↔ PWA
 
-**Escopo:** Linka v0.6.3 | Android + PWA v1.0.0
+**Escopo:** SignallQ v0.6.3 | Android + PWA v1.0.0
 
 ---
 
@@ -41,7 +41,7 @@
 
 **Divergência:** PWA usa gradients radiais em `body`; Android usa cores sólidas.
 
-### Orbit (Sempre Escuro)
+### SignallQ (Sempre Escuro)
 
 Paleta de IA é idêntica em ambas plataformas:
 
@@ -145,7 +145,7 @@ Sem transições explícitas documentadas. Favor usar `animateAsState()` ou `tra
 
 ## Resumo de Divergências Intencionais
 
-1. **Tema claro/escuro:** PWA adapta cores por tema; Android mantém algumas cores fixas (especialmente Orbit).
+1. **Tema claro/escuro:** PWA adapta cores por tema; Android mantém algumas cores fixas (especialmente SignallQ).
 2. **Superfícies:** PWA usa gradientes radiais; Android usa sólidas.
 3. **Tipografia:** PWA inclui Instrument Serif (editorial); Android usa MD3 padrão.
 4. **Animação:** PWA documenta timings e curves; Android deixa a critério do dev.
@@ -155,6 +155,6 @@ Sem transições explícitas documentadas. Favor usar `animateAsState()` ou `tra
 ## Recomendações para Sincronização
 
 - Quando adicionar nova cor a uma plataforma, atualizar ambas.
-- Orbit deve permanecer idêntica — é a marca da IA.
+- SignallQ deve permanecer idêntica — é a marca da IA.
 - Phase colors (speedtest) devem manter saturação semelhante mesmo em temas diferentes.
 - Documentar mudanças de tema neste arquivo imediatamente.

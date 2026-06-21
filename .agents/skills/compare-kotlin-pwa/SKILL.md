@@ -1,6 +1,6 @@
 ---
 name: compare-kotlin-pwa
-description: Compara uma feature entre Android Kotlin e PWA Linka SpeedTest. Identifica diferenças reais vs. limitações técnicas do navegador.
+description: Compara uma feature entre Android Kotlin e PWA SignallQ SpeedTest. Identifica diferenças reais vs. limitações técnicas do navegador.
 ---
 
 Compare a feature abaixo entre Android Kotlin e PWA:

@@ -1,5 +1,5 @@
 ## Contexto
-O arquivo `key.properties` está presente no working tree contendo `storePassword` e `keyPassword` em plaintext. Mesmo listado em `.gitignore:17`, qualquer commit histórico que o tenha incluído compromete o keystore de assinatura do app — qualquer pessoa com acesso ao histórico consegue assinar APKs como LINKA.
+O arquivo `key.properties` está presente no working tree contendo `storePassword` e `keyPassword` em plaintext. Mesmo listado em `.gitignore:17`, qualquer commit histórico que o tenha incluído compromete o keystore de assinatura do app — qualquer pessoa com acesso ao histórico consegue assinar APKs como SIGNALLQ.
 
 ## Evidência
 - `key.properties` (raiz) — credenciais em texto puro
@@ -21,7 +21,7 @@ git ls-files | Select-String key.properties
 ```
 
 ## Notas para o agente
-- Skills: `linka-arch`, `linka-docs`
+- Skills: `signallq-arch`, `signallq-docs`
 - NÃO commitar nenhum arquivo com senha
 - Se for necessário purgar histórico: avisar usuário antes (operação destrutiva no Git)
 - Dependências: nenhuma

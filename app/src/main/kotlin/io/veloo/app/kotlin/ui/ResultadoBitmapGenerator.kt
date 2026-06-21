@@ -57,11 +57,11 @@ object ResultadoBitmapGenerator {
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-        // Logo "linka SpeedTest"
+        // Logo "SignallQ SpeedTest"
         paint.color = Color.argb(180, 255, 255, 255)
         paint.textSize = 36f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-        canvas.drawText("linka SpeedTest", 64f, 72f, paint)
+        canvas.drawText("SignallQ SpeedTest", 64f, 72f, paint)
 
         // Download label + valor
         paint.color = Color.WHITE
@@ -130,7 +130,7 @@ object ResultadoBitmapGenerator {
         val shareDir = File(context.cacheDir, "share").also { it.mkdirs() }
         // Limpar PNGs antigos
         shareDir.listFiles()?.forEach { it.delete() }
-        val file = File(shareDir, "resultado_linka.png")
+        val file = File(shareDir, "resultado_signallq.png")
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }

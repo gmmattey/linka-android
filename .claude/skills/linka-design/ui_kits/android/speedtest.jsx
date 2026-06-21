@@ -1,4 +1,4 @@
-/* Linka UI Kit — Velocidade flow: idle → running gauge → resultado */
+/* SignallQ UI Kit — Velocidade flow: idle → running gauge → resultado */
 
 function SpeedFlow({ go }) {
   const [phase, setPhase] = React.useState('idle'); // idle | running | result
@@ -6,7 +6,7 @@ function SpeedFlow({ go }) {
 
   if (phase === 'idle') return <SpeedIdle mode={mode} setMode={setMode} onStart={() => setPhase('running')} />;
   if (phase === 'running') return <SpeedRunning onDone={() => setPhase('result')} />;
-  return <Resultado onAgain={() => setPhase('idle')} onHome={() => go('home')} onOrbit={() => go('orbit')} />;
+  return <Resultado onAgain={() => setPhase('idle')} onHome={() => go('home')} onSignallq={() => go('signallq')} />;
 }
 
 function SpeedIdle({ mode, setMode, onStart }) {
@@ -117,7 +117,7 @@ function SpeedRunning({ onDone }) {
   );
 }
 
-function Resultado({ onAgain, onHome, onOrbit }) {
+function Resultado({ onAgain, onHome, onSignallq }) {
   const Metric = ({ label, value, unit, color }) => (
     <div style={{ background:LK.bgSecondary, borderRadius:LK.rCard, padding:16 }}>
       <div style={{ font:`400 11px/1 ${LK.font}`, color:LK.textTertiary, marginBottom:7 }}>{label}</div>
@@ -159,7 +159,7 @@ function Resultado({ onAgain, onHome, onOrbit }) {
         <div style={{ height:1, background:LK.border }} />
         {verdict('videocam','Vídeo chamada','Ótimo',LK.success)}
       </div>
-      <button onClick={onOrbit} style={{ width:'100%', marginTop:20, border:0, cursor:'pointer',
+      <button onClick={onSignallq} style={{ width:'100%', marginTop:20, border:0, cursor:'pointer',
         background:LK.accent, color:'#fff', font:`500 15px/1 ${LK.font}`, borderRadius:LK.rBtn, padding:'15px',
         display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
         <Icon name="auto_awesome" size={18} color="#fff" />Conversar com a IA</button>

@@ -1,5 +1,5 @@
 ---
-description: Regras e checklist para implementar ou modificar o fluxo de speedtest no Linka Android — download, upload, latência, jitter, perda de pacotes e engine de diagnóstico.
+description: Regras e checklist para implementar ou modificar o fluxo de speedtest no SignallQ Android — download, upload, latência, jitter, perda de pacotes e engine de diagnóstico.
 ---
 
 ## Quando usar

@@ -2,7 +2,7 @@
 
 ## Visão geral
 
-O Linka Android usa assinatura de release para distribuir builds assinados em produção. Todas as credenciais (senhas, alias, keystore) ficam **fora do git** — nunca são comitadas nem expostas no repositório.
+O SignallQ Android usa assinatura de release para distribuir builds assinados em produção. Todas as credenciais (senhas, alias, keystore) ficam **fora do git** — nunca são comitadas nem expostas no repositório.
 
 ### Status de segurança
 
@@ -17,9 +17,9 @@ O Linka Android usa assinatura de release para distribuir builds assinados em pr
 O keystore fica organizado assim:
 
 ```
-C:\Projetos\Linka Android\
+C:\Projetos\SignallQ Android\
 ├── segredos/
-│   └── linka.jks              # ← Keystore local, NÃO vai ao git
+│   └── signallq.jks              # ← Keystore local, NÃO vai ao git
 ├── key.properties             # ← Credenciais locais, NÃO vai ao git
 └── key.properties.template    # ← Template sem credenciais, RASTREADO no git
 ```
@@ -29,7 +29,7 @@ C:\Projetos\Linka Android\
 ### 1. Copiar template
 
 ```powershell
-cd "C:\Projetos\Linka Android"
+cd "C:\Projetos\SignallQ Android"
 Copy-Item key.properties.template key.properties
 ```
 
@@ -40,18 +40,18 @@ Edite `key.properties` e preencha os 4 campos:
 ```properties
 storePassword=SUA_SENHA_DO_KEYSTORE
 keyPassword=SUA_SENHA_DA_CHAVE
-keyAlias=linka
-storeFile=segredos/linka.jks
+keyAlias=signallq
+storeFile=segredos/signallq.jks
 ```
 
-**Nota:** `keyAlias` é sempre `linka` (fixo). Os dois campos de senha vêm de quem controla o keystore.
+**Nota:** `keyAlias` é sempre `signallq` (fixo). Os dois campos de senha vêm de quem controla o keystore.
 
 ### 3. Colocar keystore
 
-O arquivo `segredos/linka.jks` já deve estar disponível localmente (transferido de forma segura, não via git).
+O arquivo `segredos/signallq.jks` já deve estar disponível localmente (transferido de forma segura, não via git).
 
 ```
-C:\Projetos\Linka Android\segredos\linka.jks
+C:\Projetos\SignallQ Android\segredos\signallq.jks
 ```
 
 Se ainda não existe, veja seção "Gerar novo keystore" abaixo.
@@ -94,7 +94,7 @@ Se `key.properties` não existir, o build de release falha (como esperado).
 
 ## Build release assinado
 
-Com `key.properties` e `segredos/linka.jks` presentes e preenchidos:
+Com `key.properties` e `segredos/signallq.jks` presentes e preenchidos:
 
 ```powershell
 .\scripts\build-apk-release.ps1
@@ -109,7 +109,7 @@ ou:
 O APK assinado sai em:
 
 ```
-builds\apk\release\<versionName>\linka-android-v<versionName>+<versionCode>-release-<timestamp>.apk
+builds\apk\release\<versionName>\signallq-android-v<versionName>+<versionCode>-release-<timestamp>.apk
 ```
 
 ## CI/CD futuro — GitHub Secrets
@@ -118,14 +118,14 @@ Para automatizar release builds em CI (GitHub Actions), você precisará criar 4
 
 | Secret                | Valor                                |
 |-----------------------|--------------------------------------|
-| `KEYSTORE_BASE64`     | Arquivo `linka.jks` em base64        |
-| `KEY_ALIAS`           | `linka`                              |
+| `KEYSTORE_BASE64`     | Arquivo `signallq.jks` em base64        |
+| `KEY_ALIAS`           | `signallq`                              |
 | `KEY_PASSWORD`        | Senha da chave privada               |
 | `STORE_PASSWORD`      | Senha do keystore                    |
 
 O workflow CI vai:
 
-1. Decodificar `KEYSTORE_BASE64` de volta para `linka.jks`
+1. Decodificar `KEYSTORE_BASE64` de volta para `signallq.jks`
 2. Criar `key.properties` com os secrets
 3. Rodar `./gradlew.bat archiveReleaseApk`
 4. Assinar e distribuir o APK
@@ -133,7 +133,7 @@ O workflow CI vai:
 ### Para gerar KEYSTORE_BASE64
 
 ```powershell
-$bytes = [System.IO.File]::ReadAllBytes("C:\Projetos\Linka Android\segredos\linka.jks")
+$bytes = [System.IO.File]::ReadAllBytes("C:\Projetos\SignallQ Android\segredos\signallq.jks")
 $base64 = [System.Convert]::ToBase64String($bytes)
 Write-Output $base64 | Set-Clipboard
 ```
@@ -145,22 +145,22 @@ Cole o valor em GitHub Secrets → Repository secrets → `KEYSTORE_BASE64`.
 Se não tiver um keystore existente, crie um com:
 
 ```powershell
-$keystorePath = "C:\Projetos\Linka Android\segredos\linka.jks"
+$keystorePath = "C:\Projetos\SignallQ Android\segredos\signallq.jks"
 $storePassword = "SENHA_FORTE_AQUI"
 $keyPassword = "SENHA_DA_CHAVE_AQUI"
 
 keytool -genkey `
-    -alias linka `
+    -alias signallq `
     -keyalg RSA `
     -keysize 2048 `
     -keystore $keystorePath `
     -validity 10000 `
     -storepass $storePassword `
     -keypass $keyPassword `
-    -dname "CN=Linka, O=Linka, C=BR"
+    -dname "CN=SignallQ, O=SignallQ, C=BR"
 ```
 
-Depois preencha `key.properties` com essas senhas e o alias `linka`.
+Depois preencha `key.properties` com essas senhas e o alias `signallq`.
 
 ## Segurança — Checklist
 
@@ -177,7 +177,7 @@ Depois preencha `key.properties` com essas senhas e o alias `linka`.
 Depois de um build release bem-sucedido, valide a assinatura:
 
 ```powershell
-$apk = "builds\apk\release\<versionName>\linka-android-v<versionName>+<versionCode>-release-<timestamp>.apk"
+$apk = "builds\apk\release\<versionName>\signallq-android-v<versionName>+<versionCode>-release-<timestamp>.apk"
 jarsigner -verify $apk
 ```
 

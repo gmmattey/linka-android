@@ -1,4 +1,4 @@
-# Arquitetura — Android Linka
+# Arquitetura — Android SignallQ
 
 **Última atualização:** 2026-05-17
 **Fonte:** código real (Marcelo, 2026-05-17)
@@ -127,7 +127,7 @@ A `:app` instancia as implementações via `FeatureXModulo.criar*(context)` e ma
 
 **Fluxos secundários:** sobrepostos via `AnimatedVisibility` com `slideInVertically`. Não são rotas de navigation separadas — são controlados por estado booleano no ViewModel.
 
-**Sem deep linking de tela** nas telas secundárias. Deep links (`linka://screen/...`) só existem para as 5 abas principais.
+**Sem deep linking de tela** nas telas secundárias. Deep links (`signallq://screen/...`) só existem para as 5 abas principais.
 
 ---
 
@@ -155,7 +155,7 @@ Fluxo:
 ```
 App Android
     → DiagnosisAiContextFactory.fromRaw(...)    [monta payload schema v3]
-    → POST https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev
+    → POST https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev
     → Cloudflare Worker
     → Gemma 4 26B (Google via AI Gateway Cloudflare)
     → AiDiagnosisResult (JSON parseado pelo app)
@@ -180,7 +180,7 @@ Fallback: AiFallbackFactory.fromLocal() [se IA falhar ou timeout]
 **Flags pós-MVP (ativas em debug, inativas em release):**
 `FEATURE_LINKPULSE_ATIVO`, `FEATURE_NOTIFICACAO_INLINE`, `FEATURE_WIDGET`, `FEATURE_QUICK_SETTINGS_TILE`, `FEATURE_PROVA_REAL_COMPLETO`, `FEATURE_DIAGNOSTICO_ITERATIVO`, `FEATURE_TRACEROUTE`, `FEATURE_FIBRA_SCREEN`, `FEATURE_DNS_SCREEN`, `FEATURE_DEVICES_SCREEN_V2`, `FEATURE_TELEPHONY_AVANCADO`, `FEATURE_MAPA_CALOR_WIFI`, `FEATURE_AGENDAMENTO_TESTES`, `FEATURE_LINKPULSE_CHAT`, `FEATURE_LINKASYNC`, `FEATURE_BACKUP_LOCAL`, `FEATURE_CONTRIBUICAO_ANONIMA`, `FEATURE_RATE_US`, `FEATURE_ACESSIBILIDADE`
 
-**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/linka/app/kotlin/FeatureFlags.kt`:
+**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/signallq/app/kotlin/FeatureFlags.kt`:
 
 `kotlin
 if (FeatureFlags.FEATURE_SPEEDTEST) {

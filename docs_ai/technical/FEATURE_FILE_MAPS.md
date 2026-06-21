@@ -7,57 +7,57 @@ This document maps each feature module to its key files, including UI entry poin
 ## Feature Module Mappings
 
 -   **`app` Module**:
-    -   **Entry Point**: `linka-android-kotlin/app/src/main/kotlin/com/linka/app/LinkaApp.kt`
-    -   **Core UI/Navigation**: `linka-android-kotlin/app/ui/` (e.g., `AppNavigation.kt`, `MainScreen.kt`, `Theme.kt` - *inferential paths*)
+    -   **Entry Point**: `signallq-android-kotlin/app/src/main/kotlin/com/signallq/app/LinkaApp.kt`
+    -   **Core UI/Navigation**: `signallq-android-kotlin/app/ui/` (e.g., `AppNavigation.kt`, `MainScreen.kt`, `Theme.kt` - *inferential paths*)
 
 -   **`featureDevices` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureDevices/`
+    -   **Module Path**: `signallq-android-kotlin/featureDevices/`
     -   **UI Screens**: `ui/DeviceListScreen.kt`, `ui/DeviceDetailScreen.kt` (*inferential paths*)
     -   **ViewModels**: `ui/DeviceListViewModel.kt`, `ui/DeviceDetailViewModel.kt` (*inferential paths*)
     -   **Repository (if feature-specific)**: `data/DeviceRepository.kt` (*inferential path*)
     -   **Data Sources (if feature-specific)**: `data/DeviceNetworkDataSource.kt`, `data/DeviceLocalDataSource.kt` (*inferential paths*)
 
 -   **`featureDiagnostico` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureDiagnostico/`
+    -   **Module Path**: `signallq-android-kotlin/featureDiagnostico/`
     -   **UI Screens**: `ui/DiagnosticScreen.kt`, `ui/DiagnosticResultScreen.kt` (*inferential paths*)
     -   **ViewModels**: `ui/DiagnosticViewModel.kt` (*inferential path*)
     -   **AI Interaction Logic**: `ui/` or `data/` package for `AiDiagnosisService` usage.
 
 -   **`featureDns` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureDns/`
+    -   **Module Path**: `signallq-android-kotlin/featureDns/`
     -   **UI Screens**: `ui/DnsScreen.kt`, `ui/DnsTestScreen.kt` (*inferential paths*)
     -   **ViewModels**: `ui/DnsViewModel.kt` (*inferential path*)
 
 -   **`featureFibra` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureFibra/`
+    -   **Module Path**: `signallq-android-kotlin/featureFibra/`
     -   **Key Files**: Requires human validation for specific UI, ViewModel, Repository, and Data Source files.
 
 -   **`featureHistory` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureHistory/`
+    -   **Module Path**: `signallq-android-kotlin/featureHistory/`
     -   **UI Screens**: `ui/HistoryScreen.kt`, `ui/HistoryDetailScreen.kt` (*inferential paths*)
     -   **ViewModels**: `ui/HistoryViewModel.kt` (*inferential path*)
     -   **Repository/Data Source**: Likely interacts with `coreDatabase/dao/HistoryDao.kt`.
 
 -   **`featureHome` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureHome/`
+    -   **Module Path**: `signallq-android-kotlin/featureHome/`
     -   **UI Screens**: `ui/HomeScreen.kt` (*inferential path*)
     -   **ViewModels**: `ui/HomeViewModel.kt` (*inferential path*)
     -   **Navigation Hub**: Likely orchestrates navigation to other features.
 
 -   **`featureSettings` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureSettings/`
+    -   **Module Path**: `signallq-android-kotlin/featureSettings/`
     -   **UI Screens**: `ui/SettingsScreen.kt`, `ui/SettingsCategoryScreen.kt` (*inferential paths*)
     -   **ViewModels**: `ui/SettingsViewModel.kt` (*inferential path*)
     -   **Preference Management**: Interacts with `coreDatastore/`.
 
 -   **`featureSpeedtest` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureSpeedtest/`
+    -   **Module Path**: `signallq-android-kotlin/featureSpeedtest/`
     -   **UI Screens**: `ui/SpeedtestScreen.kt`, `ui/SpeedtestResultScreen.kt` (*inferential paths*)
     -   **ViewModels**: `ui/SpeedtestViewModel.kt` (*inferential path*)
     -   **Network Interaction**: Uses `coreNetwork/api/ApiService.kt`.
 
 -   **`featureWifi` Module**:
-    -   **Module Path**: `linka-android-kotlin/featureWifi/`
+    -   **Module Path**: `signallq-android-kotlin/featureWifi/`
     -   **UI Screens**: `ui/WifiScreen.kt`, `ui/WifiDetailScreen.kt` (*inferential paths*)
     -   **ViewModels**: `ui/WifiViewModel.kt` (*inferential path*)
 

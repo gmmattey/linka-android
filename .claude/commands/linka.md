@@ -6,16 +6,16 @@ allowed-tools: Read(*)
 ## Estado Atual do Projeto (lido dos arquivos agora)
 
 **Versão Kotlin (ativa):**
-!`cat "C:/Projetos/Linka Android/gradle/libs.versions.toml" 2>/dev/null | grep -E "versionName|versionCode"`
+!`cat "C:/Projetos/SignallQ Android/gradle/libs.versions.toml" 2>/dev/null | grep -E "versionName|versionCode"`
 
 **Último release:**
-!`cat "C:/Projetos/Linka Android/CHANGELOG.md" 2>/dev/null | head -20`
+!`cat "C:/Projetos/SignallQ Android/CHANGELOG.md" 2>/dev/null | head -20`
 
 **Pendências abertas (top 15 linhas):**
-!`cat "C:/Projetos/Linka Android/docs/PendenciasSanitizacaoCodigo.md" 2>/dev/null | head -15`
+!`cat "C:/Projetos/SignallQ Android/docs/PendenciasSanitizacaoCodigo.md" 2>/dev/null | head -15`
 
 **Fase atual do plano:**
-!`cat "C:/Projetos/Linka Android/docs/PlanoFaseadoCustoBeneficio.md" 2>/dev/null | head -30`
+!`cat "C:/Projetos/SignallQ Android/docs/PlanoFaseadoCustoBeneficio.md" 2>/dev/null | head -30`
 
 ---
 
@@ -32,7 +32,7 @@ Em seguida, pergunte: **"Em que vamos trabalhar hoje?"**
 
 ---
 
-## Documentação Cross-Platform (workspace `E:\Projetos\Linka\docs\`)
+## Documentação Cross-Platform (workspace `E:\Projetos\SignallQ\docs\`)
 
 Documentação que cobre **Android e PWA** simultaneamente. Leia antes de tomar decisões que impactam comportamento compartilhado (thresholds, diagnóstico, design system).
 

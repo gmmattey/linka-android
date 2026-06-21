@@ -3,13 +3,13 @@
 ## Overview
 Substituição da antiga tela de "Diagnóstico IA" (que era um chat) por um **fluxo de laudo gerado pela IA**: o usuário escolhe quais sinais analisar, a IA processa **no aparelho** e entrega um diagnóstico interpretado — veredito em linguagem simples, causa-raiz, recomendações priorizadas e a evidência técnica. Inclui também a tela do **Assistente (chat LLM)** que serve de tira-dúvidas.
 
-Faz parte do app **Linka** (Android, Jetpack Compose / Material 3). Estas telas são abertas a partir do mini-card "Diagnóstico IA" da Home (`HomeScreen.MiniCardsRow`).
+Faz parte do app **SignallQ** (Android, Jetpack Compose / Material 3). Estas telas são abertas a partir do mini-card "Diagnóstico IA" da Home (`HomeScreen.MiniCardsRow`).
 
 ## About the Design Files
-Os arquivos deste bundle são **referências de design feitas em HTML/React (JSX via Babel no navegador)** — protótipos que mostram a aparência e o comportamento pretendidos, **não** código de produção para copiar literalmente. A tarefa é **recriar estes designs no codebase real** (o app Android em Jetpack Compose / Material 3), usando os componentes, tema e padrões já existentes lá (`LinkaTheme.kt`, `LinkaCard`, `CenterAlignedTopAppBar`, etc.). Os valores de cor/tipografia/spacing abaixo foram extraídos de `LinkaTheme.kt` e devem casar com os tokens já presentes no projeto.
+Os arquivos deste bundle são **referências de design feitas em HTML/React (JSX via Babel no navegador)** — protótipos que mostram a aparência e o comportamento pretendidos, **não** código de produção para copiar literalmente. A tarefa é **recriar estes designs no codebase real** (o app Android em Jetpack Compose / Material 3), usando os componentes, tema e padrões já existentes lá (`SignallQTheme.kt`, `SignallQCard`, `CenterAlignedTopAppBar`, etc.). Os valores de cor/tipografia/spacing abaixo foram extraídos de `SignallQTheme.kt` e devem casar com os tokens já presentes no projeto.
 
 ## Fidelity
-**Alta fidelidade (hi-fi).** Cores, tipografia, espaçamentos, raios e estados finais estão definidos. Recrie pixel a pixel usando o design system existente do app. Onde houver divergência entre o mock e os tokens reais do `LinkaTheme.kt`, **prevalecem os tokens reais**.
+**Alta fidelidade (hi-fi).** Cores, tipografia, espaçamentos, raios e estados finais estão definidos. Recrie pixel a pixel usando o design system existente do app. Onde houver divergência entre o mock e os tokens reais do `SignallQTheme.kt`, **prevalecem os tokens reais**.
 
 ---
 
@@ -35,7 +35,7 @@ Frame base de todas: largura útil **360 px**, conteúdo Material 3 edge-to-edge
 - **Purpose**: estado de carregamento enquanto a IA cruza os sinais.
 - **Layout**: TopBar → centro vertical (flex column, center) → rodapé com pill on-device.
 - **Components**:
-  - **Glyph animado** 96 px (no mock é o "Orbit": 3 círculos concêntricos âmbar `#FBBF24` pulsando). **No app, substitua por um indicador de progresso de marca** (ex.: um `CircularProgressIndicator` estilizado ou animação Lottie). Não é obrigatório manter o glyph do mock.
+  - **Glyph animado** 96 px (no mock é o "SignallQ": 3 círculos concêntricos âmbar `#FBBF24` pulsando). **No app, substitua por um indicador de progresso de marca** (ex.: um `CircularProgressIndicator` estilizado ou animação Lottie). Não é obrigatório manter o glyph do mock.
   - Título 18/700: "Analisando sua conexão". Subtítulo 12.5 `#6B7280`, centralizado: "A IA está cruzando os sinais para encontrar o que está limitando você."
   - **Barra de progresso**: trilho `#F3F4F6` h:5 `border-radius:3`; preenchimento 62% `#6C2BFF`.
   - **Checklist** (`gap:12`): cada item = círculo 20 px + label 13/500.
@@ -70,15 +70,15 @@ Frame base de todas: largura útil **360 px**, conteúdo Material 3 edge-to-edge
   - **Ações (rodapé fixo)**: borda superior. Linha: botão primário accent "Compartilhar laudo" (ícone share) `flex:1` + botão quadrado 46 px outline (ícone refazer/`refresh`). Abaixo, "Falar com a operadora" 13/600 `#6B7280` centralizado.
 
 ### 5 · `LLMChat` — Chat com a IA (assistente)
-- **Purpose**: tira-dúvidas em linguagem natural; padrão LLM moderno. (Substituiu a versão antiga com glyph "Orbit" — **não** usar Orbit aqui.)
+- **Purpose**: tira-dúvidas em linguagem natural; padrão LLM moderno. (Substituiu a versão antiga com glyph "SignallQ" — **não** usar SignallQ aqui.)
 - **Layout**: header próprio (não CenterAligned) → mensagens → chips → input.
 - **Components**:
-  - **Header**: voltar + (título "Linka" 16/700 + linha de status "● Assistente de conexão", ponto `#22C55E`) + ícone "novo chat" (lápis) `#9CA3AF`. Borda inferior `#E5E7EB`.
+  - **Header**: voltar + (título "SignallQ" 16/700 + linha de status "● Assistente de conexão", ponto `#22C55E`) + ícone "novo chat" (lápis) `#9CA3AF`. Borda inferior `#E5E7EB`.
   - **Mensagens** `padding:18px 16px`, `gap:20`:
     - **Usuário** (bolha, à direita): `max-width:82%`, fundo `#F3F4F6`, `#0D0D1A`, `padding:11px 14px`, `border-radius:18px 18px 5px 18px`, 14/1.45. Texto: "Minha internet fica lenta toda noite. O que pode ser?"
     - **Assistente** (largura total, **sem balão**): rótulo "● LINKA" (ponto accent + 11/700 `#9CA3AF`). Prosa 14/1.6 `#0D0D1A`. Lista numerada (badge circular 20 px `#6C2BFF14` accent + texto 13.5): "Horário de pico", "Wi-Fi 2.4 GHz cheio", "Atualizações em segundo plano" (cada um com explicação em `#6B7280`). Encerramento + botão pill outline accent "↻ Rodar teste rápido".
   - **Chips de follow-up**: pills `#F3F4F6` borda `#E5E7EB`, texto 12 `#6B7280`: "Como troco o canal do Wi-Fi?", "Vale a pena 5 GHz?".
-  - **Input**: container `#F3F4F6` `border-radius:24` com placeholder "Pergunte qualquer coisa…" + botão de envio circular 38 px accent. Disclaimer 10.5 `#9CA3AF` centralizado: "A Linka roda no aparelho e pode errar. Confira dados importantes."
+  - **Input**: container `#F3F4F6` `border-radius:24` com placeholder "Pergunte qualquer coisa…" + botão de envio circular 38 px accent. Disclaimer 10.5 `#9CA3AF` centralizado: "A SignallQ roda no aparelho e pode errar. Confira dados importantes."
 
 ### Componentes compartilhados
 - **OnDevicePill**: ícone escudo 12 px + "Processado no aparelho · Gemma 4", 10.5/500. Variante clara (`#9CA3AF`) e sobre fundo escuro (`rgba(255,255,255,.55)`). Comunica que tudo roda **on-device** — é um diferencial de privacidade, manter.
@@ -101,7 +101,7 @@ Frame base de todas: largura útil **360 px**, conteúdo Material 3 edge-to-edge
 - `chat: List<Mensagem>` (role user/assistant; assistant pode conter blocos: texto, lista, ação inline, card de métrica).
 - Processamento **on-device** (modelo local). Sem chamadas a servidor externo sem ação explícita do usuário.
 
-## Design Tokens (de `LinkaTheme.kt`)
+## Design Tokens (de `SignallQTheme.kt`)
 - **Brand**: accent `#6C2BFF` · accentBlue `#2563EB`
 - **Status**: success `#22C55E` · warning `#F5A623` · error `#FF4D4F`
 - **Fases speedtest**: latência `#60A5FA` · download `#34D399` · upload `#FBBF24`
@@ -113,7 +113,7 @@ Frame base de todas: largura útil **360 px**, conteúdo Material 3 edge-to-edge
 
 ## Assets
 - **Ícones**: SVG inline (paths em `tokens.jsx`/`home.jsx`). Subconjunto usado: `insights, wifi, ping, tower, language` + check/share/spark/refresh/send/edit. No app, mapear para os ícones de marca / Material equivalentes.
-- **Glyph "Orbit"** (círculos âmbar): aparece só no estado `DiagAnalyzing` do mock. **Opcional** — pode trocar por um indicador de progresso de marca. **Não** usar no chat.
+- **Glyph "SignallQ"** (círculos âmbar): aparece só no estado `DiagAnalyzing` do mock. **Opcional** — pode trocar por um indicador de progresso de marca. **Não** usar no chat.
 - Sem imagens raster.
 
 ## Files

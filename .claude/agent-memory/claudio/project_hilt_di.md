@@ -16,7 +16,7 @@ Estado do código no momento do planejamento:
 - Factories ficam nos módulos core/feature como objetos Kotlin (não existem *Modulo.kt em app/src/).
 - Nenhum teste instancia MainViewModel diretamente.
 
-Risco principal: OrbitOrchestrator recebe viewModelScope no construtor lazy — com Hilt, avaliar @AssistedInject ou criação no init {}.
+Risco principal: SignallQOrchestrator recebe viewModelScope no construtor lazy — com Hilt, avaliar @AssistedInject ou criação no init {}.
 Risco secundário: getApplication() em MainViewModel perde acesso após remover AndroidViewModel — injetar Application via @ApplicationContext.
 
 **Why:** refactor de DI para reduzir acoplamento e facilitar testabilidade futura.

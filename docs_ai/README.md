@@ -1,6 +1,6 @@
-# Linka Android AI Documentation
+# SignallQ Android AI Documentation
 
-**Versao:** v0.7.1 (versionCode 16, release 2026-05-16) | Referencia para agentes de IA no projeto Linka Android Kotlin.
+**Versao:** v0.7.1 (versionCode 16, release 2026-05-16) | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
 Recuperacao rapida, fatos operacionais, inferencia minima.
 
 > Ponto de entrada obrigatorio antes de carregar qualquer doc especifico.
@@ -31,11 +31,11 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 
 ## Design System
 
-- [Cores (`design-system/COLORS.md`)](./design-system/COLORS.md) — tokens brand, status, superficies, Orbit
+- [Cores (`design-system/COLORS.md`)](./design-system/COLORS.md) — tokens brand, status, superficies, SignallQ
 - [Tipografia (`design-system/TYPOGRAPHY.md`)](./design-system/TYPOGRAPHY.md) — escala MD3, animacao tipografica
 - [Espacamento (`design-system/SPACING.md`)](./design-system/SPACING.md) — grid 8dp, valores canonicos
 - [Design Tokens Cross-Platform (`design-system/DESIGN_TOKENS_CROSSPLATFORM.md`)](./design-system/DESIGN_TOKENS_CROSSPLATFORM.md) — Android vs. PWA
-- [Componentes Android (`design-system/COMPONENTS_ANDROID.md`)](./design-system/COMPONENTS_ANDROID.md) — componentes Orbit, SpeedTest, Layout
+- [Componentes Android (`design-system/COMPONENTS_ANDROID.md`)](./design-system/COMPONENTS_ANDROID.md) — componentes SignallQ, SpeedTest, Layout
 - [Componentes (legacy) (`design-system/COMPONENTS.md`)](./design-system/COMPONENTS.md) — versao anterior; prefira COMPONENTS_ANDROID.md
 - [Material Design 3 (`design-system/MD3_GUIDELINES.md`)](./design-system/MD3_GUIDELINES.md)
 - [Chat Patterns (`design-system/CHAT_PATTERNS.md`)](./design-system/CHAT_PATTERNS.md)

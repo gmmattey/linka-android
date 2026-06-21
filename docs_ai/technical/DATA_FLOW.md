@@ -5,8 +5,8 @@ User Action → Composable (UI) → ViewModel → Data Layer → State Update �
 ## Layer Details
 
 **Presentation**:
-- Screens: `app/src/main/kotlin/io/linka/app/kotlin/ui/screen/`
-- Components: `app/src/main/kotlin/io/linka/app/kotlin/ui/component/`
+- Screens: `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
+- Components: `app/src/main/kotlin/io/signallq/app/kotlin/ui/component/`
 - ViewModel: `MainViewModel.kt`
 
 **Data**:

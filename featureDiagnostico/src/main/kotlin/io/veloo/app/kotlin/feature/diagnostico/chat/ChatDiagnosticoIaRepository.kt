@@ -1,6 +1,6 @@
 package io.veloo.app.feature.diagnostico.chat
 
-import io.veloo.app.core.database.VelooDatabase
+import io.veloo.app.core.database.SignallQDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -12,11 +12,11 @@ import java.util.UUID
  * Toda escrita de mensagem também atualiza [SessaoChatDiagnostico.atualizadoEmEpochMs] da sessão
  * para que o drawer exiba as sessões mais ativas primeiro.
  *
- * Padrão de construção: recebe [VelooDatabase] diretamente, igual a outros repositories
+ * Padrão de construção: recebe [SignallQDatabase] diretamente, igual a outros repositories
  * no featureDiagnostico (não usa @Provides separado em módulo Hilt).
  */
 class ChatDiagnosticoIaRepository(
-    private val bancoDados: VelooDatabase,
+    private val bancoDados: SignallQDatabase,
 ) {
     private val dao get() = bancoDados.chatSessionDao()
 

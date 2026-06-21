@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
-private const val TAG = "LinkaWifiScan"
+private const val TAG = "SignallQWifiScan"
 private const val TIMEOUT_SCAN_MS = 10_000L
 
 class ScannerRedesWifi(context: Context) {

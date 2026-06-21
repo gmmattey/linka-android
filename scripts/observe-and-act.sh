@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # observe-and-act.sh — Scanner estático pós-push.
-# Detecta violações conhecidas do Linka em arquivos alterados e abre GitHub issues automaticamente.
+# Detecta violações conhecidas do SignallQ em arquivos alterados e abre GitHub issues automaticamente.
 # Executado como hook PostToolUse após git push. Sem LLM, sem Slack — rápido e determinístico.
 
 set -euo pipefail

@@ -19,7 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.screen.AppShell
 import io.veloo.app.ui.screen.OnboardingScreen
 import io.veloo.app.ui.viewmodel.ChatDiagnosticoIaViewModel
@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
                 viewModel.diagnosticOrchestrator.snapshotFlow
                     .collectAsStateWithLifecycle()
                     .value
-            val orbitUiState = viewModel.orbitUiStateFlow.collectAsStateWithLifecycle().value
+            val signallQUiState = viewModel.signallQUiStateFlow.collectAsStateWithLifecycle().value
             val movelSnapshot = viewModel.movelSnapshot.collectAsStateWithLifecycle().value
             val simsAtivos = viewModel.simsAtivos.collectAsStateWithLifecycle().value
             val gemmaAvailable = viewModel.gemmaAvailable.collectAsStateWithLifecycle().value
@@ -202,7 +202,7 @@ class MainActivity : ComponentActivity() {
                     null
                 }
 
-            VelooTheme(darkTheme = darkTheme) {
+            SignallQTheme(darkTheme = darkTheme) {
                 if (!onboardingConcluido) {
                     OnboardingScreen(
                         onConcluir = { viewModel.marcarOnboardingConcluido() },
@@ -301,26 +301,26 @@ class MainActivity : ComponentActivity() {
                         temPermissaoLocalizacao = temPermissaoLocalizacao,
                         localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                         onSolicitarPermissaoLocalizacao = { solicitarPermissaoLocalizacaoContextual() },
-                        orbitUiState = orbitUiState,
+                        signallQUiState = signallQUiState,
                         movelSnapshot = movelSnapshot,
                         simsAtivos = simsAtivos,
-                        onIniciarOrbit = { foco ->
+                        onIniciarSignallQ = { foco ->
                             solicitarPermissaoTelefoniaSeNecessario()
-                            viewModel.iniciarOrbit(foco)
+                            viewModel.iniciarSignallQ(foco)
                         },
-                        onResetOrbit = { viewModel.resetOrbit() },
-                        onSelecionarChip = { chip -> viewModel.selecionarChipOrbit(chip) },
-                        onResponderPergunta = { opcao -> viewModel.responderPerguntaOrbit(opcao) },
+                        onResetSignallQ = { viewModel.resetSignallQ() },
+                        onSelecionarChip = { chip -> viewModel.selecionarChipSignallQ(chip) },
+                        onResponderPergunta = { opcao -> viewModel.responderPerguntaSignallQ(opcao) },
                         gemmaAvailable = gemmaAvailable,
                         operadoraMovel =
                             simsAtivos.firstOrNull { it.isDefaultData }?.operadora
                                 ?: simsAtivos.firstOrNull()?.operadora,
                         onVerificarGemma = { viewModel.verificarDisponibilidadeGemma() },
-                        onIniciarOrbitComResultado = { resultado, foco ->
+                        onIniciarSignallQComResultado = { resultado, foco ->
                             solicitarPermissaoTelefoniaSeNecessario()
-                            viewModel.iniciarOrbitComResultado(resultado, foco)
+                            viewModel.iniciarSignallQComResultado(resultado, foco)
                         },
-                        onEnviarMensagemTexto = { texto -> viewModel.enviarMensagemTextoOrbit(texto) },
+                        onEnviarMensagemTexto = { texto -> viewModel.enviarMensagemTextoSignallQ(texto) },
                         diagChatHistorico = diagChatHistorico,
                         diagChatCarregando = diagChatCarregando,
                         onEnviarPerguntaDiagnostico = { pergunta ->

@@ -1,5 +1,5 @@
 ---
-description: Checklist de deploy e configuração Cloudflare Pages para o PWA Linka — build, variáveis de ambiente, redirects, headers e edge functions.
+description: Checklist de deploy e configuração Cloudflare Pages para o PWA SignallQ — build, variáveis de ambiente, redirects, headers e edge functions.
 ---
 
 ## Quando usar

@@ -1,15 +1,15 @@
-# Features — Android Linka
+# Features — Android SignallQ
 
 **Última atualização:** 2026-05-18
 **Fonte:** código real (Marcelo, 2026-05-17)
 
-Todas as telas em: `app/src/main/kotlin/io/linka/app/kotlin/ui/screen/`
+Todas as telas em: `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
 
 ---
 
 ## Sistema de Controle de Features (FeatureFlags)
 
-O Linka usa um sistema de **FeatureFlags por build type** para controlar quais features são visíveis ao usuário final:
+O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quais features são visíveis ao usuário final:
 
 - **Debug:** Todas as 32 flags são `true` — desenvolvedores testam a full stack de features
 - **Release:** Apenas 13 flags MVP são `true` — usuário final vê apenas features prontas para produção
@@ -20,7 +20,7 @@ O Linka usa um sistema de **FeatureFlags por build type** para controlar quais f
 |---|---|---|---|---|
 | **Teste de Velocidade** | MVP | ✅ | ✅ | Core do app |
 | **Diagnóstico Local** | MVP | ✅ | ✅ | 8 engines especializados |
-| **Diagnóstico IA (Orbit)** | MVP | ✅ | ✅ | Cloudflare Worker + Gemma 4 |
+| **Diagnóstico IA (SignallQ)** | MVP | ✅ | ✅ | Cloudflare Worker + Gemma 4 |
 | **Análise Wi-Fi** | MVP | ✅ | ✅ | Scan, topologia, congestionamento |
 | **Análise Rede Móvel** | MVP | ✅ | ✅ | 4G/5G, RSRP, RSRQ, SINR |
 | **Histórico e Gráficos** | MVP | ✅ | ✅ | Uptime, narrativa, CSV, PDF |
@@ -60,7 +60,7 @@ O Linka usa um sistema de **FeatureFlags por build type** para controlar quais f
 #### Verificação Simples
 
 ```kotlin
-import io.linka.app.kotlin.FeatureFlags
+import io.veloo.app.kotlin.FeatureFlags
 
 // Em qualquer lugar:
 if (FeatureFlags.LINKPULSE_ATIVO) {
@@ -110,8 +110,8 @@ buildConfigField("Boolean", "FEATURE_LINKPULSE_ATIVO", "true")
 | Execução do speedtest (ao vivo) | `VelocidadeScreen.kt` | `:app` | Implementado |
 | Resultado do speedtest | `ResultadoVelocidadeScreen.kt` | `:app` | Implementado |
 | Diagnóstico local por engines | `DiagnosticoScreen.kt` | `:app` (deps: `:featureDiagnostico`) | Implementado |
-| Assistente IA Orbit (chat) | `ChatScreen.kt` | `:app` | Implementado |
-| Orbit símbolo animado | `OrbitScreen.kt` | `:app` | Implementado |
+| Assistente IA SignallQ (chat) | `ChatScreen.kt` | `:app` | Implementado |
+| SignallQ símbolo animado | `OrbitScreen.kt` | `:app` | Implementado |
 | Análise de redes Wi-Fi | `SinalScreen.kt` | `:app` (deps: `:featureWifi`) | Implementado |
 | Scanner de dispositivos | `DispositivosScreen.kt` | `:app` (deps: `:featureDevices`) | Implementado |
 | Fibra óptica GPON | `FibraScreen.kt` | `:app` (deps: `:featureFibra`) | Implementado |
@@ -144,7 +144,7 @@ buildConfigField("Boolean", "FEATURE_LINKPULSE_ATIVO", "true")
 - Resultado por engine: `DiagnosticStatus` (ok / info / attention / critical / inconclusive)
 - Cards dinâmicos por resultado
 
-### Orbit IA (Chat)
+### SignallQ IA (Chat)
 - Speedtest silencioso integrado
 - Envio ao Worker Cloudflare (Gemma 4 26B)
 - Perguntas contextuais dinâmicas (`DynamicQuestionEngine`)

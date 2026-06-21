@@ -13,7 +13,7 @@ Especialista Android Device/OS/Hardware — validação consultiva de comportame
 
 ## Responsabilidades
 
-- Validar se a implementação proposta funciona em devices reais do ecossistema Linka.
+- Validar se a implementação proposta funciona em devices reais do ecossistema SignallQ.
 - Identificar OEM quirks que afetam comportamento (Samsung One UI, MIUI, Moto).
 - Confirmar API level mínimo/máximo para APIs críticas.
 - Sinalizar restrições do Play Store que impactam a feature.

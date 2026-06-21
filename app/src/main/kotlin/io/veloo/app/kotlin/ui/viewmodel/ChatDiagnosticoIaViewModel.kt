@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.veloo.app.core.database.VelooDatabase
+import io.veloo.app.core.database.SignallQDatabase
 import io.veloo.app.core.network.EstadoConexao
 import io.veloo.app.core.network.MonitorRedeAndroid
 import io.veloo.app.feature.diagnostico.ConnectionType
@@ -87,7 +87,7 @@ data class ChatDiagUiState(
  * (não está no grafo Hilt, pois featureDiagnostico não tem módulo Hilt).
  *
  * CotaIaRepository e ChatDiagnosticoIaRepository também instanciados localmente
- * com Context e VelooDatabase.
+ * com Context e SignallQDatabase.
  */
 @HiltViewModel
 class ChatDiagnosticoIaViewModel
@@ -95,7 +95,7 @@ class ChatDiagnosticoIaViewModel
     constructor(
         @ApplicationContext private val context: Context,
         private val executorSpeedtest: ExecutorSpeedtest,
-        private val bancoDados: VelooDatabase,
+        private val bancoDados: SignallQDatabase,
     ) : ViewModel() {
         companion object {
             private const val TAG = "ChatDiagnosticoIaVM"
@@ -952,7 +952,7 @@ class ChatDiagnosticoIaViewModel
                         sessaoId = sessaoId,
                         papel = PapelChatMensagem.assistente,
                         conteudo =
-                            "Olá. Sou o Diagnóstico IA do Veloo.\n\n" +
+                            "Olá. Sou o Diagnóstico IA do SignallQ.\n\n" +
                                 "Posso ajudar você a entender problemas de internet, Wi-Fi, velocidade, latência, " +
                                 "perda de pacote e qualidade da sua rede. Trabalho apenas com assuntos relacionados " +
                                 "à sua conexão — não sou um assistente geral e posso cometer erros. Use minhas " +

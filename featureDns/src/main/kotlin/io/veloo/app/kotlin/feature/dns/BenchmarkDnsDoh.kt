@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import kotlin.math.min
 
-private const val TAG = "LinkaDnsBenchmark"
+private const val TAG = "SignallQDnsBenchmark"
 
 class BenchmarkDnsDoh : BenchmarkDns {
     private val executando = AtomicBoolean(false)

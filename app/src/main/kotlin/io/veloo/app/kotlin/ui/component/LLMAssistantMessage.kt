@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
@@ -164,7 +164,7 @@ private fun ThinkingCompletedSection(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun LLMAssistantMessagePreview() {
-    VelooTheme {
+    SignallQTheme {
         LLMAssistantMessage(
             content =
                 "Sua internet pode ficar lenta à noite por alguns motivos comuns:\n\n" +
@@ -181,7 +181,7 @@ private fun LLMAssistantMessagePreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun LLMAssistantMessageStreamingPreview() {
-    VelooTheme {
+    SignallQTheme {
         LLMAssistantMessage(
             content = "Analisando sua conexão",
             isStreaming = true,

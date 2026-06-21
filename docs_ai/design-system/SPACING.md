@@ -1,4 +1,4 @@
-# Espaçamento — Linka
+# Espaçamento — SignallQ
 
 **Fonte:** `LinkaTheme.kt` (LkSpacing) | Padrão grid 8 dp  
 **Escopo:** Android v0.6.3
@@ -7,7 +7,7 @@
 
 ## Token de Espaçamento
 
-Linka segue grid 8 dp do Material Design 3. Tokens definidos em `LkSpacing`:
+SignallQ segue grid 8 dp do Material Design 3. Tokens definidos em `LkSpacing`:
 
 | Token | Valor | Uso |
 | --- | --- | --- |
@@ -39,8 +39,8 @@ Para validar espaçamento em uso, execute:
 
 ```bash
 grep -r "padding(" \
-  linka-android-kotlin/app/src/main/kotlin/io/linka/app/kotlin/ui/component/ \
-  linka-android-kotlin/app/src/main/kotlin/io/linka/app/kotlin/ \
+  signallq-android-kotlin/app/src/main/kotlin/io/signallq/app/kotlin/ui/component/ \
+  signallq-android-kotlin/app/src/main/kotlin/io/signallq/app/kotlin/ \
   | grep -E "(4|8|12|16|24|32)\.dp"
 ```
 

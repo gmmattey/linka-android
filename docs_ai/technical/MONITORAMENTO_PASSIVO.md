@@ -9,11 +9,11 @@
 
 | Arquivo | Localização | Propósito |
 | --- | --- | --- |
-| `MonitoramentoScheduler.kt` | `io.linka.app.kotlin.monitoramento` | Agenda/cancela periodic work |
-| `MonitoramentoWorker.kt` | `io.linka.app.kotlin.monitoramento` | Worker executa background speedtest |
-| `LinkaPulseOrchestrator.kt` | `io.linka.app.kotlin.pulse` | Orquestra diagnóstico + IA |
+| `MonitoramentoScheduler.kt` | `io.veloo.app.kotlin.monitoramento` | Agenda/cancela periodic work |
+| `MonitoramentoWorker.kt` | `io.veloo.app.kotlin.monitoramento` | Worker executa background speedtest |
+| `LinkaPulseOrchestrator.kt` | `io.veloo.app.kotlin.pulse` | Orquestra diagnóstico + IA |
 | `LinkaPulseScreen.kt` | `ui.screen` | UI exibição resultados |
-| `SnapshotLinkaPulse.kt` | `io.linka.app.kotlin.pulse` | Data class estado LinkaPulse |
+| `SnapshotLinkaPulse.kt` | `io.veloo.app.kotlin.pulse` | Data class estado LinkaPulse |
 
 ---
 
@@ -44,7 +44,7 @@
 
 #### Fase 3: Analyzing
 - Chama IA via endpoint `/diagnosis`
-- Gateway: `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev`
+- Gateway: `https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev`
 - Recebe análise estruturada
 
 ### Tipos de Alerta (4)
@@ -88,7 +88,7 @@ Gerados pelo `LinkaPulseOrchestrator`:
 
 ## Testes (14 casos JUnit 4)
 
-**Arquivo:** `src/test/kotlin/io/linka/app/kotlin/pulse/LinkaPulseOrchestratorTest.kt`
+**Arquivo:** `src/test/kotlin/io/signallq/app/kotlin/pulse/LinkaPulseOrchestratorTest.kt`
 
 | # | Caso | Verifica |
 | --- | --- | --- |

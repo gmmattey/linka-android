@@ -20,7 +20,7 @@ App uses Jetpack Compose Material 3.
 
 ## Theme File
 
-- Location: `app/src/main/kotlin/io/linka/app/kotlin/ui/LinkaTheme.kt`
+- Location: `app/src/main/kotlin/io/signallq/app/kotlin/ui/LinkaTheme.kt`
 - Applies MD3 system via `MaterialTheme`
 - Uses `androidx.compose.material3` library
 

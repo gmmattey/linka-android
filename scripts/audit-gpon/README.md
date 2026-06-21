@@ -1,4 +1,4 @@
-# scripts/audit-gpon — Auditoria GPON do app LINKA
+# scripts/audit-gpon — Auditoria GPON do app SIGNALLQ
 
 Script de validação dinâmica usado pela auditoria das telas GPON
 (`docs/diagnostics/gpon-screens-audit-2026-04-25.md`).

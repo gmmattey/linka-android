@@ -2,7 +2,7 @@
 
 ## Objective
 
-This document outlines the deployment process for the Linka Android Kotlin application, detailing how new versions are released to end-users.
+This document outlines the deployment process for the SignallQ Android Kotlin application, detailing how new versions are released to end-users.
 
 ## Deployment Target
 

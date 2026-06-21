@@ -2,9 +2,9 @@
 
 ## Agent Roles
 
-- **CAIO_ENGINEER**: Implementation, `.orbit/agents/camilo/AGENT.md`
-- **CLAUDIO_TECH_LEAD**: Architecture, `.orbit/agents/claudio/AGENT.md`
-- **LIA_UX_LEAD**: Design/UX, `.orbit/agents/lia/AGENT.md`
+- **CAIO_ENGINEER**: Implementation, `.signallq/agents/camilo/AGENT.md`
+- **CLAUDIO_TECH_LEAD**: Architecture, `.signallq/agents/claudio/AGENT.md`
+- **LIA_UX_LEAD**: Design/UX, `.signallq/agents/lia/AGENT.md`
 
 ## Workflow Stages
 

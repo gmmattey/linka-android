@@ -5,7 +5,7 @@
 
 ## Contexto
 
-O projeto Linka Android cresceu de um módulo único (app) para múltiplos módulos conforme features se acumulavam. Sem limite de dependency, o codebase virou um monolito acoplado onde:
+O projeto SignallQ Android cresceu de um módulo único (app) para múltiplos módulos conforme features se acumulavam. Sem limite de dependency, o codebase virou um monolito acoplado onde:
 - Mudança em uma classe quebrava múltiplos lugares
 - Testes de feature isolada precisavam de toda a app context
 - Compilação incremental ficava lenta
@@ -57,7 +57,7 @@ feature-auth/               # Feature Auth (UI + lógica)
 - Compilação incremental: mudança em `core-database` não recompila `feature-home`
 - Testabilidade: `feature-home` pode ser testada sem `feature-auth`
 - Separação de responsabilidade: clara divisão entre core (infraestrutura) e feature (UI)
-- Reutilização: módulos `core-*` podem ser usados em outros projetos Android Linka
+- Reutilização: módulos `core-*` podem ser usados em outros projetos Android SignallQ
 
 ## Consequências
 

@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LocalLkTokens
 
@@ -163,7 +163,7 @@ private fun MetricCell(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun DiagMetricsGridExpandedPreview() {
-    VelooTheme {
+    SignallQTheme {
         DiagMetricsGrid(
             metrics =
                 listOf(
@@ -183,7 +183,7 @@ private fun DiagMetricsGridExpandedPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun DiagMetricsGridCollapsedPreview() {
-    VelooTheme {
+    SignallQTheme {
         DiagMetricsGrid(
             metrics =
                 listOf(

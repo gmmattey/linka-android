@@ -1,10 +1,10 @@
-# Screen Map — Android Linka
+# Screen Map — Android SignallQ
 
 **Última atualização:** 2026-05-17
 **Fonte:** código real (Marcelo, 2026-05-17)
 
 Todas as telas residem em:
-`app/src/main/kotlin/io/linka/app/kotlin/ui/screen/`
+`app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
 
 ---
 
@@ -48,7 +48,7 @@ Controlados por estado booleano no `MainViewModel`. Não são rotas de Navigatio
 
 | Composable | Arquivo | Descrição |
 |---|---|---|
-| `OrbitScreen` | `OrbitScreen.kt` | Símbolo animado do Orbit |
+| `OrbitScreen` | `OrbitScreen.kt` | Símbolo animado do SignallQ |
 | `LinkaPulseScreen` | `LinkaPulseScreen.kt` | Dashboard de monitoramento contínuo |
 
 ---
@@ -74,7 +74,7 @@ AppShell
 ├── [1] SpeedTestScreen
 │       ├── → VelocidadeScreen (auto ao iniciar)
 │       │       └── → ResultadoVelocidadeScreen (auto ao concluir)
-│       │               ├── → ChatScreen (Orbit IA)
+│       │               ├── → ChatScreen (SignallQ IA)
 │       │               │       └── ← volta para ResultadoVelocidadeScreen
 │       │               └── → DiagnosticoScreen
 │       └── → DnsBenchmarkBottomSheet

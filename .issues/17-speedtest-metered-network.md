@@ -22,6 +22,6 @@ Manual no device com SIM:
 3. Configuração "permitir pesado em mobile" ON → dialog explícito antes de pesado
 
 ## Notas para o agente
-- Skills: `linka-arch`, `linka-design` (dialog visual)
+- Skills: `signallq-arch`, `signallq-design` (dialog visual)
 - Impacto estimado: -40 a -60% de dados móveis consumidos pelo speedtest
 - Dependências: independente

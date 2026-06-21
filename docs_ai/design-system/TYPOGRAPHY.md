@@ -1,4 +1,4 @@
-# Tipografia — Linka
+# Tipografia — SignallQ
 
 **Fonte:** `LinkaTheme.kt` (linkaTypography)  
 **Escopo:** Android v0.6.3
@@ -29,19 +29,19 @@ Todos os tamanhos em `sp` para respeitar `fontScale` do sistema (acessibilidade)
 
 ## Componentes de Animação Tipográfica
 
-Linka inclui dois componentes especiais para animação de texto:
+SignallQ inclui dois componentes especiais para animação de texto:
 
 ### TypewriterText
 Anima texto entrando caractere por caractere, criando efeito de digitação.
 
-**Uso:** Respostas da IA no Orbit, quando o texto é gerado.  
-**Arquivo:** `linka-android-kotlin/app/src/main/kotlin/io/linka/app/kotlin/ui/component/TypewriterText.kt`
+**Uso:** Respostas da IA no SignallQ, quando o texto é gerado.  
+**Arquivo:** `signallq-android-kotlin/app/src/main/kotlin/io/signallq/app/kotlin/ui/component/TypewriterText.kt`
 
 ### RotatingMessageText
 Rotaciona entre múltiplas mensagens em loop, com fade in/out.
 
 **Uso:** Perguntas contextuais, hints dinâmicos no LinkaPulse.  
-**Arquivo:** `linka-android-kotlin/app/src/main/kotlin/io/linka/app/kotlin/ui/component/RotatingMessageText.kt`
+**Arquivo:** `signallq-android-kotlin/app/src/main/kotlin/io/signallq/app/kotlin/ui/component/RotatingMessageText.kt`
 
 ---
 

@@ -1,4 +1,4 @@
-/* Linka UI Kit — Início, Sinal, Histórico, Ajustes */
+/* SignallQ UI Kit — Início, Sinal, Histórico, Ajustes */
 
 function Card({ children, style = {}, onClick }) {
   return (
@@ -73,8 +73,8 @@ function HomeScreen({ go }) {
 
       {/* MiniCardsRow */}
       <div style={{ display:'flex', gap:10 }}>
-        {[['dns','Testar DNS','dns'],['network_ping','Ping','ping'],['auto_awesome','Diagnóstico IA','orbit']].map(([ic,lbl,dest]) => (
-          <Card key={lbl} onClick={() => dest==='orbit' && go('orbit')} style={{ flex:1, padding:'14px 8px',
+        {[['dns','Testar DNS','dns'],['network_ping','Ping','ping'],['auto_awesome','Diagnóstico IA','signallq']].map(([ic,lbl,dest]) => (
+          <Card key={lbl} onClick={() => dest==='signallq' && go('signallq')} style={{ flex:1, padding:'14px 8px',
             display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
             <Icon name={ic} size={22} color={LK.accent} />
             <span style={{ font:`500 12px/1.2 ${LK.font}`, color:LK.textPrimary, textAlign:'center' }}>{lbl}</span>

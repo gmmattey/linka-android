@@ -1,7 +1,7 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-    Gera APK release assinado do projeto Linka Android e salva em builds\apk\release\<versionName>\.
+    Gera APK release assinado do projeto SignallQ Android e salva em builds\apk\release\<versionName>\.
 
 .DESCRIPTION
     Lê versionName e versionCode de gradle/libs.versions.toml, executa o assembleRelease
@@ -37,7 +37,7 @@ if (-not $versionName -or -not $versionCode) {
     Write-Error "Não foi possível extrair versionName/versionCode de $tomlPath"
 }
 
-Write-Host "=== LINKA Kotlin — Build Release ===" -ForegroundColor Cyan
+Write-Host "=== SignallQ Kotlin — Build Release ===" -ForegroundColor Cyan
 Write-Host "  versionName : $versionName"
 Write-Host "  versionCode : $versionCode"
 Write-Host ""
@@ -75,7 +75,7 @@ if (-not (Test-Path $apkSrc)) {
 # ── 5. Copia para pasta oficial com nome padronizado ──────────────────────────
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $destDir  = Join-Path $repoRoot "builds\apk\release\$versionName"
-$destFile = Join-Path $destDir "linka-android-v$versionName+$versionCode-release-$timestamp.apk"
+$destFile = Join-Path $destDir "signallq-android-v$versionName+$versionCode-release-$timestamp.apk"
 
 New-Item -ItemType Directory -Path $destDir -Force | Out-Null
 Copy-Item -Path $apkSrc -Destination $destFile -Force

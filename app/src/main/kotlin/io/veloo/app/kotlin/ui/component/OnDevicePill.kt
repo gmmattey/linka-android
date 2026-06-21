@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.LocalLkTokens
 
 @Composable
@@ -27,7 +27,7 @@ fun OnDevicePill(
 ) {
     val c = LocalLkTokens.current
     val color = if (dark) Color.White.copy(alpha = 0.55f) else c.textTertiary
-    val displayName = modelName?.takeIf { it.isNotBlank() } ?: "Veloo IA"
+    val displayName = modelName?.takeIf { it.isNotBlank() } ?: "SignallQ IA"
 
     Row(
         modifier = modifier,
@@ -52,7 +52,7 @@ fun OnDevicePill(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun OnDevicePillLightPreview() {
-    VelooTheme {
+    SignallQTheme {
         OnDevicePill(dark = false)
     }
 }
@@ -60,7 +60,7 @@ private fun OnDevicePillLightPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFF0D0D1A)
 @Composable
 private fun OnDevicePillDarkPreview() {
-    VelooTheme {
+    SignallQTheme {
         OnDevicePill(dark = true)
     }
 }

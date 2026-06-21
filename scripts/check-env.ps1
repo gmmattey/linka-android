@@ -1,7 +1,7 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-    Valida que o ambiente está corretamente configurado para build do Linka Android Kotlin.
+    Valida que o ambiente está corretamente configurado para build do SignallQ Android Kotlin.
 
 .DESCRIPTION
     Verifica Java, Android SDK, ADB, Node.js, npm, Python, Gradle e outras ferramentas.
@@ -104,7 +104,7 @@ try {
     Write-Host "  Path: $nodePath"
 } catch {
     Write-Host "⚠ Node.js não encontrado (opcional)" -ForegroundColor Yellow
-    $warnings += "Node.js não encontrado (opcional para Linka Kotlin)."
+    $warnings += "Node.js não encontrado (opcional para SignallQ Kotlin)."
 }
 
 # ── 6. npm ───────────────────────────────────────────────────────────────────

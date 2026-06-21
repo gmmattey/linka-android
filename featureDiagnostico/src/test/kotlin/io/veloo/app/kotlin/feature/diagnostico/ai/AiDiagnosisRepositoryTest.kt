@@ -10,13 +10,13 @@ import org.junit.Test
 
 /**
  * Cobertura dos cenarios obrigatorios do refactor v2 (Gemma 4 26B como motor padrao):
- *  1. modelo Gemma 4 26B ativo -> rodape "Linka IA - Gemma 4 26B"
- *  2. fallback local -> rodape "Diagnostico local do Linka", nao chama Llama
+ *  1. modelo Gemma 4 26B ativo -> rodape "SignallQ IA - Gemma 4 26B"
+ *  2. fallback local -> rodape "Diagnostico local do SignallQ", nao chama Llama
  *  3. velocidade boa + estabilidade ruim (294/411/101/25.1) — nao colapsa "internet lenta"
  *  4. velocidade baixa + latencia normal — problema e banda
  *  5. tudo bom
  *  6. dados insuficientes -> inconclusivo
- *  7. modelo desconhecido / modeloIa ausente -> rodape "Linka IA"
+ *  7. modelo desconhecido / modeloIa ausente -> rodape "SignallQ IA"
  *  8. resposta antiga schema v1 -> parser nao quebra, fallback seguro
  *
  * O parser e privado/internal; para acessa-lo usamos um repositorio dummy.
@@ -51,9 +51,9 @@ class AiDiagnosisRepositoryTest {
                 "tamanho": "26B",
                 "variante": "Instruction Tuned",
                 "nomeExibicao": "Gemma 4 26B",
-                "nomeCompletoComercial": "Linka IA — Gemma 4 26B",
+                "nomeCompletoComercial": "SignallQ IA — Gemma 4 26B",
                 "descricaoComercial": "Diagnóstico inteligente otimizado para respostas rápidas",
-                "textoRodape": "Motor de análise: Linka IA — Gemma 4 26B"
+                "textoRodape": "Motor de análise: SignallQ IA — Gemma 4 26B"
               },
               "status": "regular",
               "titulo": "Velocidade boa, estabilidade ruim",
@@ -126,8 +126,8 @@ class AiDiagnosisRepositoryTest {
         assertEquals("4", parsed.modeloIa.versao)
         assertEquals("26B", parsed.modeloIa.tamanho)
         assertEquals("Gemma 4 26B", parsed.modeloIa.nomeExibicao)
-        assertEquals("Linka IA — Gemma 4 26B", parsed.modeloIa.nomeCompletoComercial)
-        assertEquals("Motor de análise: Linka IA — Gemma 4 26B", parsed.modeloIa.textoRodape)
+        assertEquals("SignallQ IA — Gemma 4 26B", parsed.modeloIa.nomeCompletoComercial)
+        assertEquals("Motor de análise: SignallQ IA — Gemma 4 26B", parsed.modeloIa.textoRodape)
         // idInterno fica disponivel para debug, mas nunca aparece nos campos comerciais
         assertFalse(parsed.modeloIa.nomeExibicao.contains("@cf"))
         assertFalse(parsed.modeloIa.textoRodape.contains("@cf"))
@@ -152,7 +152,7 @@ class AiDiagnosisRepositoryTest {
               "schemaVersion": "2",
               "source": "cloudflare_ai",
               "generatedAt": 1700000000001,
-              "modeloIa": {"idInterno":"@cf/google/gemma-4-26b-a4b-it","familia":"Gemma","versao":"4","tamanho":"26B","nomeExibicao":"Gemma 4 26B","nomeCompletoComercial":"Linka IA — Gemma 4 26B","textoRodape":"Motor de análise: Linka IA — Gemma 4 26B"},
+              "modeloIa": {"idInterno":"@cf/google/gemma-4-26b-a4b-it","familia":"Gemma","versao":"4","tamanho":"26B","nomeExibicao":"Gemma 4 26B","nomeCompletoComercial":"SignallQ IA — Gemma 4 26B","textoRodape":"Motor de análise: SignallQ IA — Gemma 4 26B"},
               "status": "ruim",
               "titulo": "Velocidade abaixo do contratado",
               "resumo": "Download de 5 Mbps esta muito abaixo do esperado.",
@@ -197,7 +197,7 @@ class AiDiagnosisRepositoryTest {
               "schemaVersion": "2",
               "source": "cloudflare_ai",
               "generatedAt": 1700000000002,
-              "modeloIa": {"familia":"Gemma","versao":"4","tamanho":"26B","nomeExibicao":"Gemma 4 26B","nomeCompletoComercial":"Linka IA — Gemma 4 26B","textoRodape":"Motor de análise: Linka IA — Gemma 4 26B"},
+              "modeloIa": {"familia":"Gemma","versao":"4","tamanho":"26B","nomeExibicao":"Gemma 4 26B","nomeCompletoComercial":"SignallQ IA — Gemma 4 26B","textoRodape":"Motor de análise: SignallQ IA — Gemma 4 26B"},
               "status": "excelente",
               "titulo": "Conexao saudavel",
               "resumo": "Velocidade e estabilidade dentro do esperado.",
@@ -233,7 +233,7 @@ class AiDiagnosisRepositoryTest {
               "schemaVersion": "2",
               "source": "cloudflare_ai",
               "generatedAt": 1700000000003,
-              "modeloIa": {"familia":"Gemma","versao":"4","tamanho":"26B","nomeExibicao":"Gemma 4 26B","textoRodape":"Motor de análise: Linka IA — Gemma 4 26B"},
+              "modeloIa": {"familia":"Gemma","versao":"4","tamanho":"26B","nomeExibicao":"Gemma 4 26B","textoRodape":"Motor de análise: SignallQ IA — Gemma 4 26B"},
               "status": "inconclusivo",
               "titulo": "Dados insuficientes",
               "resumo": "Nao foi possivel concluir.",
@@ -260,7 +260,7 @@ class AiDiagnosisRepositoryTest {
     }
 
     // -------------------------------------------------------------------------
-    // Cenario 6 — modelo Gemma -> rodape "Linka IA — Gemma 4 26B"
+    // Cenario 6 — modelo Gemma -> rodape "SignallQ IA — Gemma 4 26B"
     // -------------------------------------------------------------------------
     @Test
     fun cenario6_modeloGemma_rodapeComercial() {
@@ -277,9 +277,9 @@ class AiDiagnosisRepositoryTest {
                 "tamanho": "26B",
                 "variante": "Instruction Tuned",
                 "nomeExibicao": "Gemma 4 26B",
-                "nomeCompletoComercial": "Linka IA — Gemma 4 26B",
+                "nomeCompletoComercial": "SignallQ IA — Gemma 4 26B",
                 "descricaoComercial": "Diagnóstico inteligente otimizado para respostas rápidas",
-                "textoRodape": "Motor de análise: Linka IA — Gemma 4 26B"
+                "textoRodape": "Motor de análise: SignallQ IA — Gemma 4 26B"
               },
               "status": "bom",
               "titulo": "OK",
@@ -297,8 +297,8 @@ class AiDiagnosisRepositoryTest {
         requireNotNull(parsed)
 
         assertEquals("Gemma 4 26B", parsed.modeloIa.nomeExibicao)
-        assertEquals("Linka IA — Gemma 4 26B", parsed.modeloIa.nomeCompletoComercial)
-        assertEquals("Motor de análise: Linka IA — Gemma 4 26B", parsed.modeloIa.textoRodape)
+        assertEquals("SignallQ IA — Gemma 4 26B", parsed.modeloIa.nomeCompletoComercial)
+        assertEquals("Motor de análise: SignallQ IA — Gemma 4 26B", parsed.modeloIa.textoRodape)
         // idInterno nao deve aparecer em nenhum dos campos comerciais
         assertFalse(parsed.modeloIa.nomeExibicao.contains("@cf"))
         assertFalse(parsed.modeloIa.nomeCompletoComercial.contains("@cf"))
@@ -306,10 +306,10 @@ class AiDiagnosisRepositoryTest {
     }
 
     // -------------------------------------------------------------------------
-    // Cenario 7 — modelo desconhecido (modeloIa ausente) -> default "Linka IA"
+    // Cenario 7 — modelo desconhecido (modeloIa ausente) -> default "SignallQ IA"
     // -------------------------------------------------------------------------
     @Test
-    fun cenario7_modeloDesconhecido_rodapeGenericoVelooIA() {
+    fun cenario7_modeloDesconhecido_rodapeGenericoSignallQIA() {
         // Resposta v1 sem modeloIa
         val json = """
             {
@@ -332,9 +332,9 @@ class AiDiagnosisRepositoryTest {
         requireNotNull(parsed)
 
         assertEquals("1", parsed.schemaVersion)
-        assertEquals("Veloo IA", parsed.modeloIa.nomeExibicao)
-        assertEquals("Veloo IA", parsed.modeloIa.nomeCompletoComercial)
-        assertEquals("Motor de análise: Veloo IA", parsed.modeloIa.textoRodape)
+        assertEquals("SignallQ IA", parsed.modeloIa.nomeExibicao)
+        assertEquals("SignallQ IA", parsed.modeloIa.nomeCompletoComercial)
+        assertEquals("Motor de análise: SignallQ IA", parsed.modeloIa.textoRodape)
         assertEquals("", parsed.modeloIa.idInterno)
     }
 
@@ -379,7 +379,7 @@ class AiDiagnosisRepositoryTest {
         requireNotNull(out)
         assertEquals("1", out.schemaVersion) // default v1
         assertEquals("Diagnostico", out.titulo)
-        assertEquals("Veloo IA", out.modeloIa.nomeExibicao)
+        assertEquals("SignallQ IA", out.modeloIa.nomeExibicao)
     }
 
     // -------------------------------------------------------------------------
@@ -431,7 +431,7 @@ class AiDiagnosisRepositoryTest {
 
     // -------------------------------------------------------------------------
     // Cenario 2 (brief) — falha da IA -> fallback local nunca usa Llama
-    // ModeloIa.localFallback() expressa "Diagnostico local do Linka", nao Llama.
+    // ModeloIa.localFallback() expressa "Diagnostico local do SignallQ", nao Llama.
     // -------------------------------------------------------------------------
     @Test
     fun fallbackLocal_naoUsaLlamaNemMeta_rodapeDiagnosticoLocal() {
@@ -440,8 +440,8 @@ class AiDiagnosisRepositoryTest {
         assertEquals("Local", local.familia)
         assertEquals("local", local.provedor)
         assertEquals("Diagnóstico local", local.nomeExibicao)
-        assertEquals("Diagnóstico local do Veloo", local.nomeCompletoComercial)
-        assertEquals("Motor de análise: Diagnóstico local do Veloo", local.textoRodape)
+        assertEquals("Diagnóstico local do SignallQ", local.nomeCompletoComercial)
+        assertEquals("Motor de análise: Diagnóstico local do SignallQ", local.textoRodape)
 
         // Llama/Meta jamais aparece no fallback local
         assertFalse(local.familia.lowercase().contains("llama"))
@@ -455,7 +455,7 @@ class AiDiagnosisRepositoryTest {
 
     // -------------------------------------------------------------------------
     // Cenario 8 (brief) — resposta antiga schema v1 sem modeloIa
-    // Parser nao quebra; preenche fallback seguro "Linka IA"; rodape nao vazio.
+    // Parser nao quebra; preenche fallback seguro "SignallQ IA"; rodape nao vazio.
     // -------------------------------------------------------------------------
     @Test
     fun cenario8_respostaSchemaV1SemModeloIa_parserPreencheFallbackSeguro() {
@@ -482,9 +482,9 @@ class AiDiagnosisRepositoryTest {
         // Schema v1 preservado
         assertEquals("1", parsed.schemaVersion)
         // modeloIa veio ausente -> defaults seguros
-        assertEquals("Veloo IA", parsed.modeloIa.nomeExibicao)
-        assertEquals("Veloo IA", parsed.modeloIa.nomeCompletoComercial)
-        assertEquals("Motor de análise: Veloo IA", parsed.modeloIa.textoRodape)
+        assertEquals("SignallQ IA", parsed.modeloIa.nomeExibicao)
+        assertEquals("SignallQ IA", parsed.modeloIa.nomeCompletoComercial)
+        assertEquals("Motor de análise: SignallQ IA", parsed.modeloIa.textoRodape)
         assertTrue(parsed.modeloIa.textoRodape.isNotBlank())
         // Campos antigos sem `tipo`/`executavelNoApp` em acoes nao quebram
         assertEquals(1, parsed.acoesRecomendadas.size)

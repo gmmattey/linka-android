@@ -1,6 +1,6 @@
 # Design Specs — Mockup v2 UI (PR #206)
 
-> Especificacao visual ancorада nos mockups JSX de referencia (`C:\Users\luizg\Downloads\Linka Disign_v2\screens\`).
+> Especificacao visual ancorада nos mockups JSX de referencia (`C:\Users\luizg\Downloads\SignallQ Disign_v2\screens\`).
 > Plataforma: Android Kotlin (Compose + Material Design 3 + tokens `LocalLkTokens.current`).
 > Mergeado em main via PR #206 em 2026-05-28.
 

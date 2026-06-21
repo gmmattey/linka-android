@@ -7,13 +7,13 @@ allowed-tools: Read(*), Edit(*), Bash(*)
 ## Índice de Documentação Atual (lido dos arquivos agora)
 
 **Índice oficial:**
-!`cat "C:/Projetos/Linka Android/docs/IndiceDocumentacao.md" 2>/dev/null | head -80`
+!`cat "C:/Projetos/SignallQ Android/docs/IndiceDocumentacao.md" 2>/dev/null | head -80`
 
 **Documentação consolidada (mapa de navegação):**
-!`cat "C:/Projetos/Linka Android/DOCUMENTACAO_CONSOLIDADA.md" 2>/dev/null | head -60`
+!`cat "C:/Projetos/SignallQ Android/DOCUMENTACAO_CONSOLIDADA.md" 2>/dev/null | head -60`
 
 **Pendências técnicas abertas (top 20 linhas):**
-!`cat "C:/Projetos/Linka Android/docs/PendenciasSanitizacaoCodigo.md" 2>/dev/null | head -20`
+!`cat "C:/Projetos/SignallQ Android/docs/PendenciasSanitizacaoCodigo.md" 2>/dev/null | head -20`
 
 ---
 
@@ -58,7 +58,7 @@ allowed-tools: Read(*), Edit(*), Bash(*)
 
 ```
 ┌─────────────────────────────────┐
-│ ← linka               [⚙️]     │  ← TopAppBar
+│ ← SignallQ               [⚙️]     │  ← TopAppBar
 ├─────────────────────────────────┤
 │                                 │
 │  [ Título da Seção ]            │  ← sectionTitle (20sp/600)
@@ -100,7 +100,7 @@ allowed-tools: Read(*), Edit(*), Bash(*)
 | Branding e design | `docs/branding/` | `linka_branding_guidelines.md` |
 | Evidências (prints, logs) | `evidencias/` (gitignored) | `2026-05-11-captura-nokia.png` |
 | Scripts de automação | `scripts/<categoria>/` | `scripts/build/buildReleaseKotlin.ps1` |
-| Secrets e keystores | `segredos/` (gitignored) | `linka.jks` |
+| Secrets e keystores | `segredos/` (gitignored) | `SignallQ.jks` |
 | Temporários | `tmp/` (gitignored) | — |
 
 **NUNCA criar arquivo em:** raiz do repo (exceto `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `ANTIGRAVITY.md`, `_AGENTS_KOTLIN.md`, `DOCUMENTACAO_CONSOLIDADA.md`), dentro de `lib/` ou `linka-android-kotlin/` (sem ser código).

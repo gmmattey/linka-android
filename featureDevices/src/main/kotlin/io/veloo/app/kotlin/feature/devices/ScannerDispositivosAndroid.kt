@@ -51,7 +51,7 @@ class ScannerDispositivosAndroid(
     override suspend fun iniciarScan(profundo: Boolean) {
         withContext(Dispatchers.IO) {
             if (!scanEmAndamento.compareAndSet(false, true)) {
-                Log.d("LinkaDevices", "scan ja em andamento, ignorando")
+                Log.d("SignallQDevices", "scan ja em andamento, ignorando")
                 return@withContext
             }
             try {
@@ -68,10 +68,10 @@ class ScannerDispositivosAndroid(
                 atualizarEstado(EstadoScanDispositivos.varrendo, 5, null)
                 val dispositivos = linkedMapOf<String, DispositivoRede>()
                 val localIp = detectarIpLocal()
-                Log.d("LinkaDevices", "ipLocal=$localIp")
+                Log.d("SignallQDevices", "ipLocal=$localIp")
 
                 val gatewayIp = detectarGatewayIp()
-                Log.d("LinkaDevices", "gateway=$gatewayIp")
+                Log.d("SignallQDevices", "gateway=$gatewayIp")
                 if (!gatewayIp.isNullOrBlank()) {
                     adicionarDispositivo(
                         dispositivos,
@@ -91,38 +91,38 @@ class ScannerDispositivosAndroid(
                     // Apps concorrentes usam exatamente esta técnica — sem ela a tabela
                     // ARP só contém dispositivos com comunicação recente.
                     val subnet = inferirPrefixoRede(gatewayIp ?: localIp)
-                    Log.d("LinkaDevices", "subnet=$subnet")
+                    Log.d("SignallQDevices", "subnet=$subnet")
                     if (subnet != null) varrerSubrede(subnet)
                     publicar(dispositivos.values.toList(), 45)
 
                     val arp = coletarViaArp()
-                    Log.d("LinkaDevices", "arp: ${arp.size} dispositivos")
+                    Log.d("SignallQDevices", "arp: ${arp.size} dispositivos")
                     arp.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 55)
 
                     val mdns = coletarViaMdns()
-                    Log.d("LinkaDevices", "mdns: ${mdns.size} dispositivos")
+                    Log.d("SignallQDevices", "mdns: ${mdns.size} dispositivos")
                     mdns.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 68)
 
                     val ssdp = coletarViaSsdp()
-                    Log.d("LinkaDevices", "ssdp: ${ssdp.size} dispositivos")
+                    Log.d("SignallQDevices", "ssdp: ${ssdp.size} dispositivos")
                     ssdp.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 80)
 
                     val nbns = coletarViaNbns(gatewayIp)
-                    Log.d("LinkaDevices", "nbns: ${nbns.size} dispositivos")
+                    Log.d("SignallQDevices", "nbns: ${nbns.size} dispositivos")
                     nbns.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 90)
 
                     // TCP probe complementa ARP para dispositivos que bloqueiam ICMP
                     val tcpProbe = coletarViaTcpProbe(gatewayIp)
-                    Log.d("LinkaDevices", "tcpProbe: ${tcpProbe.size} dispositivos")
+                    Log.d("SignallQDevices", "tcpProbe: ${tcpProbe.size} dispositivos")
                     tcpProbe.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 96)
                 } else {
                     val arp = coletarViaArp()
-                    Log.d("LinkaDevices", "scan leve arp: ${arp.size} dispositivos")
+                    Log.d("SignallQDevices", "scan leve arp: ${arp.size} dispositivos")
                     arp.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 65)
                 }
@@ -149,7 +149,7 @@ class ScannerDispositivosAndroid(
                         esteDispositivo = localIp != null && d.ip == localIp,
                     )
                 }
-                Log.d("LinkaDevices", "scan concluido: ${dispositivosEnriquecidos.size} dispositivos")
+                Log.d("SignallQDevices", "scan concluido: ${dispositivosEnriquecidos.size} dispositivos")
                 mutableSnapshotFlow.value =
                     mutableSnapshotFlow.value.copy(
                         estado = EstadoScanDispositivos.concluido,
@@ -158,7 +158,7 @@ class ScannerDispositivosAndroid(
                         erroMensagem = null,
                     )
             } catch (t: Throwable) {
-                Log.e("LinkaDevices", "scan falhou", t)
+                Log.e("SignallQDevices", "scan falhou", t)
                 val erroSemantico = when {
                     t is SecurityException -> "semPermissaoLocalizacao"
                     t is SocketException -> "erroRede"
@@ -312,7 +312,7 @@ class ScannerDispositivosAndroid(
                     )
                 }
         } catch (_: Throwable) {
-            Log.d("LinkaDevices", "arp: acesso negado a /proc/net/arp (Android 10+)")
+            Log.d("SignallQDevices", "arp: acesso negado a /proc/net/arp (Android 10+)")
             return emptyList()
         }
     }
@@ -351,7 +351,7 @@ class ScannerDispositivosAndroid(
         val tiposPorIp = mutableMapOf<String, MutableSet<String>>()
 
         val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val multicastLock = wm.createMulticastLock("linka_mdns")
+        val multicastLock = wm.createMulticastLock("signallq_mdns")
         multicastLock.setReferenceCounted(false)
         multicastLock.acquire()
 

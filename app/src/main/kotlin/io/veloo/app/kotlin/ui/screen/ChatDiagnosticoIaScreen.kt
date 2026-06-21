@@ -92,9 +92,9 @@ import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkRadius
 import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.OrbitInputArea
-import io.veloo.app.ui.component.OrbitThinkingBubble
-import io.veloo.app.ui.component.OrbitUserMessageBubble
+import io.veloo.app.ui.component.SignallQInputArea
+import io.veloo.app.ui.component.SignallQThinkingBubble
+import io.veloo.app.ui.component.SignallQUserMessageBubble
 import io.veloo.app.ui.component.TypewriterText
 import io.veloo.app.ui.viewmodel.ChatDiagUiState
 import io.veloo.app.ui.viewmodel.EstadoChatDiagnostico
@@ -300,11 +300,11 @@ private fun ListaMensagens(
             val isUltima = mensagem == uiState.mensagens.lastOrNull()
             when (mensagem.papel) {
                 PapelChatMensagem.usuario -> {
-                    OrbitUserMessageBubble(text = mensagem.conteudo)
+                    SignallQUserMessageBubble(text = mensagem.conteudo)
                 }
                 PapelChatMensagem.assistente, PapelChatMensagem.sistema -> {
                     if (mensagem.status == StatusChatMensagem.streaming && mensagem.conteudo.isBlank()) {
-                        OrbitThinkingBubble(
+                        SignallQThinkingBubble(
                             mensagem = "",
                             modifier =
                                 Modifier.semantics {
@@ -336,7 +336,7 @@ private fun ListaMensagens(
         // Indicador de "pensando" enquanto aguarda/streaming com conteúdo
         if (uiState.estado == EstadoChatDiagnostico.AguardandoIa) {
             item(key = "thinking_indicator") {
-                OrbitThinkingBubble(
+                SignallQThinkingBubble(
                     mensagem = "",
                     modifier =
                         Modifier.semantics {
@@ -486,7 +486,7 @@ private fun BubbleAssistente(
                 Spacer(Modifier.height(2.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                     Text(
-                        text = "Veloo IA · $timeStr",
+                        text = "SignallQ IA · $timeStr",
                         style = MaterialTheme.typography.labelMedium,
                         color = tokens.textTertiary,
                     )
@@ -713,7 +713,7 @@ private fun formatarRenovacaoDateTime(renovacaoEpochMs: Long?): String {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ChatInputArea — wrapper local do OrbitInputArea
+// ChatInputArea — wrapper local do SignallQInputArea
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -743,7 +743,7 @@ private fun ChatInputArea(
             else -> "Pergunte sobre sua conexão, Wi-Fi ou diagnóstico..."
         }
 
-    OrbitInputArea(
+    SignallQInputArea(
         value = textFieldValue,
         onValueChange = { new ->
             textFieldValue = new

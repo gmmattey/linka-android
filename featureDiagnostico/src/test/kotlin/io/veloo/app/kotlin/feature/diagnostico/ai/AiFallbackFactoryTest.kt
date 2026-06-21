@@ -12,8 +12,8 @@ import org.junit.Test
  * Cenario 5 do briefing — fallback local.
  *
  * Quando a IA falha (sem auth, timeout, !2xx, JSON invalido) o app continua
- * mostrando um diagnostico. O rodape DEVE indicar "Diagnostico local do Linka",
- * nunca "Linka IA — Llama 3.3 70B" (seria mentira).
+ * mostrando um diagnostico. O rodape DEVE indicar "Diagnostico local do SignallQ",
+ * nunca "SignallQ IA — Llama 3.3 70B" (seria mentira).
  */
 class AiFallbackFactoryTest {
 
@@ -55,13 +55,13 @@ class AiFallbackFactoryTest {
         assertEquals("local", result.modeloIa.provedor)
         assertEquals("Local", result.modeloIa.familia)
         assertEquals("Diagnóstico local", result.modeloIa.nomeExibicao)
-        assertEquals("Diagnóstico local do Veloo", result.modeloIa.nomeCompletoComercial)
-        assertEquals("Motor de análise: Diagnóstico local do Veloo", result.modeloIa.textoRodape)
+        assertEquals("Diagnóstico local do SignallQ", result.modeloIa.nomeCompletoComercial)
+        assertEquals("Motor de análise: Diagnóstico local do SignallQ", result.modeloIa.textoRodape)
 
-        // NUNCA pode dizer "Veloo IA" no fallback (sem IA real)
+        // NUNCA pode dizer "SignallQ IA" no fallback (sem IA real)
         assertFalse(
-            "Fallback nao deve usar nome comercial 'Veloo IA'",
-            result.modeloIa.textoRodape.contains("Veloo IA"),
+            "Fallback nao deve usar nome comercial 'SignallQ IA'",
+            result.modeloIa.textoRodape.contains("SignallQ IA"),
         )
         assertFalse(result.modeloIa.nomeExibicao.contains("Llama"))
         assertFalse(result.modeloIa.nomeExibicao.contains("Gemma"))

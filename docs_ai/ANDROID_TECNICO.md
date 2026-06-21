@@ -1,11 +1,11 @@
-# Documentação Técnica — Android Linka
+# Documentação Técnica — Android SignallQ
 
 **Público-alvo:** Desenvolvedor humano e agentes de IA
 **Plataforma:** Android exclusivo — Kotlin, Jetpack Compose, Material Design 3
-**Última atualização:** 2026-05-30 (v0.15.0 — rebranding Veloo, Hilt DI, Chat IA com streaming, redesign Diagnóstico IA, 5G NSA, compileSdk 36, minSdk 24)
+**Última atualização:** 2026-05-30 (v0.15.0 — rebranding SignallQ, Hilt DI, Chat IA com streaming, redesign Diagnóstico IA, 5G NSA, compileSdk 36, minSdk 24)
 **Mantido por:** Taisa
 
-> Este documento descreve a arquitetura interna, módulos, camadas de dados, engines de diagnóstico e contratos do app Android Veloo (anteriormente Linka).
+> Este documento descreve a arquitetura interna, módulos, camadas de dados, engines de diagnóstico e contratos do app Android SignallQ (anteriormente SignallQ).
 > Fonte de verdade: dados coletados do código real (Marcelo, 2026-05-17).
 > Para funcionalidades da perspectiva do usuário, consulte `ANDROID_FUNCIONAL.md`.
 
@@ -37,7 +37,7 @@
 
 **Injeção de dependência:** Hilt 2.56.2 (migrado de DI manual). Anteriormente cada módulo expunha um objeto `*Modulo.kt` com funções fábrica estáticas — esse padrão foi substituído por Hilt modules.
 
-> **Nota de rebranding:** O app foi renomeado de Linka para Veloo na v0.15.0. Package name: `io.veloo.app`. App ID Firebase: `io.veloo.app`. Documentação anterior pode referenciar "Linka" — tratar como equivalente.
+> **Nota de rebranding:** O app foi renomeado de SignallQ para SignallQ na v0.15.0. Package name: `io.veloo.app`. App ID Firebase: `io.veloo.app`. Documentação anterior pode referenciar "SignallQ" — tratar como equivalente.
 
 ---
 
@@ -47,21 +47,21 @@ Declarados em `settings.gradle.kts`. O número correto é **15** — o CLAUDE.md
 
 | Módulo | Namespace | Camada | Plugins | Dependências notáveis | Responsabilidade |
 |---|---|---|---|---|---|
-| `:app` | io.linka.app.kotlin | app | android-application, kotlin-android, kotlin.plugin.compose, kapt | todos os core* e feature*, compose, lifecycle, material3 | Entry point, MainActivity, MainViewModel, AppShell, telas, orchestrators, componentes UI globais |
-| `:coreNetwork` | io.linka.app.kotlin.core.network | core | android-library, kotlin-android | androidx.core.ktx, kotlinx.coroutines | Monitor de conectividade (ConnectivityManager.NetworkCallback), SnapshotRede, WifiLinkSnapshot, medição de RTT do gateway |
-| `:coreDatabase` | io.linka.app.kotlin.core.database | core | android-library, kotlin-android, kapt | androidx.room.runtime, androidx.room.ktx | Persistência SQLite via Room — LinkaDatabase, DAOs, entidades |
-| `:coreDatastore` | io.linka.app.kotlin.core.datastore | core | android-library, kotlin-android | androidx.datastore.preferences, kotlinx.coroutines | Preferências do usuário via DataStore — PreferenciasAppRepository |
-| `:corePermissions` | io.linka.app.kotlin.core.permissions | core | android-library, kotlin-android | — | Gerenciamento de permissões de rede em runtime |
-| `:coreTelephony` | io.linka.app.kotlin.core.telephony | core | android-library, kotlin-android | — | Monitoramento de rede móvel via TelephonyManager — MovelSnapshot |
-| `:featureHome` | io.linka.app.kotlin.feature.home | feature | android-library, kotlin-android | — | Módulo mínimo — FeatureHomeModulo.kt; HomeScreen reside em :app |
-| `:featureWifi` | io.linka.app.kotlin.feature.wifi | feature | android-library, kotlin-android | :coreNetwork | Scan de redes Wi-Fi, TopologiaWifiEngine, MontarResumoWifiUseCase, MeshOuiDatabase |
-| `:featureDevices` | io.linka.app.kotlin.feature.devices | feature | android-library, kotlin-android | — | Descoberta de dispositivos (ARP, mDNS, port scan), OuiDatabase, ClassificadorDispositivoRede |
-| `:featureDns` | io.linka.app.kotlin.feature.dns | feature | android-library, kotlin-android | — | Benchmark de DNS via DoH — BenchmarkDnsDoh, AvaliadorCoerenciaDns |
-| `:featureSpeedtest` | io.linka.app.kotlin.feature.speedtest | feature | android-library, kotlin-android | okhttp | Execução do speedtest — ExecutorSpeedtest, SnapshotExecucaoSpeedtest, ResultadoSpeedtest |
-| `:featureDiagnostico` | io.linka.app.kotlin.feature.diagnostico | feature | android-library, kotlin-android | :featureFibra, okhttp, org.json:json | Engines de diagnóstico local, DiagnosticOrchestrator, integração IA, Orbit/Chat |
-| `:featureFibra` | io.linka.app.kotlin.feature.fibra | feature | android-library, kotlin-android | — | Leitura de dados da ONT GPON Nokia — NokiaModemClient, ClassificadorSaudeGpon |
-| `:featureHistory` | io.linka.app.kotlin.feature.history | feature | android-library, kotlin-android | — | Histórico de medições, UptimeChartUseCase, UptimeNarrativaEngine, exportação CSV/PDF |
-| `:featureSettings` | io.linka.app.kotlin.feature.settings | feature | android-library, kotlin-android | — | Módulo mínimo — FeatureSettingsModulo.kt; AjustesScreen reside em :app |
+| `:app` | io.veloo.app.kotlin | app | android-application, kotlin-android, kotlin.plugin.compose, kapt | todos os core* e feature*, compose, lifecycle, material3 | Entry point, MainActivity, MainViewModel, AppShell, telas, orchestrators, componentes UI globais |
+| `:coreNetwork` | io.veloo.app.kotlin.core.network | core | android-library, kotlin-android | androidx.core.ktx, kotlinx.coroutines | Monitor de conectividade (ConnectivityManager.NetworkCallback), SnapshotRede, WifiLinkSnapshot, medição de RTT do gateway |
+| `:coreDatabase` | io.veloo.app.kotlin.core.database | core | android-library, kotlin-android, kapt | androidx.room.runtime, androidx.room.ktx | Persistência SQLite via Room — LinkaDatabase, DAOs, entidades |
+| `:coreDatastore` | io.veloo.app.kotlin.core.datastore | core | android-library, kotlin-android | androidx.datastore.preferences, kotlinx.coroutines | Preferências do usuário via DataStore — PreferenciasAppRepository |
+| `:corePermissions` | io.veloo.app.kotlin.core.permissions | core | android-library, kotlin-android | — | Gerenciamento de permissões de rede em runtime |
+| `:coreTelephony` | io.veloo.app.kotlin.core.telephony | core | android-library, kotlin-android | — | Monitoramento de rede móvel via TelephonyManager — MovelSnapshot |
+| `:featureHome` | io.veloo.app.kotlin.feature.home | feature | android-library, kotlin-android | — | Módulo mínimo — FeatureHomeModulo.kt; HomeScreen reside em :app |
+| `:featureWifi` | io.veloo.app.kotlin.feature.wifi | feature | android-library, kotlin-android | :coreNetwork | Scan de redes Wi-Fi, TopologiaWifiEngine, MontarResumoWifiUseCase, MeshOuiDatabase |
+| `:featureDevices` | io.veloo.app.kotlin.feature.devices | feature | android-library, kotlin-android | — | Descoberta de dispositivos (ARP, mDNS, port scan), OuiDatabase, ClassificadorDispositivoRede |
+| `:featureDns` | io.veloo.app.kotlin.feature.dns | feature | android-library, kotlin-android | — | Benchmark de DNS via DoH — BenchmarkDnsDoh, AvaliadorCoerenciaDns |
+| `:featureSpeedtest` | io.veloo.app.kotlin.feature.speedtest | feature | android-library, kotlin-android | okhttp | Execução do speedtest — ExecutorSpeedtest, SnapshotExecucaoSpeedtest, ResultadoSpeedtest |
+| `:featureDiagnostico` | io.veloo.app.kotlin.feature.diagnostico | feature | android-library, kotlin-android | :featureFibra, okhttp, org.json:json | Engines de diagnóstico local, DiagnosticOrchestrator, integração IA, SignallQ/Chat |
+| `:featureFibra` | io.veloo.app.kotlin.feature.fibra | feature | android-library, kotlin-android | — | Leitura de dados da ONT GPON Nokia — NokiaModemClient, ClassificadorSaudeGpon |
+| `:featureHistory` | io.veloo.app.kotlin.feature.history | feature | android-library, kotlin-android | — | Histórico de medições, UptimeChartUseCase, UptimeNarrativaEngine, exportação CSV/PDF |
+| `:featureSettings` | io.veloo.app.kotlin.feature.settings | feature | android-library, kotlin-android | — | Módulo mínimo — FeatureSettingsModulo.kt; AjustesScreen reside em :app |
 
 ---
 
@@ -109,7 +109,7 @@ Instâncias criadas sob demanda (lazy) dentro do MainViewModel:
 | `diagnosticOrchestrator` | DiagnosticOrchestrator | Engines de diagnóstico |
 | `executorFibra` | ExecutorFibra | Leitura GPON |
 | `monitorTelephony` | — | Só ativa em móvel + permissão concedida |
-| `orbitOrchestrator` | OrbitOrchestrator | Fluxo Orbit/Chat |
+| `orbitOrchestrator` | OrbitOrchestrator | Fluxo SignallQ/Chat |
 
 ### 3.4 MainViewModel — StateFlows expostos à UI
 
@@ -123,7 +123,7 @@ Instâncias criadas sob demanda (lazy) dentro do MainViewModel:
 | `snapshotFibra` | SnapshotFibra | Estado da leitura do modem |
 | `snapshotDiagnostico` | — | Estado do diagnóstico |
 | `movelSnapshot` | MovelSnapshot | Dados de sinal móvel |
-| `orbitUiStateFlow` | OrbitUiState | Estado da sessão Orbit |
+| `orbitUiStateFlow` | OrbitUiState | Estado da sessão SignallQ |
 | `apelidos` | Map<String, String?> | Apelidos de dispositivos por MAC |
 | `onboardingConcluido` | Boolean | Se onboarding foi completado |
 | `gemmaAvailable` | Boolean | Se Gemma local está disponível |
@@ -415,7 +415,7 @@ Todos residem em `:app/ui/component/`.
 | `OrbitThinkingBubble` | Animação "pensando..." |
 | `OrbitInlineQuestion` | Pergunta inline com chips de resposta |
 | `OrbitInputArea` | Campo de texto + botão de envio |
-| `OrbitActionsCard` | Card de ações do Orbit |
+| `OrbitActionsCard` | Card de ações do SignallQ |
 | `LinkaIaHeader` | Cabeçalho da sessão de IA |
 | `LinkaPulseIcon` | Ícone do LinkaPulse |
 | `LinkaPulseSymbol` | Símbolo animado do LinkaPulse |
@@ -499,7 +499,7 @@ Controle granular de features via flags booleanas em compiletime — definidas e
 
 > [VERIFICAR] Estado exato das flags em v0.15.0 — o rebranding pode ter alterado nomes ou adicionado novas flags. Confirmar lendo `FeatureFlags.kt` atual.
 
-**Acesso:** use sempre `FeatureFlags.*` (objeto em `app/src/main/kotlin/io/linka/app/kotlin/FeatureFlags.kt`), nunca `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente nas telas.
+**Acesso:** use sempre `FeatureFlags.*` (objeto em `app/src/main/kotlin/io/signallq/app/kotlin/FeatureFlags.kt`), nunca `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente nas telas.
 
 **Ativação em release:** alterar valor em bloco `release`, incrementar versão, rebuild e testar. Ver `RELEASE.md` para procedimento completo.
 
@@ -649,7 +649,7 @@ Novo diagnóstico para latência DNS entre 51ms e 150ms. Status `info` — não 
 
 ### 15.1 PingExecutor (v0.9.0)
 
-Novo: `io.linka.app.kotlin.feature.speedtest.PingExecutor` — executa 20 amostras ICMP sobre HTTP/2 contra Cloudflare Speed. 1ª amostra descartada (warmup), filtra outliers (≤3× mediana). Retorna `PingResultado(latenciaMs, jitterMs, perdaPercentual, amostras)`.
+Novo: `io.veloo.app.kotlin.feature.speedtest.PingExecutor` — executa 20 amostras ICMP sobre HTTP/2 contra Cloudflare Speed. 1ª amostra descartada (warmup), filtra outliers (≤3× mediana). Retorna `PingResultado(latenciaMs, jitterMs, perdaPercentual, amostras)`.
 
 ### 15.2 ExploreToolsRow (v0.9.0)
 
@@ -683,9 +683,9 @@ Timeout visual com mensagem "Conectando…" + UI de retry. `setTimeout` cleanup 
 
 `LLMChatScreen` respeita barra de status e insets do sistema. TopBar Material 3 com Scaffold e insets corretos. Seção "thinking" renderizada como expandível com animação.
 
-### 15.10 Rebranding Linka → Veloo (v0.15.0)
+### 15.10 Rebranding SignallQ → SignallQ (v0.15.0)
 
 Renomeação de identidade visual, package name e configurações Firebase. App ID: `io.veloo.app`. versionName `0.15.0`, versionCode `44`. Tela de novidades v0.15.0 adicionada.
 
-> [VERIFICAR] Quais componentes e strings internas foram renomeados de Linka para Veloo na v0.15.0 — confirmar escopo real do rebranding no código (package name, strings, resources).
+> [VERIFICAR] Quais componentes e strings internas foram renomeados de SignallQ para SignallQ na v0.15.0 — confirmar escopo real do rebranding no código (package name, strings, resources).
 

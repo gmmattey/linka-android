@@ -1,5 +1,5 @@
 ---
-description: Checklist de acessibilidade para telas Android (Compose/TalkBack) e PWA (WCAG/ARIA) do Linka.
+description: Checklist de acessibilidade para telas Android (Compose/TalkBack) e PWA (WCAG/ARIA) do SignallQ.
 ---
 
 ## Quando usar

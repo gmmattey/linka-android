@@ -108,7 +108,7 @@ class ChatDiagnosticoIaViewModelTest {
                     sessionId = sessaoId,
                     papel = PapelChatMensagem.assistente,
                     conteudo =
-                        "Olá. Sou o Diagnóstico IA do Veloo.\n\n" +
+                        "Olá. Sou o Diagnóstico IA do SignallQ.\n\n" +
                             "Posso ajudar você a entender problemas de internet, Wi-Fi, velocidade, latência, " +
                             "perda de pacote e qualidade da sua rede. Trabalho apenas com assuntos relacionados " +
                             "à sua conexão — não sou um assistente geral e posso cometer erros. Use minhas " +
@@ -134,7 +134,7 @@ class ChatDiagnosticoIaViewModelTest {
             assertEquals("Deve ter exatamente 2 mensagens iniciais", 2, mensagens.size)
             assertTrue("Msg1 deve ser do assistente", mensagens[0].papel == PapelChatMensagem.assistente)
             assertTrue("Msg2 deve ser do assistente", mensagens[1].papel == PapelChatMensagem.assistente)
-            assertTrue("Msg1 deve conter boas-vindas", mensagens[0].conteudo.contains("Diagnóstico IA do Veloo"))
+            assertTrue("Msg1 deve conter boas-vindas", mensagens[0].conteudo.contains("Diagnóstico IA do SignallQ"))
             assertEquals("Msg2 deve ter texto exato", "Como você quer começar?", mensagens[1].conteudo)
             assertTrue("Msg1 isLocal deve ser true", mensagens[0].isLocal)
             assertTrue("Msg2 isLocal deve ser true", mensagens[1].isLocal)

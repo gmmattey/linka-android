@@ -57,12 +57,12 @@ import androidx.compose.ui.unit.sp
 import io.veloo.app.feature.diagnostico.chat.ChatMensagem
 import io.veloo.app.feature.diagnostico.chat.PapelChatMensagem
 import io.veloo.app.feature.diagnostico.chat.StatusChatMensagem
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
 import io.veloo.app.ui.component.LLMAssistantMessage
-import io.veloo.app.ui.component.OrbitUserMessageBubble
+import io.veloo.app.ui.component.SignallQUserMessageBubble
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +90,7 @@ fun LLMChatScreen(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Veloo",
+                            text = "SignallQ",
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Spacer(modifier = Modifier.height(2.dp))
@@ -211,7 +211,7 @@ private fun LLMChatMensagens(
             val isUltima = mensagem == mensagens.lastOrNull()
             when (mensagem.papel) {
                 PapelChatMensagem.usuario -> {
-                    OrbitUserMessageBubble(text = mensagem.conteudo)
+                    SignallQUserMessageBubble(text = mensagem.conteudo)
                 }
                 PapelChatMensagem.assistente, PapelChatMensagem.sistema -> {
                     LLMAssistantMessage(
@@ -343,7 +343,7 @@ private fun LLMChatInput(
             }
 
             Text(
-                text = "O Veloo roda no aparelho e pode errar. Confira dados importantes.",
+                text = "O SignallQ roda no aparelho e pode errar. Confira dados importantes.",
                 style =
                     MaterialTheme.typography.labelSmall.copy(
                         fontSize = 10.5.sp,
@@ -359,7 +359,7 @@ private fun LLMChatInput(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF, name = "LLMChatScreen - mensagens")
 @Composable
 private fun LLMChatScreenPreview() {
-    VelooTheme {
+    SignallQTheme {
         val mensagens =
             listOf(
                 ChatMensagem(
@@ -410,7 +410,7 @@ private fun LLMChatScreenPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF, name = "LLMChatScreen - streaming")
 @Composable
 private fun LLMChatScreenStreamingPreview() {
-    VelooTheme {
+    SignallQTheme {
         val mensagens =
             listOf(
                 ChatMensagem(

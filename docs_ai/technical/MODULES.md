@@ -1,4 +1,4 @@
-# Módulos — Android Linka
+# Módulos — Android SignallQ
 
 **Última atualização:** 2026-05-17
 **Fonte:** `settings.gradle.kts` + build files reais (Marcelo, 2026-05-17)
@@ -12,12 +12,12 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin |
+| Namespace | io.veloo.app.kotlin |
 | Camada | app (entry point) |
 | Plugins | com.android.application 8.11.1, kotlin.android 2.2.20, kotlin.plugin.compose 2.2.20, kapt 2.2.20 |
 | Dependências | Todos os :core* e :feature*, androidx-compose, lifecycle, material3 |
 
-**Responsabilidade:** Entry point do app. Contém `MainActivity`, `LinkaApplication`, `MainViewModel`, `AppShell`, `AppNavGraph`, todas as telas (Composables de screen), componentes UI globais, orchestrators (Orbit, LinkaPulse), tema.
+**Responsabilidade:** Entry point do app. Contém `MainActivity`, `LinkaApplication`, `MainViewModel`, `AppShell`, `AppNavGraph`, todas as telas (Composables de screen), componentes UI globais, orchestrators (SignallQ, LinkaPulse), tema.
 
 ---
 
@@ -27,7 +27,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.core.network |
+| Namespace | io.veloo.app.kotlin.core.network |
 | Plugins | android-library, kotlin-android |
 | Dependências | androidx.core.ktx, kotlinx.coroutines |
 
@@ -41,7 +41,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.core.database |
+| Namespace | io.veloo.app.kotlin.core.database |
 | Plugins | android-library, kotlin-android, kapt |
 | Dependências | androidx.room.runtime, androidx.room.ktx |
 
@@ -55,7 +55,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.core.datastore |
+| Namespace | io.veloo.app.kotlin.core.datastore |
 | Plugins | android-library, kotlin-android |
 | Dependências | androidx.datastore.preferences, kotlinx.coroutines |
 
@@ -67,7 +67,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.core.permissions |
+| Namespace | io.veloo.app.kotlin.core.permissions |
 | Plugins | android-library, kotlin-android |
 | Dependências | — |
 
@@ -79,7 +79,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.core.telephony |
+| Namespace | io.veloo.app.kotlin.core.telephony |
 | Plugins | android-library, kotlin-android |
 | Dependências | — |
 
@@ -93,7 +93,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.home |
+| Namespace | io.veloo.app.kotlin.feature.home |
 | Dependências | — |
 
 **Responsabilidade:** Módulo mínimo — apenas `FeatureHomeModulo.kt`. A `HomeScreen` reside em `:app`.
@@ -104,7 +104,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.wifi |
+| Namespace | io.veloo.app.kotlin.feature.wifi |
 | Dependências | :coreNetwork |
 
 **Responsabilidade:** Scan de redes Wi-Fi vizinhas e análise de topologia.
@@ -119,7 +119,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.devices |
+| Namespace | io.veloo.app.kotlin.feature.devices |
 | Dependências | — |
 
 **Responsabilidade:** Descoberta e classificação de dispositivos na rede local via ARP, mDNS e port scan.
@@ -132,7 +132,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.dns |
+| Namespace | io.veloo.app.kotlin.feature.dns |
 | Dependências | — |
 
 **Responsabilidade:** Benchmark de servidores DNS via DoH (DNS over HTTPS).
@@ -147,7 +147,7 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.speedtest |
+| Namespace | io.veloo.app.kotlin.feature.speedtest |
 | Dependências | okhttp |
 
 **Responsabilidade:** Execução do teste de velocidade.
@@ -160,15 +160,15 @@
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.diagnostico |
+| Namespace | io.veloo.app.kotlin.feature.diagnostico |
 | Dependências | :featureFibra, okhttp, org.json:json |
 
-**Responsabilidade:** Engines de diagnóstico local, `DiagnosticOrchestrator`, integração com IA Cloudflare, fluxo Orbit/Chat.
+**Responsabilidade:** Engines de diagnóstico local, `DiagnosticOrchestrator`, integração com IA Cloudflare, fluxo SignallQ/Chat.
 
 **Sub-pacotes:**
 - `featureDiagnostico/`: engines locais, orchestrator, modelos
 - `featureDiagnostico/ai/`: schema de IA, factory do payload, fallback
-- `featureDiagnostico/pulse/`: Orbit/Pulse — IA conversacional
+- `featureDiagnostico/pulse/`: SignallQ/Pulse — IA conversacional
 
 Esta é a feature mais complexa do app.
 
@@ -178,7 +178,7 @@ Esta é a feature mais complexa do app.
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.fibra |
+| Namespace | io.veloo.app.kotlin.feature.fibra |
 | Dependências | — |
 
 **Responsabilidade:** Leitura de dados da ONT GPON Nokia via HTTP local.
@@ -191,7 +191,7 @@ Esta é a feature mais complexa do app.
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.history |
+| Namespace | io.veloo.app.kotlin.feature.history |
 | Dependências | — |
 
 **Responsabilidade:** Histórico de medições, cálculo de uptime, narrativa e exportação.
@@ -204,7 +204,7 @@ Esta é a feature mais complexa do app.
 
 | Campo | Valor |
 |---|---|
-| Namespace | io.linka.app.kotlin.feature.settings |
+| Namespace | io.veloo.app.kotlin.feature.settings |
 | Dependências | — |
 
 **Responsabilidade:** Módulo mínimo — apenas `FeatureSettingsModulo.kt`. A `AjustesScreen` reside em `:app`.

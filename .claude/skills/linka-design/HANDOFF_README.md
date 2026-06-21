@@ -1,8 +1,8 @@
-# Handoff: Linka Design System → Claude Code
+# Handoff: SignallQ Design System → Claude Code
 
 ## Overview
 
-Este pacote transforma o **Linka Design System** em uma **Claude Code Skill** pronta para
+Este pacote transforma o **SignallQ Design System** em uma **Claude Code Skill** pronta para
 ser instalada no seu repositório. O objetivo não é implementar telas novas (elas **já
 existem** no app Android `io.linka.app.kotlin`), e sim garantir que **todo trabalho futuro de
 UI feito com o Claude Code siga o design system perfeitamente** — mesmos tokens, mesma voz,
@@ -10,7 +10,7 @@ mesmos componentes.
 
 Uma vez instalada, sempre que você pedir uma tela, um componente ou um ajuste de UI, o
 Claude Code reconhece a skill pela sua `description`, carrega as regras e os tokens, e gera
-código já dentro do padrão Linka.
+código já dentro do padrão SignallQ.
 
 ---
 
@@ -25,11 +25,11 @@ Claude Code reconhece automaticamente. **Não é código de produção para copi
 | `SKILL.md` | Manifesto da skill (frontmatter `name` / `description` / `user-invocable`). É isso que o Claude Code lê para decidir quando ativar a skill. |
 | `README.md` | Fundamentos completos: contexto do produto, voz/conteúdo, fundamentos visuais, iconografia, índice. |
 | `colors_and_type.css` | Todos os design tokens como CSS vars + classes de tipografia M3. **A fonte de verdade dos valores.** |
-| `assets/` | Marca "linka" (`ic_launcher.png`, `ic_launcher_foreground.png`). |
+| `assets/` | Marca "SignallQ" (`ic_launcher.png`, `ic_launcher_foreground.png`). |
 | `preview/` | Cards de referência do DS (cores, tipo, espaçamento, componentes) — abra no navegador para visualizar. |
 | `ui_kits/android/` | Recriação React fiel do app (`index.html` interativo + componentes JSX). `chrome.jsx` carrega os tokens `LK` e os primitivos compartilhados. |
 
-> Os tokens aqui foram **engenharia-reversa do próprio codebase Android** (`LinkaTheme.kt` →
+> Os tokens aqui foram **engenharia-reversa do próprio codebase Android** (`SignallQTheme.kt` →
 > `LkColors`, `LkSpacing`, `LkRadius`, `linkaTypography`). Os nomes batem com o que já está no
 > seu código Kotlin/Compose — use os valores abaixo como tabela de equivalência.
 
@@ -73,13 +73,13 @@ Skills são carregadas sob demanda. Para deixar o DS **sempre presente**, adicio
 
 ```md
 ## Design System
-Toda UI deste projeto segue o Linka Design System.
+Toda UI deste projeto segue o SignallQ Design System.
 Antes de criar ou editar telas/componentes, consulte a skill `linka-design`
 (.claude/skills/linka-design/README.md) e use os tokens de colors_and_type.css /
-LinkaTheme.kt como fonte de verdade.
+SignallQTheme.kt como fonte de verdade.
 Não-negociáveis: Material 3 claro, acento violeta #6C2BFF, semântica de status
 verde/âmbar/vermelho, ícones Material Symbols (Outlined), tipo Roboto, grid 8dp,
-card radius 16dp e flat (sem sombras pesadas), superfícies Orbit (IA) sempre escuras,
+card radius 16dp e flat (sem sombras pesadas), superfícies SignallQ (IA) sempre escuras,
 copy em PT-BR com "você" e SEM emoji.
 ```
 
@@ -98,7 +98,7 @@ Para confirmar que está instalada, rode `/doctor` ou liste skills no Claude Cod
 Como as telas já existem, o ganho real vem de garantir que elas usem os **tokens** como
 fonte de verdade (e não valores hardcoded). Antes de gerar UI nova, peça ao Claude Code para:
 
-1. Verificar se `LinkaTheme.kt` (`LkColors` / `LkSpacing` / `LkRadius` / `linkaTypography`) é
+1. Verificar se `SignallQTheme.kt` (`LkColors` / `LkSpacing` / `LkRadius` / `linkaTypography`) é
    de fato a origem de cores, espaçamentos e tipos das telas atuais.
 2. Substituir qualquer cor/spacing hardcoded pelos tokens equivalentes (tabela abaixo).
 3. Reaproveitar os componentes existentes (`…/ui/component/*.kt`) em vez de recriar.
@@ -107,7 +107,7 @@ fonte de verdade (e não valores hardcoded). Antes de gerar UI nova, peça ao Cl
 
 ## Design Tokens (referência rápida)
 
-> CSS var (artefatos web) → valor → equivalente Compose (`LinkaTheme.kt`).
+> CSS var (artefatos web) → valor → equivalente Compose (`SignallQTheme.kt`).
 
 ### Marca
 | Token | Valor | Uso |
@@ -149,13 +149,13 @@ fonte de verdade (e não valores hardcoded). Antes de gerar UI nova, peça ao Cl
 | `--text-primary` | `#F3F4F6` |
 | `--border` | `#2A2A2A` |
 
-### Orbit (IA — sempre escuro, não adapta ao tema)
+### SignallQ (IA — sempre escuro, não adapta ao tema)
 | Token | Valor |
 |---|---|
-| `--linka-black` | `#0D0D1A` (background) |
-| `--linka-dark-surface` | `#1A0B2E` |
-| `--linka-dark-card` | `#1E1130` |
-| `--linka-text-on-dark` | `#F3F4F6` |
+| `--SignallQ-black` | `#0D0D1A` (background) |
+| `--SignallQ-dark-surface` | `#1A0B2E` |
+| `--SignallQ-dark-card` | `#1E1130` |
+| `--SignallQ-text-on-dark` | `#F3F4F6` |
 
 ### Containers semânticos (Light)
 | Token | Valor |
@@ -216,7 +216,7 @@ fill + `accent @25–30%` borda; banner de alerta = `warning @12%` fill.
 **Sistemas**
 - Ícones: **Material Symbols / Material Icons (Outlined)** apenas. Na web:
   `<span class="material-symbols-outlined">wifi</span>`.
-- Superfícies **Orbit** (IA) são **sempre escuras** (`#0D0D1A` / `#1A0B2E` / `#1E1130`),
+- Superfícies **SignallQ** (IA) são **sempre escuras** (`#0D0D1A` / `#1A0B2E` / `#1E1130`),
   independentes do tema.
 - Movimento contido e funcional: fades/offsets rápidos, ripple M3, sem bounce nem floreio.
   Nav inferior some no scroll-down e durante teste em andamento.
@@ -240,7 +240,7 @@ As superfícies centrais — recriadas em alta fidelidade em `ui_kits/android/`:
 - **Sinal (Wi-Fi):** card de rede conectada, chips de filtro de banda (Todos / 2.4 / 5 / 6
   GHz), lista de redes com barras de sinal e métricas cruas + veredito.
 - **Histórico:** resultados anteriores.
-- **Diagnóstico / Orbit (IA):** superfície escura, bolhas de chat com TypewriterText, bubble
+- **Diagnóstico / SignallQ (IA):** superfície escura, bolhas de chat com TypewriterText, bubble
   "pensando" pulsante.
 
 Veja `_ref/` (capturas do app real, **não** para shipping) e `preview/` para os cards do DS.
@@ -252,7 +252,7 @@ Veja `_ref/` (capturas do app real, **não** para shipping) e `preview/` para os
 - `colors_and_type.css` — tokens + classes de tipo (importe em qualquer artefato web).
 - `README.md` (dentro da skill) — fundamentos completos de conteúdo, visual e iconografia.
 - `ui_kits/android/index.html` — protótipo click-through; `chrome.jsx` tem os tokens `LK` e
-  primitivos compartilhados; `screens.jsx`, `speedtest.jsx`, `orbit.jsx`, `app.jsx`.
+  primitivos compartilhados; `screens.jsx`, `speedtest.jsx`, `signallq.jsx`, `app.jsx`.
 - `preview/*.html` — cards de cores, tipo, espaçamento, raios e componentes.
-- No seu codebase: `LinkaTheme.kt` (tokens), `…/ui/component/*.kt` (25 composables),
+- No seu codebase: `SignallQTheme.kt` (tokens), `…/ui/component/*.kt` (25 composables),
   `…/ui/screen/*.kt` (telas), `docs_ai/design-system/*.md` (docs originais).

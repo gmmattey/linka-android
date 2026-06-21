@@ -4,7 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.veloo.app.core.database.ApelidoDispositivoEntity
-import io.veloo.app.core.database.VelooDatabase
+import io.veloo.app.core.database.SignallQDatabase
 import io.veloo.app.core.database.MedicaoEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -20,14 +20,14 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ChatSessionDaoTest {
 
-    private lateinit var db: VelooDatabase
+    private lateinit var db: SignallQDatabase
     private lateinit var dao: ChatSessionDao
 
     @Before
     fun criarBanco() {
         db = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            VelooDatabase::class.java,
+            SignallQDatabase::class.java,
         ).allowMainThreadQueries().build()
         dao = db.chatSessionDao()
     }

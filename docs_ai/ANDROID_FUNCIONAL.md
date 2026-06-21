@@ -1,8 +1,8 @@
-# Documentação Funcional — Android Linka
+# Documentação Funcional — Android SignallQ
 
 **Público-alvo:** Desenvolvedor humano e agentes de IA
 **Plataforma:** Android exclusivo
-**Última atualização:** 2026-05-30 (v0.15.0 — rebranding Veloo, Chat IA com streaming/thinking, redesign Diagnóstico IA, 5G NSA, redesign UI mockup v2, Ping/Latência, Onboarding com termos; mockups ASCII adicionados a todas as telas principais)
+**Última atualização:** 2026-05-30 (v0.15.0 — rebranding SignallQ, Chat IA com streaming/thinking, redesign Diagnóstico IA, 5G NSA, redesign UI mockup v2, Ping/Latência, Onboarding com termos; mockups ASCII adicionados a todas as telas principais)
 **Mantido por:** Taisa
 
 > Este documento responde: "O que o app Android faz, tela por tela, da perspectiva do usuário?"
@@ -11,9 +11,9 @@
 
 ---
 
-## 1. O que é o Veloo
+## 1. O que é o SignallQ
 
-O Veloo (anteriormente Linka) é um app Android nativo de diagnóstico de internet doméstica. Mede velocidade, analisa Wi-Fi, DNS, latência, jitter e perda de pacotes, e entrega diagnóstico assistido por IA com ações práticas para o usuário.
+O SignallQ (anteriormente SignallQ) é um app Android nativo de diagnóstico de internet doméstica. Mede velocidade, analisa Wi-Fi, DNS, latência, jitter e perda de pacotes, e entrega diagnóstico assistido por IA com ações práticas para o usuário.
 
 **Funcionalidades principais:**
 - Teste de velocidade (download, upload, latência, jitter, perda, bufferbloat)
@@ -38,7 +38,7 @@ O app usa um sistema de **FeatureFlags no BuildConfig** para controlar a visibil
 - **Debug:** Todas as 33 features habilitadas (desenvolvedor testa a full stack)
 - **Release:** 15 features MVP habilitadas (usuário final vê features prontas)
 
-Verifica-se usando `io.linka.app.kotlin.FeatureFlags` em qualquer tela ou lógica. As features pós-MVP estão mapeadas em `FeatureFlags.kt` e controladas no `app/build.gradle.kts`.
+Verifica-se usando `io.veloo.app.kotlin.FeatureFlags` em qualquer tela ou lógica. As features pós-MVP estão mapeadas em `FeatureFlags.kt` e controladas no `app/build.gradle.kts`.
 
 **Estado em release desta entrega:**
 
@@ -716,7 +716,7 @@ Aba de acesso a funcionalidades adicionais. Ícone: `GridView`. Dá acesso a `Aj
 ╔══════════════════════════════════════╗
 ║  StatusBar                           ║
 ╠══════════════════════════════════════╣
-║  [←]          Veloo          [Novo]  ║
+║  [←]          SignallQ          [Novo]  ║
 ║           ● Assistente de conexão    ║
 ╠══════════════════════════════════════╣
 ║                                      ║
@@ -939,7 +939,7 @@ Introduzido na v0.12.0 como Chat IA com drawer, chips iniciais e cota diária. S
 
 **Composable:** `OrbitScreen.kt`
 
-Exibe o símbolo animado de Orbit. Ponto de entrada da experiência de IA conversacional autônoma.
+Exibe o símbolo animado de SignallQ. Ponto de entrada da experiência de IA conversacional autônoma.
 
 > [VERIFICAR] Verificar se `OrbitScreen` ainda existe e é acessível na v0.15.0, ou se foi substituída pelo fluxo `LLMChatScreen` / `ChatDiagnosticoIaScreen`.
 
@@ -1126,4 +1126,4 @@ Resumo das principais entregas por versão. Ver `docs_ai/RELEASES.md` para hist�
 | v0.14.0 | Redesign Diagnóstico IA: fluxo laudo + LLMChat, footer "Tirar dúvidas / Refazer / Operadora", operadoras com logo |
 | v0.14.2 | Botão IA, sheet operadora e "Refazer teste" em ResultadoVelocidadeScreen |
 | v0.14.4 | Timeout visual "Conectando…" + UI retry no Diagnóstico IA, LLMChatScreen insets/TopBar corretos, thinking expansível |
-| v0.15.0 | Rebranding Linka → Veloo, package name `io.veloo.app`, identidade visual atualizada |
+| v0.15.0 | Rebranding SignallQ → SignallQ, package name `io.veloo.app`, identidade visual atualizada |

@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LocalLkTokens
 
@@ -82,7 +82,7 @@ fun DiagRootCauseCard(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun DiagRootCauseCardPreview() {
-    VelooTheme {
+    SignallQTheme {
         DiagRootCauseCard(
             icon = Icons.Rounded.Wifi,
             title = "Sinal Wi-Fi fraco",

@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 
-private const val TAG = "LinkaFibra"
+private const val TAG = "SignallQFibra"
 
 class ExecutorFibra {
     private val mutableSnapshotFlow = MutableStateFlow(

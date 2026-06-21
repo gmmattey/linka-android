@@ -1,5 +1,5 @@
 # Padrões de Código Recomendados
-## LINKA Android — Guidelines para Implementação
+## SIGNALLQ Android — Guidelines para Implementação
 
 **Audiência**: Camilo, Claudete, Gema, Rodrigo, Marina, Brás  
 **Status**: Normativo (obrigatório para PRs das issues #1–24)
@@ -307,7 +307,7 @@ fun ResultadoVelocidadeScreen(viewModel: ResultadoVelocidadeViewModel = hiltView
 <network-security-config>
   <!-- Por padrão: HTTPS obrigatório -->
   <domain-config cleartextTrafficPermitted="false">
-    <domain includeSubdomains="true">*.linka.io</domain>
+    <domain includeSubdomains="true">*.signallq.io</domain>
     <domain includeSubdomains="true">api.speedtest.net</domain>
   </domain-config>
 

@@ -11,8 +11,8 @@ import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
 
 /**
- * Rodapé discreto com o nome do motor de análise usado (Gemma/Linka IA/local).
- * Sempre exibe texto — fallback "Motor de análise: Linka IA" quando modeloIa é null.
+ * Rodapé discreto com o nome do motor de análise usado (Gemma/SignallQ IA/local).
+ * Sempre exibe texto — fallback "Motor de análise: SignallQ IA" quando modeloIa é null.
  * NUNCA exibe o id interno do modelo — apenas o textoRodape comercial.
  */
 @Composable
@@ -24,7 +24,7 @@ fun AiModelFooter(
     val text =
         modeloIa?.nomeExibicao?.takeIf { it.isNotBlank() }
             ?: modeloIa?.nomeCompletoComercial?.takeIf { it.isNotBlank() }
-            ?: "Veloo IA"
+            ?: "SignallQ IA"
 
     Text(
         text = text,

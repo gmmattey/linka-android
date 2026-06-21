@@ -942,7 +942,7 @@ private fun HistoricoCard(
                 )
                 Spacer(Modifier.weight(1f))
                 if (medicao.fonte == "orbit") {
-                    QualityBadge("ORBIT", LkColors.accent)
+                    QualityBadge("SIGNALLQ", LkColors.accent)
                     Spacer(Modifier.width(LkSpacing.xs))
                 }
                 if (medicao.contaminado) {
@@ -1110,7 +1110,7 @@ private fun HistoricoDetailSheet(medicao: MedicaoEntity) {
             }
         }
         if (medicao.fonte == "orbit") {
-            item { SheetRow("Origem", "Orbit (IA)", valueColor = LkColors.accent) }
+            item { SheetRow("Origem", "SignallQ (IA)", valueColor = LkColors.accent) }
             item { HorizontalDivider(color = c.border) }
         }
         item { SheetRow("Tipo de rede", tipoLabel(medicao)) }

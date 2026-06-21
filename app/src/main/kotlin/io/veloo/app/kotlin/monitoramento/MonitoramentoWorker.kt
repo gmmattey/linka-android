@@ -11,7 +11,7 @@ import androidx.work.WorkerParameters
 import io.veloo.app.core.database.CoreDatabaseModulo
 import io.veloo.app.core.database.MedicaoEntity
 import io.veloo.app.core.datastore.CoreDatastoreModulo
-import io.veloo.app.notificacao.VelooNotificationHelper
+import io.veloo.app.notificacao.SignallQNotificationHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -178,17 +178,17 @@ internal class MonitoramentoWorker(
 
         // Detectar transições e notificar somente em transição ok→alerta
         if (alertaSemInternetNovo && !alertaSemInternetAnterior && notifSemInternetAtiva) {
-            VelooNotificationHelper.notificarSemInternet(applicationContext)
+            SignallQNotificationHelper.notificarSemInternet(applicationContext)
         } else if (!alertaSemInternetNovo) {
             // Só checa os outros alertas se não estiver em "sem internet"
             if (alertaLatenciaNovo && !alertaLatenciaAnterior && notifLatenciaAtiva) {
-                VelooNotificationHelper.notificarLatenciaAlta(applicationContext, latencia ?: 0L)
+                SignallQNotificationHelper.notificarLatenciaAlta(applicationContext, latencia ?: 0L)
             }
             if (alertaDnsNovo && !alertaDnsAnterior && notifDnsAtiva) {
-                VelooNotificationHelper.notificarDnsLento(applicationContext, dns ?: 0L)
+                SignallQNotificationHelper.notificarDnsLento(applicationContext, dns ?: 0L)
             }
             if (alertaRssiNovo && !alertaRssiAnterior && notifRssiAtiva) {
-                VelooNotificationHelper.notificarWifiFraco(applicationContext, rssiInfo.rssi ?: 0)
+                SignallQNotificationHelper.notificarWifiFraco(applicationContext, rssiInfo.rssi ?: 0)
             }
         }
 

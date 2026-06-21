@@ -231,7 +231,7 @@ fun OperadoraBottomSheet(
             Spacer(Modifier.height(LkSpacing.md))
 
             Text(
-                text = "O Veloo não tem vínculo com as operadoras. Você será levado ao canal oficial de cada uma.",
+                text = "O SignallQ não tem vínculo com as operadoras. Você será levado ao canal oficial de cada uma.",
                 fontSize = 12.sp,
                 color = c.textTertiary,
                 lineHeight = 17.sp,

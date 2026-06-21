@@ -1,10 +1,10 @@
 # Calibrador isolado de Speedtest — Cloudflare
 
-Ferramenta **fora do app Linka** para descobrir empiricamente qual configuração de medição própria fica entre **5 % e 10 %** da diferença em relação ao Cloudflare Speedtest oficial. Não toca em `source/app/lib/`.
+Ferramenta **fora do app SignallQ** para descobrir empiricamente qual configuração de medição própria fica entre **5 % e 10 %** da diferença em relação ao Cloudflare Speedtest oficial. Não toca em `source/app/lib/`.
 
 ## Por que existe
 
-O app Linka usa exclusivamente o provedor Cloudflare desde 2026-04-26 (SIMET removido). O fix de payload multi-tier resolveu o subdimensionamento em fibra ≥100 Mbps, mas **não há baseline empírico registrado** confirmando convergência ±5 a 10 %. Este calibrador fecha essa lacuna **sem alterar o app**.
+O app SignallQ usa exclusivamente o provedor Cloudflare desde 2026-04-26 (SIMET removido). O fix de payload multi-tier resolveu o subdimensionamento em fibra ≥100 Mbps, mas **não há baseline empírico registrado** confirmando convergência ±5 a 10 %. Este calibrador fecha essa lacuna **sem alterar o app**.
 
 ## Fluxo
 
@@ -95,21 +95,21 @@ samples/                              ← Samples brutos por (combo × rodada ×
 
 ## O que NÃO está no escopo desta ferramenta
 
-- Alterar qualquer arquivo do app Linka.
+- Alterar qualquer arquivo do app SignallQ.
 - Gerar PRs, commits ou releases.
 - Substituir a lógica do `cloudflare_speed_test_service.dart` — a comparação e proposta de mudança virá em **uma rodada separada**, depois que esta ferramenta entregar a "lógica vencedora".
 
 ## webapp/ — Calibrador interativo no browser
 
-Ferramenta complementar para iterar parâmetros do algoritmo Linka **no PC via cabo**, sem compilar o app Android.
+Ferramenta complementar para iterar parâmetros do algoritmo SignallQ **no PC via cabo**, sem compilar o app Android.
 
 ### Por que existe
 
-O app Linka usa Cronet (Android) com TTFB ~139 ms vs ~56 ms do Chrome desktop, e 2 streams paralelos que criam contenção no WiFi. Para isolar bugs de algoritmo da variável Cronet/rede, o WebApp roda no Chrome desktop (cabo Ethernet) e permite comparar:
+O app SignallQ usa Cronet (Android) com TTFB ~139 ms vs ~56 ms do Chrome desktop, e 2 streams paralelos que criam contenção no WiFi. Para isolar bugs de algoritmo da variável Cronet/rede, o WebApp roda no Chrome desktop (cabo Ethernet) e permite comparar:
 
 - **Modo "Oficial Cloudflare"** — mesma metodologia do SDK (`@cloudflare/speedtest`)
-- **Modo "Linka"** — configurável: streams, payload, rounds, método de agregação
-- **Pré-sets rápidos:** `Linka Atual` (2 streams × 25 MB, median), `Fix 1` (1 stream × 25 MB), `Fix 2` (1 stream × 100 MB, P90)
+- **Modo "SignallQ"** — configurável: streams, payload, rounds, método de agregação
+- **Pré-sets rápidos:** `SignallQ Atual` (2 streams × 25 MB, median), `Fix 1` (1 stream × 25 MB), `Fix 2` (1 stream × 100 MB, P90)
 
 ### Como rodar
 
@@ -186,7 +186,7 @@ Exemplo:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/speedtest/coletarParidadeKotlin.ps1 `
-  -PackageName io.linka.app.kotlin `
+  -PackageName io.veloo.app.kotlin `
   -FlutterJsonDir tmp_logs/sessao_v3.3.3+12_20260507_1224 `
   -Modo all `
   -JanelaSegundos 900

@@ -429,7 +429,7 @@ fun HomeScreen(
 
             // 2. Medições card
             item {
-                LinkaCard(c) {
+                SignallQCard(c) {
                     Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -571,10 +571,10 @@ fun HomeScreen(
     }
 }
 
-// ─── LinkaCard ────────────────────────────────────────────────────────────────
+// ─── SignallQCard ────────────────────────────────────────────────────────────────
 
 @Composable
-private fun LinkaCard(
+private fun SignallQCard(
     c: LkTokens,
     content: @Composable () -> Unit,
 ) {
@@ -675,7 +675,7 @@ internal fun BufferbloatCard(
                     LkColors.error.copy(alpha = 0.12f),
                 )
         }
-    LinkaCard(c) {
+    SignallQCard(c) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -1407,7 +1407,7 @@ private fun WifiSignalCard(
             LkColors.accent
         }
 
-    LinkaCard(c) {
+    SignallQCard(c) {
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth().clickable(onClick = onTap),
@@ -1527,7 +1527,7 @@ private fun MobileSignalCard(
     val rsrp = movelSnapshot.rsrpDbm
     val mobileColor = mobileSignalColor(rsrp)
 
-    LinkaCard(c) {
+    SignallQCard(c) {
         Row(
             modifier = Modifier.fillMaxWidth().clickable(onClick = onTap),
             verticalAlignment = Alignment.CenterVertically,
@@ -3235,7 +3235,7 @@ private fun ConnectionContextCard(
                     else -> LkColors.error
                 }
 
-            LinkaCard(c) {
+            SignallQCard(c) {
                 Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -3316,7 +3316,7 @@ private fun ConnectionContextCard(
                     ?: stringResource(R.string.home_context_movel_operadora_desconhecida)
             val tecnologia = movelSnapshot?.tecnologia
 
-            LinkaCard(c) {
+            SignallQCard(c) {
                 Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

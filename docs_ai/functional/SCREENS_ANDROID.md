@@ -1,9 +1,9 @@
-# Telas Android — Linka
+# Telas Android — SignallQ
 
 **Última atualização:** 2026-05-18
 **Fonte:** código real (Marcelo, 2026-05-17)
 **Arquivo de navegação:** `AppShell.kt`, `AppNavGraph.kt`
-**Diretório de telas:** `app/src/main/kotlin/io/linka/app/kotlin/ui/screen/`
+**Diretório de telas:** `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
 
 ---
 
@@ -204,7 +204,7 @@
 
 ---
 
-### ChatScreen (Orbit IA)
+### ChatScreen (SignallQ IA)
 
 **Tipo:** Fluxo secundário (sobreposto)
 
@@ -219,7 +219,7 @@
 - `AiModelFooter`: info do modelo IA
 - `LinkaIaHeader`: cabeçalho da sessão
 
-**API:** `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev`
+**API:** `https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev`
 
 **Navegação de saída:** → `ResultadoVelocidadeScreen` (voltar)
 
@@ -271,7 +271,7 @@ Relatório visual do diagnóstico completo.
 
 ### OrbitScreen
 
-**Tipo:** Exibição do símbolo animado de Orbit.
+**Tipo:** Exibição do símbolo animado de SignallQ.
 
 ---
 

@@ -24,7 +24,7 @@ Foram encontradas situacoes parecidas com a duplicidade dos scripts de APK.
 
 ## Pontos Para Revisao Posterior
 
-- Alguns docs tecnicos granulares ainda citam `linka-android-kotlin/` como caminho antigo ou inferido. Eles nao quebram automacao, mas devem ser revisados quando cada area for tocada.
+- Alguns docs tecnicos granulares ainda citam `signallq-android-kotlin/` como caminho antigo ou inferido. Eles nao quebram automacao, mas devem ser revisados quando cada area for tocada.
 - Alguns docs de release historicos v0.9.0 ainda citam caminhos antigos porque registram entregas passadas.
 
 ## Politica

@@ -1,7 +1,7 @@
-# Linka AI Diagnosis Worker
+# SignallQ AI Diagnosis Worker
 
 Endpoint unico para explicar (via IA) um diagnostico de rede local produzido
-pelo app Linka. O cliente Kotlin **nunca** chama Cloudflare AI direto — ele
+pelo app SignallQ. O cliente Kotlin **nunca** chama Cloudflare AI direto — ele
 sempre passa por este Worker, que monta o prompt, chama o binding `AI`, parseia
 a saida e devolve um JSON em **schema v2**.
 
@@ -56,10 +56,10 @@ A funcao `getCommercialModelInfo(model)` traduz o id interno em:
 
 | id interno (regex)            | familia | nomeExibicao        | textoRodape                                |
 |-------------------------------|---------|---------------------|--------------------------------------------|
-| `gemma-4.*26b` (PADRAO)       | Gemma   | Gemma 4 26B         | Motor de análise: Linka IA — Gemma 4 26B   |
-| `gemma*` (generico)           | Gemma   | Gemma               | Motor de análise: Linka IA — Gemma         |
-| `llama*` (apenas retrocompat) | Llama   | Linka IA            | Motor de análise: Linka IA                 |
-| outros / desconhecido         | Outro   | IA                  | Motor de análise: Linka IA                 |
+| `gemma-4.*26b` (PADRAO)       | Gemma   | Gemma 4 26B         | Motor de análise: SignallQ IA — Gemma 4 26B   |
+| `gemma*` (generico)           | Gemma   | Gemma               | Motor de análise: SignallQ IA — Gemma         |
+| `llama*` (apenas retrocompat) | Llama   | SignallQ IA            | Motor de análise: SignallQ IA                 |
+| outros / desconhecido         | Outro   | IA                  | Motor de análise: SignallQ IA                 |
 
 Para todos os casos vindos do Worker, `provedor = "cloudflare_workers_ai"`.
 O fallback local do cliente Kotlin (`ModeloIa.localFallback()`) emite
@@ -106,7 +106,7 @@ trocar para `response_format: { type: "json_schema", json_schema: ... }`.
 ## Como testar manualmente
 
 ```bash
-curl -X POST https://linka-ai-diagnosis-worker.<seu-subdominio>.workers.dev/api/ai/diagnostico-conexao \
+curl -X POST https://signallq-ai-diagnosis-worker.<seu-subdominio>.workers.dev/api/ai/diagnostico-conexao \
   -H "content-type: application/json" \
   -d '{
     "schemaVersion": "2",
@@ -139,7 +139,7 @@ A resposta deve:
 
 - Identificar o problema como `estabilidade` (nao "internet lenta").
 - Trazer `hipotesesDescartadas[]` com "velocidade insuficiente".
-- Trazer `modeloIa.textoRodape = "Motor de análise: Linka IA — Gemma 4 26B"`.
+- Trazer `modeloIa.textoRodape = "Motor de análise: SignallQ IA — Gemma 4 26B"`.
 
 ## Regras de titulo (PROIBICAO DE "Internet lenta")
 

@@ -2,7 +2,7 @@
 
 ## Objective
 
-This document outlines the process for releasing new versions of the Linka Android Kotlin application, covering the steps from build to deployment.
+This document outlines the process for releasing new versions of the SignallQ Android Kotlin application, covering the steps from build to deployment.
 
 ## Release Stages
 

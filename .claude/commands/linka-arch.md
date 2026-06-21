@@ -7,16 +7,16 @@ allowed-tools: Read(*), Bash(*), PowerShell(*)
 ## Contexto Arquitetural Atual (lido dos arquivos agora)
 
 **Módulos ativos (settings.gradle.kts):**
-!`cat "C:/Projetos/Linka Android/settings.gradle.kts" 2>/dev/null`
+!`cat "C:/Projetos/SignallQ Android/settings.gradle.kts" 2>/dev/null`
 
 **SDKs e dependências principais (libs.versions.toml):**
-!`cat "C:/Projetos/Linka Android/gradle/libs.versions.toml" 2>/dev/null`
+!`cat "C:/Projetos/SignallQ Android/gradle/libs.versions.toml" 2>/dev/null`
 
 **Telas existentes (ui/screen/):**
-!`ls "C:/Projetos/Linka Android/app/src/main/kotlin/io/linka/app/kotlin/ui/screen/" 2>/dev/null`
+!`ls "C:/Projetos/SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/screen/" 2>/dev/null`
 
 **Componentes reutilizáveis (ui/component/):**
-!`ls "C:/Projetos/Linka Android/app/src/main/kotlin/io/linka/app/kotlin/ui/component/" 2>/dev/null`
+!`ls "C:/Projetos/SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/component/" 2>/dev/null`
 
 ---
 

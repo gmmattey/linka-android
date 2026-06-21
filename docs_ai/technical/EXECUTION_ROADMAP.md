@@ -1,7 +1,7 @@
 # Roadmap de Execução — Issues #1–24
 ## Sequência, Dependências e Paralelização
 
-**Projeto**: LINKA Android v0.9.3 — Eficiência  
+**Projeto**: SIGNALLQ Android v0.9.3 — Eficiência  
 **Horizonte**: 3–4 sprints (6–8 semanas)  
 **Atualizado**: 2026-05-23
 
@@ -160,7 +160,7 @@
   3. Referenciar em `android:dataExtractionRules="@xml/backup_rules"` (Android 12+)
   4. Testar: adb backup/restore não captura dados
 - **Validação**:
-  - [ ] `adb backup -f backup.ab io.linka.app` não inclui Room/DataStore files
+  - [ ] `adb backup -f backup.ab io.veloo.app` não inclui Room/DataStore files
   - [ ] Histórico ainda restaurável se necessário
 - **Bloqueadores**: Nenhum
 - **Desbloqueia**: Nenhuma (segurança pontual)

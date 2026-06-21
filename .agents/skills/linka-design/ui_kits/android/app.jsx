@@ -1,4 +1,4 @@
-/* Linka UI Kit — app shell, screen router, mount */
+/* SignallQ UI Kit — app shell, screen router, mount */
 
 const TABMETA = {
   home:    { title:'Início',        icon:null },
@@ -10,11 +10,11 @@ const TABMETA = {
 
 function App() {
   const [tab, setTab] = React.useState('home');
-  const [orbit, setOrbit] = React.useState(false);
+  const [signallq, setSignallq] = React.useState(false);
 
   const go = (dest) => {
-    if (dest === 'orbit') { setOrbit(true); return; }
-    setOrbit(false); setTab(dest);
+    if (dest === 'signallq') { setSignallq(true); return; }
+    setSignallq(false); setTab(dest);
   };
 
   const meta = TABMETA[tab];
@@ -27,8 +27,8 @@ function App() {
   return (
     <PhoneFrame>
       <StatusBar />
-      {orbit ? (
-        <OrbitScreen onClose={() => setOrbit(false)} />
+      {signallq ? (
+        <SignallQScreen onClose={() => setSignallq(false)} />
       ) : (
         <React.Fragment>
           <TopBar title={meta.title} icon={meta.icon} action={action} />

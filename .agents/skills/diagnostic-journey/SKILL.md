@@ -1,5 +1,5 @@
 ---
-description: Revisa o fluxo completo de diagnóstico do Linka da perspectiva do usuário — coerência de estados, progressão lógica, microcopy e clareza do resultado final.
+description: Revisa o fluxo completo de diagnóstico do SignallQ da perspectiva do usuário — coerência de estados, progressão lógica, microcopy e clareza do resultado final.
 ---
 
 ## Quando usar

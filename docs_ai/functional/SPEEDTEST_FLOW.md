@@ -1,4 +1,4 @@
-# Fluxo do Speedtest — Android Linka
+# Fluxo do Speedtest — Android SignallQ
 
 **Última atualização:** 2026-05-17
 **Fonte:** código real (Marcelo, 2026-05-17)
@@ -13,7 +13,7 @@ SpeedTestScreen → VelocidadeScreen → ResultadoVelocidadeScreen
 
 Telas secundárias (opcionais a partir do resultado):
 - `DiagnosticoScreen`
-- `ChatScreen` (Orbit IA)
+- `ChatScreen` (SignallQ IA)
 
 ---
 

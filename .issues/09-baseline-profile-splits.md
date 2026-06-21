@@ -20,6 +20,6 @@ O app não tem Baseline Profile nem configuração explícita de splits AAB. Bas
 ```
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Requer device físico ou emulador AOSP (gms causa ruído na medição)
 - Dependências: independente

@@ -13,9 +13,9 @@ The primary AI integration involves the `cloudflare/ai-diagnosis-worker` and the
     -   **Purpose**: Executes AI models for diagnostic data analysis.
 
 -   **Mobile App Client Interaction**:
-    -   **Initiation**: `linka-android-kotlin/featureDiagnostico/` module (e.g., `DiagnosticScreen.kt`, `DiagnosticViewModel.kt` - *inferential paths*) likely initiates the workflow.
+    -   **Initiation**: `signallq-android-kotlin/featureDiagnostico/` module (e.g., `DiagnosticScreen.kt`, `DiagnosticViewModel.kt` - *inferential paths*) likely initiates the workflow.
     -   **Data Collection**: Handled within `featureDiagnostico/`.
-    -   **Transmission**: `linka-android-kotlin/coreNetwork/src/main/kotlin/com/linka/corenetwork/ai/AiDiagnosisService.kt` (*inferential path*) sends data to the worker's endpoint.
+    -   **Transmission**: `signallq-android-kotlin/coreNetwork/src/main/kotlin/com/signallq/corenetwork/ai/AiDiagnosisService.kt` (*inferential path*) sends data to the worker's endpoint.
     -   **Response Handling**: `AiDiagnosisService.kt` receives results.
     -   **UI Presentation**: Results passed to `DiagnosticViewModel.kt` and displayed in `DiagnosticScreen.kt` composables.
 
@@ -31,8 +31,8 @@ The primary AI integration involves the `cloudflare/ai-diagnosis-worker` and the
 
 ## Key Files/Modules
 
--   **`linka-android-kotlin/featureDiagnostico/`**: Core module for AI diagnostics UI and ViewModel.
--   **`linka-android-kotlin/coreNetwork/`**: Contains `ApiService.kt` and inferred `AiDiagnosisService.kt` for AI worker communication.
+-   **`signallq-android-kotlin/featureDiagnostico/`**: Core module for AI diagnostics UI and ViewModel.
+-   **`signallq-android-kotlin/coreNetwork/`**: Contains `ApiService.kt` and inferred `AiDiagnosisService.kt` for AI worker communication.
 -   **`cloudflare/ai-diagnosis-worker/wrangler.toml`**: Cloudflare worker configuration.
 -   **`coreDatabase/`**: May store historical AI diagnostic results via inferred DAOs (e.g., `DiagnosticDao.kt`).
 

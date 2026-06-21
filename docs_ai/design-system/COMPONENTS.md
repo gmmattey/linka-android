@@ -2,7 +2,7 @@
 
 Jetpack Compose Material 3 + custom components.
 
-Location: `linka-android-kotlin/app/src/main/kotlin/io/linka/app/kotlin/ui/component/`
+Location: `signallq-android-kotlin/app/src/main/kotlin/io/signallq/app/kotlin/ui/component/`
 
 ## Custom Components (Confirmed)
 
@@ -13,7 +13,7 @@ Location: `linka-android-kotlin/app/src/main/kotlin/io/linka/app/kotlin/ui/compo
 - `LinkaPulseSymbol.kt` - Logo animation
 - `LinkaPulseIcon.kt` - Icon variant
 - `TypewriterText.kt` - Text animation
-- `OrbitSymbol.kt` - Orbit logo
+- `OrbitSymbol.kt` - SignallQ logo
 - `SheetDragHandle.kt` - Bottom sheet control
 - `OrbitInputArea.kt` - Input container
 - `OrbitUserMessageBubble.kt` - Chat bubble (user)

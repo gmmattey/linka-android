@@ -1,8 +1,8 @@
 /* Diagnóstico IA — substitui o chat. Fluxo: escolher sinais → analisando → laudo interpretado.
-   Tema claro (igual ao app) com herói escuro (identidade Orbit). 4 estados. */
+   Tema claro (igual ao app) com herói escuro (identidade SignallQ). 4 estados. */
 
-/* ---- Orbit glyph (identidade da IA) ---- */
-function Orbit({ size = 22, color = '#FBBF24', pulse = false }) {
+/* ---- SignallQ glyph (identidade da IA) ---- */
+function SignallQ({ size = 22, color = '#FBBF24', pulse = false }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flexShrink: 0 }}>
       <circle cx="12" cy="12" r="4.5" fill={color}>
@@ -49,7 +49,7 @@ function DiagSetup() {
       <div style={{ padding: '4px 16px 0', flex: 1, display: 'flex', flexDirection: 'column', gap: 14, overflow: 'hidden' }}>
         {/* intro */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '4px 2px' }}>
-          <Orbit size={30} />
+          <SignallQ size={30} />
           <div>
             <div style={{ fontSize: 14.5, fontWeight: 600, color: LK.textPrimary, lineHeight: 1.35 }}>
               A IA lê os sinais da sua conexão e entrega um diagnóstico pronto.
@@ -112,7 +112,7 @@ function DiagAnalyzing() {
       <TopBar leading={<Icon d={backIcon} size={22} />} title="Diagnóstico IA" />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', gap: 6 }}>
         <div style={{ position: 'relative', marginBottom: 10 }}>
-          <Orbit size={96} pulse />
+          <SignallQ size={96} pulse />
         </div>
         <div style={{ fontSize: 18, fontWeight: 700, color: LK.textPrimary }}>Analisando sua conexão</div>
         <div style={{ fontSize: 12.5, color: LK.textSecondary, textAlign: 'center', lineHeight: 1.45 }}>
@@ -162,7 +162,7 @@ function DiagResultTop() {
           borderRadius: 20, padding: 18, color: LK.linkaTextOnDark,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
-            <Orbit size={22} />
+            <SignallQ size={22} />
             <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, color: 'rgba(255,255,255,.6)' }}>DIAGNÓSTICO IA</span>
             <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, color: LK.warning, background: `${LK.warning}26`, padding: '3px 10px', borderRadius: 999 }}>ATENÇÃO</span>
           </div>
@@ -301,7 +301,7 @@ function LLMChat() {
           <Icon d={backIcon} size={22} color={LK.textPrimary} />
         </div>
         <div style={{ flex: 1, textAlign: 'center', paddingTop: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: LK.textPrimary }}>Linka</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: LK.textPrimary }}>SignallQ</div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: LK.textSecondary, marginTop: 2 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: LK.success }} /> Assistente de conexão
           </div>
@@ -373,7 +373,7 @@ function LLMChat() {
           </div>
         </div>
         <div style={{ textAlign: 'center', marginTop: 8, fontSize: 10.5, color: LK.textTertiary }}>
-          A Linka roda no aparelho e pode errar. Confira dados importantes.
+          A SignallQ roda no aparelho e pode errar. Confira dados importantes.
         </div>
       </div>
     </div>

@@ -528,7 +528,7 @@ fun AjustesScreen(
                 SettingItem(
                     c = c,
                     icon = Icons.Outlined.Info,
-                    label = "Sobre o Veloo",
+                    label = "Sobre o SignallQ",
                     subtitle = "v$appVersion · Android · Kotlin",
                     onClick = { showSobreSheet = true },
                 )
@@ -652,7 +652,7 @@ fun AjustesScreen(
     if (showSobreSheet) {
         SimpleInfoSheet(
             c = c,
-            titulo = "Sobre o Veloo",
+            titulo = "Sobre o SignallQ",
             onDismiss = { showSobreSheet = false },
         ) {
             InfoRow(c, "Versão", "v$appVersion")
@@ -661,11 +661,11 @@ fun AjustesScreen(
             HorizontalDivider(color = c.border, thickness = 1.dp)
             InfoRow(c, "Central de medição", "Cloudflare speed.cf.com")
             HorizontalDivider(color = c.border, thickness = 1.dp)
-            InfoRow(c, "Desenvolvido por", "Equipe Veloo")
+            InfoRow(c, "Desenvolvido por", "Equipe SignallQ")
             HorizontalDivider(color = c.border, thickness = 1.dp)
             InfoRow(c, "Código", "Kotlin · Jetpack Compose")
             HorizontalDivider(color = c.border, thickness = 1.dp)
-            InfoRow(c, "Suporte", "suporte@veloo.app")
+            InfoRow(c, "Suporte", "suporte@signallq.app")
         }
     }
 
@@ -1702,7 +1702,7 @@ private fun PreferenciasSheet(
             Spacer(Modifier.height(LkSpacing.sm))
             Text("Alertas de qualidade", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = c.textPrimary)
             Text(
-                "Defina um limite mínimo de download. Quando sua conexão ficar abaixo desse valor, o Veloo pode alertar você.",
+                "Defina um limite mínimo de download. Quando sua conexão ficar abaixo desse valor, o SignallQ pode alertar você.",
                 style = MaterialTheme.typography.titleSmall,
                 color = c.textSecondary,
                 lineHeight = 18.sp,
@@ -1897,7 +1897,7 @@ private fun DiagnosticoSheet(
                     Text(
                         text =
                             "Em alguns dispositivos ${OemKillInfo.nomeFabricante}, o sistema pode reduzir a frequência " +
-                                "das verificações para economizar bateria. Para garantir o funcionamento, mantenha o Veloo " +
+                                "das verificações para economizar bateria. Para garantir o funcionamento, mantenha o SignallQ " +
                                 "na lista de apps sem restrição de bateria nas configurações do sistema.",
                         style = MaterialTheme.typography.bodySmall,
                         color = c.textSecondary,
@@ -1923,7 +1923,7 @@ private fun DiagnosticoSheet(
         ConfirmacaoDialog(
             titulo = "Ativar monitoramento em segundo plano?",
             mensagem =
-                "O Veloo verificará sua conexão periodicamente e enviará uma notificação se detectar lentidão " +
+                "O SignallQ verificará sua conexão periodicamente e enviará uma notificação se detectar lentidão " +
                     "ou instabilidade. Consome dados e bateria de forma mínima.",
             textoBotaoConfirmar = "Ativar",
             textoBotaoCancelar = "Agora não",

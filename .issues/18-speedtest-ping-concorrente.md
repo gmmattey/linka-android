@@ -17,6 +17,6 @@ Comparar 5 execuções antes/depois em Wi-Fi e em 4G:
 - valor final de jitter/loss reportado (deve permanecer ±5% do baseline)
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Impacto estimado: -15% energia durante speedtest, -500KB por teste em mobile
 - Dependências: independente; conversa com #17

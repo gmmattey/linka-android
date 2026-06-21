@@ -1,6 +1,6 @@
 ---
 name: design-review
-description: Revisão de UX/UI, Material Design 3, hierarquia visual, acessibilidade, microcopy e consistência de telas do Linka Android e PWA.
+description: Revisão de UX/UI, Material Design 3, hierarquia visual, acessibilidade, microcopy e consistência de telas do SignallQ Android e PWA.
 ---
 
 Revise a tela ou feature abaixo do ponto de vista de UX/UI:

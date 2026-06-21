@@ -1,6 +1,6 @@
 /* ============================================================================
    LINKA — Design Foundations (colors + type)
-   Source of truth: app/src/main/kotlin/io/linka/app/kotlin/ui/LinkaTheme.kt
+   Source of truth: app/src/main/kotlin/io/linka/app/kotlin/ui/SignallQTheme.kt
    (LkColors, LkSpacing, LkRadius, linkaTypography) + docs_ai/design-system/*
    Platform: Android (Kotlin / Jetpack Compose / Material Design 3)
    ----------------------------------------------------------------------------
@@ -43,12 +43,12 @@
   --success-container:     #D1FAE5;
   --on-success-container:  #065F46;
 
-  /* ---- Orbit (IA — sempre escuro, não adapta ao tema) ------------------ */
-  --linka-black:                #0D0D1A;  /* background do Orbit            */
-  --linka-dark-surface:         #1A0B2E;  /* superfícies secundárias Orbit  */
-  --linka-dark-card:            #1E1130;  /* cards de bolhas de IA          */
-  --linka-text-on-dark:         #F3F4F6;
-  --linka-text-secondary-on-dark:#9CA3AF;
+  /* ---- SignallQ (IA — sempre escuro, não adapta ao tema) ------------------ */
+  --SignallQ-black:                #0D0D1A;  /* background do SignallQ            */
+  --SignallQ-dark-surface:         #1A0B2E;  /* superfícies secundárias SignallQ  */
+  --SignallQ-dark-card:            #1E1130;  /* cards de bolhas de IA          */
+  --SignallQ-text-on-dark:         #F3F4F6;
+  --SignallQ-text-secondary-on-dark:#9CA3AF;
 
   /* ---- Spacing — grid 8dp (LkSpacing) ---------------------------------- */
   --space-xs:   4px;

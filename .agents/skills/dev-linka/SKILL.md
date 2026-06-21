@@ -1,9 +1,9 @@
 ---
 name: dev-linka
-description: Ponto de entrada para qualquer tarefa de desenvolvimento no Linka. Classifica a tarefa e roteia para os agentes corretos na ordem certa.
+description: Ponto de entrada para qualquer tarefa de desenvolvimento no SignallQ. Classifica a tarefa e roteia para os agentes corretos na ordem certa.
 ---
 
-Inicie a tarefa abaixo no ecossistema Linka:
+Inicie a tarefa abaixo no ecossistema SignallQ:
 
 $ARGUMENTS
 

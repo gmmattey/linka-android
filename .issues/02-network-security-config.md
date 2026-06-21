@@ -20,6 +20,6 @@
 Inspecionar APK: `apkanalyzer manifest print app/build/outputs/apk/release/app-release.apk | Select-String cleartext`
 
 ## Notas para o agente
-- Skills: `linka-arch`, `linka-docs`
+- Skills: `signallq-arch`, `signallq-docs`
 - Arquivos a tocar: `AndroidManifest.xml`, novo `res/xml/network_security_config.xml`
 - Dependências: nenhuma; pode rodar em paralelo com #1

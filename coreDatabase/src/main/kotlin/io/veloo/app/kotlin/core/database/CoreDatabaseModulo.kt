@@ -128,10 +128,10 @@ object CoreDatabaseModulo {
             }
         }
 
-    fun criarBanco(context: Context): VelooDatabase {
+    fun criarBanco(context: Context): SignallQDatabase {
         return Room.databaseBuilder(
             context.applicationContext,
-            VelooDatabase::class.java,
+            SignallQDatabase::class.java,
             "linkaKotlin.db",
         ).addMigrations(migracao1para2)
             .addMigrations(migracao2para3)

@@ -1,6 +1,6 @@
 # Workflow do Board — Como os agentes movimentam as issues
 
-O Project **LINKA Android — Roadmap** (https://github.com/users/gmmattey/projects/8) é atualizado automaticamente conforme os agentes do squad trabalham. Existem **3 camadas** de automação:
+O Project **SIGNALLQ Android — Roadmap** (https://github.com/users/gmmattey/projects/8) é atualizado automaticamente conforme os agentes do squad trabalham. Existem **3 camadas** de automação:
 
 ## 1. Agente chama `scripts/agent-handoff.sh` em cada handoff
 
@@ -103,5 +103,5 @@ Os scripts já têm os IDs do projeto atual hardcoded como default. Se mover de 
 PROJ_NUM=8
 PROJ_ID=PVT_kwHOD83n7c4BYmdL
 FIELD_COLUNA=PVTSSF_lAHOD83n7c4BYmdLzhTrIt4
-REPO=gmmattey/linka-android
+REPO=gmmattey/signallq-android
 ```

@@ -405,7 +405,7 @@ private fun IdleCircle(onIniciarTeste: () -> Unit) {
         ) {
             Text(
                 text = "Iniciar",
-                color = LkColors.velooTextOnDark,
+                color = LkColors.signallQTextOnDark,
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
             )

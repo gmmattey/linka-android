@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit
 //    extras opcionais. O Worker antigo ignora os extras silenciosamente.
 //  - O parser aceita schemaVersion "1" e "2" e tolera campos ausentes em ambos.
 //  - Quando schemaVersion ausente ou "1" e nao houver `modeloIa` na resposta,
-//    preenchemos defaults que nao mentem ("Linka IA").
+//    preenchemos defaults que nao mentem ("SignallQ IA").
 //  - Em qualquer falha (sem auth, timeout, !2xx, JSON invalido) -> fallback
-//    local com modeloIa = "Diagnostico local do Linka".
+//    local com modeloIa = "Diagnostico local do SignallQ".
 // =============================================================================
 
 sealed class AiDiagnosisState {
@@ -259,11 +259,11 @@ class AiDiagnosisRepository(
             versao = obj.optStringOrNull("versao"),
             tamanho = obj.optStringOrNull("tamanho"),
             variante = obj.optStringOrNull("variante"),
-            nomeExibicao = obj.optString("nomeExibicao", "Veloo IA").ifBlank { "Veloo IA" },
-            nomeCompletoComercial = obj.optString("nomeCompletoComercial", "Veloo IA").ifBlank { "Veloo IA" },
+            nomeExibicao = obj.optString("nomeExibicao", "SignallQ IA").ifBlank { "SignallQ IA" },
+            nomeCompletoComercial = obj.optString("nomeCompletoComercial", "SignallQ IA").ifBlank { "SignallQ IA" },
             descricaoComercial = obj.optString("descricaoComercial", ""),
-            textoRodape = obj.optString("textoRodape", "Motor de análise: Veloo IA")
-                .ifBlank { "Motor de análise: Veloo IA" },
+            textoRodape = obj.optString("textoRodape", "Motor de análise: SignallQ IA")
+                .ifBlank { "Motor de análise: SignallQ IA" },
         )
     }
 

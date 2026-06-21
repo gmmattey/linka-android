@@ -1,16 +1,16 @@
-# Componentes Android — Linka
+# Componentes Android — SignallQ
 
-**Versão:** v0.6.3 | **Localização:** `linka-android-kotlin/app/src/main/kotlin/io/linka/app/kotlin/ui/component/`
+**Versão:** v0.6.3 | **Localização:** `signallq-android-kotlin/app/src/main/kotlin/io/signallq/app/kotlin/ui/component/`
 
 25 componentes custom agrupados por domínio.
 
 ---
 
-## Orbit — Chat IA (10)
+## SignallQ — Chat IA (10)
 
 | Componente | Arquivo | Propósito |
 | --- | --- | --- |
-| `OrbitSymbol` | `OrbitSymbol.kt` | Logo/ícone marca Orbit |
+| `OrbitSymbol` | `OrbitSymbol.kt` | Logo/ícone marca SignallQ |
 | `OrbitTopBar` | `OrbitTopBar.kt` | Header tela IA, título + ações |
 | `OrbitInputArea` | `OrbitInputArea.kt` | Campo entrada texto + botão enviar |
 | `OrbitUserMessageBubble` | `OrbitUserMessageBubble.kt` | Bolha mensagem usuário |
@@ -69,7 +69,7 @@
 
 ## Convenção de Nomeclatura
 
-- **Orbit***: Componentes exclusivos chat IA.
+- **SignallQ***: Componentes exclusivos chat IA.
 - **Pulse**: Componentes monitoramento passivo.
 - Sem prefixo genérico (Lk-, App-) — nome direto descreve propósito.
 

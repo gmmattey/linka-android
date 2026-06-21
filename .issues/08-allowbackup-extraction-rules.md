@@ -15,9 +15,9 @@
 ## Como verificar
 ```powershell
 .\gradlew.bat assembleDebug
-adb backup -f test.ab io.linka.app   # após restore, bases sensíveis não devem ter dados
+adb backup -f test.ab io.veloo.app   # após restore, bases sensíveis não devem ter dados
 ```
 
 ## Notas para o agente
-- Skills: `linka-arch`, `linka-docs`
+- Skills: `signallq-arch`, `signallq-docs`
 - Dependências: nenhuma

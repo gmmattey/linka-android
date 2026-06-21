@@ -1,5 +1,5 @@
 // =============================================================================
-// Veloo AI Diagnosis Worker
+// SignallQ AI Diagnosis Worker
 // =============================================================================
 // Recebe POST /api/ai/diagnostico-conexao com payload de diagnostico de rede e
 // retorna um JSON v2 com:
@@ -32,7 +32,7 @@ const DEFAULT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
 // SCHEMA versionado do payload de saida; o cliente Kotlin precisa aceitar 1 e 2.
 const SCHEMA_VERSION = "2" as const;
 
-const SYSTEM_PROMPT = `Você é o motor de diagnóstico inteligente do app VELOO, especializado em conexões de internet doméstica no Brasil.
+const SYSTEM_PROMPT = `Você é o motor de diagnóstico inteligente do app SignallQ, especializado em conexões de internet doméstica no Brasil.
 Você recebe APENAS dados brutos coletados pelo app (métricas numéricas, contexto de rede sem rótulos, histórico de medições, opcionalmente feedback do usuário). Toda interpretação, classificação, decisão, conclusão e recomendação é responsabilidade SUA — o payload NÃO contém análise prévia, não confie em campos como status/titulo/decisão pré-computados (eles não existem no payload).
 REGRAS INVIOLÁVEIS:
 1. Responda exclusivamente em JSON válido, seguindo o schema informado. Não use markdown, não explique fora do JSON e não adicione texto antes ou depois.
@@ -101,7 +101,7 @@ Saída esperada (campos críticos):
 
 // Prompt e schema para modo chat (follow-up do usuário após o diagnóstico inicial).
 // O Worker detecta este modo quando `feedbackUsuario` está presente no payload.
-const CHAT_SYSTEM_PROMPT = `Você é o Veloo, assistente técnico de conexão à internet.
+const CHAT_SYSTEM_PROMPT = `Você é o SignallQ, assistente técnico de conexão à internet.
 
 COMPORTAMENTO:
 1. Responda com resolução COMPLETA incluindo passo a passo detalhado.
@@ -139,7 +139,7 @@ COMPORTAMENTO:
    - Negrito para termos-chave (**SQM**, **canal 1 ou 11**, **5 GHz**).
    - Não use emojis.
    - Responda em português brasileiro com "você".
-   - Não se apresente — o usuário já sabe que está falando com o Veloo.
+   - Não se apresente — o usuário já sabe que está falando com o SignallQ.
 
 6. FORMATO DE RESPOSTA depende do modo:
    - Modo NÃO-streaming (sem ?stream=true): responda exclusivamente em JSON válido seguindo o schema informado. Não use markdown, não explique fora do JSON e não adicione texto antes ou depois.
@@ -270,9 +270,9 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
       tamanho: "30B",
       variante: lower.includes("fp8") ? "FP8" : null,
       nomeExibicao: "Qwen3 30B",
-      nomeCompletoComercial: "Veloo IA — Qwen3 30B",
+      nomeCompletoComercial: "SignallQ IA — Qwen3 30B",
       descricaoComercial: "Diagnóstico inteligente de conexão",
-      textoRodape: "Motor de análise: Veloo IA — Qwen3 30B",
+      textoRodape: "Motor de análise: SignallQ IA — Qwen3 30B",
     };
   }
 
@@ -288,9 +288,9 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
       tamanho: tamanho ? `${tamanho}B` : null,
       variante: lower.includes("fp8") ? "FP8" : lower.includes("instruct") ? "Instruct" : null,
       nomeExibicao: "Qwen",
-      nomeCompletoComercial: "Veloo IA — Qwen",
+      nomeCompletoComercial: "SignallQ IA — Qwen",
       descricaoComercial: "Diagnóstico inteligente de conexão",
-      textoRodape: "Motor de análise: Veloo IA — Qwen",
+      textoRodape: "Motor de análise: SignallQ IA — Qwen",
     };
   }
 
@@ -304,9 +304,9 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
       tamanho: "7B",
       variante: lower.includes("-it") || lower.includes("instruct") ? "Instruction Tuned" : null,
       nomeExibicao: "Gemma 7B",
-      nomeCompletoComercial: "Veloo IA — Gemma 7B",
+      nomeCompletoComercial: "SignallQ IA — Gemma 7B",
       descricaoComercial: "Diagnóstico inteligente de conexão",
-      textoRodape: "Motor de análise: Veloo IA — Gemma 7B",
+      textoRodape: "Motor de análise: SignallQ IA — Gemma 7B",
     };
   }
 
@@ -320,9 +320,9 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
       tamanho: "9B",
       variante: lower.includes("-it") || lower.includes("instruct") ? "Instruction Tuned" : null,
       nomeExibicao: "Gemma 2 9B",
-      nomeCompletoComercial: "Veloo IA — Gemma 2 9B",
+      nomeCompletoComercial: "SignallQ IA — Gemma 2 9B",
       descricaoComercial: "Diagnóstico inteligente otimizado para respostas rápidas",
-      textoRodape: "Motor de análise: Veloo IA — Gemma 2 9B",
+      textoRodape: "Motor de análise: SignallQ IA — Gemma 2 9B",
     };
   }
 
@@ -339,9 +339,9 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
       tamanho: "26B",
       variante,
       nomeExibicao: "Gemma 4 26B",
-      nomeCompletoComercial: "Veloo IA — Gemma 4 26B",
+      nomeCompletoComercial: "SignallQ IA — Gemma 4 26B",
       descricaoComercial: "Diagnóstico inteligente otimizado para respostas rápidas",
-      textoRodape: "Motor de análise: Veloo IA — Gemma 4 26B",
+      textoRodape: "Motor de análise: SignallQ IA — Gemma 4 26B",
     };
   }
 
@@ -357,15 +357,15 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
       tamanho: tamanho ? `${tamanho.toUpperCase()}B` : null,
       variante: lower.includes("-it") || lower.includes("instruct") ? "Instruction Tuned" : null,
       nomeExibicao: "Gemma",
-      nomeCompletoComercial: "Veloo IA — Gemma",
+      nomeCompletoComercial: "SignallQ IA — Gemma",
       descricaoComercial: "Diagnóstico inteligente de conexão",
-      textoRodape: "Motor de análise: Veloo IA — Gemma",
+      textoRodape: "Motor de análise: SignallQ IA — Gemma",
     };
   }
 
   // Llama: reconhecido apenas para retrocompat caso AI_MODEL seja configurado
   // manualmente. NAO e usado como fallback automatico — a politica do projeto
-  // proibe Llama/Meta como motor padrao ou fallback cloud do Veloo.
+  // proibe Llama/Meta como motor padrao ou fallback cloud do SignallQ.
   if (lower.includes("llama")) {
     const tamanho = (lower.match(/(\d+)b/) || [])[1];
     const versao = (lower.match(/llama-?(\d+(?:\.\d+)?)/) || [])[1] || null;
@@ -380,10 +380,10 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
         : lower.includes("instruct")
           ? "instruct"
           : null,
-      nomeExibicao: "Veloo IA",
-      nomeCompletoComercial: "Veloo IA",
+      nomeExibicao: "SignallQ IA",
+      nomeCompletoComercial: "SignallQ IA",
       descricaoComercial: "Diagnóstico inteligente de conexão",
-      textoRodape: "Motor de análise: Veloo IA",
+      textoRodape: "Motor de análise: SignallQ IA",
     };
   }
 
@@ -396,9 +396,9 @@ function getCommercialModelInfo(model: string): CommercialModelInfo {
     tamanho: null,
     variante: null,
     nomeExibicao: "IA",
-    nomeCompletoComercial: "Veloo IA",
+    nomeCompletoComercial: "SignallQ IA",
     descricaoComercial: "Diagnóstico inteligente de conexão",
-    textoRodape: "Motor de análise: Veloo IA",
+    textoRodape: "Motor de análise: SignallQ IA",
   };
 }
 

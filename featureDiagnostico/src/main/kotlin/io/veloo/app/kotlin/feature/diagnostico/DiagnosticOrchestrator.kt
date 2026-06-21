@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-private const val TAG = "LinkaDiagnostico"
+private const val TAG = "SignallQDiagnostico"
 
 class DiagnosticOrchestrator {
 

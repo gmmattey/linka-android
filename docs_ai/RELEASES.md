@@ -1,4 +1,4 @@
-# Histórico de Releases — Veloo Android
+# Histórico de Releases — SignallQ Android
 
 **Mantido por:** Taisa
 **Última atualização:** 2026-05-30 (gerado a partir do git log real)
@@ -8,7 +8,7 @@
 
 ## v0.15.0 (build 44) — 2026-05-30
 
-**Rebranding: Linka → Veloo**
+**Rebranding: SignallQ → SignallQ**
 
 - Identidade visual, package name e configurações Firebase atualizados
 - App ID Firebase: `io.veloo.app`
@@ -118,7 +118,7 @@
 - Repositories: `ChatRepository`, `CotaDiariaRepository`
 - Room v10: tabelas `chat_sessions` + `chat_messages` + migration
 - Deprecation do fluxo anterior, placeholder customizável, Locale moderno
-- Entrada: botão "Assistente Linka" (ex-"Diagnóstico IA")
+- Entrada: botão "Assistente SignallQ" (ex-"Diagnóstico IA")
 
 ---
 
@@ -142,7 +142,7 @@
 - Onboarding: checkbox de termos e cards de permissão por feature
 - Estados vazios humanizados (telas 9.3 a 9.6)
 - Estado offline: linguagem humanizada
-- "Diagnóstico IA" renomeado para "Assistente Linka"
+- "Diagnóstico IA" renomeado para "Assistente SignallQ"
 
 ---
 

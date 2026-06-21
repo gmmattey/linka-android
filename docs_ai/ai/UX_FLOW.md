@@ -44,7 +44,7 @@ Dispensada apenas em mudanças puramente nos módulos `:core*` sem impacto visua
 
 ## Referências
 
-- `design-system/COMPONENTS_ANDROID.md` — 25 componentes (Orbit, SpeedTest, Layout)
+- `design-system/COMPONENTS_ANDROID.md` — 25 componentes (SignallQ, SpeedTest, Layout)
 - `design-system/MD3_GUIDELINES.md` — diretrizes Material Design 3
 - `design-system/COLORS.md` — tokens de cor, contraste
 - `design-system/TYPOGRAPHY.md` — escala tipográfica MD3

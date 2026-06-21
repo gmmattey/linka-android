@@ -1,9 +1,9 @@
 ---
 name: diagnostic-engine
-description: Use quando a tarefa envolver diagnóstico de rede, speedtest, Wi-Fi, DNS, latência, jitter, IA de diagnóstico ou fluxo guiado do Linka.
+description: Use quando a tarefa envolver diagnóstico de rede, speedtest, Wi-Fi, DNS, latência, jitter, IA de diagnóstico ou fluxo guiado do SignallQ.
 ---
 
-Ao trabalhar com diagnóstico no Linka:
+Ao trabalhar com diagnóstico no SignallQ:
 
 $ARGUMENTS
 

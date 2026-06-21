@@ -148,7 +148,7 @@ SpeedTestScreen
 
 ### Acessar Central de Testes
 
-1. **Abra Linka** → Home
+1. **Abra SignallQ** → Home
 2. **Toque "Central de testes"** (estava escrito "Central de Medição" em 0.8.1)
 3. **Vá para aba "Explorar ferramentas"** (ou clique botão no card de ferramentas)
 4. Grid com 4 cards aparece, com **StatusCard** de conexão + servidor
@@ -157,7 +157,7 @@ SpeedTestScreen
 
 **Preparação:**
 - Certifique-se de estar conectado (Wi-Fi ou móvel)
-- Linka verifica conectividade automaticamente
+- SignallQ verifica conectividade automaticamente
 
 **Executar o teste:**
 1. Toque card **"Ping / Latência"**
@@ -305,18 +305,18 @@ Se preferir incremento menor → **0.8.6** (patch) — Ping é experimental, pod
 
 ```
 linkaAndroidKotlin/
-├─ linka-android-kotlin/
-│  ├─ app/src/main/kotlin/io/linka/app/kotlin/
+├─ signallq-android-kotlin/
+│  ├─ app/src/main/kotlin/io/signallq/app/kotlin/
 │  │  └─ ui/screen/
 │  │     ├─ PingScreen.kt          ✓ NOVO (seção 1.1)
 │  │     ├─ SpeedTestScreen.kt     ✓ MODIFICADO (ExploreToolsRow, FerramentaCard)
 │  │     └─ MainViewModel.kt       ✓ MODIFICADO (callback onAbrirPing)
 │  │
-│  └─ featureSpeedtest/src/main/kotlin/io/linka/app/kotlin/feature/speedtest/
+│  └─ featureSpeedtest/src/main/kotlin/io/signallq/app/kotlin/feature/speedtest/
 │     ├─ PingExecutor.kt            ✓ NOVO
 │     └─ PingResultado.kt           ✓ NOVO
 │
-├─ featureDns/src/main/kotlin/io/linka/app/kotlin/feature/dns/
+├─ featureDns/src/main/kotlin/io/signallq/app/kotlin/feature/dns/
 │  └─ BenchmarkDnsDoh.kt            ✓ MODIFICADO (+Registro.br, +CETIC.br)
 │
 └─ docs_ai/
@@ -327,10 +327,10 @@ linkaAndroidKotlin/
 
 | Componente | Path |
 |-----------|------|
-| PingScreen | `e:\Projetos\Linka\linkaAndroidKotlin\linka-android-kotlin\app\src\main\kotlin\io\linka\app\kotlin\ui\screen\PingScreen.kt` |
-| PingExecutor | `e:\Projetos\Linka\linkaAndroidKotlin\linka-android-kotlin\featureSpeedtest\src\main\kotlin\io\linka\app\kotlin\feature\speedtest\PingExecutor.kt` |
-| BenchmarkDnsDoh | `e:\Projetos\Linka\linkaAndroidKotlin\linka-android-kotlin\featureDns\src\main\kotlin\io\linka\app\kotlin\feature\dns\BenchmarkDnsDoh.kt` |
-| SpeedTestScreen | `e:\Projetos\Linka\linkaAndroidKotlin\linka-android-kotlin\app\src\main\kotlin\io\linka\app\kotlin\ui\screen\SpeedTestScreen.kt` |
+| PingScreen | `e:\Projetos\SignallQ\linkaAndroidKotlin\signallq-android-kotlin\app\src\main\kotlin\io\signallq\app\kotlin\ui\screen\PingScreen.kt` |
+| PingExecutor | `e:\Projetos\SignallQ\linkaAndroidKotlin\signallq-android-kotlin\featureSpeedtest\src\main\kotlin\io\signallq\app\kotlin\feature\speedtest\PingExecutor.kt` |
+| BenchmarkDnsDoh | `e:\Projetos\SignallQ\linkaAndroidKotlin\signallq-android-kotlin\featureDns\src\main\kotlin\io\signallq\app\kotlin\feature\dns\BenchmarkDnsDoh.kt` |
+| SpeedTestScreen | `e:\Projetos\SignallQ\linkaAndroidKotlin\signallq-android-kotlin\app\src\main\kotlin\io\signallq\app\kotlin\ui\screen\SpeedTestScreen.kt` |
 
 ---
 

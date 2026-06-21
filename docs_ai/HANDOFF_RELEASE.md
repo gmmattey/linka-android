@@ -159,7 +159,7 @@
      [ ] Salvar
 
 [ ] 5. Atualizar CHANGELOG:
-     [ ] Abrir linka-android-kotlin/CHANGELOG.md
+     [ ] Abrir signallq-android-kotlin/CHANGELOG.md
      [ ] Copiar CHANGELOG_ENTRY_v0.9.0.md em Unreleased
      [ ] Remover [Unreleased] vazio (se existir)
      [ ] Salvar
@@ -232,19 +232,19 @@
 
 ```
 PingScreen:
-e:\Projetos\Linka\linkaAndroidKotlin\linka-android-kotlin\
-  app\src\main\kotlin\io\linka\app\kotlin\ui\screen\PingScreen.kt
+e:\Projetos\SignallQ\linkaAndroidKotlin\signallq-android-kotlin\
+  app\src\main\kotlin\io\signallq\app\kotlin\ui\screen\PingScreen.kt
 
 PingExecutor:
-e:\Projetos\Linka\linkaAndroidKotlin\linka-android-kotlin\
-  featureSpeedtest\src\main\kotlin\io\linka\app\kotlin\feature\speedtest\PingExecutor.kt
+e:\Projetos\SignallQ\linkaAndroidKotlin\signallq-android-kotlin\
+  featureSpeedtest\src\main\kotlin\io\signallq\app\kotlin\feature\speedtest\PingExecutor.kt
 
 BenchmarkDnsDoh:
-e:\Projetos\Linka\linkaAndroidKotlin\linka-android-kotlin\
-  featureDns\src\main\kotlin\io\linka\app\kotlin\feature\dns\BenchmarkDnsDoh.kt
+e:\Projetos\SignallQ\linkaAndroidKotlin\signallq-android-kotlin\
+  featureDns\src\main\kotlin\io\signallq\app\kotlin\feature\dns\BenchmarkDnsDoh.kt
 
 Documentação:
-e:\Projetos\Linka\linkaAndroidKotlin\docs_ai\
+e:\Projetos\SignallQ\linkaAndroidKotlin\docs_ai\
 ```
 
 ### Contatos para Escalação
@@ -263,7 +263,7 @@ e:\Projetos\Linka\linkaAndroidKotlin\docs_ai\
 
 ```
 De: Taisa (Documentação)
-Para: Squad Linka
+Para: Squad SignallQ
 
 Entrega: Central de Testes v0.9.0 ✓ Completa
 

@@ -2,7 +2,7 @@
 
 ## Objective
 
-This document details the functionality and user experience of AI assistant features, mapping specific components and interactions within the Linka Android Kotlin application.
+This document details the functionality and user experience of AI assistant features, mapping specific components and interactions within the SignallQ Android Kotlin application.
 
 ## AI Capabilities and Integration Points
 
@@ -23,8 +23,8 @@ AI is primarily integrated to enhance diagnostics and provide intelligent insigh
 
 ## Key Files/Modules
 
--   **`linka-android-kotlin/featureDiagnostico/`**: Primary module for AI-assisted diagnostics UI and ViewModel (`DiagnosticViewModel.kt` - *inferential path*).
--   **`linka-android-kotlin/coreNetwork/`**: Contains `AiDiagnosisService.kt` for backend AI communication.
+-   **`signallq-android-kotlin/featureDiagnostico/`**: Primary module for AI-assisted diagnostics UI and ViewModel (`DiagnosticViewModel.kt` - *inferential path*).
+-   **`signallq-android-kotlin/coreNetwork/`**: Contains `AiDiagnosisService.kt` for backend AI communication.
 -   **`cloudflare/ai-diagnosis-worker/wrangler.toml`**: External configuration for the AI backend.
 
 ## Known Risks

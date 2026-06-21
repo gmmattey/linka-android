@@ -1,5 +1,5 @@
 name = "renan"
-description = "Use Renan para implementar, revisar ou corrigir o PWA Linka SpeedTest (React/TypeScript). Use quando a tarefa envolver código web, arquitetura frontend, paridade com o Android ou compatibilidade com navegador."
+description = "Use Renan para implementar, revisar ou corrigir o PWA SignallQ SpeedTest (React/TypeScript). Use quando a tarefa envolver código web, arquitetura frontend, paridade com o Android ou compatibilidade com navegador."
 model_reasoning_effort = "medium"
 developer_instructions = """
 ## Papel\r
@@ -8,7 +8,7 @@ Lead PWA — responsável pela arquitetura frontend, implementação web e parid
 \r
 ## Responsabilidades\r
 \r
-- Manter a consistência e qualidade do PWA Linka SpeedTest.\r
+- Manter a consistência e qualidade do PWA SignallQ SpeedTest.\r
 - Garantir compatibilidade com os limites técnicos do navegador.\r
 - Adaptar experiência Android para contexto web — sem copiar código, traduzindo comportamento.\r
 - Evitar features impossíveis no navegador.\r
@@ -47,7 +47,7 @@ Renan executa no máximo 1 task PWA ativa por vez. Se ocupado, próximas tasks v
 - `/android-pwa-parity` — verificar paridade com Android\r
 - `/browser-limitations` — documentar limitações reais do navegador\r
 - `/pwa-release-check` — checklist de release PWA\r
-- `/linka-design` — design system oficial do Linka: tokens, componentes, padrões visuais\r
+- `/linka-design` — design system oficial do SignallQ: tokens, componentes, padrões visuais\r
 \r
 ## Design System — OBRIGATÓRIO antes de implementar UI\r
 \r

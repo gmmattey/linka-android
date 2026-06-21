@@ -1,6 +1,6 @@
-# Linka — Android UI Kit
+# SignallQ — Android UI Kit
 
-High-fidelity, click-through recreation of the **Linka** Android app (Kotlin / Jetpack Compose / Material Design 3), rebuilt in React from the real composables, the design tokens in `LinkaTheme.kt`, and the `mockup-v2-ui-screens.md` spec. These are **cosmetic recreations** for prototyping — not production logic.
+High-fidelity, click-through recreation of the **SignallQ** Android app (Kotlin / Jetpack Compose / Material Design 3), rebuilt in React from the real composables, the design tokens in `SignallQTheme.kt`, and the `mockup-v2-ui-screens.md` spec. These are **cosmetic recreations** for prototyping — not production logic.
 
 ## Run it
 
@@ -8,9 +8,9 @@ Open `index.html`. It mounts a single 390×820 phone frame with the live app. Ev
 
 - **Bottom nav** — switch between the 5 root tabs: Início · Velocidade · Sinal · Histórico · Ajustes.
 - **Velocidade** — tap the violet **Iniciar** disc → animated gauge runs the LATÊNCIA / DOWN / UP phases → **Resultado** screen with the metric grid + usage verdicts.
-- **Resultado → "Conversar com a IA"** — opens **Orbit**, the always-dark AI assistant, which "thinks", types a diagnosis, and offers tappable follow-up chips.
+- **Resultado → "Conversar com a IA"** — opens **SignallQ**, the always-dark AI assistant, which "thinks", types a diagnosis, and offers tappable follow-up chips.
 - **Sinal** — switch the Wi-Fi / Canal / Móvel tabs and the band filter chips.
-- **Início → "Diagnóstico IA"** chip also opens Orbit.
+- **Início → "Diagnóstico IA"** chip also opens SignallQ.
 
 ## Files
 
@@ -20,8 +20,8 @@ Open `index.html`. It mounts a single 390×820 phone frame with the live app. Ev
 | `chrome.jsx` | `LK` tokens, `Icon` (Material Symbols), `SignalBars`, `Badge`, `Avatar`, `StatusBar`, `TopBar`, `BottomNav`, `PhoneFrame` |
 | `screens.jsx` | `HomeScreen`, `SinalScreen` (+ `ChannelTab`, `MovelTab`), `HistoricoScreen`, `AjustesScreen`, `Card`/`Overline` primitives |
 | `speedtest.jsx` | `SpeedFlow` state machine → `SpeedIdle`, `SpeedRunning` (gauge), `Resultado` |
-| `orbit.jsx` | `OrbitScreen` AI chat (dark palette `ORB`), `TypeOut` typewriter, `Thinking` dots |
-| `app.jsx` | Tab router + Orbit overlay, mounts to `#root` |
+| `signallq.jsx` | `SignallQScreen` AI chat (dark palette `ORB`), `TypeOut` typewriter, `Thinking` dots |
+| `app.jsx` | Tab router + SignallQ overlay, mounts to `#root` |
 
 ## Conventions
 
@@ -31,6 +31,6 @@ Open `index.html`. It mounts a single 390×820 phone frame with the live app. Ev
 
 ## Coverage / omissions
 
-Faithful to: the 5-tab scroll-aware shell, center-aligned top bar + gradient profile avatar, Home NetworkPath/Medições/MiniCards/SignalCard, the neutral ModeSelector + speedtest gauge + result metric grid + usage verdicts, Sinal "Sua conexão" tree with the success-tinted connected node + signal bars, Orbit's dark gradient-header chat.
+Faithful to: the 5-tab scroll-aware shell, center-aligned top bar + gradient profile avatar, Home NetworkPath/Medições/MiniCards/SignalCard, the neutral ModeSelector + speedtest gauge + result metric grid + usage verdicts, Sinal "Sua conexão" tree with the success-tinted connected node + signal bars, SignallQ's dark gradient-header chat.
 
 Intentionally simplified or omitted (present in the app, not rebuilt here): Fibra/GPON modem screen, DNS benchmark & Ping detail screens, Dispositivos (LAN scanner), onboarding, permission bottom-sheets, dual-SIM chips, PDF "Laudo" report, full Ajustes editing. Add them by following the same patterns if needed.

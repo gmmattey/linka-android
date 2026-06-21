@@ -13,10 +13,10 @@
 - [ ] UX visualmente idêntica
 
 ## Como verificar
-- `adb shell dumpsys gfxinfo io.linka.app framestats` antes/depois
+- `adb shell dumpsys gfxinfo io.veloo.app framestats` antes/depois
 - Macrobenchmark `FrameTimingMetric` no fluxo Speedtest → Resultado
 
 ## Notas para o agente
-- Skills: `linka-design`, `linka-arch`
+- Skills: `signallq-design`, `signallq-arch`
 - Não mexer em estética; só em estrutura/perf
 - Dependências: facilitado por #9 (Baseline Profile mede no mesmo fluxo)

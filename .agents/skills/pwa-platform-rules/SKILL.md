@@ -1,5 +1,5 @@
 ---
-description: Regras de plataforma PWA para o Linka SpeedTest — APIs disponíveis no browser, limitações reais vs. Android, Service Worker, Cloudflare Pages e compatibilidade entre navegadores.
+description: Regras de plataforma PWA para o SignallQ SpeedTest — APIs disponíveis no browser, limitações reais vs. Android, Service Worker, Cloudflare Pages e compatibilidade entre navegadores.
 ---
 
 ## Quando usar

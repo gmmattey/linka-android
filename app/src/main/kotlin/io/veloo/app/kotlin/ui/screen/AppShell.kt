@@ -191,7 +191,7 @@ fun AppShell(
     onDispensarBannerIsp: () -> Unit,
     onSalvarLimiteAlerta: (Int) -> Unit,
     onIniciarDiagnostico: () -> Unit,
-    orbitUiState: OrbitUiState,
+    signallQUiState: SignallQUiState,
     movelSnapshot: MovelSnapshot?,
     simsAtivos: List<MovelSimSnapshot> = emptyList(),
     temPermissaoTelefonia: Boolean = false,
@@ -199,14 +199,14 @@ fun AppShell(
     temPermissaoLocalizacao: Boolean = true,
     localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
-    onIniciarOrbit: (foco: String?) -> Unit,
-    onResetOrbit: () -> Unit,
+    onIniciarSignallQ: (foco: String?) -> Unit,
+    onResetSignallQ: () -> Unit,
     onSelecionarChip: (OpcaoResposta) -> Unit,
     onResponderPergunta: (OpcaoResposta) -> Unit,
     gemmaAvailable: Boolean = false,
     operadoraMovel: String? = null,
     onVerificarGemma: () -> Unit = {},
-    onIniciarOrbitComResultado: (ResultadoSpeedtest, String?) -> Unit = { _, _ -> },
+    onIniciarSignallQComResultado: (ResultadoSpeedtest, String?) -> Unit = { _, _ -> },
     // T6.2/T6.5: mensagens digitadas têm fluxo separado do selecionarChip
     onEnviarMensagemTexto: (String) -> Unit = {},
     // Task 4 — confirmação de speedtest em rede medida
@@ -405,7 +405,7 @@ fun AppShell(
                             },
                             onAbrirDiagnostico = {
                                 if (FeatureFlags.DIAGNOSTICO_CHAT) {
-                                    onIniciarOrbit(null)
+                                    onIniciarSignallQ(null)
                                     if (Overlay.Chat !in overlayStack) overlayStack.add(Overlay.Chat)
                                 }
                             },
@@ -618,11 +618,11 @@ fun AppShell(
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         ) {
             ChatScreen(
-                uiState = orbitUiState,
+                uiState = signallQUiState,
                 onNavigateBack = { overlayStack.remove(Overlay.Chat) },
-                onIniciarOrbit = onIniciarOrbit,
-                onResetOrbit = {
-                    onResetOrbit()
+                onIniciarSignallQ = onIniciarSignallQ,
+                onResetSignallQ = {
+                    onResetSignallQ()
                     overlayStack.remove(Overlay.Chat)
                 },
                 onSelecionarChip = onSelecionarChip,

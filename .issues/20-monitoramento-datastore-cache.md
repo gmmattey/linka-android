@@ -20,6 +20,6 @@ adb shell dumpsys jobscheduler | Select-String LinkaMonitor
 Trace via `Trace.beginSection("MonitoramentoWorker.doWork")` antes/depois.
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Impacto estimado: -50–80 ms por execução do Worker; -3–5% energia em uso diário
 - Dependências: facilita #21

@@ -13,28 +13,28 @@ Services are categorized and mapped to their likely locations:
 Foundational services provided by core modules:
 
 -   **Network Service (`coreNetwork`)**:
-    -   **Module Path**: `linka-android-kotlin/coreNetwork/`
-    -   **Key Interface/Service**: `ApiService.kt` (e.g., `linka-android-kotlin/coreNetwork/src/main/kotlin/.../api/ApiService.kt` - *necessita validação humana*).
-    -   **AI Service**: `AiDiagnosisService.kt` for Cloudflare worker communication (e.g., `linka-android-kotlin/coreNetwork/src/main/kotlin/.../ai/AiDiagnosisService.kt` - *inferential path, necessita validação humana*).
+    -   **Module Path**: `signallq-android-kotlin/coreNetwork/`
+    -   **Key Interface/Service**: `ApiService.kt` (e.g., `signallq-android-kotlin/coreNetwork/src/main/kotlin/.../api/ApiService.kt` - *necessita validação humana*).
+    -   **AI Service**: `AiDiagnosisService.kt` for Cloudflare worker communication (e.g., `signallq-android-kotlin/coreNetwork/src/main/kotlin/.../ai/AiDiagnosisService.kt` - *inferential path, necessita validação humana*).
     -   **Consumer(s)**: Repositories.
 
 -   **Database Service (`coreDatabase`)**:
-    -   **Module Path**: `linka-android-kotlin/coreDatabase/`
-    -   **Key Interfaces/Classes**: DAO interfaces (e.g., `linka-android-kotlin/.../dao/DeviceDao.kt` - *necessita validação humana*), Room Database class (e.g., `AppDatabase.kt` - *necessita validação humana*).
+    -   **Module Path**: `signallq-android-kotlin/coreDatabase/`
+    -   **Key Interfaces/Classes**: DAO interfaces (e.g., `signallq-android-kotlin/.../dao/DeviceDao.kt` - *necessita validação humana*), Room Database class (e.g., `AppDatabase.kt` - *necessita validação humana*).
     -   **Consumer(s)**: Repositories.
 
 -   **DataStore Service (`coreDatastore`)**:
-    -   **Module Path**: `linka-android-kotlin/coreDatastore/`
-    -   **Key Classes**: Data access classes (e.g., `linka-android-kotlin/.../UserPreferencesDataSource.kt` - *necessita validação humana*).
+    -   **Module Path**: `signallq-android-kotlin/coreDatastore/`
+    -   **Key Classes**: Data access classes (e.g., `signallq-android-kotlin/.../UserPreferencesDataSource.kt` - *necessita validação humana*).
     -   **Consumer(s)**: ViewModels, Repositories.
 
 -   **Permission Service (`corePermissions`)**:
-    -   **Module Path**: `linka-android-kotlin/corePermissions/`
+    -   **Module Path**: `signallq-android-kotlin/corePermissions/`
     -   **Key Classes**: Utility classes for permission management (*specific file paths necessita validação humana*).
     -   **Consumer(s)**: Feature modules.
 
 -   **Telephony Service (`coreTelephony`)**:
-    -   **Module Path**: `linka-android-kotlin/coreTelephony/`
+    -   **Module Path**: `signallq-android-kotlin/coreTelephony/`
     -   **Key Classes**: Utility classes for telephony APIs (*specific file paths necessita validação humana*).
     -   **Consumer(s)**: Features needing phone state access.
 
@@ -43,17 +43,17 @@ Foundational services provided by core modules:
 Services exposed by feature modules:
 
 -   **Device Management (`featureDevices`)**:
-    -   **Module Path**: `linka-android-kotlin/featureDevices/`
+    -   **Module Path**: `signallq-android-kotlin/featureDevices/`
     -   **Key Components**: UI composables (e.g., `DeviceListScreen.kt`), ViewModel (`DeviceViewModel.kt`) (*inferential paths*).
     -   **Consumer(s)**: `featureHome`, other features.
 
 -   **Diagnostic Service (`featureDiagnostico`)**:
-    -   **Module Path**: `linka-android-kotlin/featureDiagnostico/`
+    -   **Module Path**: `signallq-android-kotlin/featureDiagnostico/`
     -   **Key Components**: UI (`DiagnosticScreen.kt`), ViewModel (`DiagnosticViewModel.kt`), AI interaction logic (*inferential paths*).
     -   **Consumer(s)**: UI, `coreNetwork`.
 
 -   **Speedtest Service (`featureSpeedtest`)**:
-    -   **Module Path**: `linka-android-kotlin/featureSpeedtest/`
+    -   **Module Path**: `signallq-android-kotlin/featureSpeedtest/`
     -   **Key Components**: UI (`SpeedtestScreen.kt`), ViewModel (`SpeedtestViewModel.kt`), network logic (*inferential paths*).
     -   **Consumer(s)**: UI, `coreNetwork`.
 

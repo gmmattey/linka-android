@@ -16,6 +16,6 @@ O OkHttpClient global manda `Cache-Control: no-store` em todas as requisições 
 - Speedtest mantém payload uncached
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Impacto estimado: -5–10% dados móveis em uso típico (excluindo speedtest)
 - Dependências: depende de #3 (Hilt) para separação limpa dos clients

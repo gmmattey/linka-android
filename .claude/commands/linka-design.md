@@ -1,26 +1,26 @@
 ---
-description: Guardião do design system do LINKA — cria, revisa e orienta UI/Compose garantindo consistência visual com os tokens, tipografia, espaçamento e padrões da marca.
+description: Guardião do design system do SignallQ — cria, revisa e orienta UI/Compose garantindo consistência visual com os tokens, tipografia, espaçamento e padrões da marca.
 argument-hint: [create <NomeDaScreen>|review <arquivo.kt>|tokens]
 allowed-tools: Read(*), Bash(*), PowerShell(*)
 ---
 
 ## Sistema de Design Atual (lido dos arquivos em tempo real)
 
-**LinkaTheme.kt — tokens vivos:**
-!`cat "C:/Projetos/Linka Android/app/src/main/kotlin/io/linka/app/kotlin/ui/LinkaTheme.kt"`
+**SignallQTheme.kt — tokens vivos:**
+!`cat "C:/Projetos/SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/SignallQTheme.kt"`
 
 **Componentes reutilizáveis disponíveis:**
-!`ls "C:/Projetos/Linka Android/app/src/main/kotlin/io/linka/app/kotlin/ui/component/" 2>/dev/null | grep ".kt" || echo "(diretório não encontrado)"`
+!`ls "C:/Projetos/SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/component/" 2>/dev/null | grep ".kt" || echo "(diretório não encontrado)"`
 
 **Telas existentes (referência de padrão):**
-!`ls "C:/Projetos/Linka Android/app/src/main/kotlin/io/linka/app/kotlin/ui/screen/" 2>/dev/null | grep ".kt" || echo "(diretório não encontrado)"`
+!`ls "C:/Projetos/SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/screen/" 2>/dev/null | grep ".kt" || echo "(diretório não encontrado)"`
 
 ---
 
-## Regras do Design System LINKA
+## Regras do Design System SignallQ
 
 ### Identidade da Marca
-- Nome do produto: **linka** (sempre minúsculo em textos de UI)
+- Nome do produto: **SignallQ** (identidade visual)
 - Tom: objetivo, confiável, técnico-acessível — sem jargão
 - Logo: usar apenas os assets oficiais em `res/drawable-nodpi/` — nunca recriar com texto/Font
 
@@ -45,14 +45,14 @@ allowed-tools: Read(*), Bash(*), PowerShell(*)
 | `tokens.textTertiary` | Placeholders, hints, texto de baixo contraste |
 | `tokens.border` | Divisores, strokes, bordas de input |
 
-**Paleta exclusiva Linka IA / Orbit (always-dark — não adaptativa):**
+**Paleta exclusiva SignallQ IA (always-dark — não adaptativa):**
 | Token | Uso |
 |-------|-----|
-| `LkColors.linkaBlack` | Fundo primário das telas de IA |
-| `LkColors.linkaDarkSurface` | Gradiente superior, header da tela de IA |
-| `LkColors.linkaDarkCard` | Cards dentro das telas de IA |
-| `LkColors.linkaTextOnDark` | Texto primário sobre fundos IA |
-| `LkColors.linkaTextSecondaryOnDark` | Texto secundário sobre fundos IA |
+| `LkColors.signallqBlack` | Fundo primário das telas de IA |
+| `LkColors.signallqDarkSurface` | Gradiente superior, header da tela de IA |
+| `LkColors.signallqDarkCard` | Cards dentro das telas de IA |
+| `LkColors.signallqTextOnDark` | Texto primário sobre fundos IA |
+| `LkColors.signallqTextSecondaryOnDark` | Texto secundário sobre fundos IA |
 
 **Cores de fase do Speedtest:**
 | Token | Uso |
@@ -63,15 +63,15 @@ allowed-tools: Read(*), Bash(*), PowerShell(*)
 
 **PROIBIDO:** usar hex literal no código UI (ex: `Color(0xFF6C2BFF)`). Sempre referenciar pelo token.
 
-**ATENÇÃO — migração em andamento:** Existem telas legadas usando `GhostColors` (Flutter) e valores antigos. Em código Kotlin novo, usar **apenas** `LkColors` e `LocalLkTokens`.
+**ATENÇÃO — migração em andamento:** Existem telas legadas usando cores antigas. Em código Kotlin novo, usar **apenas** `LkColors` e `LocalLkTokens` conforme design system SignallQ.
 
 ---
 
-### Tipografia — Material3 + escala LINKA
+### Tipografia — Material3 + escala SignallQ
 
 Usar via `MaterialTheme.typography.*` mapeado para a escala do projeto:
 
-| Token Material3 | Papel LINKA | Tamanho | Peso | Uso |
+| Token Material3 | Papel SignallQ | Tamanho | Peso | Uso |
 |-----------------|-------------|---------|------|-----|
 | `displayLarge` | `metric` / h1 | 34sp | 700 | Score principal, velocidade DL/UL grande |
 | `headlineMedium` | `sectionTitle` / h2 | 20sp | 600 | Título de seção/capítulo |
@@ -220,7 +220,7 @@ Card(
 4. Perguntar se quer que as correções sejam aplicadas
 
 ### Modo `tokens`
-Exibir uma tabela de referência rápida com todos os tokens disponíveis e seus valores atuais lidos do `LinkaTheme.kt`.
+Exibir uma tabela de referência rápida com todos os tokens disponíveis e seus valores atuais lidos do `SignallQTheme.kt`.
 
 ### Sem argumento — modo consultor
 Perguntar ao usuário o que deseja:

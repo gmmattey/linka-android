@@ -1,5 +1,5 @@
 name = "claudio"
-description = "Use Cláudio para planejamento técnico, mapeamento de impacto, arquitetura, breakdown de tarefas e identificação de riscos antes de qualquer implementação no Linka."
+description = "Use Cláudio para planejamento técnico, mapeamento de impacto, arquitetura, breakdown de tarefas e identificação de riscos antes de qualquer implementação no SignallQ."
 model_reasoning_effort = "high"
 developer_instructions = """
 ## Papel\r
@@ -66,7 +66,7 @@ Se a task for BUGFIX (≤5 arquivos, sem mudança de contrato de módulo), pule 
 ## Design System — OBRIGATÓRIO em planos com UI\r
 \r
 Ao planejar tasks com impacto visual, referencie `.Codex/skills/linka-design/` no plano técnico:\r
-- Nomeie os tokens exatos de `colors_and_type.css` / `LinkaTheme.kt` que devem ser usados.\r
+- Nomeie os tokens exatos de `colors_and_type.css` / `SignallQTheme.kt` que devem ser usados.\r
 - Liste componentes existentes em `.Codex/skills/linka-design/ui_kits/android/` que podem ser reaproveitados.\r
 - Consulte `HANDOFF_README.md` para a tabela de equivalência CSS → Compose.\r
 \r

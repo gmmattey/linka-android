@@ -1,4 +1,4 @@
-# Pipeline Autônomo LINKA — Do `/task` ao Merge
+# Pipeline Autônomo SIGNALLQ — Do `/task` ao Merge
 
 ## Visão Geral
 
@@ -193,7 +193,7 @@ Nina usa `--squash` como padrão (um commit de merge limpo). O PR deve ter `Clos
 
 ## Board do GitHub Project
 
-**Project #8** — LINKA Android Roadmap (`gmmattey/linka-android`)
+**Project #8** — SIGNALLQ Android Roadmap (`gmmattey/signallq-android`)
 
 | Coluna | Quando |
 |--------|--------|
@@ -215,6 +215,6 @@ O workflow `.github/workflows/auto-move-board.yml` move cards automaticamente co
 
 **Notificação não chegou:** verificar `.env` para `DISCORD_WEBHOOK_LINKA` e `SLACK_WEBHOOK_LINKA`. Testar: `bash scripts/notify.sh teste "mensagem" info`
 
-**PR não fechou a issue:** verificar se o corpo do PR contém `Closes #N`. Fechar manualmente: `gh issue close N --repo gmmattey/linka-android`
+**PR não fechou a issue:** verificar se o corpo do PR contém `Closes #N`. Fechar manualmente: `gh issue close N --repo gmmattey/signallq-android`
 
 **Agente não recebeu handoff:** o handoff é por subagente invocado explicitamente no Claude Code — verificar se o agente anterior chamou o próximo via `Task`. Retomar manualmente invocando o agente com o prompt correto.

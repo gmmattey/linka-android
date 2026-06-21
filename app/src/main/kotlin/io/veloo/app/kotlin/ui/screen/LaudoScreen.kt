@@ -570,7 +570,7 @@ private suspend fun gerarECompartilharLaudo(
             val dir =
                 context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
                     ?: context.cacheDir.resolve("laudos").also { it.mkdirs() }
-            val arquivo = File(dir, "laudo_linka_${System.currentTimeMillis()}.pdf")
+            val arquivo = File(dir, "laudo_signallq_${System.currentTimeMillis()}.pdf")
             FileOutputStream(arquivo).use { document.writeTo(it) }
             document.close()
 

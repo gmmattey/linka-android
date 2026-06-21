@@ -1,6 +1,6 @@
 ---
 name: doc-generator
-description: Gera documentação completa e atualizada para o projeto Linka — funcional, técnica, testes, fluxos, design, PPT e HTML. Audita documentação existente antes de criar qualquer coisa nova, move obsoleta para .old, diferencia Android Kotlin de PWA, e adequa estilo ao público-alvo (humano ou IA).
+description: Gera documentação completa e atualizada para o projeto SignallQ — funcional, técnica, testes, fluxos, design, PPT e HTML. Audita documentação existente antes de criar qualquer coisa nova, move obsoleta para .old, diferencia Android Kotlin de PWA, e adequa estilo ao público-alvo (humano ou IA).
 ---
 
 Use a **Taisa** para gerar ou atualizar documentação.
@@ -256,9 +256,9 @@ Quando o output for um documento HTML:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>[Título do documento] — Linka</title>
+  <title>[Título do documento] — SignallQ</title>
   <style>
-    /* Paleta Linka */
+    /* Paleta SignallQ */
     :root {
       --color-primary: #1A73E8;
       --color-surface: #F8F9FA;
@@ -313,7 +313,7 @@ Requisitos obrigatórios para HTML:
 Quando o output for uma apresentação:
 
 **Sequência de slides obrigatória:**
-1. **Capa** — título, subtítulo, data, logo Linka.
+1. **Capa** — título, subtítulo, data, logo SignallQ.
 2. **Problema** — o que motivou esta feature/decisão.
 3. **Solução** — o que foi construído ou proposto.
 4. **Fluxo** — diagrama simplificado do fluxo principal.

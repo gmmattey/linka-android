@@ -2,7 +2,7 @@
 35+ chamadas diretas a `android.util.Log` espalhadas no código, com tags hardcoded por arquivo. Isso impede: desligar logs em release, plugar crash reporter (Crashlytics/Sentry), padronizar formato, e instrumentar testes. Timber resolve com um wrapper leve e amplamente conhecido.
 
 ## Evidência
-- `app/src/main/kotlin/io/linka/app/kotlin/monitoramento/MonitoramentoWorker.kt:43,85,174` — `Log.w("LinkaMonitor", ...)`, `Log.d("MainViewModel", ...)`
+- `app/src/main/kotlin/io/signallq/app/kotlin/monitoramento/MonitoramentoWorker.kt:43,85,174` — `Log.w("LinkaMonitor", ...)`, `Log.d("MainViewModel", ...)`
 - Mapear todos: `Select-String -Path **/*.kt -Pattern 'Log\.[dewiv]\('`
 
 ## Critério de aceite
@@ -20,6 +20,6 @@ Get-ChildItem -Recurse -Include *.kt -Path .\app\src\main,.\core*\src\main,.\fea
 ```
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Manter ReleaseTree pronto para plugar Crashlytics no futuro (issue separada se necessário)
 - Dependências: independente

@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LocalLkTokens
 
@@ -54,10 +54,10 @@ fun DiagActionFooter(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
             ) {
-                OrbitSymbolSmall()
+                SignallQSymbolSmall()
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "Tirar dúvidas com o Veloo",
+                    text = "Tirar dúvidas com o SignallQ",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = c.textPrimary,
@@ -110,7 +110,7 @@ fun DiagActionFooter(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun DiagActionFooterPreview() {
-    VelooTheme {
+    SignallQTheme {
         DiagActionFooter(
             onShare = {},
             onRefresh = {},

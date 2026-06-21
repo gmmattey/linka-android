@@ -17,6 +17,6 @@ Existem duas árvores de documentação: `docs/` (operacional) e `docs_ai/` (viv
 Manual: revisar `docs_ai/technical/adr/` tem ao menos 4 ADRs; `docs/` e `docs_ai/` não duplicam conteúdo de estrutura.
 
 ## Notas para o agente
-- Skills: `linka-docs`
+- Skills: `signallq-docs`
 - Usar formato ADR clássico (Status / Context / Decision / Consequences)
 - Dependências: independente

@@ -10,7 +10,7 @@ Em arquitetura Android com Kotlin Coroutines, `Dispatchers.IO`, `Dispatchers.Mai
 - Acoplamento forte com implementação nativa do Android
 - Impossível injetar custom dispatcher para debug/profiling
 
-Historicamente, projetos resolvem isso com Hilt + `@Provides`, mas o Linka decidiu usar injeção manual (sem DI framework).
+Historicamente, projetos resolvem isso com Hilt + `@Provides`, mas o SignallQ decidiu usar injeção manual (sem DI framework).
 
 ## Decisão
 

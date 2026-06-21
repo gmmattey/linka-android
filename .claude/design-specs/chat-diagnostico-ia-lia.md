@@ -2,7 +2,7 @@
 
 > Especificação acionável para Camilo implementar na Etapa 4 (Screen + componentes).
 > Microcopy PT-BR final — não inventar texto novo.
-> Tokens via `LocalLkTokens.current` e `MaterialTheme.colorScheme`.
+> Tokens SignallQ via `LocalLkTokens.current` e `MaterialTheme.colorScheme`.
 
 ---
 
@@ -28,7 +28,7 @@ ModalNavigationDrawer (drawer à esquerda)
   └── Scaffold (topbar; bottomBar VAZIO durante executandoTeste)
         └── Column(windowInsetsPadding(WindowInsets.ime))
               ├── LazyColumn (mensagens + OpcoesIniciaisChips inline)
-              └── OrbitInputArea (passa chips = emptyList())
+              └── SignallQInputArea (passa chips = emptyList())
                   ↪ substituído por CotaExcedidaBanner quando cota=excedida
 ```
 
@@ -55,7 +55,7 @@ ModalNavigationDrawer (drawer à esquerda)
 
 ## MensagensProgressoTeste
 
-Não é componente — é comportamento do ViewModel. Reusa `OrbitAiMessageBubble` com novo parâmetro `isProgressMessage: Boolean = false` que suprime:
+Não é componente — é comportamento do ViewModel. Reusa `SignallQAiMessageBubble` com novo parâmetro `isProgressMessage: Boolean = false` que suprime:
 - statusLabel pill
 - métricas (download/upload/latência inline)
 - BulletActionList
@@ -163,7 +163,7 @@ AlertDialog(
 
 ### Boas-vindas (primeira mensagem da IA)
 
-> Olá. Sou o Diagnóstico IA do Linka.
+> Olá. Sou o Diagnóstico IA do SignallQ.
 >
 > Posso ajudar você a entender problemas de internet, Wi-Fi, velocidade, latência, perda de pacote e qualidade da sua rede. Trabalho apenas com assuntos relacionados à sua conexão — não sou um assistente geral e posso cometer erros. Use minhas respostas como apoio, não como verdade absoluta.
 
@@ -194,7 +194,7 @@ AlertDialog(
 
 ### Fora de escopo
 
-> Só consigo ajudar com assuntos relacionados à sua conexão, Wi-Fi, testes de rede e diagnósticos do Linka. Quer que eu analise seu último teste ou ajude a entender um problema de internet?
+> Só consigo ajudar com assuntos relacionados à sua conexão, Wi-Fi, testes de rede e diagnósticos do SignallQ. Quer que eu analise seu último teste ou ajude a entender um problema de internet?
 
 ---
 
@@ -214,7 +214,7 @@ titulo = mensagem.take(40).trimEnd() + if (mensagem.length > 40) "…" else ""
 ## Comportamento crítico
 
 - **Auto-scroll inteligente:** só `animateScrollToItem(lastIndex)` se o usuário já estava no fundo (`lazyListState.isScrolledToEnd()`). NÃO puxar usuário de volta enquanto ele lê histórico.
-- **Input durante teste:** `OrbitInputArea.enabled = false` durante `executandoTeste` e `aguardandoIa`. Placeholder: `Aguarde o resultado do teste...`.
+- **Input durante teste:** `SignallQInputArea.enabled = false` durante `executandoTeste` e `aguardandoIa`. Placeholder: `Aguarde o resultado do teste...`.
 - **Bottom nav:** oculta durante `executandoTeste` (mesmo gate que ChatScreen atual usa).
 - **TypewriterText em respostas longas (>500 chars):** verificar velocidade aceitável; se não, considerar fade-in por parágrafo.
 - **Fontes grandes (fontScale 1.3+):** banner usa `wrapContentHeight()` + padding generoso.
@@ -228,14 +228,14 @@ Nada a customizar. Todos os tokens já têm variante dark:
 - `tokens.warningContainer` / `tokens.onWarningContainer` (banner)
 - `MaterialTheme.colorScheme.secondaryContainer` (chips)
 
-Verificar se `OrbitThinkingBubble` usa token (não hardcode).
+Verificar se `SignallQThinkingBubble` usa token (não hardcode).
 
 ---
 
 ## Acessibilidade
 
 - Chips: `Modifier.semantics { contentDescription = chip.label }`.
-- `OrbitThinkingBubble`: `contentDescription = "Diagnóstico IA está processando"`.
+- `SignallQThinkingBubble`: `contentDescription = "Diagnóstico IA está processando"`.
 - `ModalDrawerSheet`: `Modifier.semantics { paneTitle = "Histórico de conversas" }`.
 - DropdownMenuItem: `Modifier.semantics { contentDescription = "Renomear conversa ${sessao.titulo}" }`.
 - Tamanhos de toque ≥48dp já garantidos pelo MD3 default.

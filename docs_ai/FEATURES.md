@@ -1,4 +1,4 @@
-# Linka Android — Features Implementadas
+# SignallQ Android — Features Implementadas
 
 > Gerado automaticamente. Atualizar sempre que uma feature for adicionada, alterada ou removida.
 > Versão de referência: **v0.7.3** (versionCode 18) — build 19/05/2026
@@ -16,7 +16,7 @@
 | **Speedtest** | Medição de download/upload/latência/jitter, fases de execução (aquecimento, principal, resfriamento), classificação de qualidade, suporte Cloudflare, detecção de bufferbloat, taxa de qualidade por uso (gaming/streaming/videochamada); compartilhamento de resultado como PNG via share sheet | Implementado | v0.7.3 |
 | **DNS** | Benchmark de resolvedores DNS e DoH, análise de coerência (private DNS), resolvedores customizados, avaliador de qualidade com grade A–D | Implementado | v0.6.2 |
 | **Fibra** | Diagnóstico de modems GPON (Nokia, Intelbras, TP-Link), extração de dados (RX dBm, SNR, status WAN/PPP), presets com credenciais pré-preenchidas, suporte a criptografia de modem | Implementado | v0.7.0 |
-| **Diagnóstico IA** | Motor de diagnóstico multi-camada (Wi-Fi, internet, mobile, fibra, DNS, histórico), geração de recomendações, pergunta-resposta dinâmica (Pulse/Orbit), contexto acumulado de sessão; card de contato da operadora quando diagnóstico aponta ISP | Implementado | v0.7.3 |
+| **Diagnóstico IA** | Motor de diagnóstico multi-camada (Wi-Fi, internet, mobile, fibra, DNS, histórico), geração de recomendações, pergunta-resposta dinâmica (Pulse/SignallQ), contexto acumulado de sessão; card de contato da operadora quando diagnóstico aponta ISP | Implementado | v0.7.3 |
 | **Histórico** | Histórico de medições (Room), cálculo de uptime, narrativa de degradação, exportação CSV/PDF, gráfico de uptime, detector de tendências (melhora/piora/estável) | Implementado | v0.6.2 |
 | **Ajustes** | Configurações do app, seletor de ISP (18 operadoras brasileiras), ajustes de monitoramento passivo, notificações granulares por tipo, perfil do usuário | Implementado | v0.6.2 |
 

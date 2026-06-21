@@ -14,6 +14,6 @@ O `OkHttpClient` do speedtest configura `ConnectionPool(8, 60, TimeUnit.SECONDS)
 Battery Historian antes/depois em 5 testes consecutivos em mobile — esperar redução de tempo RRC connected pós-teste.
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Impacto estimado: -5 a -10% energia em uso recorrente do speedtest em mobile
 - Dependências: independente

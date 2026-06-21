@@ -2,14 +2,14 @@
 
 ## Objective
 
-This document details the user flow for DNS-related features, mapping specific components and interactions within the Linka Android Kotlin application.
+This document details the user flow for DNS-related features, mapping specific components and interactions within the SignallQ Android Kotlin application.
 
 ## User Interactions and Flows
 
 The `featureDns` module provides DNS configuration and testing capabilities.
 
 1.  **Viewing Current DNS Settings**:
-    -   **Entry Point**: UI elements within `linka-android-kotlin/featureDns/ui/DnsScreen.kt` (*inferential path*).
+    -   **Entry Point**: UI elements within `signallq-android-kotlin/featureDns/ui/DnsScreen.kt` (*inferential path*).
     -   **Action**: Application queries device network state.
     -   **System Interaction**: Likely uses `ConnectivityManager` and `LinkProperties` APIs via a utility class in `coreNetwork/` or `coreTelephony/` (*inferential paths*).
     -   **Display**: Current primary/secondary DNS servers shown in `DnsScreen.kt`.
@@ -28,10 +28,10 @@ The `featureDns` module provides DNS configuration and testing capabilities.
 
 ## Key Files/Modules
 
--   **`linka-android-kotlin/featureDns/`**: Contains `DnsScreen.kt` and `DnsViewModel.kt` (*inferential paths*).
--   **`linka-android-kotlin/coreNetwork/`**: May contain DNS query utilities or API definitions for network lookups.
--   **`linka-android-kotlin/coreDatastore/`**: Likely used for persisting custom DNS settings.
--   **`linka-android-kotlin/coreTelephony/`**: Potentially used for retrieving system network info.
+-   **`signallq-android-kotlin/featureDns/`**: Contains `DnsScreen.kt` and `DnsViewModel.kt` (*inferential paths*).
+-   **`signallq-android-kotlin/coreNetwork/`**: May contain DNS query utilities or API definitions for network lookups.
+-   **`signallq-android-kotlin/coreDatastore/`**: Likely used for persisting custom DNS settings.
+-   **`signallq-android-kotlin/coreTelephony/`**: Potentially used for retrieving system network info.
 
 ## Known Risks
 

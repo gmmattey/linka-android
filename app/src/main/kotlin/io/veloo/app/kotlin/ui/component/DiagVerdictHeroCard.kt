@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.LkColors
 
 @Composable
@@ -81,7 +81,7 @@ fun DiagVerdictHeroCard(
             text = veredito,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = LkColors.velooTextOnDark,
+            color = LkColors.signallQTextOnDark,
             lineHeight = (16 * 1.42).sp,
         )
 
@@ -131,7 +131,7 @@ private fun StatusPill(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun DiagVerdictHeroCardPreview() {
-    VelooTheme {
+    SignallQTheme {
         DiagVerdictHeroCard(
             titulo = "DIAGNÓSTICO IA",
             veredito = "Seu Wi-Fi chega fraco neste cômodo e a fila de download entope a conexão. É por isso que chamadas travam e páginas demoram — o plano em si está ok.",

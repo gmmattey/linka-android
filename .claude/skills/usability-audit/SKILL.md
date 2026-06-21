@@ -1,6 +1,6 @@
 ---
 name: usability-audit
-description: Avaliação de navegação e usabilidade do Linka — arquitetura de informação, fluxos de tarefas, discoverabilidade de features, eficiência de navegação, onboarding, recuperação de erros e heurísticas de usabilidade móvel. Executada por Lia em modo Sonnet. Cobre Android e PWA.
+description: Avaliação de navegação e usabilidade do SignallQ — arquitetura de informação, fluxos de tarefas, discoverabilidade de features, eficiência de navegação, onboarding, recuperação de erros e heurísticas de usabilidade móvel. Executada por Lia em modo Sonnet. Cobre Android e PWA.
 ---
 
 ## Quando usar
@@ -45,7 +45,7 @@ Acionar Marcelo para listar:
 
 ### 3. Avaliar fluxos de tarefa críticos
 
-Para cada fluxo principal do Linka, contar taps/cliques e identificar friction:
+Para cada fluxo principal do SignallQ, contar taps/cliques e identificar friction:
 
 **Fluxo 1 — Executar diagnóstico:**
 1. O usuário sabe onde iniciar? (CTA visível na home?)
@@ -134,7 +134,7 @@ Severidade: [crítico | importante | melhoria]
 
 ### 8. Heurísticas de usabilidade móvel (Nielsen adaptado)
 
-| Heurística | O que verificar no Linka |
+| Heurística | O que verificar no SignallQ |
 |---|---|
 | **Visibilidade do status** | O usuário sempre sabe o que o app está fazendo (teste rodando, resultado carregando, erro ocorrido) |
 | **Correspondência com o real** | Termos usados condizem com o que o usuário conhece ("velocidade", não "throughput") |

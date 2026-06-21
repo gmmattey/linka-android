@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import io.veloo.app.ui.VelooTheme
+import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.viewmodel.ChatDiagUiState
 import io.veloo.app.ui.viewmodel.EstadoChatDiagnostico
 import org.junit.Rule
@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
  * Padrão para outras Screens:
  *  1. Anotar a classe com @RunWith(RobolectricTestRunner::class) e @Config(sdk = [34]).
  *  2. Usar createComposeRule() — NÃO createAndroidComposeRule.
- *  3. Envolver o conteúdo com VelooTheme { } para resolver LocalLkTokens.
+ *  3. Envolver o conteúdo com SignallQTheme { } para resolver LocalLkTokens.
  *  4. Passar o estado diretamente via parâmetros do Composable (pattern stateless).
  *  5. Verificar presença/ausência de nós via semantics (contentDescription ou text),
  *     não por texto literal que pode mudar.
@@ -56,7 +56,7 @@ class ChatDiagnosticoIaScreenTest {
         onCancelarAcaoAtual: () -> Unit = {},
     ) {
         composeRule.setContent {
-            VelooTheme {
+            SignallQTheme {
                 ChatDiagnosticoIaScreen(
                     uiState = uiState,
                     onVoltar = onVoltar,
@@ -170,7 +170,7 @@ class ChatDiagnosticoIaScreenTest {
     @Test
     fun screen_renderiza_sem_crash_tema_claro() {
         composeRule.setContent {
-            VelooTheme(darkTheme = false) {
+            SignallQTheme(darkTheme = false) {
                 ChatDiagnosticoIaScreen(
                     uiState = uiStateBase(),
                     onVoltar = {},
@@ -196,7 +196,7 @@ class ChatDiagnosticoIaScreenTest {
     @Test
     fun screen_renderiza_sem_crash_tema_escuro() {
         composeRule.setContent {
-            VelooTheme(darkTheme = true) {
+            SignallQTheme(darkTheme = true) {
                 ChatDiagnosticoIaScreen(
                     uiState = uiStateBase(),
                     onVoltar = {},

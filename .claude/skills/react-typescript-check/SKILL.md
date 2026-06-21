@@ -1,5 +1,5 @@
 ---
-description: Checklist de qualidade React/TypeScript para o PWA Linka — padrões de componente, hooks, tipos, estado e anti-padrões a evitar.
+description: Checklist de qualidade React/TypeScript para o PWA SignallQ — padrões de componente, hooks, tipos, estado e anti-padrões a evitar.
 ---
 
 ## Quando usar

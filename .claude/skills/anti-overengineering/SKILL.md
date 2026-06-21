@@ -1,6 +1,6 @@
 ---
 name: anti-overengineering
-description: Detecta abstrações desnecessárias, camadas extras, genericismo exagerado e complexidade sem ganho real no Linka. Use antes de aprovar refactors, novas arquiteturas ou adição de dependências.
+description: Detecta abstrações desnecessárias, camadas extras, genericismo exagerado e complexidade sem ganho real no SignallQ. Use antes de aprovar refactors, novas arquiteturas ou adição de dependências.
 ---
 
 Avalie a implementação ou proposta abaixo contra overengineering:

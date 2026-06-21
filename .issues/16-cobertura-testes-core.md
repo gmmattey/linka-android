@@ -20,6 +20,6 @@
 ```
 
 ## Notas para o agente
-- Skills: `linka-arch`
+- Skills: `signallq-arch`
 - Não inflar com testes triviais de getters; foco em comportamento crítico (migrations, parsing, error paths)
 - Dependências: facilita debug futuro de #3, #6, #7

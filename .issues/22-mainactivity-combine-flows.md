@@ -15,9 +15,9 @@
 
 ## Como verificar
 - Layout Inspector → Composition counts antes/depois
-- Frame time via `dumpsys gfxinfo io.linka.app`
+- Frame time via `dumpsys gfxinfo io.veloo.app`
 
 ## Notas para o agente
-- Skills: `linka-arch`, `linka-design`
+- Skills: `signallq-arch`, `signallq-design`
 - Cuidado: agrupar demais cria recomposição em cascata por outro motivo. Validar com instrumentação.
 - Dependências: facilitado por #3 (Hilt)

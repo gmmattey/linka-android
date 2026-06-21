@@ -8,7 +8,7 @@
 
 ## O que é Central de Testes?
 
-Central de Testes é um espaço da aba **"Explorar ferramentas"** dentro do app Linka com 3 ferramentas de diagnóstico:
+Central de Testes é um espaço da aba **"Explorar ferramentas"** dentro do app SignallQ com 3 ferramentas de diagnóstico:
 
 1. **DNS Benchmark** — Qual servidor DNS é mais rápido?
 2. **Ping / Latência** — Qual é meu tempo de resposta?
@@ -23,7 +23,7 @@ Também exibe um **StatusCard** com informações de conexão em tempo real:
 ## Como Acessar Central de Testes
 
 ### Método 1: Pelo botão principal
-1. Abra **Linka**
+1. Abra **SignallQ**
 2. Toque em **"Central de testes"** (botão grande na home)
 3. Aparece a tela SpeedTest com grid de ferramentas
 
@@ -224,7 +224,7 @@ Localização Cloudflare é detectada automaticamente (não configurable pelo us
 ### "Teste não começa"
 - Verificar se tem internet (status deve ser "Conectado")
 - Tentar novamente (às vezes DNS demora)
-- Verificar se Linka tem permissão internet (Settings > Permissions)
+- Verificar se SignallQ tem permissão internet (Settings > Permissions)
 
 ### "Perda > 0% sempre"
 - Sinal WiFi fraco (mudar para mais perto do roteador)
@@ -283,5 +283,5 @@ R: Sim, sem limite. Cada teste é independente.
 Se achar que algum teste está errado:
 1. Anotar valores (latência, perda, etc.)
 2. Tentar novamente em local diferente
-3. Reportar em [canal de feedback do Linka]
+3. Reportar em [canal de feedback do SignallQ]
 

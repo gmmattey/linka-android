@@ -1,4 +1,4 @@
-/* Linka design tokens — extraídos diretamente de LinkaTheme.kt */
+/* SignallQ design tokens — extraídos diretamente de SignallQTheme.kt */
 const LK = {
   // Brand
   accent: '#6C2BFF',
@@ -24,7 +24,7 @@ const LK = {
   amberSurface:       '#FFF8E6',
   successContainer:   '#D1FAE5',
   onSuccessContainer: '#065F46',
-  // Orbit (always dark)
+  // SignallQ (always dark)
   linkaBlack:        '#0D0D1A',
   linkaDarkSurface:  '#1A0B2E',
   linkaDarkCard:     '#1E1130',
@@ -36,7 +36,7 @@ const LK = {
   rInput: 12,
 };
 
-// Compact phone frame matching Linka's edge-to-edge Material 3 app
+// Compact phone frame matching SignallQ's edge-to-edge Material 3 app
 function PhoneFrame({ children, label, dark = false, scale = 1, w = 360, h = 740 }) {
   const bg = dark ? LK.linkaBlack : LK.bgPrimary;
   return (
@@ -157,7 +157,7 @@ function Avatar({ initial = 'M', size = 32 }) {
   );
 }
 
-// Generic card following LinkaCard
+// Generic card following SignallQCard
 function Card({ children, style }) {
   return (
     <div style={{

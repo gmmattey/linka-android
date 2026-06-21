@@ -50,19 +50,19 @@ import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
 import io.veloo.app.ui.component.AiModelFooter
 import io.veloo.app.ui.component.AppBorderGlowEffect
-import io.veloo.app.ui.component.OrbitAiMessageBubble
-import io.veloo.app.ui.component.OrbitInlineQuestion
-import io.veloo.app.ui.component.OrbitInputArea
-import io.veloo.app.ui.component.OrbitThinkingBubble
-import io.veloo.app.ui.component.OrbitUserMessageBubble
+import io.veloo.app.ui.component.SignallQAiMessageBubble
+import io.veloo.app.ui.component.SignallQInlineQuestion
+import io.veloo.app.ui.component.SignallQInputArea
+import io.veloo.app.ui.component.SignallQThinkingBubble
+import io.veloo.app.ui.component.SignallQUserMessageBubble
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    uiState: OrbitUiState,
+    uiState: SignallQUiState,
     onNavigateBack: () -> Unit,
-    onIniciarOrbit: (foco: String?) -> Unit,
-    onResetOrbit: () -> Unit,
+    onIniciarSignallQ: (foco: String?) -> Unit,
+    onResetSignallQ: () -> Unit,
     onSelecionarChip: (OpcaoResposta) -> Unit,
     onResponderPergunta: (OpcaoResposta) -> Unit,
     // T6.2/T6.5: mensagens digitadas têm fluxo separado (guard off-topic + turno)
@@ -76,7 +76,7 @@ fun ChatScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Assistente linka",
+                        text = "Assistente SignallQ",
                         style = MaterialTheme.typography.titleLarge,
                         color = c.textPrimary,
                     )
@@ -99,8 +99,8 @@ fun ChatScreen(
     ) { innerPadding ->
         ChatContent(
             uiState = uiState,
-            onIniciarOrbit = onIniciarOrbit,
-            onResetOrbit = onResetOrbit,
+            onIniciarSignallQ = onIniciarSignallQ,
+            onResetSignallQ = onResetSignallQ,
             onSelecionarChip = onSelecionarChip,
             onResponderPergunta = onResponderPergunta,
             onEnviarMensagemTexto = onEnviarMensagemTexto,
@@ -114,9 +114,9 @@ fun ChatScreen(
 
 @Composable
 private fun ChatContent(
-    uiState: OrbitUiState,
-    onIniciarOrbit: (foco: String?) -> Unit,
-    onResetOrbit: () -> Unit,
+    uiState: SignallQUiState,
+    onIniciarSignallQ: (foco: String?) -> Unit,
+    onResetSignallQ: () -> Unit,
     onSelecionarChip: (OpcaoResposta) -> Unit,
     onResponderPergunta: (OpcaoResposta) -> Unit,
     onEnviarMensagemTexto: (String) -> Unit,
@@ -125,43 +125,43 @@ private fun ChatContent(
     val c = LocalLkTokens.current
     val listState = rememberLazyListState()
 
-    val isLoading = uiState is OrbitUiState.Collecting || uiState is OrbitUiState.Thinking
-    val isAnalyzing = uiState is OrbitUiState.Analyzing
-    val isError = uiState is OrbitUiState.Erro
-    val isAwaitingAnswer = uiState is OrbitUiState.AwaitingAnswer
+    val isLoading = uiState is SignallQUiState.Collecting || uiState is SignallQUiState.Thinking
+    val isAnalyzing = uiState is SignallQUiState.Analyzing
+    val isError = uiState is SignallQUiState.Erro
+    val isAwaitingAnswer = uiState is SignallQUiState.AwaitingAnswer
 
     val loadingMessage =
         when (uiState) {
-            is OrbitUiState.Collecting -> uiState.mensagem
-            is OrbitUiState.Thinking -> uiState.mensagem
-            is OrbitUiState.Analyzing -> uiState.mensagem
+            is SignallQUiState.Collecting -> uiState.mensagem
+            is SignallQUiState.Thinking -> uiState.mensagem
+            is SignallQUiState.Analyzing -> uiState.mensagem
             else -> ""
         }
 
     val session =
         when (uiState) {
-            is OrbitUiState.Analyzing -> uiState.session
-            is OrbitUiState.AwaitingChipSelection -> uiState.session
-            is OrbitUiState.AwaitingAnswer -> uiState.session
-            is OrbitUiState.Result -> uiState.session
+            is SignallQUiState.Analyzing -> uiState.session
+            is SignallQUiState.AwaitingChipSelection -> uiState.session
+            is SignallQUiState.AwaitingAnswer -> uiState.session
+            is SignallQUiState.Result -> uiState.session
             else -> null
         }
 
     val availableChips =
         when (uiState) {
-            is OrbitUiState.AwaitingChipSelection -> uiState.chips
-            is OrbitUiState.Result -> uiState.availableChips
+            is SignallQUiState.AwaitingChipSelection -> uiState.chips
+            is SignallQUiState.Result -> uiState.availableChips
             else -> emptyList()
         }
 
-    val pendingQuestion = (uiState as? OrbitUiState.AwaitingAnswer)?.question
+    val pendingQuestion = (uiState as? SignallQUiState.AwaitingAnswer)?.question
     val perguntasContextuais =
         session
             ?.analyses
             ?.lastOrNull()
             ?.fullResult
             ?.perguntasContextuais
-            ?.takeIf { uiState is OrbitUiState.Result }
+            ?.takeIf { uiState is SignallQUiState.Result }
             .orEmpty()
     val modeloIa =
         session
@@ -206,7 +206,7 @@ private fun ChatContent(
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             // Estado inicial — Thinking/Collecting chega aqui logo após navegar
-            if (uiState is OrbitUiState.Idle) {
+            if (uiState is SignallQUiState.Idle) {
                 item(key = "idle_hint") {
                     Box(
                         modifier =
@@ -215,7 +215,7 @@ private fun ChatContent(
                                 .padding(horizontal = LkSpacing.lg),
                         contentAlignment = Alignment.Center,
                     ) {
-                        OrbitThinkingBubble(mensagem = "Iniciando análise...")
+                        SignallQThinkingBubble(mensagem = "Iniciando análise...")
                     }
                 }
                 return@LazyColumn
@@ -225,7 +225,7 @@ private fun ChatContent(
             val foco = uiState.focoDiagnostico
             val intentLabel = foco?.removePrefix("Foco: ") ?: "Diagnóstico geral"
             item(key = "user_intent") {
-                OrbitUserMessageBubble(
+                SignallQUserMessageBubble(
                     text = intentLabel,
                     modifier =
                         Modifier
@@ -254,7 +254,7 @@ private fun ChatContent(
                         }
                     }
                     item(key = "ai_${analysis.id}") {
-                        OrbitAiMessageBubble(
+                        SignallQAiMessageBubble(
                             analysis = analysis,
                             isLatest = !isAnalyzing && idx == s.analyses.lastIndex,
                             // Métricas inline só para a primeira entry Gemma (initial analysis)
@@ -267,7 +267,7 @@ private fun ChatContent(
                     }
                     s.chipHistory.getOrNull(idx)?.let { userText ->
                         item(key = "user_chip_${idx}_${s.sessionId}") {
-                            OrbitUserMessageBubble(
+                            SignallQUserMessageBubble(
                                 text = userText,
                                 modifier =
                                     Modifier
@@ -282,7 +282,7 @@ private fun ChatContent(
             // Loading / thinking bubble
             if (isLoading || isAnalyzing) {
                 item(key = "thinking") {
-                    OrbitThinkingBubble(
+                    SignallQThinkingBubble(
                         mensagem = loadingMessage.ifBlank { "Analisando..." },
                         modifier =
                             Modifier.animateItem(
@@ -295,7 +295,7 @@ private fun ChatContent(
             // Pergunta inline do motor dinâmico
             if (isAwaitingAnswer && pendingQuestion != null) {
                 item(key = "inline_question_${pendingQuestion.id}") {
-                    OrbitInlineQuestion(
+                    SignallQInlineQuestion(
                         texto = pendingQuestion.texto,
                         opcoes = pendingQuestion.opcoes,
                         onResponder = onResponderPergunta,
@@ -307,7 +307,7 @@ private fun ChatContent(
             if (perguntasContextuais.isNotEmpty()) {
                 val firstQuestion = perguntasContextuais.first()
                 item(key = "contextual_${firstQuestion.id}") {
-                    OrbitInlineQuestion(
+                    SignallQInlineQuestion(
                         texto = firstQuestion.pergunta,
                         opcoes = firstQuestion.toOpcoes(),
                         onResponder = onSelecionarChip,
@@ -319,8 +319,8 @@ private fun ChatContent(
             if (isError) {
                 item(key = "error") {
                     ChatErrorCard(
-                        mensagem = (uiState as OrbitUiState.Erro).mensagem,
-                        onTentar = { onIniciarOrbit(uiState.focoDiagnostico) },
+                        mensagem = (uiState as SignallQUiState.Erro).mensagem,
+                        onTentar = { onIniciarSignallQ(uiState.focoDiagnostico) },
                     )
                 }
             }
@@ -331,7 +331,7 @@ private fun ChatContent(
             if (isComplete) {
                 item(key = "new_diagnosis") {
                     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        OutlinedButton(onClick = onResetOrbit) {
+                        OutlinedButton(onClick = onResetSignallQ) {
                             Text(
                                 "Novo diagnóstico",
                                 fontSize = 14.sp,
@@ -388,12 +388,12 @@ private fun ChatContent(
                     }
                 }
             }
-            OrbitInputArea(
+            SignallQInputArea(
                 value = inputValue,
                 onValueChange = { inputValue = it },
                 onEnviarMensagem = {
                     val text = inputValue.text.trim()
-                    if (text.isBlank()) return@OrbitInputArea
+                    if (text.isBlank()) return@SignallQInputArea
                     // T6.2/T6.5: mensagem digitada usa fluxo separado (guard off-topic + turno)
                     onEnviarMensagemTexto(text)
                     inputValue = TextFieldValue("")

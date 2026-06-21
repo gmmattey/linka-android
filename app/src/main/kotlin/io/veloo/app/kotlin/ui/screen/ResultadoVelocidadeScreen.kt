@@ -86,7 +86,7 @@ import io.veloo.app.ui.LocalLkTokens
 import io.veloo.app.ui.ResultadoBitmapGenerator
 import io.veloo.app.ui.component.OperadoraBottomSheet
 import io.veloo.app.ui.component.OperadoraContactCard
-import io.veloo.app.ui.component.OrbitSymbolSmall
+import io.veloo.app.ui.component.SignallQSymbolSmall
 import io.veloo.app.ui.component.rememberTopBarAlpha
 import kotlinx.coroutines.launch
 
@@ -586,10 +586,10 @@ fun ResultadoVelocidadeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(LkRadius.button),
                     ) {
-                        OrbitSymbolSmall()
+                        SignallQSymbolSmall()
                         Spacer(Modifier.width(LkSpacing.sm))
                         Text(
-                            text = "Tirar dúvidas com o Veloo",
+                            text = "Tirar dúvidas com o SignallQ",
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = c.textPrimary,

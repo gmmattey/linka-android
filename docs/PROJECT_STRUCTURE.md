@@ -1,11 +1,11 @@
-# Estrutura Do Projeto Linka Android
+# Estrutura Do Projeto SignallQ Android
 
 Esta pasta e a nova raiz independente do Android.
 
 ## Arvore principal
 
 ```text
-C:\Projetos\Linka Android
+C:\Projetos\SignallQ Android
 |-- app/                         Aplicativo Android principal
 |-- coreDatabase/                Persistencia local
 |-- coreDatastore/               Preferencias e configuracoes locais

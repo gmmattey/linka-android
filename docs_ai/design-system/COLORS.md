@@ -1,4 +1,4 @@
-# Tokens de Cores — Linka
+# Tokens de Cores — SignallQ
 
 **Fonte:** `LinkaTheme.kt` (LkColors) | `src/tokens.css` (PWA)  
 **Escopo:** Android v0.6.3 | PWA v1.0.0
@@ -62,14 +62,14 @@
 
 ---
 
-## Orbit (Sempre Escuro)
+## SignallQ (Sempre Escuro)
 
 Componentes IA mantêm sempre paleta escura independente do tema do app.
 
 | Token | Valor | Uso |
 |---|---|---|
-| `linkaBlack` | `#0D0D1A` | Background do Orbit |
-| `linkaDarkSurface` | `#1A0B2E` | Superfícies secundárias dentro do Orbit |
+| `linkaBlack` | `#0D0D1A` | Background do SignallQ |
+| `linkaDarkSurface` | `#1A0B2E` | Superfícies secundárias dentro do SignallQ |
 | `linkaDarkCard` | `#1E1130` | Cards de bolhas de IA |
 | `linkaTextOnDark` | `#F3F4F6` | Texto primário (high contrast) |
 | `linkaTextSecondaryOnDark` | `#9CA3AF` | Texto secundário |
@@ -78,7 +78,7 @@ Componentes IA mantêm sempre paleta escura independente do tema do app.
 
 ## Notas
 
-- **Orbit não adapta:** IA mantém aparência escura mesmo em tema claro do sistema.
+- **SignallQ não adapta:** IA mantém aparência escura mesmo em tema claro do sistema.
 - **Phase colors:** Mostram progresso visual durante o speedtest. Exibem nos indicadores de fase e na animação do gauge.
 - **Acessibilidade:** Todas as combinações de texto+fundo atendem WCAG AA.
 - **Material Design 3:** Tokens primário, secundário e terciário estão mapeados para `accent`, `accentBlue` e superfícies.

@@ -24,7 +24,7 @@
 
 - Não assuma que módulos de feature existem separados do `app/` sem verificar no código.
 - Não infira paths não confirmados explicitamente.
-- Não referencie `.orbit/` — esse sistema foi descontinuado e substituído por `.claude/`.
+- Não referencie `.signallq/` — esse sistema foi descontinuado e substituído por `.claude/`.
 - Não invente comportamento de feature que não está confirmado no código ou nos docs.
 
 ## Docs de referência rápida

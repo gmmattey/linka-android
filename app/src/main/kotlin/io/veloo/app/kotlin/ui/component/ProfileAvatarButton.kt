@@ -80,7 +80,7 @@ fun ProfileAvatarButton(
                 text = nomeUsuario.firstOrNull()?.uppercaseChar()?.toString() ?: "L",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.W700,
-                color = LkColors.velooTextOnDark,
+                color = LkColors.signallQTextOnDark,
             )
         }
     }

@@ -19,7 +19,7 @@ feitas a partir de caminhos descobertos via Bash find nos arquivos inicialmente 
 ### MedicaoEntity — campos relevantes
 
 ```kotlin
-// coreDatabase/src/main/kotlin/io/linka/app/kotlin/core/database/MedicaoEntity.kt
+// coreDatabase/src/main/kotlin/io/signallq/app/kotlin/core/database/MedicaoEntity.kt
 @Entity(tableName = "medicao")
 data class MedicaoEntity(
     val connectionType: String,          // "wifi" | "cellular" | "ethernet"
@@ -52,7 +52,7 @@ Schema v9 já contém coluna `operadoraMovel TEXT`. **Não há trabalho de DB aq
 ### HistoryPoint — estrutura atual
 
 ```kotlin
-// app/src/main/kotlin/io/linka/app/kotlin/ui/HomeScreenTypes.kt
+// app/src/main/kotlin/io/signallq/app/kotlin/ui/HomeScreenTypes.kt
 data class HistoryPoint(
     val timestampEpochMs: Long,
     val downloadMbps: Double?,
@@ -159,7 +159,7 @@ Total: 5 arquivos. 1 domínio: Android.
 ## Novo enum de filtro
 
 ```kotlin
-// app/src/main/kotlin/io/linka/app/kotlin/ui/HomeScreenTypes.kt
+// app/src/main/kotlin/io/signallq/app/kotlin/ui/HomeScreenTypes.kt
 enum class FiltroConexaoHistorico {
     TODOS,
     WIFI,
@@ -343,7 +343,7 @@ Os novos **cards de média filtrada** calculam inline no composable via `remembe
 
 ### Task 1 — HomeScreenTypes: enum `FiltroConexaoHistorico` [Camilo]
 
-**Arquivo:** `app/src/main/kotlin/io/linka/app/kotlin/ui/HomeScreenTypes.kt`
+**Arquivo:** `app/src/main/kotlin/io/signallq/app/kotlin/ui/HomeScreenTypes.kt`
 
 Adicionar:
 ```kotlin
@@ -358,7 +358,7 @@ enum class FiltroConexaoHistorico { TODOS, WIFI, MOVEL }
 
 ### Task 2 — MainViewModel: flows de filtro + historicoFiltrado [Camilo]
 
-**Arquivo:** `app/src/main/kotlin/io/linka/app/kotlin/MainViewModel.kt`
+**Arquivo:** `app/src/main/kotlin/io/signallq/app/kotlin/MainViewModel.kt`
 
 **Depende de:** Task 1.
 
@@ -380,7 +380,7 @@ Ver contratos exatos na seção "Aplicação dos filtros" acima.
 
 ### Task 3 — HistoricoScreen: gráfico + cards de média + filtros [Camilo + Lia]
 
-**Arquivo:** `app/src/main/kotlin/io/linka/app/kotlin/ui/screen/HistoricoScreen.kt`
+**Arquivo:** `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/HistoricoScreen.kt`
 
 **Depende de:** Tasks 1, 2.
 
@@ -425,7 +425,7 @@ Dropdown de operadora aparece apenas quando "Móvel" selecionado.
 
 ### Task 4 — AppShell: wiring dos novos parâmetros [Camilo]
 
-**Arquivo:** `app/src/main/kotlin/io/linka/app/kotlin/ui/screen/AppShell.kt`
+**Arquivo:** `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/AppShell.kt`
 
 **Depende de:** Tasks 2, 3.
 

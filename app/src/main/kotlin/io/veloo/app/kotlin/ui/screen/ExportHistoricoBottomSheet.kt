@@ -260,7 +260,7 @@ private suspend fun executarExport(
     if (medicoesParaExportar.isEmpty()) return null
 
     val timestamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
-    val nomeArquivo = "linka_historico_$timestamp.${formato.extensao}"
+    val nomeArquivo = "signallq_historico_$timestamp.${formato.extensao}"
     val arquivo = File(context.cacheDir, nomeArquivo)
 
     val sucesso =

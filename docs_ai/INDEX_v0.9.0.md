@@ -47,7 +47,7 @@ Resumo visual com:
 ### 3. **Changelog** (Para CHANGELOG.md oficial)
 
 📄 **[CHANGELOG_ENTRY_v0.9.0.md](./CHANGELOG_ENTRY_v0.9.0.md)** — Keep a Changelog format  
-Pronto para copiar em `linka-android-kotlin/CHANGELOG.md`:
+Pronto para copiar em `signallq-android-kotlin/CHANGELOG.md`:
 
 ```markdown
 ## [0.9.0] — 2026-05-20
@@ -173,14 +173,14 @@ linkaAndroidKotlin/
 │   ├── ANDROID_FUNCIONAL.md                     ← Visão geral (já existe)
 │   └── ANDROID_TECNICO.md                       ← Arquitetura (já existe)
 │
-├── linka-android-kotlin/
+├── signallq-android-kotlin/
 │   ├── CHANGELOG.md                             ← Copiar [3] aqui
-│   ├── app/src/main/kotlin/io/linka/app/kotlin/
+│   ├── app/src/main/kotlin/io/signallq/app/kotlin/
 │   │   └── ui/screen/
 │   │       ├── PingScreen.kt              [NOVO]
 │   │       └── SpeedTestScreen.kt         [MODIFICADO]
 │   │
-│   └── featureSpeedtest/src/main/kotlin/io/linka/app/kotlin/feature/speedtest/
+│   └── featureSpeedtest/src/main/kotlin/io/signallq/app/kotlin/feature/speedtest/
 │       ├── PingExecutor.kt                [NOVO]
 │       ├── PingResultado.kt               [NOVO]
 │       └── [existing files]
@@ -227,7 +227,7 @@ linkaAndroidKotlin/
 - [x] Technical architecture criado
 - [x] User guide criado
 - [x] Índice centralizado (ESTE ARQUIVO)
-- [ ] Copiar CHANGELOG_ENTRY_v0.9.0.md em linka-android-kotlin/CHANGELOG.md
+- [ ] Copiar CHANGELOG_ENTRY_v0.9.0.md em signallq-android-kotlin/CHANGELOG.md
 - [ ] Executar QA_ACCEPTANCE_CHECKLIST (Gema)
 - [ ] Aprovação de versionamento (Claudete)
 

@@ -1,9 +1,9 @@
 ---
-description: Checklist e padrões de implementação Jetpack Compose para o Linka — estrutura de Screen, ViewModel, StateFlow, estados visuais e anti-padrões a evitar.
+description: Checklist e padrões de implementação Jetpack Compose para o SignallQ — estrutura de Screen, ViewModel, StateFlow, estados visuais e anti-padrões a evitar.
 ---
 
 ## Quando usar
-Antes de implementar ou revisar código Compose no Linka.
+Antes de implementar ou revisar código Compose no SignallQ.
 
 ## Padrões obrigatórios
 

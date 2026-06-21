@@ -50,7 +50,7 @@ android {
                 appId = "1:620840247394:android:0be190e89194bced37713b"
                 artifactType = "APK"
                 testers = "giammattey.luiz@gmail.com"
-                releaseNotes = "Veloo ${libs.versions.versionName.get()} (build ${libs.versions.versionCode.get()}) — DEBUG"
+                releaseNotes = "SignallQ ${libs.versions.versionName.get()} (build ${libs.versions.versionCode.get()}) — DEBUG"
             }
             // ─── MVP — ativos em debug E release ──────────────────────
             buildConfigField("Boolean", "FEATURE_SPEEDTEST", "true")
@@ -93,7 +93,7 @@ android {
                 appId = "1:620840247394:android:0be190e89194bced37713b"
                 artifactType = "APK"
                 testers = "giammattey.luiz@gmail.com"
-                releaseNotes = "Veloo ${libs.versions.versionName.get()} (build ${libs.versions.versionCode.get()})"
+                releaseNotes = "SignallQ ${libs.versions.versionName.get()} (build ${libs.versions.versionCode.get()})"
             }
             isMinifyEnabled = true
             proguardFiles(

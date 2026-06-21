@@ -1,6 +1,6 @@
 ---
 name: design-system-audit
-description: Auditoria de design system do Linka — tokens MD3, paleta de cores, tipografia, espaçamento, contraste WCAG e estados visuais. Cobre Android (MaterialTheme/LocalLkTokens) e PWA (Tailwind/CSS tokens). Executada por Lia. Emite especificação acionável para Camilo (Android) ou Renan (PWA).
+description: Auditoria de design system do SignallQ — tokens MD3, paleta de cores, tipografia, espaçamento, contraste WCAG e estados visuais. Cobre Android (MaterialTheme/LocalLkTokens) e PWA (Tailwind/CSS tokens). Executada por Lia. Emite especificação acionável para Camilo (Android) ou Renan (PWA).
 ---
 
 ## Quando usar
@@ -19,9 +19,9 @@ $ARGUMENTS
 
 ## Fonte de verdade
 
-O design system oficial do Linka está em `.Codex/skills/linka-design/`:
+O design system oficial do SignallQ está em `.Codex/skills/linka-design/`:
 - `colors_and_type.css` — tokens de cores, tipografia, espaçamento e raios
-- `LinkaTheme.kt` (Android) — tema Compose com os mesmos tokens
+- `SignallQTheme.kt` (Android) — tema Compose com os mesmos tokens
 - `HANDOFF_README.md` — tabela de equivalência CSS → Compose
 - `ui_kits/android/` — componentes de referência em alta fidelidade
 - `README.md` — fundações visuais, iconografia e contexto de produto
@@ -114,7 +114,7 @@ Acionar Marcelo para extrair:
 
 ### 5. Auditar UX flows
 
-Para cada fluxo principal do Linka:
+Para cada fluxo principal do SignallQ:
 
 **Home / Dashboard:**
 - O usuário sabe o que fazer ao abrir o app? (CTA de diagnóstico visível e nomeado)

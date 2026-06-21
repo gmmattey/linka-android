@@ -1,4 +1,4 @@
-# Fluxo de Diagnóstico — Android Linka
+# Fluxo de Diagnóstico — Android SignallQ
 
 **Última atualização:** 2026-05-17
 **Fonte:** código real (Marcelo, 2026-05-17)
@@ -9,7 +9,7 @@
 
 ```
 DiagnosticoScreen → DiagnosticOrchestrator → engines → DiagnosticDecisionEngine → resultado
-[opcional] → ChatScreen (Orbit IA conversacional)
+[opcional] → ChatScreen (SignallQ IA conversacional)
 ```
 
 ---
@@ -107,9 +107,9 @@ DiagnosticResult(
 
 ---
 
-## 5. IA Conversacional (Orbit) — Passo Opcional
+## 5. IA Conversacional (SignallQ) — Passo Opcional
 
-Após o diagnóstico, o usuário pode iniciar uma sessão com o Orbit IA via `ChatScreen`.
+Após o diagnóstico, o usuário pode iniciar uma sessão com o SignallQ IA via `ChatScreen`.
 
 ```
 ChatScreen → OrbitOrchestrator
@@ -122,9 +122,9 @@ ChatScreen → OrbitOrchestrator
                 └── ChatScreen exibe resposta em markdown
 ```
 
-**API:** `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev`
+**API:** `https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev`
 
-**Estados do Orbit:**
+**Estados do SignallQ:**
 - `Idle`: aguardando início
 - `Thinking`: processando
 - `AwaitingInput`: aguardando resposta do usuário (chips ou texto livre)
@@ -142,9 +142,9 @@ Acumula as respostas do usuário durante a sessão. O contexto acumulado é envi
 
 ---
 
-## 6. Diagnóstico Silencioso no Orbit
+## 6. Diagnóstico Silencioso no SignallQ
 
-Quando o usuário inicia o Orbit sem ter feito um speedtest manual, o `OrbitOrchestrator` executa:
+Quando o usuário inicia o SignallQ sem ter feito um speedtest manual, o `OrbitOrchestrator` executa:
 1. Coleta de dados da rede (Wi-Fi, móvel, histórico)
 2. Speedtest silencioso — sem abrir `VelocidadeScreen`, sem gauge visível
 3. Envio de todos os dados ao Worker Cloudflare

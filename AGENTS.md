@@ -1,4 +1,4 @@
-# Linka Android - Guia Para Agentes
+# SignallQ Android - Guia Para Agentes
 
 Este repositorio agora representa apenas o projeto Android nativo Kotlin.
 
