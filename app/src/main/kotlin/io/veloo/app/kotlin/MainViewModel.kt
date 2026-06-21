@@ -100,6 +100,9 @@ class MainViewModel
         val monitorTelephony: MonitorTelephony,
         private val bancoDados: SignallQDatabase,
         private val dispatchers: DispatcherProvider,
+        /** AiDiagnosisRepository injetada pelo Hilt como @Singleton (DiagnosticoModule).
+         *  Antes era instanciada manualmente via lazy (segunda instancia alem da do Orchestrator). */
+        val diagAiRepository: AiDiagnosisRepository,
     ) : AndroidViewModel(application) {
         private companion object {
             const val LOG_TAG = "SignallQSpeedtestSuite"
@@ -127,6 +130,7 @@ class MainViewModel
                 scope = viewModelScope,
                 additionalContextProvider = { coletarContextoAdicionalIa() },
                 networkCapabilitiesProvider = networkCapabilitiesProvider,
+                aiRepository = diagAiRepository,
             )
         }
         val signallQUiStateFlow by lazy {
@@ -169,13 +173,6 @@ class MainViewModel
         val diagChatCarregando: StateFlow<Boolean> = _diagChatCarregando
 
         private var diagAiContext: DiagnosisAiContext? = null
-
-        private val diagAiRepository by lazy {
-            AiDiagnosisRepository(
-                baseUrl = "https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev",
-                isAuthorized = { true },
-            )
-        }
 
         // -------------------------------------------------------------------------
         // Flows combinados — agrupam preferencias do mesmo dominio para reduzir o
