@@ -61,7 +61,9 @@ class AiDiagnosisRepository(
         // LOG TEMPORARIO — validar que existe apenas UMA instancia (Hilt @Singleton).
         // Se aparecer mais de um hashCode diferente no logcat, a injecao nao esta funcionando.
         // Remover apos validacao em device.
-        Log.d("SignallQ", "AiDiagnosisRepository criado: hashCode=${hashCode()}")
+        // runCatching: android.util.Log nao esta disponivel em testes JVM — nao queremos
+        // que este log de validacao quebre os testes unitarios do repositorio.
+        runCatching { Log.d("SignallQ", "AiDiagnosisRepository criado: hashCode=${hashCode()}") }
     }
 
     private val cache = ConcurrentHashMap<String, AiDiagnosisResult>()
