@@ -57,6 +57,13 @@ class AiDiagnosisRepository(
         private const val TAG = "AiDiagnosisRepository"
     }
 
+    init {
+        // LOG TEMPORARIO — validar que existe apenas UMA instancia (Hilt @Singleton).
+        // Se aparecer mais de um hashCode diferente no logcat, a injecao nao esta funcionando.
+        // Remover apos validacao em device.
+        Log.d("SignallQ", "AiDiagnosisRepository criado: hashCode=${hashCode()}")
+    }
+
     private val cache = ConcurrentHashMap<String, AiDiagnosisResult>()
 
     /**
