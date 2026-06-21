@@ -33,8 +33,12 @@ import io.veloo.app.feature.diagnostico.WifiDiagnosticInput
  *                                 (ISP/ASN/IP/DNS), histórico bruto, dispositivo,
  *                                 móvel (quando aplicável). Esta bump invalida
  *                                 todo cache anterior.
+ *   - "diagnostico_v4_guided"   — adiciona campo `achadosLocais` com a decisão
+ *                                 do engine determinístico local (id, status, score,
+ *                                 confiança, findings relevantes). A IA valida e
+ *                                 explica — não precisa mais decidir do zero.
  */
-const val AI_PROMPT_VERSION = "diagnostico_v3_raw"
+const val AI_PROMPT_VERSION = "diagnostico_v4_guided"
 
 // =============================================================================
 // Schema v3 — APENAS DADOS BRUTOS
@@ -75,6 +79,12 @@ data class DiagnosisAiContext(
     /** Texto livre que o usuario digitou descrevendo o problema, se houver. */
     val feedbackUsuario: String? = null,
     /**
+     * Achados do engine determinístico local (DiagnosticDecisionEngine).
+     * Quando presente, a IA deve validar e explicar — não decidir do zero.
+     * Null em fluxos legados ou quando o engine não rodou.
+     */
+    val achadosLocais: AchadosDiagnosticoLocal? = null,
+    /**
      * Instrucao de tom derivada da contagem de metricas ruins (jitter >50ms,
      * perda >=2%, RTT >150ms). Guia o Worker/IA no estilo narrativo da resposta.
      * Null quando nao ha metricas suficientes para calcular.
@@ -91,6 +101,23 @@ data class DiagnosisAiContext(
 data class AiEvidence(
     val label: String,
     val valor: String,
+)
+
+/**
+ * Achados estruturados do DiagnosticDecisionEngine local.
+ * Enviados ao Worker para que a IA explique/valide em vez de decidir do zero.
+ */
+data class AchadosDiagnosticoLocal(
+    /** Id da decisão final do engine (ex: "DECISAO-GW-01", "DECISAO-04"). */
+    val decisaoId: String,
+    /** Status geral: "ok", "info", "attention", "critical", "inconclusive". */
+    val statusGeral: String,
+    /** Score 0–100 derivado do status e podeConcluir. */
+    val score: Int,
+    /** Confiança do engine na conclusão (0.0–1.0). */
+    val confianca: Double,
+    /** Ids dos findings de atenção/críticos que sustentam a conclusão. */
+    val resultadosRelevantes: List<String> = emptyList(),
 )
 
 data class AiMetricasAtuais(
@@ -495,14 +522,30 @@ object DiagnosisAiContextFactory {
         val contextoRede = input?.let { contextoFrom(it, connectionType) }
         val historico = input?.historico?.let { historicoFrom(it) }
 
+        val findingsRelevantes =
+            (report.wifiResultados + report.internetResultados + report.mobileResultados +
+                report.fibraResultados + report.dnsResultados + report.historicoResultados +
+                report.wifiCanalResultados)
+                .filter { it.status == DiagnosticStatus.critical || it.status == DiagnosticStatus.attention }
+                .map { it.id }
+
+        val achadosLocais = AchadosDiagnosticoLocal(
+            decisaoId = report.decisao.id,
+            statusGeral = report.decisao.status.name,
+            score = report.scoreConexao,
+            confianca = report.confianca,
+            resultadosRelevantes = findingsRelevantes,
+        )
+
         return DiagnosisAiContext(
-            schemaVersion = "3",
+            schemaVersion = "4",
             generatedAtEpochMs = report.geradoEmMs,
             connectionType = connectionType,
             metricasAtuais = metricas,
             contextoRede = contextoRede,
             historico = historico,
             evidencias = evidencias,
+            achadosLocais = achadosLocais,
             instrucaoTom = buildToneInstruction(metricas),
         )
     }

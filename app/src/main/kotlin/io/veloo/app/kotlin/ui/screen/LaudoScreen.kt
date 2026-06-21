@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import io.veloo.app.core.database.MedicaoEntity
+import io.veloo.app.feature.diagnostico.DiagnosticStatus
 import io.veloo.app.feature.diagnostico.SnapshotDiagnostico
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkRadius
@@ -193,6 +194,86 @@ fun LaudoScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(LkSpacing.lg),
         ) {
+            // Banner de status — colorido por severidade da decisão
+            if (decisao != null) {
+                item {
+                    val containerColor = when (decisao.status) {
+                        DiagnosticStatus.ok -> c.successContainer
+                        DiagnosticStatus.attention -> c.warningContainer
+                        DiagnosticStatus.critical -> LkColors.error.copy(alpha = 0.12f)
+                        else -> c.bgCard
+                    }
+                    val textColor = when (decisao.status) {
+                        DiagnosticStatus.ok -> c.onSuccessContainer
+                        DiagnosticStatus.attention -> c.onWarningContainer
+                        DiagnosticStatus.critical -> LkColors.error
+                        else -> c.textSecondary
+                    }
+                    val labelStatus = when (decisao.status) {
+                        DiagnosticStatus.ok -> "Conexão saudável"
+                        DiagnosticStatus.attention -> "Atenção"
+                        DiagnosticStatus.critical -> "Problema detectado"
+                        DiagnosticStatus.inconclusive -> "Inconclusivo"
+                        DiagnosticStatus.info -> "Informação"
+                    }
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(LkRadius.card))
+                                .background(containerColor)
+                                .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Spacer(
+                                modifier =
+                                    Modifier
+                                        .size(8.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(textColor),
+                            )
+                            Column {
+                                Text(
+                                    labelStatus,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.W600,
+                                    color = textColor,
+                                    letterSpacing = 0.3.sp,
+                                )
+                                Spacer(Modifier.height(1.dp))
+                                Text(
+                                    decisao.titulo,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W600,
+                                    color = textColor,
+                                )
+                            }
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                "${relatorio?.scoreConexao ?: 0}",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.W700,
+                                color = textColor,
+                            )
+                            Text(
+                                relatorio?.veredito ?: "",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.W600,
+                                color = textColor,
+                                letterSpacing = 0.2.sp,
+                            )
+                        }
+                    }
+                }
+            }
+
             // Header
             item {
                 Column {

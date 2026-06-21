@@ -497,8 +497,8 @@ class AiDiagnosisRepositoryTest {
     // de respostas antigas geradas com Llama/prompt v2 anterior.
     // -------------------------------------------------------------------------
     @Test
-    fun aiPromptVersion_estaBumpadoParaV3Raw_invalidaCachesAntigos() {
-        assertEquals("diagnostico_v3_raw", AI_PROMPT_VERSION)
+    fun aiPromptVersion_estaBumpadoParaV4Guided_invalidaCachesAntigos() {
+        assertEquals("diagnostico_v4_guided", AI_PROMPT_VERSION)
     }
 
     // -------------------------------------------------------------------------

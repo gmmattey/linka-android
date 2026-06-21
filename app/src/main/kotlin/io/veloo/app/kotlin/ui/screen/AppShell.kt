@@ -72,6 +72,7 @@ import io.veloo.app.core.telephony.MovelSimSnapshot
 import io.veloo.app.core.telephony.MovelSnapshot
 import io.veloo.app.feature.devices.SnapshotScanDispositivos
 import io.veloo.app.feature.diagnostico.ConnectionType
+import io.veloo.app.feature.diagnostico.EstadoDiagnostico
 import io.veloo.app.feature.diagnostico.SnapshotDiagnostico
 import io.veloo.app.feature.diagnostico.ai.AiDiagnosisRepository
 import io.veloo.app.feature.diagnostico.ai.AiMetricasAtuais
@@ -303,6 +304,13 @@ fun AppShell(
                 }
             }
             else -> {}
+        }
+    }
+
+    // Abre LaudoScreen automaticamente ao concluir qualquer diagnóstico.
+    LaunchedEffect(snapshotDiagnostico.estado) {
+        if (snapshotDiagnostico.estado == EstadoDiagnostico.concluido) {
+            if (Overlay.Laudo !in overlayStack) overlayStack.add(Overlay.Laudo)
         }
     }
 
