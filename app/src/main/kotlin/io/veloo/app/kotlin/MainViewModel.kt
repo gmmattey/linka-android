@@ -574,6 +574,17 @@ class MainViewModel
             monitorTelephony.iniciar()
         }
 
+        // -------------------------------------------------------------------------
+        // LEGADO — Compatibilidade: reiniciarSuite, confirmarSpeedtestEmMovel,
+        // cancelarSpeedtestMovel e setSpeedtestPermiteHeavyMovel duplicam logica
+        // que agora vive em SpeedtestViewModel (feat/viewmodels-por-funcionalidade).
+        // Mantidos aqui pois a AppShell ainda recebe lambdas via MainActivity que
+        // passam por este ViewModel. Remover em PR subsequente apos migrar AppShell
+        // para consumir SpeedtestViewModel diretamente.
+        // Tambem remover: executarSpeedtest(), acumularMbConsumidos() e
+        // _speedtestPendenteModoMovel deste ViewModel quando a migracao for concluida.
+        // -------------------------------------------------------------------------
+
         fun reiniciarSuite(modo: ModoSpeedtest) {
             scannerDispositivosDisparado = false
             scanWifiDisparado = false

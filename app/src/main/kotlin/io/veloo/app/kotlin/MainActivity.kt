@@ -22,7 +22,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.veloo.app.core.network.EstadoConexao
 import io.veloo.app.feature.devices.DevicesViewModel
-import io.veloo.app.feature.diagnostico.DiagnosticoViewModel
 import io.veloo.app.feature.speedtest.SpeedtestViewModel
 import io.veloo.app.ui.SignallQTheme
 import io.veloo.app.ui.screen.AppShell
@@ -37,9 +36,11 @@ class MainActivity : ComponentActivity() {
     // ViewModels por feature — extraidos do MainViewModel (Passo 6 do plano de migracao).
     // Fase atual: instanciados e conectados; o MainViewModel ainda contem logica legada
     // para compatibilidade de build. Cleanup do MainViewModel em PR subsequente.
+    // NOTA: DiagnosticoViewModel removido — era codigo morto (instanciado, nunca referenciado).
+    // Callbacks de diagnostico continuam delegando para MainViewModel intencionalmente
+    // por compatibilidade legada; migracao completa em PR subsequente.
     private val devicesViewModel: DevicesViewModel by viewModels()
     private val speedtestViewModel: SpeedtestViewModel by viewModels()
-    private val diagnosticoViewModel: DiagnosticoViewModel by viewModels()
 
     private val solicitacaoPermissoes =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -421,6 +422,14 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         viewModel.encerrarMonitorRede()
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        // Quebra a referencia ciclica: SpeedtestViewModel (escopo de app) retinha
+        // a lambda que capturava o MainViewModel destruido apos rotacao de tela.
+        // Sem esse null, cada rotacao acumulava uma referencia morta ao MainViewModel anterior.
+        speedtestViewModel.onSpeedtestConcluido = null
+        super.onDestroy()
     }
 
     private fun verificarEPedirPermissoes() {
