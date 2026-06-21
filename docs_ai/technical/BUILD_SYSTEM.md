@@ -1,6 +1,22 @@
-# Build System
+# Build System — Android SignallQ
 
-Gradle build with Kotlin DSL (.kts).
+**Última atualização:** 2026-06-21 (v0.16.0)
+
+Gradle build com Kotlin DSL (.kts).
+
+## Versão Atual
+
+| Campo | Valor |
+|---|---|
+| versionName | 0.16.0 |
+| versionCode | 46 |
+| applicationId | io.veloo.app |
+| compileSdk | 36 |
+| minSdk | 24 |
+| targetSdk | 36 |
+| JVM target | 17 |
+
+Versões declaradas em `gradle/libs.versions.toml`.
 
 ## Root Files
 
@@ -28,10 +44,10 @@ Gradle build with Kotlin DSL (.kts).
 
 ## Key Configs
 
-- **applicationId**: App ID (in `app/build.gradle.kts`)
-- **versionCode**: Int version
-- **versionName**: Semantic version string
-- **Build types**: debug, release
-- **Dependencies**: Declared per module
-
-**Needs validation**: Exact signing config, flavors, build variants
+- **applicationId**: `io.veloo.app` (declarado em `app/build.gradle.kts`)
+- **versionCode / versionName**: declarados em `gradle/libs.versions.toml` (atualmente 46 / 0.16.0)
+- **Build types**: `debug` (todas as feature flags ativas) e `release` (apenas flags MVP ativas)
+- **Feature flags**: 32 `buildConfigField` booleanos em `app/build.gradle.kts`; acessados via `FeatureFlags.*` (não `BuildConfig.*` diretamente)
+- **Signing**: chaves em `key.properties` (gitignored). Template em `key.properties.template`
+- **DI**: Hilt — `@HiltAndroidApp` em `SignallQApplication`, kapt plugin em `:app` e `:coreDatabase`
+- **Desugaring**: habilitado — suporte a APIs Java 8+ em minSdk 24

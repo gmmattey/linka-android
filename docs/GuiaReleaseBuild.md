@@ -2,12 +2,17 @@
 
 Use este guia para gerar APK release assinado sem perder versao, nome ou local do artefato.
 
+> Versao atual: **0.16.0** (versionCode 46). Para o processo completo de
+> deploy (commit → push → clean build → Firebase) veja `docs_ai/operations/RELEASE.md`.
+> Resumo Firebase: `./gradlew clean assembleRelease --no-build-cache` e depois
+> `./gradlew appDistributionUploadRelease` (nunca usar cache em release).
+
 ## Saida oficial
 
 Todo APK release deve ficar em:
 
 ```text
-C:\Projetos\SignallQ Android\builds\apk\release\<versionName>\
+C:\Projetos\Linka Android\builds\apk\release\<versionName>\
 ```
 
 Nome obrigatorio:
@@ -19,7 +24,7 @@ signallq-android-v<versionName>+<versionCode>-release-<yyyyMMdd-HHmmss>.apk
 Exemplo:
 
 ```text
-C:\Projetos\SignallQ Android\builds\apk\release\0.9.1\signallq-android-v0.9.1+26-release-20260523-112233.apk
+C:\Projetos\Linka Android\builds\apk\release\0.16.0\signallq-android-v0.16.0+46-release-20260621-112233.apk
 ```
 
 ## Pre-requisitos
@@ -82,7 +87,7 @@ O arquivo `app/build/outputs/apk/release/app-release.apk` e apenas uma saida bru
 ## Validacao pos-build
 
 ```powershell
-$apk = "C:\Projetos\SignallQ Android\builds\apk\release\<versionName>\<arquivo>.apk"
+$apk = "C:\Projetos\Linka Android\builds\apk\release\<versionName>\<arquivo>.apk"
 aapt dump badging $apk | findstr version
 jarsigner -verify $apk
 adb install -r $apk

@@ -1,25 +1,30 @@
 # Componentes Android — SignallQ
 
-**Versão:** v0.6.3 | **Localização:** `signallq-android-kotlin/app/src/main/kotlin/io/signallq/app/kotlin/ui/component/`
+**Versão:** v0.16.0 | **Localização:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/`  
+**Última atualização:** 2026-06-21
 
-25 componentes custom agrupados por domínio.
+25+ componentes custom agrupados por domínio.
+
+> Nota de rebranding (v0.15.0): componentes `Orbit*` foram renomeados para `SignallQ*`. Qualquer referência a `OrbitTopBar`, `OrbitInputArea`, etc. deve ser lida como `SignallQTopBar`, `SignallQInputArea`, etc.
 
 ---
 
 ## SignallQ — Chat IA (10)
 
+Componentes exclusivos da superfície de IA. Mantêm paleta escura (`#0D0D1A`/`#1A0B2E`/`#1E1130`) independente do tema do app.
+
 | Componente | Arquivo | Propósito |
 | --- | --- | --- |
-| `OrbitSymbol` | `OrbitSymbol.kt` | Logo/ícone marca SignallQ |
-| `OrbitTopBar` | `OrbitTopBar.kt` | Header tela IA, título + ações |
-| `OrbitInputArea` | `OrbitInputArea.kt` | Campo entrada texto + botão enviar |
-| `OrbitUserMessageBubble` | `OrbitUserMessageBubble.kt` | Bolha mensagem usuário |
-| `OrbitAiMessageBubble` | `OrbitAiMessageBubble.kt` | Bolha mensagem IA |
-| `OrbitTechnicalResultBubble` | `OrbitTechnicalResultBubble.kt` | Card resultados técnicos dentro chat |
-| `OrbitThinkingBubble` | `OrbitThinkingBubble.kt` | Indicador "IA pensando" |
-| `OrbitWelcomeState` | `OrbitWelcomeState.kt` | Tela inicial vazia + prompt |
-| `OrbitActionsCard` | `OrbitActionsCard.kt` | Botões ação sugeridos |
-| `OrbitInlineQuestion` | `OrbitInlineQuestion.kt` | Pergunta inline, resposta rápida |
+| `SignallQTopBar` | `SignallQTopBar.kt` | Header tela IA, título + ações (ex-OrbitTopBar) |
+| `SignallQInputArea` | `SignallQInputArea.kt` | Campo entrada texto + botão enviar (ex-OrbitInputArea) |
+| `SignallQUserMessageBubble` | `SignallQUserMessageBubble.kt` | Bolha mensagem usuário (ex-OrbitUserMessageBubble) |
+| `SignallQAiMessageBubble` | `SignallQAiMessageBubble.kt` | Bolha mensagem IA em markdown (ex-OrbitAiMessageBubble) |
+| `SignallQThinkingBubble` | `SignallQThinkingBubble.kt` | Indicador "IA pensando" (ex-OrbitThinkingBubble) |
+| `SignallQWelcomeState` | `SignallQWelcomeState.kt` | Tela inicial vazia + prompt (ex-OrbitWelcomeState) |
+| `SignallQInlineQuestion` | `SignallQInlineQuestion.kt` | Pergunta inline, resposta rápida (ex-OrbitInlineQuestion) |
+| `SignallQActionsCard` | `SignallQActionsCard.kt` | Botões ação sugeridos (ex-OrbitActionsCard) |
+| `SignallQTechnicalResultBubble` | `SignallQTechnicalResultBubble.kt` | Card resultados técnicos dentro do chat |
+| `LinkaIaHeader` | `LinkaIaHeader.kt` | Header padrão telas IA (mantido; pode ser renomeado futuramente) |
 
 ---
 
@@ -50,16 +55,16 @@
 
 | Componente | Arquivo | Propósito |
 | --- | --- | --- |
-| `LinkaIaHeader` | `LinkaIaHeader.kt` | Header padrão telas IA |
-| `AiModelFooter` | `AiModelFooter.kt` | Footer com info modelo IA |
-| `DiagnosisChipsRow` | `DiagnosisChipsRow.kt` | Row chips diagnóstico (tags) |
-| `ContextualQuestionCard` | `ContextualQuestionCard.kt` | Card pergunta contextual |
-| `SheetDragHandle` | `SheetDragHandle.kt` | Handle drag bottom sheet |
-| `WifiChannelGuide` | `WifiChannelGuide.kt` | Guia visual canais Wi-Fi |
+| `AiModelFooter` | `AiModelFooter.kt` | Footer com info do modelo IA (nome + versão) |
+| `DiagnosisChipsRow` | `DiagnosisChipsRow.kt` | Row de chips de diagnóstico (tags) |
+| `ContextualQuestionCard` | `ContextualQuestionCard.kt` | Card de pergunta contextual |
+| `SheetDragHandle` | `SheetDragHandle.kt` | Handle drag de bottom sheet |
+| `WifiChannelGuide` | `WifiChannelGuide.kt` | Guia visual de canais Wi-Fi |
+| `OnDevicePill` | `OnDevicePill.kt` | Indicador "processado no dispositivo" |
 
 ---
 
-## Total: 25 componentes
+## Total: 25+ componentes (v0.16.0)
 
 - **Reutilizáveis:** Todos suportam slots e customização via Composable lambdas.
 - **Tipados:** TypeScript-like - tudo com @Composable, Modifier, etc.
@@ -67,10 +72,11 @@
 
 ---
 
-## Convenção de Nomeclatura
+## Convenção de Nomenclatura
 
-- **SignallQ***: Componentes exclusivos chat IA.
-- **Pulse**: Componentes monitoramento passivo.
+- **SignallQ***: Componentes exclusivos da superfície de IA (chat diagnóstico). Ex.: `SignallQTopBar`, `SignallQInputArea`. Renomeados de `Orbit*` no rebranding v0.15.0.
+- **Pulse / LinkaPulse**: Componentes do monitoramento passivo.
+- **Diag***: Componentes do Diagnóstico IA v0.14.0+ (ex.: `DiagVerdictHeroCard`, `DiagRootCauseCard`, `DiagActionFooter`).
 - Sem prefixo genérico (Lk-, App-) — nome direto descreve propósito.
 
 ---
@@ -78,10 +84,16 @@
 ## Relacionamentos
 
 ```
-OrbitScreen usa: OrbitTopBar, OrbitInputArea, OrbitUserMessageBubble, 
-                OrbitAiMessageBubble, OrbitWelcomeState, OrbitThinkingBubble
+SignallQScreen usa: SignallQTopBar, SignallQInputArea, SignallQUserMessageBubble,
+                   SignallQAiMessageBubble, SignallQWelcomeState, SignallQThinkingBubble,
+                   SignallQInlineQuestion, AiModelFooter, AppBorderGlowEffect
 
-ResultScreen usa: GaugeCircular, DiagnosisChipsRow, AppBorderGlowEffect
+LLMChatScreen usa: LLMAssistantMessage, AiModelFooter, (componentes de bolha LLM)
+
+DiagnosticoScreen usa: DiagVerdictHeroCard, DiagRootCauseCard, DiagImpactCard,
+                       DiagMetricsGrid, DiagRecommendationCard, DiagActionFooter
+
+SpeedTestScreen usa: GaugeCircular, MiniGrafico, DiagnosisChipsRow
 
 LinkaPulseScreen usa: PulseResultCard, LinkaPulseSymbol, MiniGrafico
 ```

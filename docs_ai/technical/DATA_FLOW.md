@@ -1,28 +1,38 @@
 # Data Flow
 
-User Action → Composable (UI) → ViewModel → Data Layer → State Update → UI Recomposition
+# Data Flow — Android SignallQ
+
+**Última atualização:** 2026-06-21 (v0.16.0)
+
+User Action → Composable (UI) → ViewModel → Data Layer → StateFlow Update → UI Recomposition
 
 ## Layer Details
 
-**Presentation**:
-- Screens: `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
-- Components: `app/src/main/kotlin/io/signallq/app/kotlin/ui/component/`
-- ViewModel: `MainViewModel.kt`
+**Presentation:**
+- Screens: `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/`
+- Components: `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/`
+- ViewModel: `MainViewModel.kt` (`@HiltViewModel`)
+- State management: `StateFlow` + `collectAsStateWithLifecycle()` (não LiveData)
 
-**Data**:
-- Database: `coreDatabase/` (DAOs, Entities)
-  - `MedicaoDao.kt`, `ApelidoDispositivoDao.kt`
-  - `LinkaDatabase.kt`
-- Network: `coreNetwork/` (Monitoring)
-  - `MonitorRede.kt`, `MonitorRedeAndroid.kt`
-  - Models: `EstadoConexao.kt`, `SnapshotRede.kt`
-- DataStore: `coreDatastore/` (needs validation)
+**Data:**
+- Database: `coreDatabase/` — `SignallQDatabase` v10
+  - DAOs: `MedicaoDao`, `ApelidoDispositivoDao`, `ChatSessionDao`
+  - Entidades: `MedicaoEntity`, `ApelidoDispositivoEntity`, `ChatSessionEntity`, `ChatMessageEntity`
+- Network: `coreNetwork/`
+  - `MonitorRede.kt` (interface), `MonitorRedeAndroid.kt` (implementação)
+  - Models: `EstadoConexao.kt`, `SnapshotRede.kt`, `WifiLinkSnapshot.kt`
+  - `GatewayLatencyMeasurer.kt`
+- DataStore: `coreDatastore/`
+  - `PreferenciasAppRepository.kt` — DataStore `linkaPreferencias`
+  - Chaves: boolean, string, int, long (ver STORAGE.md para lista completa)
+
+**DI:** Hilt via `di/AppModule.kt` — instâncias fornecidas como `@Singleton` para o ViewModel.
 
 ## Key Points
 
-- Kotlin Coroutines for async operations
-- Unidirectional flow: UI → ViewModel → Data
-- Database queries via DAOs
-- Network monitoring via MonitorRede
-
-**Needs validation**: Repository pattern, exact state management (StateFlow/LiveData)
+- Kotlin Coroutines para todas as operações assíncronas
+- Fluxo unidirecional: UI → ViewModel → Data
+- StateFlow (não LiveData) para reatividade
+- `stateIn(viewModelScope, WhileSubscribed(5000), initial)` em todos os flows expostos
+- `collectAsStateWithLifecycle()` nas telas (não `collectAsState()`)
+- Queries do Room retornam `Flow<T>` — reatividade automática

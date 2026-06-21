@@ -1,43 +1,127 @@
-# AI Flow
+# AI Flow — Android SignallQ
 
-## Objective
+**Última atualização:** 2026-06-21 (v0.16.0)
+**Fonte:** código real (featureDiagnostico, di/AppModule.kt, integrations/cloudflare/ai-diagnosis-worker)
 
-This document details the flow and integration of AI functionalities, mapping specific components, modules, and file paths involved in AI processing.
+---
 
-## AI Components and Integration Points
+## 1. Visão Geral
 
-The primary AI integration involves the `cloudflare/ai-diagnosis-worker` and the mobile client's interaction via `coreNetwork`.
+O app integra IA via **Cloudflare Worker** externo. Não há inferência local — todo o processamento LLM é feito no worker. O fallback local (`AiFallbackFactory`) entra apenas se o worker falhar ou timeout.
 
--   **AI Worker**:
-    -   **Configuration**: `cloudflare/ai-diagnosis-worker/wrangler.toml`.
-    -   **Purpose**: Executes AI models for diagnostic data analysis.
+```
+MainViewModel
+    → DiagnosticOrchestrator.executar()
+        → DiagnosticRunner.run(input)            [engines locais stateless]
+        → DiagnosisAiContextFactory.fromRaw()    [monta payload schema v3]
+        → AiDiagnosisRepository.diagnosticar()  [POST HTTP via OkHttp]
+            → linka-ai-diagnosis-worker          [Cloudflare Worker]
+                → Qwen3 30B MoE FP8             [modelo padrão]
+                → resposta JSON
+            → AiDiagnosisResult                 [parseado pelo app]
+        → AiFallbackFactory                     [se timeout ou erro]
+```
 
--   **Mobile App Client Interaction**:
-    -   **Initiation**: `signallq-android-kotlin/featureDiagnostico/` module (e.g., `DiagnosticScreen.kt`, `DiagnosticViewModel.kt` - *inferential paths*) likely initiates the workflow.
-    -   **Data Collection**: Handled within `featureDiagnostico/`.
-    -   **Transmission**: `signallq-android-kotlin/coreNetwork/src/main/kotlin/com/signallq/corenetwork/ai/AiDiagnosisService.kt` (*inferential path*) sends data to the worker's endpoint.
-    -   **Response Handling**: `AiDiagnosisService.kt` receives results.
-    -   **UI Presentation**: Results passed to `DiagnosticViewModel.kt` and displayed in `DiagnosticScreen.kt` composables.
+---
 
-## Data Flow for AI
+## 2. Endpoint
 
-1.  **User Initiates Diagnostic**: Triggered in `featureDiagnostico/ui/DiagnosticScreen.kt`.
-2.  **Data Collection**: `featureDiagnostico/` gathers data.
-3.  **Transmission**: `AiDiagnosisService.kt` in `coreNetwork/` sends data to `cloudflare/ai-diagnosis-worker`.
-4.  **AI Processing**: Performed by the `cloudflare/ai-diagnosis-worker`.
-5.  **AI Insight Reception**: Results returned to `AiDiagnosisService.kt`.
-6.  **ViewModel Update**: Data passed to `featureDiagnostico/*ViewModel.kt`.
-7.  **UI Display**: Composables in `featureDiagnostico/ui/` render AI insights.
+**URL:** `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev/api/ai/diagnostico-conexao`
 
-## Key Files/Modules
+**Worker name (wrangler.toml):** `linka-ai-diagnosis-worker`
 
--   **`signallq-android-kotlin/featureDiagnostico/`**: Core module for AI diagnostics UI and ViewModel.
--   **`signallq-android-kotlin/coreNetwork/`**: Contains `ApiService.kt` and inferred `AiDiagnosisService.kt` for AI worker communication.
--   **`cloudflare/ai-diagnosis-worker/wrangler.toml`**: Cloudflare worker configuration.
--   **`coreDatabase/`**: May store historical AI diagnostic results via inferred DAOs (e.g., `DiagnosticDao.kt`).
+**Método:** POST
 
-## Known Risks
+**Content-Type:** application/json
 
--   Specific file paths for `AiDiagnosisService`, ViewModels, DAOs, and Repository implementations are inferential and require human validation.
--   Exact API endpoints, request/response formats, and authentication for the AI worker need human confirmation.
--   The internal workings and models of the `cloudflare/ai-diagnosis-worker` are managed externally and require human oversight.
+---
+
+## 3. Modelo de IA
+
+**Modelo padrão atual:** `@cf/qwen/qwen3-30b-a3b-fp8` (Qwen3 30B MoE FP8)
+
+Configurado em `wrangler.toml`:
+```toml
+AI_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8"
+```
+
+e `DEFAULT_MODEL` no `src/index.ts`:
+```ts
+const DEFAULT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
+```
+
+**Alternativas/legado (não são o padrão):**
+- `@cf/google/gemma-7b-it` — Gemma v1, deprecation planejado, fraco para prompt complexo
+- `@hf/google/gemma-2-9b-it` — formato incompatível com messages API
+- `@cf/google/gemma-4-26b-a4b-it` — descartado (gerava timeout > 30s)
+
+**Persona da IA:** "SignallQ"
+
+---
+
+## 4. Payload — Schema v3
+
+Montado por `DiagnosisAiContextFactory.fromRaw()`. O worker aceita schemas v1/v2/v3 para retrocompatibilidade.
+
+O schema v3 (`diagnostico_v3_raw`) envia dados brutos de rede sem análise pré-computada — a IA realiza toda a análise no worker.
+
+Campos enviados: tipo de conexão, snapshot Wi-Fi (RSSI, canal, frequência), latência, jitter, perda de pacotes, download/upload Mbps, DNS (servidor atual, latência), histórico (médias 7d/30d), dados do ISP, configuração do usuário (plano, operadora, estado/cidade).
+
+---
+
+## 5. Engines de Diagnóstico Local (DiagnosticRunner)
+
+Executados antes da chamada à IA — produzem o relatório local que também alimenta o payload:
+
+| Engine | Entrada | Saída |
+|---|---|---|
+| `WifiSignalQualityEngine` | RSSI, frequência, link speed | `WifiQualityResult` |
+| `InternetDiagnosticEngine` | snapshot internet, flag wifi confiável | `DiagnosticResult` |
+| `WifiChannelDiagnosticEngine` | redes vizinhas, canal conectado | `DiagnosticResult` |
+| `DnsDiagnosticEngine` | IP DNS, latência, grade | `DiagnosticResult` |
+| `HistoricalDegradationEngine` | médias 7d/30d, tendência | `DiagnosticResult` |
+| `FibraSignalQualityEngine` | rxPowerDbm, txPowerDbm, temperatura | `DiagnosticResult` |
+| `MobileSignalDiagnosticEngine` | RSRP, RSRQ, SINR, tecnologia | `DiagnosticResult` |
+| `DiagnosticDecisionEngine` | resultados de todos os engines | `DiagnosticResult` (decisão final) |
+
+Todos residem em `:featureDiagnostico`. São stateless — recebem dados brutos e retornam resultado sem efeitos colaterais.
+
+---
+
+## 6. Chat / Pulse (SignallQOrchestrator)
+
+Fluxo conversacional pós-diagnóstico:
+
+```
+SignallQOrchestrator
+    → SignallQState (enum: Idle, Collecting, Thinking, Analyzing, Done, Error)
+    → SignallQSnapshot (data class — estado atual da sessão)
+    → DynamicQuestionEngine (gera perguntas contextuais baseadas no estado da rede)
+    → POST worker /api/ai/diagnostico-conexao (reutiliza contexto do diagnóstico)
+```
+
+Sessões persistidas em Room: `ChatSessionEntity` + `ChatMessageEntity` (tabelas adicionadas em v10/v0.12.0).
+
+**Repository:** `ChatDiagnosticoIaRepository` — gerencia histórico de sessões.
+**ViewModel:** `ChatDiagnosticoIaViewModel` — controla estado do chat.
+
+---
+
+## 7. Fallback Local
+
+**Classe:** `AiFallbackFactory`
+
+Ativado quando:
+- Timeout na chamada ao worker
+- Erro HTTP (5xx, network error)
+- Sem internet
+
+Retorna um `AiDiagnosisResult` construído a partir dos resultados dos engines locais, sem texto gerado por LLM.
+
+---
+
+## 8. Armazenamento de Resultados
+
+- Diagnósticos: estado em `MainViewModel.snapshotDiagnostico` (StateFlow, não persistido em Room)
+- Sessões de chat: `SignallQDatabase` — tabelas `chat_sessions` e `chat_messages`
+- Cota diária: `CotaIaRepository` (rolling 24h — DataStore separado, não usa `linkaPreferencias`)

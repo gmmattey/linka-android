@@ -17,7 +17,7 @@ O SignallQ Android usa assinatura de release para distribuir builds assinados em
 O keystore fica organizado assim:
 
 ```
-C:\Projetos\SignallQ Android\
+C:\Projetos\Linka Android\            # diretório local (produto SignallQ)
 ├── segredos/
 │   └── signallq.jks              # ← Keystore local, NÃO vai ao git
 ├── key.properties             # ← Credenciais locais, NÃO vai ao git
@@ -29,7 +29,7 @@ C:\Projetos\SignallQ Android\
 ### 1. Copiar template
 
 ```powershell
-cd "C:\Projetos\SignallQ Android"
+cd "C:\Projetos\Linka Android"
 Copy-Item key.properties.template key.properties
 ```
 
@@ -51,7 +51,7 @@ storeFile=segredos/signallq.jks
 O arquivo `segredos/signallq.jks` já deve estar disponível localmente (transferido de forma segura, não via git).
 
 ```
-C:\Projetos\SignallQ Android\segredos\signallq.jks
+C:\Projetos\Linka Android\segredos\signallq.jks
 ```
 
 Se ainda não existe, veja seção "Gerar novo keystore" abaixo.
@@ -133,7 +133,7 @@ O workflow CI vai:
 ### Para gerar KEYSTORE_BASE64
 
 ```powershell
-$bytes = [System.IO.File]::ReadAllBytes("C:\Projetos\SignallQ Android\segredos\signallq.jks")
+$bytes = [System.IO.File]::ReadAllBytes("C:\Projetos\Linka Android\segredos\signallq.jks")
 $base64 = [System.Convert]::ToBase64String($bytes)
 Write-Output $base64 | Set-Clipboard
 ```
@@ -145,7 +145,7 @@ Cole o valor em GitHub Secrets → Repository secrets → `KEYSTORE_BASE64`.
 Se não tiver um keystore existente, crie um com:
 
 ```powershell
-$keystorePath = "C:\Projetos\SignallQ Android\segredos\signallq.jks"
+$keystorePath = "C:\Projetos\Linka Android\segredos\signallq.jks"
 $storePassword = "SENHA_FORTE_AQUI"
 $keyPassword = "SENHA_DA_CHAVE_AQUI"
 

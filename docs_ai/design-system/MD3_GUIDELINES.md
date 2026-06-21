@@ -11,18 +11,21 @@ App uses Jetpack Compose Material 3.
 
 ## Implementation
 
-- **Components**: See `COMPONENTS.md`
+- **Components**: See `COMPONENTS_ANDROID.md` (doc canônico Android; `COMPONENTS.md` foi arquivado)
 - **Colors**: See `COLORS.md` (dynamic + static)
 - **Typography**: See `TYPOGRAPHY.md`
 - **Spacing**: See `SPACING.md`
-- **Motion**: See `MOTION.md`
-- **Patterns**: See `NAVIGATION.md`, `CHAT_PATTERNS.md`
+- **Cross-platform**: See `DESIGN_TOKENS_CROSSPLATFORM.md`
 
 ## Theme File
 
-- Location: `app/src/main/kotlin/io/signallq/app/kotlin/ui/LinkaTheme.kt`
-- Applies MD3 system via `MaterialTheme`
-- Uses `androidx.compose.material3` library
+- Location: `app/src/main/kotlin/io/veloo/app/kotlin/ui/SignallQTheme.kt`
+- Antigo nome: `LinkaTheme.kt` (renomeado no rebranding v0.15.0)
+- Aplica MD3 via `MaterialTheme`
+- Usa `androidx.compose.material3`
+- Tokens de cores: `LkColors`, espaçamento: `LkSpacing`, tipografia: `linkaTypography`
+
+**Última atualização:** 2026-06-21 (v0.16.0)
 
 ## Deps
 

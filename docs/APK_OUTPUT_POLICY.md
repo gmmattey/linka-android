@@ -15,7 +15,7 @@ signallq-android-v<versionName>+<versionCode>-<buildType>-<yyyyMMdd-HHmmss>.apk
 Exemplo:
 
 ```text
-builds/apk/release/0.9.1/signallq-android-v0.9.1+26-release-20260523-112233.apk
+builds/apk/release/0.16.0/signallq-android-v0.16.0+46-release-20260621-112233.apk
 ```
 
 ## Comandos oficiais

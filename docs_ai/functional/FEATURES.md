@@ -1,7 +1,7 @@
 # Features — Android SignallQ
 
-**Última atualização:** 2026-05-18
-**Fonte:** código real (Marcelo, 2026-05-17)
+**Última atualização:** 2026-06-21 (v0.16.0 — versionCode 46; flags de release revisadas contra build.gradle.kts)
+**Fonte:** código real (Marcelo, 2026-05-17; flags verificadas por Taisa 2026-06-21)
 
 Todas as telas em: `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
 
@@ -11,8 +11,8 @@ Todas as telas em: `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
 
 O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quais features são visíveis ao usuário final:
 
-- **Debug:** Todas as 32 flags são `true` — desenvolvedores testam a full stack de features
-- **Release:** Apenas 13 flags MVP são `true` — usuário final vê apenas features prontas para produção
+- **Debug:** Todas as flags são `true` — desenvolvedores testam a full stack de features
+- **Release v0.16.0:** Flags ativas confirmadas em `app/build.gradle.kts`: FIBRA_SCREEN=true, DNS_SCREEN=true, DIAGNOSTICO_CHAT=true. Inativas: DEVICES_SCREEN_V2=false, LINKPULSE_ATIVO=false
 
 ### Status das Features
 
@@ -20,7 +20,7 @@ O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quai
 |---|---|---|---|---|
 | **Teste de Velocidade** | MVP | ✅ | ✅ | Core do app |
 | **Diagnóstico Local** | MVP | ✅ | ✅ | 8 engines especializados |
-| **Diagnóstico IA (SignallQ)** | MVP | ✅ | ✅ | Cloudflare Worker + Gemma 4 |
+| **Diagnóstico IA (SignallQ)** | MVP | ✅ | ✅ | Cloudflare Worker, modelo padrão Qwen3 30B, fallback local |
 | **Análise Wi-Fi** | MVP | ✅ | ✅ | Scan, topologia, congestionamento |
 | **Análise Rede Móvel** | MVP | ✅ | ✅ | 4G/5G, RSRP, RSRQ, SINR |
 | **Histórico e Gráficos** | MVP | ✅ | ✅ | Uptime, narrativa, CSV, PDF |
@@ -31,6 +31,7 @@ O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quai
 | **Configurações MVP** | MVP | ✅ | ✅ | Perfil, provedor, tema, alertas |
 | **Tela Privacidade** | MVP | ✅ | ✅ | Política, LGPD, dados |
 | **Tela Novidades** | MVP | ✅ | ✅ | Release notes |
+| **Chat IA (LLMChat)** | MVP | ✅ | ✅ | FEATURE_DIAGNOSTICO_CHAT=true em release v0.16.0 |
 | **LinkPulse Ativo** | Pós-MVP | ✅ | ❌ | Monitoramento contínuo (v0.7.1+) |
 | **Notificação Inline** | Pós-MVP | ✅ | ❌ | Notif dentro do app (v0.7.1+) |
 | **Widget Home Screen** | Pós-MVP | ✅ | ❌ | Quick access (v0.7.1+) |
@@ -38,9 +39,9 @@ O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quai
 | **Prova Real Completo** | Pós-MVP | ✅ | ❌ | Triplo teste extenso (Sprint 2) |
 | **Diagnóstico Iterativo** | Pós-MVP | ✅ | ❌ | Refinamento via perguntas (Sprint 2) |
 | **Traceroute** | Pós-MVP | ✅ | ❌ | Diagnóstico avançado de rota (Sprint 2) |
-| **Fibra Screen** | Pós-MVP | ✅ | ❌ | Leitura Nokia GPON detalhada (Sprint 3) |
-| **DNS Screen** | Pós-MVP | ✅ | ❌ | Benchmark DoH avançado (Sprint 3) |
-| **Devices Screen V2** | Pós-MVP | ✅ | ❌ | Scanner rede com IA (Sprint 3) |
+| **Fibra Screen** | MVP | ✅ | ✅ | Leitura Nokia GPON — promovida para release em v0.15.0+ |
+| **DNS Screen** | MVP | ✅ | ✅ | Benchmark DoH — promovida para release em v0.15.0+ |
+| **Devices Screen V2** | Pós-MVP | ✅ | ❌ | Scanner rede com IA (DEVICES_SCREEN_V2=false em release) |
 | **Telefonia Avançado** | Pós-MVP | ✅ | ❌ | TelephonyManager deep dive (Sprint 3) |
 | **Mapa de Calor Wi-Fi** | Pós-MVP | ✅ | ❌ | Visualização espacial RSSI (Sprint 4) |
 | **Agendamento de Testes** | Pós-MVP | ✅ | ❌ | Testes periódicos automáticos (Sprint 4) |
@@ -110,8 +111,8 @@ buildConfigField("Boolean", "FEATURE_LINKPULSE_ATIVO", "true")
 | Execução do speedtest (ao vivo) | `VelocidadeScreen.kt` | `:app` | Implementado |
 | Resultado do speedtest | `ResultadoVelocidadeScreen.kt` | `:app` | Implementado |
 | Diagnóstico local por engines | `DiagnosticoScreen.kt` | `:app` (deps: `:featureDiagnostico`) | Implementado |
-| Assistente IA SignallQ (chat) | `ChatScreen.kt` | `:app` | Implementado |
-| SignallQ símbolo animado | `OrbitScreen.kt` | `:app` | Implementado |
+| Chat diagnóstico IA (SignallQ) | `SignallQScreen.kt` | `:app` | Implementado (ex-OrbitScreen) |
+| Chat livre IA (LLM) | `LLMChatScreen.kt` | `:app` | Implementado (FEATURE_DIAGNOSTICO_CHAT) |
 | Análise de redes Wi-Fi | `SinalScreen.kt` | `:app` (deps: `:featureWifi`) | Implementado |
 | Scanner de dispositivos | `DispositivosScreen.kt` | `:app` (deps: `:featureDevices`) | Implementado |
 | Fibra óptica GPON | `FibraScreen.kt` | `:app` (deps: `:featureFibra`) | Implementado |
@@ -146,7 +147,7 @@ buildConfigField("Boolean", "FEATURE_LINKPULSE_ATIVO", "true")
 
 ### SignallQ IA (Chat)
 - Speedtest silencioso integrado
-- Envio ao Worker Cloudflare (Gemma 4 26B)
+- Envio ao Worker Cloudflare (modelo padrão: Qwen3 30B, fallback local)
 - Perguntas contextuais dinâmicas (`DynamicQuestionEngine`)
 - Chat em markdown com bolhas diferenciadas por tipo
 - Fallback local se IA falhar (`AiFallbackFactory`)

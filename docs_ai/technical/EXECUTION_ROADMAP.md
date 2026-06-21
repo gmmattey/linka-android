@@ -1,9 +1,11 @@
 # Roadmap de Execução — Issues #1–24
 ## Sequência, Dependências e Paralelização
 
-**Projeto**: SIGNALLQ Android v0.9.3 — Eficiência  
-**Horizonte**: 3–4 sprints (6–8 semanas)  
-**Atualizado**: 2026-05-23
+**Projeto**: SIGNALLQ Android — Eficiência
+**Horizonte**: 3–4 sprints (6–8 semanas)
+**Atualizado**: 2026-06-21 (v0.16.0)
+
+> **Nota de status (2026-06-21):** Este roadmap foi elaborado para a trajetória v0.9.x. Desde então, várias issues foram entregues. Em particular: **Issue #3 (Hilt) concluída** — `@HiltViewModel` + `AppModule` ativo desde v0.15.0. As dependências do grafo que dependiam do #3 podem ter avançado. Revisar o estado real de cada issue antes de planejar novas entregas.
 
 ---
 

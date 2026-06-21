@@ -1,10 +1,14 @@
 # SignallQ Android AI Documentation
 
-**Versao:** v0.7.1 (versionCode 16, release 2026-05-16) | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
+**Versao:** v0.16.0 (versionCode 46, release 2026-06-21) | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
 Recuperacao rapida, fatos operacionais, inferencia minima.
 
 > Ponto de entrada obrigatorio antes de carregar qualquer doc especifico.
 > Sempre prefira busca por simbolo (Grep) antes de ler arquivos completos.
+
+> Nota de marca: a UI e a documentacao usam **SignallQ**. Identificadores tecnicos
+> permanecem por compatibilidade de infra: package `io.veloo.app`, repo GitHub
+> `gmmattey/linka-android`, worker Cloudflare `linka-ai-diagnosis-worker`.
 
 ---
 
@@ -12,8 +16,10 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 
 - [Documentação Funcional Completa (`ANDROID_FUNCIONAL.md`)](./ANDROID_FUNCIONAL.md) — visao geral, navegacao, todas as telas, fluxos principais. Fonte primaria para entender o que o app faz.
 - [Documentação Técnica Completa (`ANDROID_TECNICO.md`)](./ANDROID_TECNICO.md) — stack, modulos, MVVM, MainViewModel, Room, DataStore, engines, componentes, build config. Fonte primaria para entender como o app funciona internamente.
+- [Guia Rápido de Agentes (`AGENTS_QUICK_REFERENCE.md`)](./AGENTS_QUICK_REFERENCE.md) — squad, responsabilidades e quando acionar cada agente.
+- [Histórico de Releases (`RELEASES.md`)](./RELEASES.md) — linha do tempo de versoes a partir do git log real.
 
-> Estes dois documentos sao consolidados e atualizados. Para detalhes especificos de feature ou fluxo, use os docs granulares abaixo.
+> Estes documentos sao consolidados e atualizados. Para detalhes especificos de feature ou fluxo, use os docs granulares abaixo.
 
 ---
 
@@ -24,7 +30,9 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [Diagnostic Flow (`functional/DIAGNOSTIC_FLOW.md`)](./functional/DIAGNOSTIC_FLOW.md)
 - [DNS Flow (`functional/DNS_FLOW.md`)](./functional/DNS_FLOW.md)
 - [Speedtest Flow (`functional/SPEEDTEST_FLOW.md`)](./functional/SPEEDTEST_FLOW.md)
+- [Wi-Fi Features (`functional/WIFI_FEATURES.md`)](./functional/WIFI_FEATURES.md)
 - [AI Assistant (`functional/AI_ASSISTANT.md`)](./functional/AI_ASSISTANT.md)
+- [Central de Testes — Guia do Usuário (`functional/CENTRAL_DE_TESTES_USER_GUIDE.md`)](./functional/CENTRAL_DE_TESTES_USER_GUIDE.md)
 - [Settings (`functional/SETTINGS.md`)](./functional/SETTINGS.md)
 
 ---
@@ -36,42 +44,47 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [Espacamento (`design-system/SPACING.md`)](./design-system/SPACING.md) — grid 8dp, valores canonicos
 - [Design Tokens Cross-Platform (`design-system/DESIGN_TOKENS_CROSSPLATFORM.md`)](./design-system/DESIGN_TOKENS_CROSSPLATFORM.md) — Android vs. PWA
 - [Componentes Android (`design-system/COMPONENTS_ANDROID.md`)](./design-system/COMPONENTS_ANDROID.md) — componentes SignallQ, SpeedTest, Layout
-- [Componentes (legacy) (`design-system/COMPONENTS.md`)](./design-system/COMPONENTS.md) — versao anterior; prefira COMPONENTS_ANDROID.md
 - [Material Design 3 (`design-system/MD3_GUIDELINES.md`)](./design-system/MD3_GUIDELINES.md)
-- [Chat Patterns (`design-system/CHAT_PATTERNS.md`)](./design-system/CHAT_PATTERNS.md)
-- [Navigation Patterns (`design-system/NAVIGATION.md`)](./design-system/NAVIGATION.md)
-- [Motion (`design-system/MOTION.md`)](./design-system/MOTION.md)
 
 ---
 
 ## Technical
 
-- [Monitoramento Passivo (`technical/MONITORAMENTO_PASSIVO.md`)](./technical/MONITORAMENTO_PASSIVO.md) — WorkManager 30min, notificacoes de degradacao
 - [Architecture Overview (`technical/ARCHITECTURE.md`)](./technical/ARCHITECTURE.md)
 - [Module Breakdown (`technical/MODULES.md`)](./technical/MODULES.md)
 - [Data Flow (`technical/DATA_FLOW.md`)](./technical/DATA_FLOW.md)
 - [API Map (`technical/API_MAP.md`)](./technical/API_MAP.md)
 - [AI Flow (`technical/AI_FLOW.md`)](./technical/AI_FLOW.md)
-- [Cloudflare Integration (`technical/CLOUDFLARE.md`)](./technical/CLOUDFLARE.md)
-- [Storage Details (`technical/STORAGE.md`)](./technical/STORAGE.md)
+- [Cloudflare Integration (`technical/CLOUDFLARE.md`)](./technical/CLOUDFLARE.md) — worker `linka-ai-diagnosis-worker`, modelo padrao Qwen3 30B, fallback local
+- [Storage Details (`technical/STORAGE.md`)](./technical/STORAGE.md) — Room v10, DataStore
 - [Services Overview (`technical/SERVICES.md`)](./technical/SERVICES.md)
 - [Build System (`technical/BUILD_SYSTEM.md`)](./technical/BUILD_SYSTEM.md)
+- [Code Patterns (`technical/CODE_PATTERNS.md`)](./technical/CODE_PATTERNS.md)
 - [Screen Map (`technical/SCREEN_MAP.md`)](./technical/SCREEN_MAP.md) — localizacao de arquivos de tela
 - [Feature File Maps (`technical/FEATURE_FILE_MAPS.md`)](./technical/FEATURE_FILE_MAPS.md) — mapa de arquivos por feature
+- [Monitoramento Passivo (`technical/MONITORAMENTO_PASSIVO.md`)](./technical/MONITORAMENTO_PASSIVO.md) — WorkManager 30min, notificacoes de degradacao
+- [Ping Executor Architecture (`technical/PING_EXECUTOR_ARCHITECTURE.md`)](./technical/PING_EXECUTOR_ARCHITECTURE.md)
+- [AI Flow / Otimização — Deep Dive (`technical/OPTIMIZATION_DEEP_DIVE.md`)](./technical/OPTIMIZATION_DEEP_DIVE.md)
+- [Execution Roadmap (`technical/EXECUTION_ROADMAP.md`)](./technical/EXECUTION_ROADMAP.md)
+
+### Decisions (ADRs)
+
+- [ADR-001 — Timber Logging (`decisions/ADR-001-timber-logging.md`)](./decisions/ADR-001-timber-logging.md)
+- [ADR-002 — Ktlint + Detekt (`decisions/ADR-002-ktlint-detekt-quality.md`)](./decisions/ADR-002-ktlint-detekt-quality.md)
+- [ADR-003 — DispatcherProvider via DI (`decisions/ADR-003-dispatcher-provider-di.md`)](./decisions/ADR-003-dispatcher-provider-di.md)
+- [ADR-004 — Module Structure (`decisions/ADR-004-module-structure-android.md`)](./decisions/ADR-004-module-structure-android.md)
 
 ---
 
 ## Operations
 
-- [Release Process (`operations/RELEASE.md`)](./operations/RELEASE.md)
+- [Release Process (`operations/RELEASE.md`)](./operations/RELEASE.md) — processo canonico: commit → push → clean build → Firebase
+- [Deployment (`operations/DEPLOY.md`)](./operations/DEPLOY.md) — Firebase App Distribution + Play Store
 - [Versioning Strategy (`operations/VERSIONING.md`)](./operations/VERSIONING.md) — versionName/versionCode, script version.ps1
 - [APK Build Process (`operations/APK_BUILD.md`)](./operations/APK_BUILD.md)
+- [App Signing (`operations/SIGNING.md`)](./operations/SIGNING.md) — keystore, key.properties, GitHub Secrets
 - [Scripts (`operations/SCRIPTS.md`)](./operations/SCRIPTS.md)
-- [Environments (`operations/ENVIRONMENTS.md`)](./operations/ENVIRONMENTS.md)
-- [Environment (alternativo) (`operations/ENVIRONMENT.md`)](./operations/ENVIRONMENT.md)
-- [Deployment (`operations/DEPLOY.md`)](./operations/DEPLOY.md)
-- [Paperclip Integration (`operations/PAPERCLIP_INTEGRATION.md`)](./operations/PAPERCLIP_INTEGRATION.md)
-- ORB tasks: ver arquivos `operations/ORB-*.md` — documentacao de tarefas especificas (ORB-159, ORB-161, ORB-163, ORB-165)
+- [Environments (`operations/ENVIRONMENTS.md`)](./operations/ENVIRONMENTS.md) — doc canonico de ambientes
 
 ---
 
@@ -88,6 +101,12 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 
 ---
 
-## Outros
+## Arquivo (`_archive/`)
 
-- [Audit Summary (`AUDIT_SUMMARY.md`)](./AUDIT_SUMMARY.md) — registro de auditoria de docs
+Material historico preservado, fora do fluxo ativo. Nao usar como fonte de verdade.
+
+- `_archive/INDEX_v0.9.0.md`, `_archive/CHANGELOG_ENTRY_v0.9.0.md`, `_archive/QA_ACCEPTANCE_CHECKLIST_v0.9.0.md` — docs da release v0.9.0
+- `_archive/FEATURES.md` — visao de features antiga (raiz); preferir `functional/FEATURES.md`
+- `_archive/COMPONENTS.md` — componentes legados; preferir `design-system/COMPONENTS_ANDROID.md`
+- `_archive/ENVIRONMENT.md` — ambiente legado; preferir `operations/ENVIRONMENTS.md`
+- `_archive/FEATURE_CENTRAL_DE_TESTES_2026_05_20.md`, `_archive/FEATURE_SUMMARY_QUICK_REF.md`, `_archive/HANDOFF_RELEASE.md` — relatorios e handoffs historicos

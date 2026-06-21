@@ -1,7 +1,7 @@
 # Fluxo do Speedtest — Android SignallQ
 
-**Última atualização:** 2026-05-17
-**Fonte:** código real (Marcelo, 2026-05-17)
+**Última atualização:** 2026-06-21 (v0.16.0 — ChatScreen→SignallQScreen/LLMChatScreen; FEATURE_DIAGNOSTICO_CHAT ativo em release)
+**Fonte:** código real (Marcelo, 2026-05-17; corrigido por Taisa 2026-06-21)
 
 ---
 
@@ -13,7 +13,8 @@ SpeedTestScreen → VelocidadeScreen → ResultadoVelocidadeScreen
 
 Telas secundárias (opcionais a partir do resultado):
 - `DiagnosticoScreen`
-- `ChatScreen` (SignallQ IA)
+- `LLMChatScreen` (Chat IA livre — `FEATURE_DIAGNOSTICO_CHAT`, ativo em release v0.16.0)
+- `SignallQScreen` (Chat diagnóstico autônomo)
 
 ---
 
@@ -84,7 +85,7 @@ Layout em ordem de exibição:
 10. **RecomendacaoCard:** ação recomendada baseada no diagnóstico.
 
 **Botões disponíveis:**
-- "Conversar com IA" → `ChatScreen`
+- "Conversar com IA" → `LLMChatScreen` (FEATURE_DIAGNOSTICO_CHAT ativo em release v0.16.0)
 - "Testar Upload Novamente" → reinicia apenas a fase de upload
 - "Ir para o início" → `HomeScreen`
 - "Testar novamente" → `SpeedTestScreen`

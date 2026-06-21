@@ -3,8 +3,10 @@
 Scripts ficam em:
 
 ```text
-C:\Projetos\SignallQ Android\scripts\
+<raiz-do-projeto>\scripts\
 ```
+
+> Pasta local do repo: `C:\Projetos\Linka Android` (diretório histórico; produto **SignallQ**).
 
 ## Build APK
 

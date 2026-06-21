@@ -1,6 +1,6 @@
-# Guia Rápido — Agentes SignallQ (ex-SignallQ)
+# Guia Rápido — Agentes SignallQ
 
-**Última atualização:** 2026-05-30
+**Última atualização:** 2026-06-21
 **Mantido por:** Taisa
 
 Referência rápida de quem é quem, o que cada agente faz e quando acionar. Para o pipeline completo de entrega, ver `docs/PIPELINE_AUTONOMO.md`.
@@ -74,7 +74,7 @@ Referência rápida de quem é quem, o que cada agente faz e quando acionar. Par
 - Melhora hierarquia visual, espaçamento e tipografia conforme MD3
 - Define e valida microcopy — textos curtos, objetivos, PT-BR
 - Verifica acessibilidade: contraste, tamanho de toque, semantics TalkBack
-- Verifica consistência com o SignallQ Design System (`.claude/skills/signallq-design/`)
+- Verifica consistência com o SignallQ Design System (`.claude/skills/linka-design/` — diretório histórico)
 
 **Modo:** Haiku para revisão simples de copy/MD3. Sonnet para decisão de fluxo e experiência complexa.
 

@@ -4,6 +4,41 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este projeto adere a [Semantic Versioning](https://semver.org/).
 
+> Nota de marca: a UI e a documentação usam **SignallQ**. Identificadores técnicos
+> permanecem por compatibilidade de infra — package `io.veloo.app`, repo
+> `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`.
+
+---
+
+## [0.16.0] — 2026-06-21
+
+### Changed — Rebranding completo para SignallQ
+
+- **Rebranding:** identidade anterior (Linka / Veloo / Orbit) substituída por **SignallQ** em toda a UI, copy, telas de novidades e documentação. Superfícies de IA (antigo "Orbit") passam a referir-se ao assistente SignallQ.
+- **Identificadores técnicos preservados:** package `io.veloo.app`, App ID Firebase `io.veloo.app`, repo GitHub `gmmattey/linka-android` e worker Cloudflare `linka-ai-diagnosis-worker` permanecem inalterados por compatibilidade de infraestrutura.
+
+### Docs
+
+- **Reorganização da documentação:** criadas as pastas `docs/_archive/` e `docs_ai/_archive/` para material histórico (releases v0.9.0, relatórios, assets da marca anterior). `docs_ai/README.md` reescrito com índice hierárquico alinhado à árvore atual de docs.
+
+---
+
+## [0.15.1] — 2026-06-12
+
+### Fixed
+
+- **Topologia mesh — nó "Roteador":** o nó "Roteador" em redes mesh deixava de exibir o placeholder "—" quando o dado não estava disponível. Corrigido para manter o fallback "—" consistente com os demais nós da trilha de rede.
+
+---
+
+## [0.15.0] — 2026-05-30
+
+### Changed — Rebranding Linka → Veloo
+
+- Identidade visual, package name e configurações Firebase atualizados.
+- App ID Firebase: `io.veloo.app`.
+- Tela de novidades v0.15.0.
+
 ---
 
 ## [0.14.0] — 2026-05-29

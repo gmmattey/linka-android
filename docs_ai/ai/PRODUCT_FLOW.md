@@ -1,12 +1,12 @@
 # Product Flow for Agents
 
 > Documentação do fluxo de produto para consumo por agentes de IA.
-> Versão: v0.7.0
+> Versão: v0.16.0
 
 ## Objetivos do produto
 
 - **Diagnóstico de rede doméstica**: mede velocidade, Wi-Fi, DNS, latência, jitter e perda de pacotes.
-- **Interpretação assistida por IA**: resultados explicados em linguagem acessível via chat (LinkaPulse).
+- **Interpretação assistida por IA**: resultados explicados em linguagem acessível via assistente SignallQ.
 - **Monitoramento passivo**: WorkManager mede latência, DNS e RSSI a cada 30 minutos em background, com notificações de degradação.
 - **Paridade Android/PWA**: funcionalidades replicadas no PWA quando tecnicamente viável no browser.
 

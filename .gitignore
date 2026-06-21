@@ -43,3 +43,12 @@ certificados/
 
 # Tasks/queue dos agentes (estado local)
 .claude/tasks/
+
+# Logs e artefatos gerados (build/upload) — nunca versionar
+build_log.txt
+firebase_upload.txt
+*_log.txt
+tests/prints/TEMP.md
+
+# Índice de memória gerado pelo harness (grande, não versionável)
+memory-index.json

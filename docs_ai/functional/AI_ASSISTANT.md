@@ -1,34 +1,107 @@
-# AI Assistant Functionality
+# Assistente IA SignallQ — Funcionalidade
 
-## Objective
+**Última atualização:** 2026-06-21 (v0.16.0 — reescrito; modelo Qwen3 30B; SignallQScreen; LLMChatScreen)
+**Fonte:** código real verificado por Taisa 2026-06-21
+**Público-alvo:** desenvolvedor humano e agentes de IA
 
-This document details the functionality and user experience of AI assistant features, mapping specific components and interactions within the SignallQ Android Kotlin application.
+---
 
-## AI Capabilities and Integration Points
+## 1. Papel da IA no Produto
 
-AI is primarily integrated to enhance diagnostics and provide intelligent insights.
+O assistente IA do SignallQ tem **dois modos de atuação** que coexistem no v0.16.0:
 
--   **AI-Driven Diagnostics (`featureDiagnostico`)**:
-    -   **Functionality**: Interprets diagnostic results using AI analysis via `cloudflare/ai-diagnosis-worker`.
-    -   **User Experience**: `featureDiagnostico/ui/DiagnosticScreen.kt` (*inferential path*) presents AI insights (summaries, causes, actions) derived from data sent via `coreNetwork/ai/AiDiagnosisService.kt` (*inferential path*).
+| Modo | Tela | Flag | Estado release |
+|---|---|---|---|
+| Diagnóstico autônomo (pipeline) | `SignallQScreen` | — (sempre presente) | Ativo |
+| Chat diagnóstico livre (LLM) | `LLMChatScreen` | `FEATURE_DIAGNOSTICO_CHAT` | Ativo (true em release v0.16.0) |
 
--   **Contextual Insights (Potential)**:
-    -   AI might provide insights in other modules like `featureHome/ui/HomeScreen.kt` (*inferential path*). Specific implementation requires human validation.
+---
 
-## User Interaction with AI
+## 2. SignallQScreen — Diagnóstico Autônomo
 
--   **Triggering**: Users initiate AI features by using primary functions (e.g., running diagnostics in `DiagnosticScreen.kt`). AI analysis occurs in the background.
--   **AI Output**: Insights are presented directly within the relevant feature's UI (e.g., `DiagnosticScreen.kt`), making them actionable.
--   **Interface Type**: The AI functions as an analytical engine integrated into workflows, not a conversational chatbot.
+**Arquivo:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/SignallQScreen.kt`
 
-## Key Files/Modules
+O `SignallQOrchestrator` executa um pipeline multi-turno de diagnóstico:
 
--   **`signallq-android-kotlin/featureDiagnostico/`**: Primary module for AI-assisted diagnostics UI and ViewModel (`DiagnosticViewModel.kt` - *inferential path*).
--   **`signallq-android-kotlin/coreNetwork/`**: Contains `AiDiagnosisService.kt` for backend AI communication.
--   **`cloudflare/ai-diagnosis-worker/wrangler.toml`**: External configuration for the AI backend.
+1. Coleta dados da rede atual (Wi-Fi, móvel, histórico, speedtest silencioso se necessário)
+2. Monta `DiagnosisAiContext` (schema v3)
+3. Envia ao Worker Cloudflare
+4. Exibe resultado estruturado com chips de follow-up
+5. Máx. 5 turnos; detecção de off-topic ativa
 
-## Known Risks
+**Modelo padrão:** Qwen3 30B  
+**Fallback:** `AiFallbackFactory` — diagnóstico local sem IA se o Worker falhar  
+**API:** Worker Cloudflare (URL em `AiDiagnosisRepository`)
 
--   Specific AI models, training data, and algorithms are managed externally and require human validation.
--   Exact API contracts (`AiDiagnosisService.kt`) and AI response formats need confirmation.
--   The scope and accuracy of AI recommendations require human oversight.
+**Estados do pipeline (`SignallQUiState`):**
+- `Idle` — tela de boas-vindas (`SignallQWelcomeState`)
+- `Collecting` — coletando dados de rede
+- `Thinking` — aguardando resposta do Worker
+- `Analyzing` — processando resultado
+- `AwaitingChipSelection` — aguardando escolha de chip de follow-up
+- `AwaitingAnswer` — aguardando resposta a pergunta dinâmica (`DynamicQuestionEngine`)
+- `Result` — diagnóstico concluído; chips de próximo turno disponíveis
+- `Erro` — falha com mensagem e botão "Tentar novamente"
+
+**Componentes de UI (todos `SignallQ*`):**
+- `SignallQTopBar` — header com estado atual
+- `SignallQWelcomeState` — idle state
+- `SignallQUserMessageBubble` — bolha do usuário
+- `SignallQAiMessageBubble` — bolha da IA (markdown renderizado)
+- `SignallQThinkingBubble` — animação "Analisando..."
+- `SignallQInlineQuestion` — chips de resposta rápida
+- `SignallQInputArea` — campo de texto livre + chips no rodapé
+- `AiModelFooter` — exibe nome/versão do modelo IA
+
+---
+
+## 3. LLMChatScreen — Chat Livre com Contexto
+
+**Arquivo:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/LLMChatScreen.kt`
+
+Chat livre com contexto do diagnóstico e histórico injetados. O usuário conversa com o modelo sobre sua conexão.
+
+**Ativação:** botão "Tirar dúvidas" no footer da `DiagnosticoScreen`, ou "Conversar com IA" em `ResultadoVelocidadeScreen`.
+
+**Características:**
+- Streaming de resposta (texto progressivo)
+- Seção "Thinking" expansível com tokens de raciocínio visíveis
+- Sessão persistida em Room (`chat_sessions` + `chat_messages`)
+- Cota diária rolling 24h via `CotaDiariaRepository`
+- Retomada de conversa (follow-up com contexto anterior)
+
+**Estados:** Idle / Thinking / AwaitingInput / Error / Timeout (com UI de retry)
+
+---
+
+## 4. Contexto Enviado à IA
+
+O `DiagnosisAiContext` inclui:
+- Tipo de conexão real (`wifi`, `movel`, `ethernet`) — não fixo
+- Resultado do speedtest (DL, UL, latência, jitter, perda, bufferbloat)
+- Snapshot Wi-Fi (RSSI, canal, banda) se disponível
+- Snapshot móvel (RSRP, SINR, tecnologia) se disponível
+- Snapshot fibra GPON (Rx, Tx, temperatura) se disponível
+- Histórico resumido de medições
+- Respostas anteriores do usuário na sessão (acumuladas pelo `ContextAccumulator`)
+
+---
+
+## 5. Worker Cloudflare
+
+**Localização do código:** `integrations/cloudflare/ai-diagnosis-worker/src/`  
+**Deploy:** `npx wrangler deploy` (deve ser feito ANTES de commit quando há mudanças no worker)  
+**Modelo padrão:** Qwen3 30B  
+**Fallback local:** `AiFallbackFactory` (sem depender de rede)
+
+---
+
+## 6. Superfície Visual da IA
+
+Todos os componentes `SignallQ*` usam paleta escura fixa:
+- Background: `#0D0D1A`
+- Surface: `#1A0B2E`
+- Card: `#1E1130`
+- Texto: `#F3F4F6`
+
+Independente do tema claro/escuro configurado pelo usuário no sistema.

@@ -1,72 +1,141 @@
-# Services Overview
+# Services Overview — Android SignallQ
 
-## Objective
+**Última atualização:** 2026-06-21 (v0.16.0)
+**Fonte:** código real (AppModule.kt, módulos feature*)
 
-This document details the services provided by project modules, mapping them to concrete file paths and interfaces.
+---
 
-## Service Categories and Mappings
+## 1. Serviços Core
 
-Services are categorized and mapped to their likely locations:
+### coreNetwork
 
-### 1. Core Services
+| Serviço/Interface | Implementação | Responsabilidade |
+|---|---|---|
+| `MonitorRede` | `MonitorRedeAndroid` | Monitor de conectividade em tempo real via `ConnectivityManager.NetworkCallback`. Produz `SnapshotRede`. |
+| `GatewayLatencyMeasurer` | (concreto) | Mede RTT TCP do gateway local |
+| `NetworkCapabilitiesProvider` | (concreto) | Acesso a `NetworkCapabilities` para tipo de rede, metered, etc. |
 
-Foundational services provided by core modules:
+### coreDatabase
 
--   **Network Service (`coreNetwork`)**:
-    -   **Module Path**: `signallq-android-kotlin/coreNetwork/`
-    -   **Key Interface/Service**: `ApiService.kt` (e.g., `signallq-android-kotlin/coreNetwork/src/main/kotlin/.../api/ApiService.kt` - *necessita validação humana*).
-    -   **AI Service**: `AiDiagnosisService.kt` for Cloudflare worker communication (e.g., `signallq-android-kotlin/coreNetwork/src/main/kotlin/.../ai/AiDiagnosisService.kt` - *inferential path, necessita validação humana*).
-    -   **Consumer(s)**: Repositories.
+| Serviço | Tipo | Responsabilidade |
+|---|---|---|
+| `SignallQDatabase` | Room Database v10 | Banco SQLite — criado via `CoreDatabaseModulo.criarBanco(context)` |
+| `MedicaoDao` | DAO | CRUD de medições de speedtest e monitoramento passivo |
+| `ApelidoDispositivoDao` | DAO | CRUD de apelidos de dispositivos por MAC |
+| `ChatSessionDao` | DAO | CRUD de sessões e mensagens do chat IA |
 
--   **Database Service (`coreDatabase`)**:
-    -   **Module Path**: `signallq-android-kotlin/coreDatabase/`
-    -   **Key Interfaces/Classes**: DAO interfaces (e.g., `signallq-android-kotlin/.../dao/DeviceDao.kt` - *necessita validação humana*), Room Database class (e.g., `AppDatabase.kt` - *necessita validação humana*).
-    -   **Consumer(s)**: Repositories.
+### coreDatastore
 
--   **DataStore Service (`coreDatastore`)**:
-    -   **Module Path**: `signallq-android-kotlin/coreDatastore/`
-    -   **Key Classes**: Data access classes (e.g., `signallq-android-kotlin/.../UserPreferencesDataSource.kt` - *necessita validação humana*).
-    -   **Consumer(s)**: ViewModels, Repositories.
+| Serviço | Tipo | Responsabilidade |
+|---|---|---|
+| `PreferenciasAppRepository` | Repository | Preferências do usuário via DataStore `linkaPreferencias` — flows reativos para todas as chaves |
 
--   **Permission Service (`corePermissions`)**:
-    -   **Module Path**: `signallq-android-kotlin/corePermissions/`
-    -   **Key Classes**: Utility classes for permission management (*specific file paths necessita validação humana*).
-    -   **Consumer(s)**: Feature modules.
+### corePermissions
 
--   **Telephony Service (`coreTelephony`)**:
-    -   **Module Path**: `signallq-android-kotlin/coreTelephony/`
-    -   **Key Classes**: Utility classes for telephony APIs (*specific file paths necessita validação humana*).
-    -   **Consumer(s)**: Features needing phone state access.
+| Serviço/Interface | Responsabilidade |
+|---|---|
+| `GerenciadorPermissoesRede` | Gerenciamento de permissões de rede em runtime + `SnapshotPermissoesRede` |
 
-### 2. Feature Services
+### coreTelephony
 
-Services exposed by feature modules:
+| Serviço | Responsabilidade |
+|---|---|
+| `MonitorTelephony` | Monitoramento de sinal móvel via `TelephonyManager` — produz `MovelSnapshot` (RSRP, RSRQ, SINR, tecnologia, operadora). Só ativo com permissão concedida. |
 
--   **Device Management (`featureDevices`)**:
-    -   **Module Path**: `signallq-android-kotlin/featureDevices/`
-    -   **Key Components**: UI composables (e.g., `DeviceListScreen.kt`), ViewModel (`DeviceViewModel.kt`) (*inferential paths*).
-    -   **Consumer(s)**: `featureHome`, other features.
+---
 
--   **Diagnostic Service (`featureDiagnostico`)**:
-    -   **Module Path**: `signallq-android-kotlin/featureDiagnostico/`
-    -   **Key Components**: UI (`DiagnosticScreen.kt`), ViewModel (`DiagnosticViewModel.kt`), AI interaction logic (*inferential paths*).
-    -   **Consumer(s)**: UI, `coreNetwork`.
+## 2. Serviços Feature
 
--   **Speedtest Service (`featureSpeedtest`)**:
-    -   **Module Path**: `signallq-android-kotlin/featureSpeedtest/`
-    -   **Key Components**: UI (`SpeedtestScreen.kt`), ViewModel (`SpeedtestViewModel.kt`), network logic (*inferential paths*).
-    -   **Consumer(s)**: UI, `coreNetwork`.
+### featureSpeedtest
 
-*(Services from other `feature` modules follow similar patterns within their respective directories.)*
+| Serviço/Interface | Responsabilidade |
+|---|---|
+| `ExecutorSpeedtest` (interface) | Contrato de execução de speedtest |
+| `ExecutorSpeedtestCloudflare` | Implementação via Cloudflare Speed CDN — download, upload, latência |
+| `PingExecutor` | 20 amostras ICMP-over-HTTP/2 contra `speed.cloudflare.com/__down?bytes=0` — descarta 1ª amostra, filtra outliers |
 
-### 3. Background Services / Workers
+### featureWifi
 
--   **Cloudflare AI Diagnosis Worker**:
-    -   **Provider**: External service. Configuration: `cloudflare/ai-diagnosis-worker/wrangler.toml`.
-    -   **Consumer**: Mobile app via `coreNetwork/ai/AiDiagnosisService.kt`.
+| Serviço | Responsabilidade |
+|---|---|
+| `ScannerRedesWifi` | Scan de redes Wi-Fi vizinhas via `WifiManager` |
+| `TopologiaWifiEngine` | Classifica redes: ROTEADOR_MESH, NO_MESH, ROTEADOR, REPETIDOR |
+| `MontarResumoWifiUseCase` | Síntese de análise Wi-Fi |
+| `MeshOuiDatabase` | Base de OUIs de fabricantes mesh para identificação de topologia |
 
-## Known Risks
+### featureDevices
 
--   Specific file paths for DAOs, Room Database classes, DataStore accessors, and feature-specific services are inferential and require human validation.
--   The exact service interfaces and contract definitions for feature modules need human confirmation.
--   The communication protocols and endpoints for the Cloudflare worker require human validation.
+| Serviço | Responsabilidade |
+|---|---|
+| `ScannerDispositivos` (interface) | Contrato de descoberta de dispositivos |
+| `ScannerDispositivosAndroid` | ARP + mDNS + port scan na rede local |
+| `ClassificadorDispositivoRede` | Classifica dispositivos por tipo (roteador, TV, celular, etc.) |
+| `OuiDatabase` | Base de OUIs para identificação de fabricante por MAC |
+
+### featureDns
+
+| Serviço | Responsabilidade |
+|---|---|
+| `BenchmarkDns` (interface) | Contrato de benchmark |
+| `BenchmarkDnsDoh` | Benchmark de 7 provedores DNS via DoH — produz `SnapshotBenchmarkDns` |
+| `AvaliadorCoerenciaDns` | Verifica coerência das respostas DNS |
+| `OrientadorConfiguracaoDns` | Recomenda configuração de DNS baseada nos resultados |
+
+### featureDiagnostico
+
+| Serviço/Engine | Responsabilidade |
+|---|---|
+| `DiagnosticOrchestrator` | Sequencia todos os engines e retorna relatório completo |
+| `DiagnosticRunner` | Objeto stateless — executa todos os engines e agrega resultados |
+| `WifiSignalQualityEngine` | Classifica RSSI por banda (2.4GHz vs 5GHz) |
+| `InternetDiagnosticEngine` | Avalia velocidade, latência, jitter, perda, bufferbloat |
+| `WifiChannelDiagnosticEngine` | Analisa congestionamento de canal Wi-Fi |
+| `DnsDiagnosticEngine` | Avalia qualidade do DNS em uso |
+| `HistoricalDegradationEngine` | Detecta degradação comparando médias 7d/30d |
+| `MobileSignalDiagnosticEngine` | Avalia RSRP, RSRQ, SINR para 4G/5G |
+| `FibraSignalQualityEngine` | Avalia potência óptica GPON (Rx/Tx) |
+| `DiagnosticDecisionEngine` | Motor de decisão final — consolida e retorna diagnóstico principal |
+| `AiDiagnosisRepository` | Chamada HTTP ao Cloudflare Worker para análise LLM |
+| `DiagnosisAiContextFactory` | Monta payload JSON schema v3 para o worker |
+| `AiFallbackFactory` | Fallback local se IA falhar |
+| `SignallQOrchestrator` | Coordena speedtest silencioso + diagnóstico + chat IA conversacional |
+| `DynamicQuestionEngine` | Gera perguntas contextuais baseadas no estado da rede |
+| `ChatDiagnosticoIaRepository` | Persistência de sessões e mensagens de chat em Room |
+
+### featureFibra
+
+| Serviço | Responsabilidade |
+|---|---|
+| `ExecutorFibra` | Orquestra leitura de dados da ONT GPON Nokia |
+| `NokiaModemClient` | Cliente HTTP para acesso ao modem Nokia via rede local |
+| `NokiaModemParser` | Parse do HTML/JSON retornado pelo modem |
+| `ClassificadorSaudeGpon` | Avalia saúde da ONT baseado em Rx/Tx/temperatura |
+
+### featureHistory
+
+| Serviço | Responsabilidade |
+|---|---|
+| `ObservadorHistoricoRoom` | Observa Room e emite histórico reativo |
+| `UptimeChartUseCase` | Prepara dados para gráfico de uptime |
+| `UptimeNarrativaEngine` | Gera narrativa textual sobre disponibilidade |
+| `ExportadorHistoricoCSV` | Exporta histórico em CSV |
+| `ExportadorHistoricoPDF` | Exporta histórico em PDF |
+
+---
+
+## 3. Serviços de Background
+
+| Serviço | Tipo | Responsabilidade |
+|---|---|---|
+| `MonitoramentoWorker` | `CoroutineWorker` (WorkManager) | Monitoramento passivo a cada 30 min — mede latência, DNS, RSSI, persiste em Room, notifica via `SignallQNotificationHelper` |
+| `MonitoramentoScheduler` | Singleton | Agenda/cancela `MonitoramentoWorker` via WorkManager |
+| `HisteresiHelper` | Utilitário | Controla histerese para evitar alertas repetidos |
+| `SignallQNotificationHelper` | Singleton object | Cria canais e exibe notificações (latência, DNS lento, RSSI fraco, sem internet, novo dispositivo) |
+
+---
+
+## 4. Serviço Externo (Cloudflare)
+
+| Serviço | URL | Função |
+|---|---|---|
+| `linka-ai-diagnosis-worker` | `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev/api/ai/diagnostico-conexao` | Análise LLM de diagnóstico via Qwen3 30B MoE FP8 |

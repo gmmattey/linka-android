@@ -1,4 +1,4 @@
-# Monitoramento Passivo — LinkaPulse v0.6.3
+# Monitoramento Passivo — MonitoramentoWorker (v0.16.0)
 
 **Escopo:** Background monitoring de qualidade internet, alertas inteligentes  
 **Stack:** WorkManager 2+, Kotlin Coroutines, Room DAO
@@ -11,9 +11,9 @@
 | --- | --- | --- |
 | `MonitoramentoScheduler.kt` | `io.veloo.app.kotlin.monitoramento` | Agenda/cancela periodic work |
 | `MonitoramentoWorker.kt` | `io.veloo.app.kotlin.monitoramento` | Worker executa background speedtest |
-| `LinkaPulseOrchestrator.kt` | `io.veloo.app.kotlin.pulse` | Orquestra diagnóstico + IA |
+| `SignallQOrchestrator.kt` | `io.veloo.app.kotlin.pulse` | Orquestra diagnóstico + IA (renomeado de LinkaPulseOrchestrator na v0.15.0) |
 | `LinkaPulseScreen.kt` | `ui.screen` | UI exibição resultados |
-| `SnapshotLinkaPulse.kt` | `io.veloo.app.kotlin.pulse` | Data class estado LinkaPulse |
+| `SignallQSnapshot.kt` | `io.veloo.app.kotlin.pulse` | Data class estado do fluxo (renomeado de SnapshotLinkaPulse) |
 
 ---
 
@@ -44,7 +44,7 @@
 
 #### Fase 3: Analyzing
 - Chama IA via endpoint `/diagnosis`
-- Gateway: `https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev`
+- Gateway: `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev/api/ai/diagnostico-conexao`
 - Recebe análise estruturada
 
 ### Tipos de Alerta (4)

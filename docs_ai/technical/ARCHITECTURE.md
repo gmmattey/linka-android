@@ -1,8 +1,8 @@
 # Arquitetura — Android SignallQ
 
-**Última atualização:** 2026-05-17
-**Fonte:** código real (Marcelo, 2026-05-17)
-**Padrão:** MVVM com injeção manual
+**Última atualização:** 2026-06-21 (v0.16.0)
+**Fonte:** código real
+**Padrão:** MVVM com Hilt DI
 
 ---
 
@@ -11,8 +11,8 @@
 ```
 UI (Composables)
     ↑ StateFlow.collectAsStateWithLifecycle()
-MainViewModel (AndroidViewModel — único ViewModel raiz)
-    ↑ lazy singletons instanciados manualmente (sem Hilt/Koin)
+MainViewModel (@HiltViewModel — único ViewModel raiz)
+    ↑ dependências injetadas via Hilt (AppModule)
 Serviços / Repositórios / Engines / Use Cases
     ↑ Room / DataStore / ConnectivityManager / TelephonyManager / OkHttp
 ```
@@ -43,17 +43,24 @@ Cada StateFlow do ViewModel é coletado individualmente pela tela que o consome.
 
 **Arquivo:** `MainViewModel.kt` — único ViewModel raiz do app.
 
-**Tipo:** `AndroidViewModel` (tem acesso ao `Application` para contextos)
+**Tipo:** `AndroidViewModel` anotado com `@HiltViewModel` (tem acesso ao `Application` para contextos)
 
-**Padrão de injeção:** todos os serviços são instanciados como `lazy` dentro do ViewModel, usando fábricas estáticas dos módulos:
+**Padrão de injeção:** dependências fornecidas pelo Hilt via `AppModule` (`di/AppModule.kt`). Os módulos (`*Modulo.kt`) ainda existem como fábricas estáticas usadas internamente pelo `AppModule` para construir as instâncias.
 
 ```kotlin
-private val bancoDados by lazy { CoreDatabaseModulo.criarBanco(getApplication()) }
-private val monitorRede by lazy { CoreNetworkModulo.criarMonitor(getApplication()) }
-// etc.
-```
+// AppModule.kt
+@Provides @Singleton
+fun provideBancoDados(@ApplicationContext ctx: Context): SignallQDatabase =
+    CoreDatabaseModulo.criarBanco(ctx)
 
-Sem Hilt, sem Koin. Injeção de dependência por construtor via `*Modulo.kt`.
+// MainViewModel.kt
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val bancoDados: SignallQDatabase,
+    private val monitorRede: MonitorRede,
+    // ...
+) : AndroidViewModel(application)
+```
 
 ### Camada de Domínio (Serviços, Engines, Use Cases)
 
@@ -63,8 +70,8 @@ Sem Hilt, sem Koin. Injeção de dependência por construtor via `*Modulo.kt`.
 
 **Orchestrators:** coordenam múltiplos serviços e engines:
 - `DiagnosticOrchestrator`: sequencia todos os engines de diagnóstico
-- `OrbitOrchestrator`: coordena speedtest silencioso + diagnóstico + IA conversacional
-- `LinkaPulseOrchestrator`: coordena monitoramento passivo
+- `SignallQOrchestrator`: coordena speedtest silencioso + diagnóstico + IA conversacional (fluxo Chat/Pulse)
+- `MonitoramentoWorker`: coordena monitoramento passivo em background (WorkManager)
 
 ### Camada de Dados
 
@@ -94,9 +101,9 @@ DiagnosticOrchestrator
     → snapshotDiagnostico: StateFlow<...>
         → DiagnosticoScreen
 
-OrbitOrchestrator
-    → orbitUiStateFlow: StateFlow<OrbitUiState>
-        → ChatScreen
+SignallQOrchestrator
+    → orbitUiStateFlow: StateFlow<SignallQSnapshot>
+        → ChatScreen / LLMChatScreen
 ```
 
 Todos os StateFlows são criados no `MainViewModel` e coletados pelas telas via `collectAsStateWithLifecycle()` — garante coleta vinculada ao lifecycle da Activity.
@@ -140,7 +147,7 @@ Fluxo:
 2. Worker executa: mede latência HTTP, DNS resolve time, RSSI Wi-Fi.
 3. Aplica histerese (`HisteresiHelper`) para decidir se dispara notificação.
 4. Persiste medição em Room (`MedicaoEntity` com `connectionType = "monitor"`).
-5. `LinkaNotificationHelper` cria e exibe notificações via `NotificationManager`.
+5. `SignallQNotificationHelper` cria e exibe notificações via `NotificationManager`.
 
 **Estados de histerese** (armazenados no DataStore como Boolean):
 - `alerta_latencia_ativo`
@@ -155,15 +162,24 @@ Fluxo:
 ```
 App Android
     → DiagnosisAiContextFactory.fromRaw(...)    [monta payload schema v3]
-    → POST https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev
-    → Cloudflare Worker
-    → Gemma 4 26B (Google via AI Gateway Cloudflare)
+    → AiDiagnosisRepository
+    → POST https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev/api/ai/diagnostico-conexao
+    → Cloudflare Worker (name: linka-ai-diagnosis-worker)
+    → Qwen3 30B MoE FP8 (@cf/qwen/qwen3-30b-a3b-fp8) — modelo padrão atual
     → AiDiagnosisResult (JSON parseado pelo app)
 
 Fallback: AiFallbackFactory.fromLocal() [se IA falhar ou timeout]
 ```
 
-**Schema da versão atual:** `diagnostico_v3_raw` — payload com dados brutos; a IA faz toda a análise sem análise local pré-computada.
+**Schema da versão atual:** `diagnostico_v3_raw` — payload com dados brutos; a IA faz toda a análise. O parser do worker aceita schemas v1/v2/v3 para retrocompatibilidade.
+
+**Modelos no worker (wrangler.toml `AI_MODEL`):**
+- Padrão: `@cf/qwen/qwen3-30b-a3b-fp8` (Qwen3 30B MoE FP8)
+- Alternativas/legado: Gemma 7B-IT, Gemma 2 9B, Gemma 4 26B (descartado — timeout)
+
+**Classes Android envolvidas:** `AiDiagnosisRepository`, `DiagnosisAiContextFactory`, `DiagnosticOrchestrator`, `DiagnosticRunner` + engines (`InternetDiagnosticEngine`, `WifiSignalQualityEngine`, `MobileSignalDiagnosticEngine`, `FibraSignalQualityEngine`, `DnsDiagnosticEngine`, `HistoricalDegradationEngine`).
+
+**Fluxo Chat/Pulse:** `SignallQOrchestrator` → `SignallQState` → `SignallQSnapshot` → `DynamicQuestionEngine`.
 
 ---
 
@@ -180,7 +196,7 @@ Fallback: AiFallbackFactory.fromLocal() [se IA falhar ou timeout]
 **Flags pós-MVP (ativas em debug, inativas em release):**
 `FEATURE_LINKPULSE_ATIVO`, `FEATURE_NOTIFICACAO_INLINE`, `FEATURE_WIDGET`, `FEATURE_QUICK_SETTINGS_TILE`, `FEATURE_PROVA_REAL_COMPLETO`, `FEATURE_DIAGNOSTICO_ITERATIVO`, `FEATURE_TRACEROUTE`, `FEATURE_FIBRA_SCREEN`, `FEATURE_DNS_SCREEN`, `FEATURE_DEVICES_SCREEN_V2`, `FEATURE_TELEPHONY_AVANCADO`, `FEATURE_MAPA_CALOR_WIFI`, `FEATURE_AGENDAMENTO_TESTES`, `FEATURE_LINKPULSE_CHAT`, `FEATURE_LINKASYNC`, `FEATURE_BACKUP_LOCAL`, `FEATURE_CONTRIBUICAO_ANONIMA`, `FEATURE_RATE_US`, `FEATURE_ACESSIBILIDADE`
 
-**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/signallq/app/kotlin/FeatureFlags.kt`:
+**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/veloo/app/kotlin/FeatureFlags.kt` (package `io.veloo.app`):
 
 `kotlin
 if (FeatureFlags.FEATURE_SPEEDTEST) {
@@ -206,10 +222,10 @@ Cada propriedade em `FeatureFlags.kt` é um getter que mapeia para `BuildConfig.
 
 | Arquivo | Papel |
 |---|---|
-| `LinkaApplication.kt` | `Application` — inicialização |
-| `MainActivity.kt` | Activity única — `setContent { LinkaTheme { AppShell(...) } }` |
-| `MainViewModel.kt` | ViewModel raiz — todos os serviços lazy |
+| `SignallQApplication.kt` | `Application` — inicialização, Hilt, canais de notificação |
+| `MainActivity.kt` | Activity única — `setContent { SignallQTheme { AppShell(...) } }` |
+| `MainViewModel.kt` | ViewModel raiz `@HiltViewModel` — orquestra todos os serviços |
 | `AppShell.kt` | Shell com NavigationBar + fluxos sobrepostos |
 | `AppNavGraph.kt` | Definição de rotas das 5 abas |
-| `LinkaTheme.kt` | Tema MD3 com ColorScheme e tokens customizados |
+| `SignallQTheme.kt` | Tema MD3 com ColorScheme e tokens customizados |
 

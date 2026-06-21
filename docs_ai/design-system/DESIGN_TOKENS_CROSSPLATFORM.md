@@ -1,6 +1,8 @@
 # Design Tokens Cross-Platform — Android ↔ PWA
 
-**Escopo:** SignallQ v0.6.3 | Android + PWA v1.0.0
+**Escopo:** SignallQ v0.16.0 | Android + PWA  
+**Última atualização:** 2026-06-21  
+**Fonte Android:** `SignallQTheme.kt` (era `LinkaTheme.kt`, renomeado em v0.15.0)
 
 ---
 

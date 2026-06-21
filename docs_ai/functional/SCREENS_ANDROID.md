@@ -1,31 +1,35 @@
 # Telas Android — SignallQ
 
-**Última atualização:** 2026-05-18
-**Fonte:** código real (Marcelo, 2026-05-17)
+**Última atualização:** 2026-06-21 (v0.16.0 — abas corrigidas; OrbitScreen→SignallQScreen; AjustesScreen promovida para Aba 4; DispositivosScreen deixa de ser aba)
+**Fonte:** código real — AppShell.kt linha 947–951, AppNavGraph.kt, verificados por Taisa 2026-06-21
 **Arquivo de navegação:** `AppShell.kt`, `AppNavGraph.kt`
-**Diretório de telas:** `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
+**Diretório de telas:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/`
 
 ---
 
-## Visão Geral — 15 Telas
+## Visão Geral — 16 Telas
+
+> Abas da NavigationBar confirmadas via `AppShell.kt` linhas 947–951 (v0.16.0):
+> [0] Início · [1] Velocidade · [2] Sinal · [3] Histórico · [4] Ajustes
 
 | # | Composable | Arquivo | Tipo | Entrada | Saída |
 |---|---|---|---|---|---|
-| 1 | `HomeScreen` | `HomeScreen.kt` | Aba 0 | Início / app launch | SpeedTestScreen, SinalScreen |
-| 2 | `SpeedTestScreen` | `SpeedTestScreen.kt` | Aba 1 | HomeScreen | VelocidadeScreen, DiagnosticoScreen, DnsBenchmarkSheet |
-| 3 | `SinalScreen` | `SinalScreen.kt` | Aba 2 | HomeScreen, SpeedTestScreen | — |
-| 4 | `DispositivosScreen` | `DispositivosScreen.kt` | Aba 3 | NavigationBar | — |
-| 5 | `HistoricoScreen` | `HistoricoScreen.kt` | Aba 4 | NavigationBar | — |
-| 6 | `VelocidadeScreen` | `VelocidadeScreen.kt` | Fluxo | SpeedTestScreen (auto) | ResultadoVelocidadeScreen |
-| 7 | `ResultadoVelocidadeScreen` | `ResultadoVelocidadeScreen.kt` | Fluxo | VelocidadeScreen (auto) | DiagnosticoScreen, ChatScreen, HomeScreen |
-| 8 | `DiagnosticoScreen` | `DiagnosticoScreen.kt` | Fluxo | ResultadoVelocidade, SpeedTestScreen | ChatScreen |
-| 9 | `ChatScreen` | `ChatScreen.kt` | Fluxo | ResultadoVelocidade, DiagnosticoScreen | ResultadoVelocidadeScreen |
-| 10 | `AjustesScreen` | `AjustesScreen.kt` | Drawer | Menu/Drawer | FibraScreen, LaudoScreen, HistoricoScreen |
-| 11 | `FibraScreen` | `FibraScreen.kt` | Fluxo | AjustesScreen | AjustesScreen |
-| 12 | `LaudoScreen` | `LaudoScreen.kt` | Fluxo | AjustesScreen | AjustesScreen |
-| 13 | `OrbitScreen` | `OrbitScreen.kt` | Inline | — | ChatScreen |
-| 14 | `LinkaPulseScreen` | `LinkaPulseScreen.kt` | Overlay | — | — |
+| 1 | `HomeScreen` | `HomeScreen.kt` | Aba 0 — Início | app launch | SpeedTestScreen, SinalScreen |
+| 2 | `SpeedTestScreen` | `SpeedTestScreen.kt` | Aba 1 — Velocidade | NavigationBar | VelocidadeScreen, DiagnosticoScreen, DnsBenchmarkSheet |
+| 3 | `SinalScreen` | `SinalScreen.kt` | Aba 2 — Sinal | NavigationBar | — |
+| 4 | `HistoricoScreen` | `HistoricoScreen.kt` | Aba 3 — Histórico | NavigationBar | — |
+| 5 | `AjustesScreen` | `AjustesScreen.kt` | Aba 4 — Ajustes | NavigationBar | FibraScreen, LaudoScreen |
+| 6 | `VelocidadeScreen` | `VelocidadeScreen.kt` | Overlay (fluxo) | SpeedTestScreen (auto) | ResultadoVelocidadeScreen |
+| 7 | `ResultadoVelocidadeScreen` | `ResultadoVelocidadeScreen.kt` | Overlay (fluxo) | VelocidadeScreen (auto) | DiagnosticoScreen, LLMChatScreen, HomeScreen |
+| 8 | `DiagnosticoScreen` | `DiagnosticoScreen.kt` | Overlay (fluxo) | ResultadoVelocidade, SpeedTestScreen | LLMChatScreen |
+| 9 | `LLMChatScreen` | `LLMChatScreen.kt` | Overlay (fluxo) | DiagnosticoScreen, ResultadoVelocidade | volta ao anterior |
+| 10 | `SignallQScreen` | `SignallQScreen.kt` | Overlay (fluxo) | Diagnóstico autônomo | — (ex-OrbitScreen) |
+| 11 | `DispositivosScreen` | `DispositivosScreen.kt` | Overlay | AjustesScreen ou outras entradas | — |
+| 12 | `FibraScreen` | `FibraScreen.kt` | Overlay (fluxo) | AjustesScreen | AjustesScreen |
+| 13 | `LaudoScreen` | `LaudoScreen.kt` | Overlay (fluxo) | AjustesScreen | AjustesScreen |
+| 14 | `LinkaPulseScreen` | `LinkaPulseScreen.kt` | Overlay (debug) | FEATURE_LINKPULSE_ATIVO | — |
 | 15 | `OnboardingScreen` | `OnboardingScreen.kt` | Especial | Primeira execução | HomeScreen |
+| 16 | `PrivacidadeScreen` / `NovidadesScreen` | `.kt` | Overlay (AnimatedVisibility) | AjustesScreen | AjustesScreen |
 
 ---
 
@@ -121,7 +125,7 @@
 
 ### DispositivosScreen
 
-**Tipo:** Aba 3 da NavigationBar
+**Tipo:** Overlay empilhado — não é aba da NavigationBar em v0.16.0 (DEVICES_SCREEN_V2=false em release)
 
 **O que exibe:** 
 - `OfflineBanner` (novo): exibido no topo quando sem conectividade
@@ -135,7 +139,7 @@
 
 ### HistoricoScreen
 
-**Tipo:** Aba 4 da NavigationBar
+**Tipo:** Aba 3 da NavigationBar
 
 **Cards e seções:**
 - Gráfico de histórico / uptime
@@ -184,7 +188,7 @@
 **Botões:** "Conversar com IA", "Testar Upload Novamente", "Ir para o início", "Testar novamente"
 
 **Navegação de saída:**
-- → `ChatScreen` (botão "Conversar com IA")
+- → `LLMChatScreen` (botão "Conversar com IA" — FEATURE_DIAGNOSTICO_CHAT ativo em release v0.16.0)
 - → `DiagnosticoScreen`
 - → `HomeScreen`
 
@@ -200,34 +204,51 @@
 
 **Estados:** Idle / Executando (loader) / Concluído
 
-**Navegação de saída:** → `ChatScreen`
+**Navegação de saída:** → `LLMChatScreen` (via "Tirar dúvidas")
 
 ---
 
-### ChatScreen (SignallQ IA)
+### SignallQScreen (Chat Diagnóstico IA — ex-ChatScreen / ex-OrbitScreen)
 
-**Tipo:** Fluxo secundário (sobreposto)
+**Tipo:** Overlay (fluxo) — `SignallQScreen.kt`
 
-**Parâmetros recebidos:** `uiState` (Idle/Thinking/AwaitingInput/Error), `onNavigateBack`, `onIniciarOrbit`, `onResetOrbit`, `onSelecionarChip`, `onResponderPergunta`, `onEnviarMensagemTexto`
+**Parâmetros recebidos:** `uiState` (Idle/Collecting/Thinking/Analyzing/AwaitingChipSelection/AwaitingAnswer/Result/Erro), `onIniciarSignallQ`, `onResetSignallQ`, `onSelecionarChip`, `onResponderPergunta`
 
-**Componentes:**
-- `OrbitUserMessageBubble`: bolha do usuário
-- `OrbitThinkingBubble`: animação "pensando..."
-- `OrbitAiMessageBubble`: resposta IA em markdown
-- `OrbitInlineQuestion`: chips de resposta rápida
-- `OrbitInputArea`: campo de texto + envio
+**Componentes (renomeados de Orbit* para SignallQ*):**
+- `SignallQUserMessageBubble`: bolha do usuário
+- `SignallQThinkingBubble`: animação "pensando..."
+- `SignallQAiMessageBubble`: resposta IA em markdown
+- `SignallQInlineQuestion`: chips de resposta rápida
+- `SignallQInputArea`: campo de texto + envio
+- `SignallQTopBar`: cabeçalho da sessão
+- `SignallQWelcomeState`: tela inicial vazia
 - `AiModelFooter`: info do modelo IA
-- `LinkaIaHeader`: cabeçalho da sessão
 
-**API:** `https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev`
+**Orquestrador:** `SignallQOrchestrator`, máx. 5 turnos, detecção off-topic, modelo padrão Qwen3 30B
 
-**Navegação de saída:** → `ResultadoVelocidadeScreen` (voltar)
+**Navegação de saída:** — (retorna ao ponto de entrada)
+
+---
+
+### LLMChatScreen (Chat Livre IA)
+
+**Tipo:** Overlay (fluxo) — `LLMChatScreen.kt`
+
+**Flag:** `FEATURE_DIAGNOSTICO_CHAT` — ativo em release v0.16.0
+
+**Parâmetros recebidos:** contexto do diagnóstico + histórico de mensagens
+
+**Componentes:** bolhas de chat, seção Thinking expansível, AiModelFooter
+
+**API:** Worker Cloudflare
+
+**Navegação de saída:** → volta ao anterior
 
 ---
 
 ### AjustesScreen
 
-**Tipo:** Drawer/Menu
+**Tipo:** Aba 4 da NavigationBar — label "Ajustes", ícone Settings
 
 **Seções e configurações:**
 
@@ -269,9 +290,9 @@ Relatório visual do diagnóstico completo.
 
 ---
 
-### OrbitScreen
+### OrbitScreen → renomeada para SignallQScreen
 
-**Tipo:** Exibição do símbolo animado de SignallQ.
+Ver seção `SignallQScreen` acima. O arquivo `OrbitScreen.kt` foi substituído por `SignallQScreen.kt` durante o rebranding v0.15.0.
 
 ---
 

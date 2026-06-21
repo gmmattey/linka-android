@@ -1,7 +1,7 @@
 # Fluxo de Diagnóstico — Android SignallQ
 
-**Última atualização:** 2026-05-17
-**Fonte:** código real (Marcelo, 2026-05-17)
+**Última atualização:** 2026-06-21 (v0.16.0 — OrbitOrchestrator→SignallQOrchestrator; OrbitInlineQuestion→SignallQInlineQuestion; modelo Qwen3 30B; ChatScreen→SignallQScreen)
+**Fonte:** código real (Marcelo, 2026-05-17; marca corrigida por Taisa 2026-06-21)
 
 ---
 
@@ -9,7 +9,7 @@
 
 ```
 DiagnosticoScreen → DiagnosticOrchestrator → engines → DiagnosticDecisionEngine → resultado
-[opcional] → ChatScreen (SignallQ IA conversacional)
+[opcional] → SignallQScreen (diagnóstico autônomo) | LLMChatScreen (chat livre, FEATURE_DIAGNOSTICO_CHAT)
 ```
 
 ---
@@ -109,32 +109,38 @@ DiagnosticResult(
 
 ## 5. IA Conversacional (SignallQ) — Passo Opcional
 
-Após o diagnóstico, o usuário pode iniciar uma sessão com o SignallQ IA via `ChatScreen`.
+Após o diagnóstico, o usuário pode iniciar uma sessão com o SignallQ IA via `SignallQScreen`.
 
 ```
-ChatScreen → OrbitOrchestrator
+SignallQScreen → SignallQOrchestrator
     ├── Coleta dados da rede atual
     ├── Speedtest silencioso (sem abrir VelocidadeScreen)
     ├── Monta payload DiagnosisAiContext (schema v3)
     └── Envia ao Worker Cloudflare
-        └── Gemma 4 26B
+        └── Qwen3 30B (padrão) / fallback local
             └── AiDiagnosisResult (JSON)
-                └── ChatScreen exibe resposta em markdown
+                └── SignallQScreen exibe resposta em markdown
 ```
 
-**API:** `https://signallq-ai-diagnosis-worker.giammattey-luiz.workers.dev`
+**API:** Worker Cloudflare (URL configurada em `AiDiagnosisRepository`)
+
+**Máx. turnos:** 5 (configurado no `SignallQOrchestrator`). Detecção de off-topic ativa.
 
 **Estados do SignallQ:**
 - `Idle`: aguardando início
-- `Thinking`: processando
-- `AwaitingInput`: aguardando resposta do usuário (chips ou texto livre)
-- `Error`: falha na IA
+- `Collecting`: coletando dados de rede
+- `Thinking`: aguardando resposta do Worker
+- `Analyzing`: processando resultado
+- `AwaitingChipSelection`: aguardando escolha de chip pelo usuário
+- `AwaitingAnswer`: aguardando resposta a pergunta dinâmica
+- `Result`: diagnóstico concluído
+- `Erro`: falha na IA
 
 **Se a IA falhar:** `AiFallbackFactory` gera diagnóstico local sem IA.
 
 ### DynamicQuestionEngine
 
-Gera perguntas contextuais baseadas no estado atual da rede para refinar o diagnóstico. Exibidas como chips de resposta rápida em `OrbitInlineQuestion`.
+Gera perguntas contextuais baseadas no estado atual da rede para refinar o diagnóstico. Exibidas como chips de resposta rápida em `SignallQInlineQuestion` (ex-`OrbitInlineQuestion`).
 
 ### ContextAccumulator
 
@@ -144,11 +150,11 @@ Acumula as respostas do usuário durante a sessão. O contexto acumulado é envi
 
 ## 6. Diagnóstico Silencioso no SignallQ
 
-Quando o usuário inicia o SignallQ sem ter feito um speedtest manual, o `OrbitOrchestrator` executa:
+Quando o usuário inicia o SignallQ sem ter feito um speedtest manual, o `SignallQOrchestrator` executa:
 1. Coleta de dados da rede (Wi-Fi, móvel, histórico)
 2. Speedtest silencioso — sem abrir `VelocidadeScreen`, sem gauge visível
 3. Envio de todos os dados ao Worker Cloudflare
-4. Exibição do resultado diretamente no `ChatScreen`
+4. Exibição do resultado diretamente no `SignallQScreen`
 
 ---
 

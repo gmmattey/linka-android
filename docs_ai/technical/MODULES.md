@@ -1,7 +1,7 @@
 # Módulos — Android SignallQ
 
-**Última atualização:** 2026-05-17
-**Fonte:** `settings.gradle.kts` + build files reais (Marcelo, 2026-05-17)
+**Última atualização:** 2026-06-21 (v0.16.0)
+**Fonte:** `settings.gradle.kts` + build files reais
 **Total de módulos:** 15
 
 > O CLAUDE.md do workspace mencionava 16 módulos incorretamente. O número real declarado em `settings.gradle.kts` é 15.
@@ -17,7 +17,7 @@
 | Plugins | com.android.application 8.11.1, kotlin.android 2.2.20, kotlin.plugin.compose 2.2.20, kapt 2.2.20 |
 | Dependências | Todos os :core* e :feature*, androidx-compose, lifecycle, material3 |
 
-**Responsabilidade:** Entry point do app. Contém `MainActivity`, `LinkaApplication`, `MainViewModel`, `AppShell`, `AppNavGraph`, todas as telas (Composables de screen), componentes UI globais, orchestrators (SignallQ, LinkaPulse), tema.
+**Responsabilidade:** Entry point do app. Contém `MainActivity`, `SignallQApplication`, `MainViewModel` (`@HiltViewModel`), `AppShell`, `AppNavGraph`, todas as telas (Composables de screen), componentes UI globais, orchestrators (`SignallQOrchestrator`, `DiagnosticOrchestrator`), tema (`SignallQTheme`), Hilt module (`di/AppModule.kt`).
 
 ---
 
@@ -45,9 +45,11 @@
 | Plugins | android-library, kotlin-android, kapt |
 | Dependências | androidx.room.runtime, androidx.room.ktx |
 
-**Responsabilidade:** Persistência local via Room. Expõe `LinkaDatabase` com DAOs e entidades. Fábrica: `CoreDatabaseModulo.criarBanco(context)`.
+**Responsabilidade:** Persistência local via Room. Expõe `SignallQDatabase` v10 com DAOs e entidades. Fábrica: `CoreDatabaseModulo.criarBanco(context)`.
 
-**Entidades:** `MedicaoEntity` (tabela `medicao`), `ApelidoDispositivoEntity` (tabela `apelido_dispositivo`)
+**Entidades:** `MedicaoEntity` (tabela `medicao`), `ApelidoDispositivoEntity` (tabela `apelido_dispositivo`), `ChatSessionEntity` (tabela `chat_sessions`), `ChatMessageEntity` (tabela `chat_messages`)
+
+**DAOs:** `MedicaoDao`, `ApelidoDispositivoDao`, `ChatSessionDao`
 
 ---
 

@@ -1,9 +1,11 @@
 # Performance & Energy Optimization Deep Dive
-## SIGNALLQ Android v0.9.3 — Eficiência
+## SIGNALLQ Android — Eficiência
 
-**Última atualização**: 2026-05-23  
-**Responsáveis**: Camilo (Arquitetura), Brás (Mobile UX)  
-**Escopo**: 8 issues críticas (#17–24) focadas em dados móveis, bateria, throughput
+**Última atualização**: 2026-06-21 (v0.16.0)
+**Responsáveis**: Camilo (Arquitetura), Brás (Mobile UX)
+**Escopo**: Issues #17–24 focadas em dados móveis, bateria, throughput
+
+> **Nota de status (2026-06-21):** Este documento descreve o roadmap de otimizações planejado. Algumas issues já foram implementadas na trajetória v0.9.x → v0.16.0. Em particular: **Hilt DI (#3) foi implementado** — `MainViewModel` é `@HiltViewModel` desde v0.15.0. As análises de problema e soluções técnicas permanecem válidas como referência mesmo para issues já entregues.
 
 ---
 

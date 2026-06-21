@@ -1,0 +1,523 @@
+##############################################################################
+# SignallQ Android — Casos de Teste manuais / E2E
+# Versão do plano: 3.0 — estado atual do app
+# App: SignallQ — v0.16.0 (versionCode 46) — package io.veloo.app
+# Navegação: 5 abas — Início, Velocidade, Sinal, Histórico, Ajustes
+# Assistente de IA: SignallQ (Worker Cloudflare, modelo padrão Qwen3 30B,
+#                   com fallback de diagnóstico local quando offline/Worker fora)
+# Execução: roteiro manual de QA (também serve de base para Firebase App Testing)
+# Timeout sugerido por caso: 5 minutos
+##############################################################################
+
+tests:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 1 — ONBOARDING / PERMISSÕES
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[1.1] Onboarding — fluxo completo aceitando tudo"
+    id: onboarding-completo
+    steps:
+      - goal: Avançar os slides iniciais de boas-vindas do onboarding
+        hint: Procure botão "Próximo", "Continuar" ou deslize para a esquerda
+        finalScreenAssertion: >-
+          O fluxo avança até o slide de permissões, com cards descrevendo pelo
+          menos uma permissão necessária (localização, dispositivos próximos
+          ou notificações).
+
+      - goal: Conceder as permissões solicitadas e concluir o onboarding
+        hint: >-
+          Toque em "Começar" ou "Permitir". Nos diálogos do sistema escolha
+          "Ao usar o app" / "Permitir".
+        finalScreenAssertion: >-
+          A tela principal do SignallQ está visível com barra de navegação
+          inferior contendo exatamente 5 abas: Início, Velocidade, Sinal,
+          Histórico e Ajustes.
+
+  - displayName: "[1.2] Onboarding — recusar permissões e continuar"
+    id: onboarding-permissao-rejeitada
+    steps:
+      - goal: Avançar o onboarding até o slide de permissões
+        finalScreenAssertion: O slide de permissões está visível com cards de permissão.
+
+      - goal: Recusar/pular as permissões solicitadas sem conceder nenhuma
+        hint: >-
+          Se houver "Pular" / "Agora não", toque nele. Se abrir diálogo do
+          sistema, escolha "Não permitir".
+        finalScreenAssertion: >-
+          O app avança para a tela principal mesmo sem permissões concedidas.
+          A tela Início está visível. O app não trava nem exibe erro técnico.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 2 — NAVEGAÇÃO / APPSHELL
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[2.1] Navegação — percorrer todas as 5 abas"
+    id: navegacao-abas
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Tocar na aba "Velocidade" na barra de navegação inferior
+        finalScreenAssertion: A tela de Velocidade está visível com seletor de modo de teste.
+
+      - goal: Tocar na aba "Sinal" na barra de navegação inferior
+        finalScreenAssertion: A tela de Sinal está visível com informações da rede Wi-Fi.
+
+      - goal: Tocar na aba "Histórico" na barra de navegação inferior
+        finalScreenAssertion: A tela de Histórico está visível com lista de medições ou estado vazio.
+
+      - goal: Tocar na aba "Ajustes" na barra de navegação inferior
+        finalScreenAssertion: A tela de Ajustes está visível com lista de opções de configuração.
+
+      - goal: Tocar na aba "Início" na barra de navegação inferior
+        finalScreenAssertion: A tela Início está visível com o card de conexão atual.
+
+  - displayName: "[2.2] Navegação — layout da barra inferior está correto"
+    id: layout-barra-inferior
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Verificar o layout e conteúdo da barra de navegação inferior
+        finalScreenAssertion: >-
+          A barra inferior contém exatamente 5 abas com ícone e rótulo:
+          "Início", "Velocidade", "Sinal", "Histórico" e "Ajustes".
+          A aba ativa está destacada visualmente.
+
+  - displayName: "[2.3] Navegação — botão Voltar fecha overlay/bottom sheet"
+    id: navegacao-back-overlay
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir qualquer ferramenta que apareça como bottom sheet ou overlay
+        hint: Na tela Início ou Velocidade, toque em "DNS", "Latência" ou "Diagnóstico".
+        finalScreenAssertion: Um bottom sheet ou overlay está aberto sobre a tela principal.
+
+      - goal: Pressionar o botão/gesto Voltar do sistema para fechar o overlay
+        finalScreenAssertion: >-
+          O overlay foi fechado e a tela principal está visível novamente.
+          O app não foi encerrado.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 3 — HOME (DASHBOARD / MÉTRICAS)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[3.1] Home — card de conexão em Wi-Fi"
+    id: home-wifi
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Na tela Início conectado a Wi-Fi, verificar as informações de rede
+        finalScreenAssertion: >-
+          O card de conexão exibe o nome da rede Wi-Fi (SSID) e um indicador
+          de qualidade ou sinal, com veredito humano (ex.: Excelente/Bom/Regular).
+
+  - displayName: "[3.2] Home — atalhos e último resultado"
+    id: home-layout-atalhos
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Rolar a tela Início e verificar atalhos de ferramentas e métricas
+        finalScreenAssertion: >-
+          Há atalhos para ferramentas (ex.: DNS, Latência, Diagnóstico, Dispositivos)
+          e uma seção de último resultado de velocidade — ou um convite para
+          "Fazer primeiro teste" se nenhum teste foi realizado.
+
+  - displayName: "[3.3] Home — estado offline humanizado"
+    id: home-offline
+    steps:
+      - goal: >-
+          Com o dispositivo sem conexão (modo avião), abrir o app e ver a tela Início
+        finalScreenAssertion: >-
+          A tela Início exibe mensagem clara em PT-BR sobre ausência de conexão
+          (ex.: "Você está offline"). Não é erro técnico. A barra inferior
+          permanece visível e funcional.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 4 — SPEEDTEST (download / upload / latência / jitter)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[4.1] Speedtest — seletor de modos"
+    id: speedtest-layout-modos
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir a aba Velocidade e verificar os modos de teste disponíveis
+        finalScreenAssertion: >-
+          Os modos de teste estão visíveis (ex.: Rápido, Completo, Triplo),
+          cada um com descrição e duração estimada.
+
+  - displayName: "[4.2] Speedtest — executar teste e ver resultado"
+    id: speedtest-rapido
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Selecionar o modo Rápido e iniciar o teste de velocidade
+        hint: Toque no modo "Rápido" e depois no botão de iniciar.
+        finalScreenAssertion: >-
+          O teste está em progresso com gauge/indicador circular e um botão
+          "Cancelar" visível.
+
+      - goal: Aguardar o teste concluir e verificar as métricas
+        finalScreenAssertion: >-
+          A tela de resultado mostra Download (Mbps), Upload (Mbps) e
+          Latência/Jitter (ms), com veredito humano de qualidade. Todos os
+          textos em PT-BR.
+
+  - displayName: "[4.3] Speedtest — confirmação em dados móveis"
+    id: speedtest-dados-moveis-dialog
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Em dados móveis, selecionar um modo mais longo e tentar iniciar
+        finalScreenAssertion: >-
+          Aparece um diálogo avisando sobre consumo de dados, com botões para
+          confirmar e cancelar.
+
+      - goal: Cancelar o diálogo
+        finalScreenAssertion: >-
+          O diálogo é fechado, a tela Velocidade permanece visível e o teste
+          não foi iniciado.
+
+  - displayName: "[4.4] Speedtest — cancelar durante a execução"
+    id: speedtest-cancelamento
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Iniciar um teste e tocar em "Cancelar" durante a execução
+        finalScreenAssertion: >-
+          O teste é interrompido (com ou sem diálogo de confirmação) e a tela
+          volta a um estado utilizável. O app não trava.
+
+  - displayName: "[4.5] Speedtest — indisponível offline"
+    id: speedtest-offline-banner
+    steps:
+      - goal: Sem conexão, abrir a aba Velocidade
+        finalScreenAssertion: >-
+          A tela exibe banner/mensagem de que o teste está indisponível sem
+          conexão. O botão de iniciar está desabilitado ou ausente.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 5 — RESULTADO / COMPARTILHAMENTO
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[5.1] Resultado — métricas e tipo de rede"
+    id: resultado-layout
+    prerequisiteTestCaseId: speedtest-rapido
+    steps:
+      - goal: Na tela de resultado, verificar métricas e o tipo de rede do teste
+        finalScreenAssertion: >-
+          Estão visíveis Download, Upload, Latência/Jitter e um chip do tipo
+          de rede (ex.: Wi-Fi, 4G, 5G). Nenhum valor exibe "null".
+
+  - displayName: "[5.2] Resultado — compartilhar"
+    id: resultado-compartilhar
+    prerequisiteTestCaseId: speedtest-rapido
+    steps:
+      - goal: Tocar no botão/ícone de compartilhar o resultado
+        finalScreenAssertion: >-
+          O sheet de compartilhamento do Android abre, OU um indicador de
+          geração da imagem aparece brevemente.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 6 — WI-FI / SINAL (sinal / canais)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[6.1] Sinal — lista de redes e filtros de banda"
+    id: sinal-redes
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir a aba Sinal e verificar a lista de redes Wi-Fi
+        finalScreenAssertion: >-
+          A tela Sinal mostra a lista de redes detectadas (ou estado vazio) e
+          filtros de banda (ex.: Todos, 2.4GHz, 5GHz).
+
+      - goal: Aplicar o filtro 2.4GHz e depois voltar para "Todos"
+        finalScreenAssertion: >-
+          A lista é filtrada por banda e restaurada corretamente ao tocar em "Todos".
+
+  - displayName: "[6.2] Sinal — detalhe de rede com BSSID mascarado"
+    id: sinal-detalhe-bssid
+    prerequisiteTestCaseId: sinal-redes
+    steps:
+      - goal: Tocar em uma rede Wi-Fi para abrir o detalhe
+        finalScreenAssertion: >-
+          Um bottom sheet de detalhes mostra SSID, sinal, banda, canal e BSSID.
+
+      - goal: Verificar que o BSSID está parcialmente mascarado
+        finalScreenAssertion: >-
+          O BSSID exibido está parcialmente oculto. O endereço completo não
+          fica exposto.
+
+  - displayName: "[6.3] Sinal — análise de canais"
+    id: sinal-canais
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Na tela Sinal, acessar a análise de canais/espectro
+        finalScreenAssertion: >-
+          A análise de canais Wi-Fi é exibida, OU aparece a solicitação de
+          permissão de localização com explicação humanizada do motivo.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 7 — DIAGNÓSTICO (local + IA + chat com assistente SignallQ)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[7.1] Diagnóstico — executar diagnóstico local"
+    id: diagnostico-local
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir o Diagnóstico e iniciar a análise da conexão
+        hint: Acesse "Diagnóstico" pela tela Início ou pela Central de Testes.
+        finalScreenAssertion: >-
+          O diagnóstico roda as etapas locais (internet, Wi-Fi/canais, DNS,
+          degradação histórica) e exibe um resultado com veredito humano em PT-BR.
+
+  - displayName: "[7.2] Diagnóstico — análise por IA (SignallQ)"
+    id: diagnostico-ia
+    prerequisiteTestCaseId: speedtest-rapido
+    steps:
+      - goal: Acionar a análise inteligente / Assistente SignallQ após o diagnóstico
+        finalScreenAssertion: >-
+          O assistente SignallQ exibe uma análise em linguagem natural sobre a
+          qualidade da conexão, em PT-BR, com explicação prática (não apenas números).
+
+  - displayName: "[7.3] Diagnóstico — chat com o assistente SignallQ"
+    id: diagnostico-chat
+    prerequisiteTestCaseId: diagnostico-ia
+    steps:
+      - goal: Abrir o chat do assistente SignallQ
+        finalScreenAssertion: >-
+          A interface de chat está visível com campo de texto e/ou perguntas
+          sugeridas. O assistente se identifica como SignallQ.
+
+      - goal: Enviar uma pergunta sobre a conexão
+        hint: Digite algo como "Por que minha velocidade está lenta?" e envie.
+        finalScreenAssertion: >-
+          A pergunta é enviada e uma resposta do assistente é gerada (loading)
+          ou exibida, em PT-BR.
+
+  - displayName: "[7.4] Diagnóstico — fallback local quando IA indisponível"
+    id: diagnostico-ia-fallback
+    prerequisiteTestCaseId: speedtest-rapido
+    steps:
+      - goal: >-
+          Com o dispositivo sem internet (ou o Worker de IA fora do ar),
+          acionar a análise inteligente do diagnóstico
+        hint: >-
+          Ative o modo avião após coletar as métricas, ou bloqueie o acesso ao
+          Worker Cloudflare, e então peça a análise por IA.
+        finalScreenAssertion: >-
+          O app cai no diagnóstico local (fallback): exibe uma análise gerada
+          localmente cujo rodapé indica "Diagnóstico local do SignallQ"
+          (NÃO um nome de modelo de IA na nuvem). Não há crash nem tela em branco.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 8 — DISPOSITIVOS (scan da rede local)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[8.1] Dispositivos — scan em Wi-Fi com MAC mascarado"
+    id: dispositivos-lista-wifi
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir a tela de Dispositivos conectados (scan da rede local)
+        hint: Acesse "Dispositivos" pela tela Início ou pela aba Sinal.
+        finalScreenAssertion: >-
+          Em Wi-Fi, o scan lista os dispositivos da rede local (ou exibe estado
+          vazio). Cada card mostra nome/tipo, IP e MAC.
+
+      - goal: Verificar que os endereços MAC estão mascarados
+        finalScreenAssertion: >-
+          Os MACs exibidos estão parcialmente mascarados; nenhum MAC completo
+          fica exposto.
+
+  - displayName: "[8.2] Dispositivos — estado sem Wi-Fi"
+    id: dispositivos-sem-wifi
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Em dados móveis (sem Wi-Fi), abrir a tela de Dispositivos
+        finalScreenAssertion: >-
+          A tela exibe mensagem humanizada em PT-BR explicando que o scan da
+          rede local requer Wi-Fi. Não mostra lista vazia sem contexto nem erro técnico.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 9 — DNS
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[9.1] DNS — benchmark com recomendação"
+    id: dns-benchmark
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir a tela de DNS e iniciar o benchmark
+        finalScreenAssertion: >-
+          A lista de provedores DNS é exibida (incluindo provedores brasileiros)
+          e o benchmark inicia com indicador de progresso.
+
+      - goal: Aguardar a conclusão e verificar a recomendação
+        finalScreenAssertion: >-
+          Cada provedor mostra latência em ms e um provedor é destacado como
+          recomendado (badge/cor/texto).
+
+  - displayName: "[9.2] DNS — erro com mensagem humanizada"
+    id: dns-erro
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Iniciar o benchmark com conexão instável/ausente
+        finalScreenAssertion: >-
+          Em caso de falha, é exibida mensagem de erro humanizada em PT-BR com
+          botão de tentar novamente. Em caso de sucesso, os resultados aparecem
+          normalmente.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 10 — FIBRA / MODEM (Nokia, FTTH/GPON)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[10.1] Fibra — análise do modem em Wi-Fi"
+    id: fibra-analise
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Conectado a Wi-Fi, abrir a análise do modem/ONT (Fibra)
+        finalScreenAssertion: >-
+          A tela exibe o estado da análise (conectando/analisando/resultado) com
+          informações do modem, OU uma mensagem de erro humanizada se o modem
+          for inacessível, com botão "Tentar novamente".
+
+  - displayName: "[10.2] Fibra — estado sem Wi-Fi"
+    id: fibra-sem-wifi
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Em dados móveis, abrir a análise do modem/ONT
+        finalScreenAssertion: >-
+          A tela exibe mensagem humanizada em PT-BR informando que a análise do
+          modem requer Wi-Fi. Não mostra erro técnico nem tela em branco.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 11 — HISTÓRICO (uptime / filtros)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[11.1] Histórico — estado vazio no primeiro uso"
+    id: historico-vazio
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir a aba Histórico sem nenhum teste realizado
+        finalScreenAssertion: >-
+          A tela exibe estado vazio com mensagem humanizada e convite para fazer
+          o primeiro teste. Não mostra dados zerados como se fossem reais.
+
+  - displayName: "[11.2] Histórico — lista, uptime e filtros"
+    id: historico-com-registros
+    prerequisiteTestCaseId: speedtest-rapido
+    steps:
+      - goal: Abrir a aba Histórico após realizar um teste
+        finalScreenAssertion: >-
+          Pelo menos um registro aparece (data, download/upload, tipo de rede)
+          e há gráfico de uptime/tendência das medições ao longo do tempo.
+
+      - goal: Aplicar o filtro Wi-Fi e depois "Todos"
+        finalScreenAssertion: >-
+          A lista é filtrada por tipo de conexão e restaurada corretamente ao
+          tocar em "Todos".
+
+  - displayName: "[11.3] Histórico — detalhe e exportação"
+    id: historico-detalhe-export
+    prerequisiteTestCaseId: historico-com-registros
+    steps:
+      - goal: Abrir o detalhe de uma medição
+        finalScreenAssertion: >-
+          O detalhe mostra métricas completas (Download, Upload, Latência, Jitter,
+          Perda de pacotes) em PT-BR.
+
+      - goal: Acionar a exportação do histórico
+        finalScreenAssertion: >-
+          Abre o fluxo de exportação com opções de formato (CSV/PDF) e confirmação.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 12 — AJUSTES (tema / perfil / notificações / modem)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[12.1] Ajustes — layout e seções"
+    id: ajustes-layout
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir a aba Ajustes e verificar as seções
+        finalScreenAssertion: >-
+          A tela mostra seções incluindo perfil, conexão (provedor/plano),
+          notificações, aparência/tema, modem e dados locais.
+
+  - displayName: "[12.2] Ajustes — editar perfil"
+    id: ajustes-perfil
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir a edição de perfil e fechá-la
+        finalScreenAssertion: >-
+          Um sheet de edição de perfil abre com campo de nome (e possivelmente
+          foto) e fecha corretamente, voltando aos Ajustes.
+
+  - displayName: "[12.3] Ajustes — seleção de tema"
+    id: ajustes-tema
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Selecionar o tema "Escuro" e depois voltar para "Sistema"
+        finalScreenAssertion: >-
+          O tema escuro é aplicado com contraste adequado e a opção "Sistema"
+          é restaurada corretamente.
+
+  - displayName: "[12.4] Ajustes — notificações de monitoramento"
+    id: ajustes-notificacoes
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir as configurações de notificações/monitoramento
+        finalScreenAssertion: >-
+          A tela permite ativar/desativar o monitoramento passivo e as
+          notificações de degradação, com textos explicativos em PT-BR.
+
+  - displayName: "[12.5] Ajustes — configurar conexão contratada"
+    id: ajustes-conexao
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Abrir "Minha conexão" e inserir a velocidade contratada
+        finalScreenAssertion: >-
+          O campo de velocidade aceita apenas números; é possível informar
+          provedor e plano (ex.: 300/500 Mbps).
+
+  - displayName: "[12.6] Ajustes — confirmação ao redefinir o app"
+    id: ajustes-redefinir
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Tocar em "Redefinir o app" e cancelar no diálogo
+        finalScreenAssertion: >-
+          Um diálogo de confirmação avisa sobre perda de dados; ao cancelar,
+          nada é apagado e o app permanece nos Ajustes.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 13 — MONITORAMENTO PASSIVO (notificações de degradação)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[13.1] Monitoramento — notificação de degradação"
+    id: monitoramento-degradacao
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: >-
+          Com o monitoramento passivo ativo, simular degradação sustentada da
+          conexão e aguardar o worker de monitoramento avaliar
+        hint: >-
+          Requer monitoramento ativado nos Ajustes. A histerese evita alertas
+          por oscilações curtas — a degradação precisa se manter.
+        finalScreenAssertion: >-
+          Uma notificação de degradação é emitida em PT-BR explicando o problema
+          de forma humanizada. Não há notificações repetidas para a mesma
+          condição (respeita a histerese).
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # BLOCO 14 — PRIVACIDADE / MASCARAMENTO E LINGUAGEM
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: "[14.1] Privacidade — IP local mascarado"
+    id: privacidade-ip
+    prerequisiteTestCaseId: onboarding-completo
+    steps:
+      - goal: Localizar o IP local exibido (Home, Sinal ou detalhe de gateway)
+        finalScreenAssertion: >-
+          O IP local está parcialmente mascarado (último octeto oculto,
+          ex.: 192.168.1.***).
+
+  - displayName: "[14.2] Linguagem — PT-BR em todas as telas"
+    id: linguagem-ptbr
+    prerequisiteTestCaseId: navegacao-abas
+    steps:
+      - goal: >-
+          Percorrer Início, Velocidade, Sinal, Histórico e Ajustes verificando
+          títulos, botões e descrições
+        finalScreenAssertion: >-
+          Todos os textos estão em PT-BR ("você"), sentence case em títulos,
+          sem emoji, sem inglês não traduzido e sem termos de PT-PT
+          ("utilizador", "ecrã"). Métricas cruas acompanhadas de veredito humano.

@@ -1,7 +1,7 @@
 # Storage — Android SignallQ
 
-**Última atualização:** 2026-05-17
-**Fonte:** código real (Marcelo, 2026-05-17)
+**Última atualização:** 2026-06-21 (v0.16.0)
+**Fonte:** código real
 
 O app usa dois mecanismos de persistência: **Room** (banco SQLite) e **DataStore** (preferências chave-valor).
 
@@ -10,8 +10,9 @@ O app usa dois mecanismos de persistência: **Room** (banco SQLite) e **DataStor
 ## 1. Room — Banco SQLite
 
 **Módulo:** `:coreDatabase`
-**Banco:** `LinkaDatabase`
+**Banco:** `SignallQDatabase` — versão 10
 **Fábrica:** `CoreDatabaseModulo.criarBanco(context)`
+**Migrações:** v1 → v10. A v10 adicionou as tabelas `chat_sessions` e `chat_messages`.
 
 ### 1.1 Tabela: `medicao` (MedicaoEntity)
 
@@ -54,6 +55,30 @@ Armazena apelidos definidos pelo usuário para dispositivos da rede.
 
 **Comportamento de `apelido = null`:** MAC registrado sem apelido. Suprime a notificação de "novo dispositivo" para esse MAC — o usuário já o conhece e optou por não dar nome.
 
+### 1.3 Tabela: `chat_sessions` (ChatSessionEntity)
+
+Armazena sessões do Chat IA (Diagnóstico IA com LLM). Adicionada na migration v10.
+
+| Campo | Tipo Kotlin | Nullable | Descrição |
+|---|---|---|---|
+| `id` | String | Não (PK) | UUID único da sessão |
+| `timestampCriacaoMs` | Long | Não | Timestamp de criação em epoch ms |
+| `contextoResumido` | String? | Sim | Contexto serializado do diagnóstico que originou a sessão |
+
+### 1.4 Tabela: `chat_messages` (ChatMessageEntity)
+
+Armazena mensagens individuais de cada sessão de chat. Adicionada na migration v10.
+
+| Campo | Tipo Kotlin | Nullable | Descrição |
+|---|---|---|---|
+| `id` | String | Não (PK) | UUID único da mensagem |
+| `sessaoId` | String | Não (FK → `chat_sessions.id`) | Sessão à qual a mensagem pertence |
+| `role` | String | Não | `"user"` ou `"assistant"` |
+| `conteudo` | String | Não | Texto da mensagem |
+| `timestampMs` | Long | Não | Timestamp da mensagem em epoch ms |
+
+**DAO:** `ChatSessionDao` — exposto por `SignallQDatabase.chatSessionDao()`.
+
 ---
 
 ## 2. DataStore — Preferências
@@ -81,6 +106,12 @@ Armazena apelidos definidos pelo usuário para dispositivos da rede.
 
 > As chaves `alerta_*` são usadas pela lógica de histerese do `MonitoramentoWorker`. As chaves `notificacao_*` são configuradas pelo usuário em Ajustes.
 
+### 2.1.1 Chaves Boolean adicionadas em AJ-B
+
+| Chave | Padrão | Descrição |
+|---|---|---|
+| `ispConfirmado` | false | Se o usuário já confirmou ou dispensou o banner de ISP detectado |
+
 ### 2.2 Chaves String
 
 | Chave | Padrão | Descrição |
@@ -91,9 +122,14 @@ Armazena apelidos definidos pelo usuário para dispositivos da rede.
 | `temaSelecionado` | `"sistema"` | Tema: `"sistema"`, `"claro"` ou `"escuro"` |
 | `nomeUsuario` | — | Nome do perfil do usuário |
 | `fotoUriUsuario` | — | URI da foto de perfil (content URI do storage Android) |
-| `operadora` | — | Nome da operadora do usuário |
-| `planoInternet` | — | Plano contratado (ex.: "100 Mbps") — usado para cálculo ANATEL |
-| `regiao` | — | Região do usuário |
+| `operadora` | — | Nome da operadora do usuário (ISP/provedor fixo) |
+| `operadoraMovel` | — | Operadora de dados móveis (adicionada em AJ-B) |
+| `planoInternet` | — | Plano contratado — apenas dígitos, máx 4 chars, ex.: `"300"`, `"1000"` (reformatado em AJ-D) |
+| `estadoUf` | — | UF do estado — sigla de 2 letras, ex.: `"SP"` (substituiu `regiao` em AJ-C) |
+| `cidadeNome` | — | Nome do município — fonte IBGE API (adicionada em AJ-C) |
+| `ultimaVersaoVista` | — | Versão do changelog mais recente vista pelo usuário, ex.: `"0.7.0"` (adicionada em AJ-F) |
+
+> `regiao` (String livre) foi substituída pelas chaves estruturadas `estadoUf` + `cidadeNome` no bloco AJ-C. Valores legados de `regiao` não são migrados automaticamente.
 
 ### 2.3 Chaves Int
 

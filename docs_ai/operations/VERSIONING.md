@@ -9,8 +9,8 @@ gradle/libs.versions.toml
 Campos:
 
 ```toml
-versionName = "0.9.1"
-versionCode = "26"
+versionName = "0.16.0"
+versionCode = "46"
 ```
 
 `app/build.gradle.kts` consome esses valores no `defaultConfig`.
@@ -38,7 +38,7 @@ versionCode = "26"
 Atual:
 
 ```text
-0.9.1+26
+0.16.0+46
 ```
 
 Patch:
@@ -50,5 +50,5 @@ Patch:
 Resultado:
 
 ```text
-0.9.2+27
+0.16.1+47
 ```

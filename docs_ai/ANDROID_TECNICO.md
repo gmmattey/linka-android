@@ -2,11 +2,11 @@
 
 **Público-alvo:** Desenvolvedor humano e agentes de IA
 **Plataforma:** Android exclusivo — Kotlin, Jetpack Compose, Material Design 3
-**Última atualização:** 2026-05-30 (v0.15.0 — rebranding SignallQ, Hilt DI, Chat IA com streaming, redesign Diagnóstico IA, 5G NSA, compileSdk 36, minSdk 24)
+**Última atualização:** 2026-06-21 (v0.16.0 — versionCode 46)
 **Mantido por:** Taisa
 
-> Este documento descreve a arquitetura interna, módulos, camadas de dados, engines de diagnóstico e contratos do app Android SignallQ (anteriormente SignallQ).
-> Fonte de verdade: dados coletados do código real (Marcelo, 2026-05-17).
+> Este documento descreve a arquitetura interna, módulos, camadas de dados, engines de diagnóstico e contratos do app Android SignallQ.
+> Fonte de verdade: dados coletados do código real.
 > Para funcionalidades da perspectiva do usuário, consulte `ANDROID_FUNCIONAL.md`.
 
 ---
@@ -35,9 +35,9 @@
 
 **Plugins do módulo `:app`:** `com.android.application 8.11.1`, `kotlin.android 2.2.20`, `kotlin.plugin.compose 2.2.20`, `hilt 2.56.2`, `detekt 1.23.7`, `ktlint 12.1.1`, `firebase-crashlytics`
 
-**Injeção de dependência:** Hilt 2.56.2 (migrado de DI manual). Anteriormente cada módulo expunha um objeto `*Modulo.kt` com funções fábrica estáticas — esse padrão foi substituído por Hilt modules.
+**Injeção de dependência:** Hilt 2.56.2. DI via `di/AppModule.kt` (`@Module @InstallIn(SingletonComponent::class)`). Os módulos ainda expõem objetos `*Modulo.kt` com fábricas estáticas usadas internamente pelo Hilt module para criar instâncias.
 
-> **Nota de rebranding:** O app foi renomeado de SignallQ para SignallQ na v0.15.0. Package name: `io.veloo.app`. App ID Firebase: `io.veloo.app`. Documentação anterior pode referenciar "SignallQ" — tratar como equivalente.
+> **Nota de rebranding (v0.15.0):** O app foi renomeado de Linka para SignallQ na v0.15.0. Package name e applicationId: `io.veloo.app` (mantido como identificador técnico). Símbolos renomeados: `VelooApplication` → `SignallQApplication`, `VelooTheme` → `SignallQTheme`, `VelooDatabase` → `SignallQDatabase`, `VelooNotificationHelper` → `SignallQNotificationHelper`, `OrbitOrchestrator` → `SignallQOrchestrator`, `VelooPulse*` → `SignallQPulse*`. DataStore `linkaPreferencias` mantido como nome técnico do arquivo.
 
 ---
 
@@ -49,7 +49,7 @@ Declarados em `settings.gradle.kts`. O número correto é **15** — o CLAUDE.md
 |---|---|---|---|---|---|
 | `:app` | io.veloo.app.kotlin | app | android-application, kotlin-android, kotlin.plugin.compose, kapt | todos os core* e feature*, compose, lifecycle, material3 | Entry point, MainActivity, MainViewModel, AppShell, telas, orchestrators, componentes UI globais |
 | `:coreNetwork` | io.veloo.app.kotlin.core.network | core | android-library, kotlin-android | androidx.core.ktx, kotlinx.coroutines | Monitor de conectividade (ConnectivityManager.NetworkCallback), SnapshotRede, WifiLinkSnapshot, medição de RTT do gateway |
-| `:coreDatabase` | io.veloo.app.kotlin.core.database | core | android-library, kotlin-android, kapt | androidx.room.runtime, androidx.room.ktx | Persistência SQLite via Room — LinkaDatabase, DAOs, entidades |
+| `:coreDatabase` | io.veloo.app.kotlin.core.database | core | android-library, kotlin-android, kapt | androidx.room.runtime, androidx.room.ktx | Persistência SQLite via Room — `SignallQDatabase` v10, DAOs, entidades |
 | `:coreDatastore` | io.veloo.app.kotlin.core.datastore | core | android-library, kotlin-android | androidx.datastore.preferences, kotlinx.coroutines | Preferências do usuário via DataStore — PreferenciasAppRepository |
 | `:corePermissions` | io.veloo.app.kotlin.core.permissions | core | android-library, kotlin-android | — | Gerenciamento de permissões de rede em runtime |
 | `:coreTelephony` | io.veloo.app.kotlin.core.telephony | core | android-library, kotlin-android | — | Monitoramento de rede móvel via TelephonyManager — MovelSnapshot |
@@ -72,34 +72,34 @@ Declarados em `settings.gradle.kts`. O número correto é **15** — o CLAUDE.md
 ```
 UI (Composables — telas e componentes)
     ↑ StateFlow.collectAsStateWithLifecycle()
-MainViewModel (AndroidViewModel — único ViewModel raiz)
-    ↑ lazy singletons instanciados manualmente
+MainViewModel (@HiltViewModel — único ViewModel raiz)
+    ↑ dependências injetadas via Hilt (AppModule)
 Serviços / Repositórios / Engines / Use Cases
     ↑ Room / DataStore / APIs Android / OkHttp
 ```
 
 **Fluxo unidirecional de dados:** evento da UI → função no ViewModel → atualiza StateFlow → recomposição da UI.
 
-**Injeção:** cada serviço é instanciado como `lazy` dentro do `MainViewModel`. Não há Hilt nem Koin.
+**Injeção:** Hilt (`@HiltViewModel`) — dependências providas pelo `AppModule` (`di/AppModule.kt`). Os módulos `*Modulo.kt` ainda existem como fábricas estáticas usadas internamente pelo `AppModule`.
 
 ### 3.2 Entry Points
 
 | Arquivo | Papel |
 |---|---|
-| `LinkaApplication.kt` | Application — inicialização do app |
-| `MainActivity.kt` | Activity única — `setContent { LinkaTheme { AppShell(...) } }` |
-| `MainViewModel.kt` | ViewModel raiz — instancia todos os serviços como lazy singletons |
+| `SignallQApplication.kt` | Application — inicialização do app |
+| `MainActivity.kt` | Activity única — `setContent { SignallQTheme { AppShell(...) } }` |
+| `MainViewModel.kt` | ViewModel raiz — recebe dependências via Hilt |
 | `AppShell.kt` | Shell do app — NavigationBar de 5 abas, fluxos secundários sobrepostos |
-| `LinkaTheme.kt` | Tema MD3 com ColorScheme customizado |
+| `SignallQTheme.kt` | Tema MD3 com ColorScheme customizado |
 
-### 3.3 MainViewModel — Lazy Singletons
+### 3.3 MainViewModel — Dependências Injetadas via Hilt
 
-Instâncias criadas sob demanda (lazy) dentro do MainViewModel:
+O `MainViewModel` é anotado com `@HiltViewModel`. Dependências fornecidas pelo `AppModule` (`di/AppModule.kt`):
 
-| Singleton | Tipo | Observação |
+| Dependência | Tipo | Observação |
 |---|---|---|
-| `bancoDados` | LinkaDatabase | Room database |
-| `preferenciasAppRepository` | PreferenciasAppRepository | DataStore |
+| `bancoDados` | SignallQDatabase | Room database v10 |
+| `preferenciasAppRepository` | PreferenciasAppRepository | DataStore `linkaPreferencias` |
 | `monitorRede` | MonitorRede | ConnectivityManager.NetworkCallback |
 | `gerenciadorPermissoes` | GerenciadorPermissoesRede | Permissões de rede |
 | `scannerDispositivos` | ScannerDispositivos | ARP + mDNS |
@@ -108,8 +108,8 @@ Instâncias criadas sob demanda (lazy) dentro do MainViewModel:
 | `scannerRedesWifi` | ScannerRedesWifi | Scan de Wi-Fi |
 | `diagnosticOrchestrator` | DiagnosticOrchestrator | Engines de diagnóstico |
 | `executorFibra` | ExecutorFibra | Leitura GPON |
-| `monitorTelephony` | — | Só ativa em móvel + permissão concedida |
-| `orbitOrchestrator` | OrbitOrchestrator | Fluxo SignallQ/Chat |
+| `monitorTelephony` | MonitorTelephony | Só ativa em móvel + permissão concedida |
+| `signallQOrchestrator` | SignallQOrchestrator | Fluxo SignallQ/Chat |
 
 ### 3.4 MainViewModel — StateFlows expostos à UI
 
@@ -123,10 +123,10 @@ Instâncias criadas sob demanda (lazy) dentro do MainViewModel:
 | `snapshotFibra` | SnapshotFibra | Estado da leitura do modem |
 | `snapshotDiagnostico` | — | Estado do diagnóstico |
 | `movelSnapshot` | MovelSnapshot | Dados de sinal móvel |
-| `orbitUiStateFlow` | OrbitUiState | Estado da sessão SignallQ |
+| `orbitUiStateFlow` | SignallQSnapshot | Estado da sessão SignallQ (tipo real: SignallQSnapshot) |
 | `apelidos` | Map<String, String?> | Apelidos de dispositivos por MAC |
 | `onboardingConcluido` | Boolean | Se onboarding foi completado |
-| `gemmaAvailable` | Boolean | Se Gemma local está disponível |
+| `gemmaAvailable` | Boolean | Flag legada — mantida por compatibilidade; Gemma local não é o modelo padrão atual |
 | `resumoHistorico` | ResumoHistorico | Resumo agregado do histórico |
 | `localIp` | String? | IP local do dispositivo |
 | `publicIp` | String? | IP público |
@@ -151,7 +151,7 @@ Instâncias criadas sob demanda (lazy) dentro do MainViewModel:
 | `iniciarDiagnostico()` | Executa diagnóstico local |
 | `iniciarMonitorTelefoniaSeMovel()` | Ativa monitor de telefonia (condicional) |
 | `atualizarMonitoramento(ativo)` | Liga/desliga monitoramento passivo |
-| `verificarDisponibilidadeGemma()` | Verifica se Gemma local está disponível |
+| `verificarDisponibilidadeGemma()` | Flag legada — mantida por compatibilidade de contrato |
 | `marcarOnboardingConcluido()` | Marca onboarding como concluído no DataStore |
 | `confirmarIspDetectado(operadora: String)` | Salva o ISP detectado como `operadora` e define `ispConfirmado = true` no DataStore (AJ-B) |
 | `dispensarBannerIsp()` | Define `ispConfirmado = true` sem salvar operadora — o banner some sem persistir o ISP detectado (AJ-B) |
@@ -162,7 +162,11 @@ Instâncias criadas sob demanda (lazy) dentro do MainViewModel:
 
 ## 4. Room — Persistência Local
 
-**Banco:** `LinkaDatabase` — módulo `:coreDatabase`
+**Banco:** `SignallQDatabase` v10 — módulo `:coreDatabase`
+
+**Entidades:** `MedicaoEntity`, `ApelidoDispositivoEntity`, `ChatSessionEntity`, `ChatMessageEntity`
+**DAOs:** `MedicaoDao`, `ApelidoDispositivoDao`, `ChatSessionDao`
+**Migrações:** v1 → v10 (v10 adicionou tabelas `chat_sessions` e `chat_messages`)
 
 ### 4.1 MedicaoEntity (tabela: `medicao`)
 
@@ -410,22 +414,31 @@ Todos residem em `:app/ui/component/`.
 |---|---|
 | `GaugeCircular` | Gauge circular animado (speedtest) |
 | `MiniGrafico` | Gráfico sparkline ao vivo |
-| `OrbitAiMessageBubble` | Bolha de resposta da IA em markdown |
-| `OrbitUserMessageBubble` | Bolha de mensagem do usuário |
-| `OrbitThinkingBubble` | Animação "pensando..." |
-| `OrbitInlineQuestion` | Pergunta inline com chips de resposta |
-| `OrbitInputArea` | Campo de texto + botão de envio |
-| `OrbitActionsCard` | Card de ações do SignallQ |
-| `LinkaIaHeader` | Cabeçalho da sessão de IA |
-| `LinkaPulseIcon` | Ícone do LinkaPulse |
-| `LinkaPulseSymbol` | Símbolo animado do LinkaPulse |
+| `SignallQAiMessageBubble` | Bolha de resposta da IA em markdown |
+| `SignallQUserMessageBubble` | Bolha de mensagem do usuário |
+| `SignallQThinkingBubble` | Animação "pensando..." |
+| `SignallQInlineQuestion` | Pergunta inline com chips de resposta |
+| `SignallQInputArea` | Campo de texto + botão de envio |
+| `SignallQActionsCard` | Card de ações do SignallQ |
+| `SignallQIaHeader` | Cabeçalho da sessão de IA |
+| `SignallQPulseIcon` | Ícone do SignallQ |
+| `SignallQSymbol` | Símbolo animado do SignallQ |
+| `SignallQSymbolSmall` | Versão pequena do símbolo animado |
 | `AiModelFooter` | Footer com informação do modelo IA |
 | `ConfirmacaoDialog` | Dialog de confirmação genérico |
 | `ProfileAvatarButton` | Avatar do usuário no navigationIcon de todas as abas root. Exibe foto ou inicial com gradiente. Ao tocar, abre `PerfilEditSheet` |
 | `WifiChannelGuide` | Visualização de congestionamento de canais Wi-Fi |
 | `AppBorderGlowEffect` | Efeito de borda glow |
 | `OperadoraContactCard` | Card de contato da operadora (SAC + WhatsApp + fallback Anatel). Exibido quando `categoria == "isp"` no resultado do diagnóstico |
-| `ResultadoBitmapGenerator` | Suspend function que gera bitmap 1080×600px via Canvas Android com métricas do resultado e headline do diagnóstico |
+| `LLMAssistantMessage` | Bolha de mensagem do assistente no LLMChatScreen |
+| `DiagVerdictHeroCard` | Card hero com veredito principal do diagnóstico |
+| `DiagMetricsGrid` | Grid de métricas do diagnóstico |
+| `DiagImpactCard` | Card de impacto do diagnóstico |
+| `DiagRecommendationCard` | Card de recomendação do diagnóstico |
+| `DiagActionFooter` | Footer com ações do diagnóstico (tirar dúvidas, refazer, operadora) |
+| `SignallQTechnicalResultBubble` | Bolha com resultado técnico estruturado |
+| `SignallQWelcomeState` | Estado de boas-vindas do SignallQ |
+| `StatefulScreen` | Composable genérico Loading/Success/Empty/Error |
 
 ---
 
@@ -497,9 +510,9 @@ Controle granular de features via flags booleanas em compiletime — definidas e
 
 > `FEATURE_DIAGNOSTICO_CHAT` controla o Chat IA completo (tela `LLMChatScreen` com streaming, thinking tokens, operadoras com logo, follow-up reutilizando contexto). **Inativo em release.** `FEATURE_DIAGNOSTICO_IA` (diagnóstico IA com laudo e timeout visual) é flag independente e **ativa em release**.
 
-> [VERIFICAR] Estado exato das flags em v0.15.0 — o rebranding pode ter alterado nomes ou adicionado novas flags. Confirmar lendo `FeatureFlags.kt` atual.
+**Acesso:** use sempre `FeatureFlags.*` (objeto em `app/src/main/kotlin/io/veloo/app/kotlin/FeatureFlags.kt`), nunca `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente nas telas.
 
-**Acesso:** use sempre `FeatureFlags.*` (objeto em `app/src/main/kotlin/io/signallq/app/kotlin/FeatureFlags.kt`), nunca `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente nas telas.
+> Flags verificadas no código real (v0.16.0). O objeto `FeatureFlags` agrupa as flags por sprint de entrega: MVP, Sprint 1–6. Flags MVP ativas em debug e release; demais ativas apenas em debug. A flag `FEATURE_DIAGNOSTICO_CHAT` controla o chat LLM completo (inativo em release); `FEATURE_DIAGNOSTICO_IA` controla o laudo de diagnóstico IA (ativo em release). As flags `FIBRA_SCREEN` e `DNS_SCREEN` ficam no Sprint 3 (inativas em release).
 
 **Ativação em release:** alterar valor em bloco `release`, incrementar versão, rebuild e testar. Ver `RELEASE.md` para procedimento completo.
 
@@ -683,9 +696,23 @@ Timeout visual com mensagem "Conectando…" + UI de retry. `setTimeout` cleanup 
 
 `LLMChatScreen` respeita barra de status e insets do sistema. TopBar Material 3 com Scaffold e insets corretos. Seção "thinking" renderizada como expandível com animação.
 
-### 15.10 Rebranding SignallQ → SignallQ (v0.15.0)
+### 15.10 Rebranding Linka/Veloo → SignallQ (v0.15.0)
 
-Renomeação de identidade visual, package name e configurações Firebase. App ID: `io.veloo.app`. versionName `0.15.0`, versionCode `44`. Tela de novidades v0.15.0 adicionada.
+Renomeação de identidade visual e símbolos principais. App ID e package name: `io.veloo.app` (mantidos como identificadores técnicos). versionName `0.15.0`, versionCode `44`. Tela de novidades v0.15.0 adicionada.
 
-> [VERIFICAR] Quais componentes e strings internas foram renomeados de SignallQ para SignallQ na v0.15.0 — confirmar escopo real do rebranding no código (package name, strings, resources).
+**Símbolos renomeados (confirmados no código):**
+- `VelooApplication` → `SignallQApplication` (`SignallQApplication.kt`)
+- `VelooTheme` / `LinkaTheme` → `SignallQTheme` (`SignallQTheme.kt`)
+- `VelooDatabase` / `LinkaDatabase` → `SignallQDatabase` (`SignallQDatabase.kt`)
+- `VelooNotificationHelper` / `LinkaNotificationHelper` → `SignallQNotificationHelper`
+- `OrbitOrchestrator` → `SignallQOrchestrator` (`SignallQOrchestrator.kt`)
+- `VelooPulseState` / `PulseState` → `SignallQState` (typealias `PulseState` mantido como `@Deprecated`)
+- `VelooPulseSnapshot` → `SignallQSnapshot`
+- Persona da IA: "SignallQ"
+
+DataStore `linkaPreferencias` e worker URL `linka-ai-diagnosis-worker` mantidos como nomes técnicos de infraestrutura (não renomeados).
+
+### 15.11 v0.16.0
+
+versionName `0.16.0`, versionCode `46`.
 

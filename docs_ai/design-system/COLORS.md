@@ -1,7 +1,8 @@
 # Tokens de Cores — SignallQ
 
-**Fonte:** `LinkaTheme.kt` (LkColors) | `src/tokens.css` (PWA)  
-**Escopo:** Android v0.6.3 | PWA v1.0.0
+**Fonte:** `SignallQTheme.kt` (LkColors) | `src/tokens.css` (PWA)  
+**Escopo:** Android v0.16.0 | PWA (referência cross-platform)  
+**Última atualização:** 2026-06-21
 
 ---
 
@@ -62,23 +63,25 @@
 
 ---
 
-## SignallQ (Sempre Escuro)
+## Superfícies SignallQ IA (Sempre Escuro)
 
-Componentes IA mantêm sempre paleta escura independente do tema do app.
+Componentes IA (`SignallQ*`) mantêm sempre paleta escura independente do tema do app. Tokens definidos em `SignallQTheme.kt`.
 
 | Token | Valor | Uso |
 |---|---|---|
-| `linkaBlack` | `#0D0D1A` | Background do SignallQ |
+| `linkaBlack` | `#0D0D1A` | Background principal da superfície SignallQ |
 | `linkaDarkSurface` | `#1A0B2E` | Superfícies secundárias dentro do SignallQ |
-| `linkaDarkCard` | `#1E1130` | Cards de bolhas de IA |
-| `linkaTextOnDark` | `#F3F4F6` | Texto primário (high contrast) |
-| `linkaTextSecondaryOnDark` | `#9CA3AF` | Texto secundário |
+| `linkaDarkCard` | `#1E1130` | Cards de bolhas de IA (`SignallQAiMessageBubble`) |
+| `linkaTextOnDark` | `#F3F4F6` | Texto primário sobre escuro (high contrast) |
+| `linkaTextSecondaryOnDark` | `#9CA3AF` | Texto secundário sobre escuro |
+
+> Estes tokens permanecem fixos. `SignallQScreen`, `LLMChatScreen` e todos os componentes `SignallQ*` usam esta paleta independente de o usuário ter tema claro ou escuro no sistema.
 
 ---
 
 ## Notas
 
-- **SignallQ não adapta:** IA mantém aparência escura mesmo em tema claro do sistema.
-- **Phase colors:** Mostram progresso visual durante o speedtest. Exibem nos indicadores de fase e na animação do gauge.
+- **SignallQ IA não adapta ao tema:** mantém aparência escura mesmo em tema claro do sistema.
+- **Phase colors:** Mostram progresso visual durante o speedtest nos indicadores de fase e na animação do `GaugeCircular`.
 - **Acessibilidade:** Todas as combinações de texto+fundo atendem WCAG AA.
-- **Material Design 3:** Tokens primário, secundário e terciário estão mapeados para `accent`, `accentBlue` e superfícies.
+- **Material Design 3:** Tokens primário, secundário e terciário estão mapeados para `accent`, `accentBlue` e superfícies via `SignallQTheme.kt` (era `LinkaTheme.kt`).

@@ -32,3 +32,29 @@ Worker Cloudflare: quando houver mudanças em `integrations/cloudflare/ai-diagno
 
 ## Context
 
+> Resumo factual do projeto (fonte de verdade = código). Atualizado em 2026-06-21 (v0.16.0).
+
+**Identidade**
+- App: **SignallQ** (`app_name`). Marca anterior: Linka → Veloo → **SignallQ** (rebrand em 0.16.0).
+- Package/applicationId/namespace: **`io.veloo.app`** — identificador técnico, **NÃO renomear** (mexer quebra Firebase/assinatura). O "veloo" aqui é técnico, não marca.
+- Versão atual: **0.16.0** (versionCode 46), em `gradle/libs.versions.toml`. minSdk 24, target/compileSdk 36, JVM 17.
+
+**Arquitetura**
+- **15 módulos Gradle**: `app` + core(5): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
+- DI: **Hilt** (`app/.../di/AppModule.kt`). MVVM + Jetpack Compose; ViewModels `MainViewModel` e `ChatDiagnosticoIaViewModel`; estado via `StateFlow`.
+- Persistência: **Room** `SignallQDatabase` (v10; entidades Medicao, ApelidoDispositivo, ChatSession, ChatMessage) + **DataStore** `linkaPreferencias` (nome técnico — manter).
+- Navegação: `AppShell.kt` — bottom bar de **5 abas** (índice 0–4): **Início, Velocidade, Sinal, Histórico, Ajustes**. Diagnóstico/IA, Dispositivos, Fibra, Laudo etc. são **overlays** (`overlayStack`), não abas. `navigation/AppNavGraph.kt` tem constantes legadas que NÃO refletem a nav atual.
+- Background: WorkManager `MonitoramentoWorker` (30 min, histerese) + `SignallQNotificationHelper`.
+
+**IA de diagnóstico**
+- App → **worker Cloudflare** (`integrations/cloudflare/ai-diagnosis-worker/`), endpoint `linka-ai-diagnosis-worker...workers.dev` (nome do worker = infra, manter).
+- Modelo padrão: **Qwen3 30B MoE FP8** (`@cf/qwen/qwen3-30b-a3b-fp8`). Fallback local sem IA (`AiFallbackFactory`). Persona = "SignallQ". Chat/Pulse via `SignallQOrchestrator`.
+
+**Testes**
+- ~37 classes de teste unitário (JUnit4 + Robolectric + coroutines-test + room-testing) em `*/src/test/`; 3 `androidTest` de Room/DAO/migração. Sem androidTest de UI. Rodar: `./gradlew test`. Plano em `tests/`.
+
+**Documentação**
+- Doc viva para agentes em `docs_ai/` (subpastas `ai/`, `design-system/`, `functional/`, `operations/`, `technical/`). Material histórico/obsoleto em `docs/_archive/` e `docs_ai/_archive/` — não usar como verdade atual. Índice: `docs_ai/README.md`.
+
+**Identificadores técnicos a preservar** (parecem marca, mas são técnicos): package `io.veloo.app`, repo GitHub `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`, skill/comando `linka-design` / `/linka*`, banco `linkaKotlin.db`, canais `linka_*`, DataStore `linkaPreferencias`.
+

@@ -5,14 +5,17 @@ Esta e a regra oficial para gerar APKs do SignallQ Android.
 ## Pasta oficial
 
 ```text
-C:\Projetos\SignallQ Android\builds\apk\<buildType>\<versionName>\
+<raiz-do-projeto>\builds\apk\<buildType>\<versionName>\
 ```
+
+> A pasta local do repo é `C:\Projetos\Linka Android` (nome de diretório histórico;
+> o produto é **SignallQ**).
 
 Exemplos:
 
 ```text
-C:\Projetos\SignallQ Android\builds\apk\debug\0.9.1\
-C:\Projetos\SignallQ Android\builds\apk\release\0.9.1\
+C:\Projetos\Linka Android\builds\apk\debug\0.16.0\
+C:\Projetos\Linka Android\builds\apk\release\0.16.0\
 ```
 
 ## Nome oficial
@@ -24,7 +27,7 @@ signallq-android-v<versionName>+<versionCode>-<buildType>-<yyyyMMdd-HHmmss>.apk
 Exemplo:
 
 ```text
-signallq-android-v0.9.1+26-release-20260523-112233.apk
+signallq-android-v0.16.0+46-release-20260621-112233.apk
 ```
 
 ## Comandos oficiais

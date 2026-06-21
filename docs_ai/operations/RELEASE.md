@@ -4,6 +4,29 @@
 
 This document outlines the process for releasing new versions of the SignallQ Android Kotlin application, covering the steps from build to deployment.
 
+> Versao atual: **0.16.0** (versionCode 46). Identificadores tecnicos de infra
+> permanecem: package `io.veloo.app`, repo `gmmattey/linka-android`, worker
+> `linka-ai-diagnosis-worker`.
+
+## Processo Canônico do Projeto (Firebase App Distribution)
+
+Este é o fluxo **obrigatório** quando o pedido é subir/deploy/publicar no Firebase.
+NUNCA pule etapas. NUNCA rode `assembleRelease` sem `clean` + `--no-build-cache`
+(o cache do Gradle já causou builds desatualizados no Firebase).
+
+1. **Commit** — stage de todos os arquivos modificados e commit com mensagem descritiva.
+2. **Push** — `git push origin main` para sincronizar o GitHub.
+3. **Clean build** — `./gradlew clean assembleRelease --no-build-cache` (sem cache em release).
+4. **Upload** — `./gradlew appDistributionUploadRelease`.
+
+**Worker Cloudflare:** quando houver mudanças em
+`integrations/cloudflare/ai-diagnosis-worker/src/`, rodar `npx wrangler deploy`
+**ANTES** do commit.
+
+> O fluxo de Play Store descrito em `operations/DEPLOY.md` permanece válido para
+> publicação em loja, mas o canal primário de distribuição interna é o Firebase
+> App Distribution, conforme os passos acima.
+
 ## Release Stages
 
 The release process generally follows these stages:
@@ -57,23 +80,24 @@ Quando uma feature flag pós-MVP deve ser ativada no release:
 
 2. **Incrementar versão em libs.versions.toml**
    - Arquivo: `gradle/libs.versions.toml`
-   - Campo: `app.version.name` — seguir semver (ex: v0.7.0 → v0.7.1)
-   - Campo: `app.version.code` — incrementar de 1 em 1
+   - Campo: `versionName` — seguir semver (ex: 0.16.0 → 0.16.1)
+   - Campo: `versionCode` — incrementar de 1 em 1 (ex: 46 → 47)
 
 3. **Atualizar CHANGELOG**
    - Arquivo: `CHANGELOG.md`
    - Adicionar entrada em **Unreleased** ou na versão correspondente
    - Descrever o que a feature faz do ponto de vista do usuário
 
-4. **Build Release APK**
-   - Executar script `scripts/release-build.ps1` ou comando gradle equivalente
+4. **Build Release APK (clean, sem cache)**
+   - `./gradlew clean assembleRelease --no-build-cache`
    - Assinar com chave de release (configurada em `key.properties`)
-   - Gerar APK com `.\scripts\build-apk-release.ps1`
+   - Para artefato arquivado/nomeado, use `.\scripts\build-apk-release.ps1`
    - Conferir APK em `builds/apk/release/<versionName>/`
 
-5. **Deploy ao Play Store**
-   - Usar internal testing → beta → production conforme política
-   - Ativar gradualmente (staged rollout) para monitorar crashes
+5. **Distribuir (Firebase App Distribution)**
+   - `./gradlew appDistributionUploadRelease`
+   - Para publicação em loja, seguir o fluxo Play Store em `operations/DEPLOY.md`
+     (internal testing → beta → production com staged rollout)
 
 6. **Atualizar documentação pública** (se necessário)
    - Release notes

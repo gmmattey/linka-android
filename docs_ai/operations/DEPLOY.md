@@ -4,9 +4,27 @@
 
 This document outlines the deployment process for the SignallQ Android Kotlin application, detailing how new versions are released to end-users.
 
+> Versao atual: **0.16.0** (versionCode 46). Identificadores tecnicos de infra
+> permanecem: package `io.veloo.app`, repo `gmmattey/linka-android`, worker
+> `linka-ai-diagnosis-worker`.
+
 ## Deployment Target
 
-The primary deployment target for Android applications is typically the **Google Play Store**.
+O canal **primário** de distribuição é o **Firebase App Distribution** (builds
+internos). O **Google Play Store** é o alvo para publicação pública em loja.
+
+## Processo Canônico (Firebase) — ordem obrigatória
+
+NUNCA pular etapas. NUNCA rodar `assembleRelease` sem `clean` + `--no-build-cache`.
+
+1. **Commit** — stage e commit de todos os arquivos modificados.
+2. **Push** — `git push origin main`.
+3. **Clean build** — `./gradlew clean assembleRelease --no-build-cache`.
+4. **Upload** — `./gradlew appDistributionUploadRelease`.
+
+**Worker Cloudflare:** se houver mudanças em
+`integrations/cloudflare/ai-diagnosis-worker/src/`, rodar `npx wrangler deploy`
+**ANTES** do commit.
 
 ## Deployment Steps
 
@@ -42,7 +60,7 @@ The deployment process involves several key steps:
 ## Backend Service Deployment
 
 -   Concurrent deployment of backend services is often necessary, especially for features relying on updated APIs or AI models.
--   The `cloudflare/ai-diagnosis-worker` would have its own deployment process, managed via Cloudflare tools (e.g., Wrangler CLI), coordinated with mobile app releases to ensure compatibility.
+-   The worker em `integrations/cloudflare/ai-diagnosis-worker/` (Cloudflare `linka-ai-diagnosis-worker`, modelo padrão **Qwen3 30B** com fallback local) tem seu próprio deploy via `npx wrangler deploy`, executado ANTES do commit quando há mudanças em `src/`.
 
 ## Key Files/Configuration
 

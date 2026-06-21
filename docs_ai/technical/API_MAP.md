@@ -1,42 +1,103 @@
-# APIs
+# APIs — Android SignallQ
 
-## Internal Module APIs
+**Última atualização:** 2026-06-21 (v0.16.0)
+**Fonte:** código real
 
-- **`coreDatabase`**: DAOs for database access
-  - `MedicaoDao.kt` - measurements CRUD
-  - `ApelidoDispositivoDao.kt` - device nicknames CRUD
-  - `LinkaDatabase.kt` - DB schema
+---
 
-- **`coreNetwork`**: Network monitoring
-  - `MonitorRede.kt` - interface for monitoring
-  - `MonitorRedeAndroid.kt` - Android implementation
-  - Models: `EstadoConexao.kt`, `SnapshotRede.kt`
+## 1. APIs Internas (módulo)
 
-- **`coreDatastore`**: Key-value storage (needs validation)
+### coreDatabase — DAOs
 
-## External Services
+| DAO | Interface | Operações principais |
+|---|---|---|
+| `MedicaoDao` | `coreDatabase` | insert, getAll, getRecentes, deleteAll |
+| `ApelidoDispositivoDao` | `coreDatabase` | insert, getByMac, getAll |
+| `ChatSessionDao` | `coreDatabase` | insert session, insert message, getSessoesPorData, getMensagensDaSessao |
 
-- **Cloudflare AI Worker**: `cloudflare/ai-diagnosis-worker/`
-  - Diagnostic data processing and AI analysis
-  
-- **Speed Test Services**: Via `featureSpeedtest` (needs endpoint validation)
+**Banco:** `SignallQDatabase` v10 — `CoreDatabaseModulo.criarBanco(context)`
 
-- **Backend APIs**: Needs full endpoint documentation (missing)
-    -   **Validation**: Need to check `build.gradle.kts` and `AndroidManifest.xml` for any such integrations.
+### coreNetwork — Monitoring
 
-## Key Files/Classes
+| Interface | Implementação | Contrato |
+|---|---|---|
+| `MonitorRede` | `MonitorRedeAndroid` | `snapshotRede: StateFlow<SnapshotRede>`, `iniciar()`, `parar()` |
+| `NetworkCapabilitiesProvider` | (concreto) | `isMetered()`, `getTransportType()` |
+| `GatewayLatencyMeasurer` | (concreto) | `medir(): Long` (RTT TCP em ms) |
 
--   `coreNetwork/src/main/kotlin/.../ApiService.kt` (and other API interface definitions)
--   `coreDatabase/src/main/kotlin/.../Dao.kt` (and other DAO definitions)
--   Repository implementations that consume these APIs.
--   `AndroidManifest.xml`: May list permissions required for network access.
+### coreDatastore — PreferenciasAppRepository
 
-## Documentation Standards
+Expõe flows reativos para cada chave. Ver `STORAGE.md` para lista completa de chaves.
 
--   This map provides a high-level overview. Specific endpoint URLs, request/response structures, and authentication mechanisms are not detailed here.
--   All details regarding external API integrations require human validation.
+Contrato:
+```
+flow: Flow<T>           — observação reativa
+setter: suspend set*(value: T)   — escrita
+```
 
-## Known Risks
+### corePermissions
 
--   The exact list of external services, their endpoints, authentication methods, and data formats are not definitively known from the directory structure alone and require human validation.
--   The specific technologies used for backend services (e.g., REST, GraphQL) are inferred.
+| Interface | Contrato |
+|---|---|
+| `GerenciadorPermissoesRede` | `snapshotPermissoes: StateFlow<SnapshotPermissoesRede>`, `solicitarPermissoes()` |
+
+### coreTelephony
+
+| Interface | Contrato |
+|---|---|
+| `MonitorTelephony` | `movelSnapshot: StateFlow<MovelSnapshot?>`, `iniciar()`, `parar()` |
+
+---
+
+## 2. APIs Externas
+
+### Cloudflare AI Worker
+
+| Campo | Valor |
+|---|---|
+| URL | `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev/api/ai/diagnostico-conexao` |
+| Método | POST |
+| Content-Type | application/json |
+| Autenticação | Nenhuma (worker público) |
+| Modelo | Qwen3 30B MoE FP8 (`@cf/qwen/qwen3-30b-a3b-fp8`) |
+| Schema do payload | v3 (`diagnostico_v3_raw`) |
+| Schemas aceitos | v1, v2, v3 (retrocompatível) |
+
+**Classe cliente:** `AiDiagnosisRepository` em `:featureDiagnostico`
+
+**Timeout:** definido via OkHttp — ver `AppModule.kt` para configuração atual
+
+### Cloudflare Speed (Speedtest)
+
+| Campo | Valor |
+|---|---|
+| Download endpoint | `https://speed.cloudflare.com/__down?bytes=N` |
+| Upload endpoint | `https://speed.cloudflare.com/__up` |
+| Ping endpoint | `https://speed.cloudflare.com/__down?bytes=0` |
+| Autenticação | Nenhuma |
+
+**Classe cliente:** `ExecutorSpeedtestCloudflare` em `:featureSpeedtest`
+
+### IBGE API (municípios)
+
+| Campo | Valor |
+|---|---|
+| URL | `https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf}/municipios` |
+| Método | GET |
+| Uso | Seleção de cidade em `AjustesScreen` |
+| Cache | HashMap in-memory por UF, volátil (reinicia com o processo) |
+
+---
+
+## 3. APIs Android
+
+| API | Módulo | Uso |
+|---|---|---|
+| `ConnectivityManager.NetworkCallback` | `coreNetwork` | Monitor de estado de rede em tempo real |
+| `WifiManager` | `featureWifi` | Scan de redes vizinhas |
+| `TelephonyManager` | `coreTelephony` | Dados de sinal móvel (RSRP, RSRQ, SINR) |
+| `WorkManager` | `:app` (monitoramento) | Agendamento do background worker (30 min) |
+| `NotificationManager` | `:app` (notificacao) | Exibição de alertas via `SignallQNotificationHelper` |
+| `ContentResolver` + `BitmapFactory` | `:app` (UI) | Decodificação da foto de perfil |
+| `FileProvider` | `:app` (UI) | URI segura para o arquivo de bitmap compartilhado |
+| `Intent.ACTION_SEND` | `:app` (ResultadoVelocidade) | Share do resultado como imagem |
