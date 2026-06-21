@@ -1,0 +1,15 @@
+name = "signallq-admin"
+main = "src/index.ts"
+compatibility_date = "2026-06-21"
+
+[vars]
+ALLOWED_ORIGIN = "*"
+FIREBASE_PROJECT_ID = "device-streaming-ef179de4"
+FIREBASE_GA4_PROPERTY_ID = "542463828"
+
+# Secrets: npx wrangler secret put ADMIN_SECRET / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY
+
+[[d1_databases]]
+binding = "DB"
+database_name = "signallq-admin-db"
+database_id = "952cb253-1a84-48ac-9018-a4ca31036915"
