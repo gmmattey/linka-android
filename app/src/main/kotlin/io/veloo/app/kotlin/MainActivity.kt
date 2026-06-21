@@ -213,10 +213,69 @@ class MainActivity : ComponentActivity() {
                 } else {
                     AppShell(
                         snapshotRede = snapshotRede,
-                        snapshotSpeedtest = snapshotSpeedtest,
+                        speedtest = io.veloo.app.ui.screen.AppShellSpeedtestState(
+                            snapshotSpeedtest = snapshotSpeedtest,
+                            speedtestPendenteModoMovel = speedtestPendenteModoMovel,
+                            speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
+                            speedtestMbConsumidosMes = speedtestMbConsumidosMes,
+                            onNovoTeste = { modo -> viewModel.reiniciarSuite(modo) },
+                            onCancelarTeste = { viewModel.executorSpeedtest.cancelar() },
+                            onConfirmarSpeedtestMovel = { viewModel.confirmarSpeedtestEmMovel() },
+                            onCancelarSpeedtestMovel = { viewModel.cancelarSpeedtestMovel() },
+                            onSetSpeedtestPermiteHeavyMovel = { valor -> viewModel.setSpeedtestPermiteHeavyMovel(valor) },
+                        ),
+                        wifi = io.veloo.app.ui.screen.AppShellWifiState(
+                            snapshotWifi = snapshotWifi,
+                            connectedNetwork = connectedNetwork,
+                            snapshotDevices = snapshotDevices,
+                            apelidos = apelidos,
+                            onRefreshDispositivos = { viewModel.refreshDispositivos() },
+                            onRefreshSinal = { viewModel.refreshSinal() },
+                            onSalvarApelido = { mac, apelido -> viewModel.salvarApelido(mac, apelido) },
+                        ),
+                        diagnostico = io.veloo.app.ui.screen.AppShellDiagnosticoState(
+                            snapshotDiagnostico = snapshotDiagnostico,
+                            onIniciarDiagnostico = {
+                                solicitarPermissaoTelefoniaSeNecessario()
+                                viewModel.iniciarDiagnostico()
+                            },
+                            diagChatHistorico = diagChatHistorico,
+                            diagChatCarregando = diagChatCarregando,
+                            onEnviarPerguntaDiagnostico = { pergunta -> viewModel.enviarPerguntaDiagnostico(pergunta) },
+                            onLimparDiagChat = { viewModel.limparDiagChat() },
+                        ),
+                        signallQ = io.veloo.app.ui.screen.AppShellSignallQState(
+                            signallQUiState = signallQUiState,
+                            gemmaAvailable = gemmaAvailable,
+                            operadoraMovel = simsAtivos.firstOrNull { it.isDefaultData }?.operadora
+                                ?: simsAtivos.firstOrNull()?.operadora,
+                            onIniciarSignallQ = { foco ->
+                                solicitarPermissaoTelefoniaSeNecessario()
+                                viewModel.iniciarSignallQ(foco)
+                            },
+                            onResetSignallQ = { viewModel.resetSignallQ() },
+                            onSelecionarChip = { chip -> viewModel.selecionarChipSignallQ(chip) },
+                            onResponderPergunta = { opcao -> viewModel.responderPerguntaSignallQ(opcao) },
+                            onEnviarMensagemTexto = { texto -> viewModel.enviarMensagemTextoSignallQ(texto) },
+                            onVerificarGemma = { viewModel.verificarDisponibilidadeGemma() },
+                            onIniciarSignallQComResultado = { resultado, foco ->
+                                solicitarPermissaoTelefoniaSeNecessario()
+                                viewModel.iniciarSignallQComResultado(resultado, foco)
+                            },
+                        ),
+                        chatDiag = io.veloo.app.ui.screen.AppShellChatDiagState(
+                            chatDiagUiState = chatDiagUiState,
+                            onEnviarMensagem = chatDiagViewModel::onEnviarMensagem,
+                            onAtualizarDraft = chatDiagViewModel::onAtualizarDraft,
+                            onEscolherOpcao = chatDiagViewModel::onEscolherOpcao,
+                            onAbrirSessao = chatDiagViewModel::onAbrirSessao,
+                            onApagarSessao = chatDiagViewModel::onApagarSessao,
+                            onRenomearSessao = chatDiagViewModel::onRenomearSessao,
+                            onNovaSessao = chatDiagViewModel::onNovaSessao,
+                            onToggleDrawer = chatDiagViewModel::onToggleDrawer,
+                            onCancelarAcaoAtual = chatDiagViewModel::onCancelarAcaoAtual,
+                        ),
                         snapshotDns = snapshotDns,
-                        snapshotDevices = snapshotDevices,
-                        snapshotDiagnostico = snapshotDiagnostico,
                         history = history,
                         localIp = localIpUiState,
                         publicIp = publicIpUiState,
@@ -233,8 +292,6 @@ class MainActivity : ComponentActivity() {
                         ispConfirmado = ispConfirmado,
                         limiteAlertaMbps = limiteAlertaMbps,
                         dnsResolverIp = snapshotRede.dnsServidores.firstOrNull(),
-                        connectedNetwork = connectedNetwork,
-                        snapshotWifi = snapshotWifi,
                         historico = historico,
                         blocoUptime = blocoUptime,
                         narrativaUptime = narrativaUptime,
@@ -246,13 +303,7 @@ class MainActivity : ComponentActivity() {
                         modemPermanecerConectado = modemPermanecerConectado,
                         gatewayIpDetectado = gatewayIpDetectado,
                         localizacaoServidor = localizacaoServidorUiState,
-                        onNovoTeste = { modo -> viewModel.reiniciarSuite(modo) },
-                        onCancelarTeste = { viewModel.executorSpeedtest.cancelar() },
                         onDispararBenchmarkDns = { viewModel.dispararBenchmarkDns() },
-                        onRefreshDispositivos = { viewModel.refreshDispositivos() },
-                        apelidos = apelidos,
-                        onSalvarApelido = { mac, apelido -> viewModel.salvarApelido(mac, apelido) },
-                        onRefreshSinal = { viewModel.refreshSinal() },
                         onReconectarFibra = { host, user, pass -> viewModel.reconectarFibra(host, user, pass) },
                         onSalvarConfiguracaoModem = { host, user, pass, perm ->
                             viewModel.salvarConfiguracaoModem(host, user, pass, perm)
@@ -286,47 +337,13 @@ class MainActivity : ComponentActivity() {
                         onConfirmarIsp = { op -> viewModel.confirmarIspDetectado(op) },
                         onDispensarBannerIsp = { viewModel.dispensarBannerIsp() },
                         onSalvarLimiteAlerta = { limite -> viewModel.salvarLimiteAlerta(limite) },
-                        speedtestPendenteModoMovel = speedtestPendenteModoMovel,
-                        onConfirmarSpeedtestMovel = { viewModel.confirmarSpeedtestEmMovel() },
-                        onCancelarSpeedtestMovel = { viewModel.cancelarSpeedtestMovel() },
-                        speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
-                        onSetSpeedtestPermiteHeavyMovel = { valor -> viewModel.setSpeedtestPermiteHeavyMovel(valor) },
-                        speedtestMbConsumidosMes = speedtestMbConsumidosMes,
-                        onIniciarDiagnostico = {
-                            solicitarPermissaoTelefoniaSeNecessario()
-                            viewModel.iniciarDiagnostico()
-                        },
+                        movelSnapshot = movelSnapshot,
+                        simsAtivos = simsAtivos,
                         temPermissaoTelefonia = temPermissaoTelefonia,
                         onSolicitarPermissaoTelefonia = { solicitarPermissaoTelefoniaContextual() },
                         temPermissaoLocalizacao = temPermissaoLocalizacao,
                         localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                         onSolicitarPermissaoLocalizacao = { solicitarPermissaoLocalizacaoContextual() },
-                        signallQUiState = signallQUiState,
-                        movelSnapshot = movelSnapshot,
-                        simsAtivos = simsAtivos,
-                        onIniciarSignallQ = { foco ->
-                            solicitarPermissaoTelefoniaSeNecessario()
-                            viewModel.iniciarSignallQ(foco)
-                        },
-                        onResetSignallQ = { viewModel.resetSignallQ() },
-                        onSelecionarChip = { chip -> viewModel.selecionarChipSignallQ(chip) },
-                        onResponderPergunta = { opcao -> viewModel.responderPerguntaSignallQ(opcao) },
-                        gemmaAvailable = gemmaAvailable,
-                        operadoraMovel =
-                            simsAtivos.firstOrNull { it.isDefaultData }?.operadora
-                                ?: simsAtivos.firstOrNull()?.operadora,
-                        onVerificarGemma = { viewModel.verificarDisponibilidadeGemma() },
-                        onIniciarSignallQComResultado = { resultado, foco ->
-                            solicitarPermissaoTelefoniaSeNecessario()
-                            viewModel.iniciarSignallQComResultado(resultado, foco)
-                        },
-                        onEnviarMensagemTexto = { texto -> viewModel.enviarMensagemTextoSignallQ(texto) },
-                        diagChatHistorico = diagChatHistorico,
-                        diagChatCarregando = diagChatCarregando,
-                        onEnviarPerguntaDiagnostico = { pergunta ->
-                            viewModel.enviarPerguntaDiagnostico(pergunta)
-                        },
-                        onLimparDiagChat = { viewModel.limparDiagChat() },
                         velocidadeContratadaDownMbps = perfilProvedor.velocidadeContratadaDownMbps,
                         velocidadeContratadaUpMbps = perfilProvedor.velocidadeContratadaUpMbps,
                         onSalvarVelocidadeContratada = { down, up ->
@@ -345,17 +362,6 @@ class MainActivity : ComponentActivity() {
                         filtroOperadoraHistorico = filtroOperadoraHistorico,
                         onFiltroOperadoraHistoricoChange = { viewModel.setFiltroOperadoraHistorico(it) },
                         operadorasDisponiveisHistorico = operadorasDisponiveisHistorico,
-                        // Chat Diagnóstico IA
-                        chatDiagUiState = chatDiagUiState,
-                        onChatDiagEnviarMensagem = chatDiagViewModel::onEnviarMensagem,
-                        onChatDiagAtualizarDraft = chatDiagViewModel::onAtualizarDraft,
-                        onChatDiagEscolherOpcao = chatDiagViewModel::onEscolherOpcao,
-                        onChatDiagAbrirSessao = chatDiagViewModel::onAbrirSessao,
-                        onChatDiagApagarSessao = chatDiagViewModel::onApagarSessao,
-                        onChatDiagRenomearSessao = chatDiagViewModel::onRenomearSessao,
-                        onChatDiagNovaSessao = chatDiagViewModel::onNovaSessao,
-                        onChatDiagToggleDrawer = chatDiagViewModel::onToggleDrawer,
-                        onChatDiagCancelarAcaoAtual = chatDiagViewModel::onCancelarAcaoAtual,
                         aiRepository = viewModel.diagAiRepository,
                     )
                 } // else onboardingConcluido
