@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CellTower
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.DevicesOther
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -87,6 +89,7 @@ fun DispositivosScreen(
     onRefresh: () -> Unit,
     apelidos: Map<String, String>,
     onSalvarApelido: (mac: String, apelido: String) -> Unit,
+    onVoltar: (() -> Unit)? = null,
 ) {
     val c = LocalLkTokens.current
 
@@ -98,7 +101,14 @@ fun DispositivosScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = Icons.Outlined.Devices, contentDescription = null, tint = c.textPrimary, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(LkSpacing.xs))
-                        Text("Dispositivos", style = MaterialTheme.typography.titleLarge, color = c.textPrimary)
+                        Text("Dispositivos na rede", style = MaterialTheme.typography.titleLarge, color = c.textPrimary)
+                    }
+                },
+                navigationIcon = {
+                    if (onVoltar != null) {
+                        IconButton(onClick = onVoltar) {
+                            Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Voltar", tint = c.textPrimary)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
@@ -881,12 +891,12 @@ private fun EmptyStateDispositivos(
         iconColor = LkColors.warning
     } else if (isLoading) {
         titulo = "Procurando dispositivos..."
-        subtitulo = "Progresso: $progresso%"
+        subtitulo = "Aguarde alguns instantes."
         icone = Icons.Outlined.DevicesOther
         iconColor = c.textTertiary
     } else {
         titulo = "Nenhum dispositivo encontrado"
-        subtitulo = "Tente novamente ou verifique a conexão."
+        subtitulo = "Aguarde alguns segundos e tente novamente."
         icone = Icons.Outlined.DevicesOther
         iconColor = c.textTertiary
     }

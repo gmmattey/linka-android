@@ -73,8 +73,9 @@ internal object OuiDatabase {
         "980D67" to "TP-Link", "9CB70D" to "TP-Link", "A0F3C1" to "TP-Link",
         "B0487A" to "TP-Link", "C46E1F" to "TP-Link", "F4F26D" to "TP-Link",
         // ASUS
+        // Nota: 2C56DC foi removido daqui — pertence à TP-Link (IEEE OUI registry).
         "001A92" to "ASUS", "04924B" to "ASUS", "08606E" to "ASUS",
-        "10BF48" to "ASUS", "1062E5" to "ASUS", "2C56DC" to "ASUS",
+        "10BF48" to "ASUS", "1062E5" to "ASUS",
         "38D547" to "ASUS", "40167E" to "ASUS", "487727" to "ASUS",
         "50465D" to "ASUS", "548141" to "ASUS", "60A44C" to "ASUS",
         "6045CB" to "ASUS", "74D02B" to "ASUS", "90E6BA" to "ASUS",
@@ -112,7 +113,8 @@ internal object OuiDatabase {
         "94659C" to "Intel", "98F1EB" to "Intel", "A4C3F0" to "Intel",
         "B0C9AB" to "Intel", "B8770E" to "Intel", "D098F0" to "Intel",
         // Qualcomm Atheros
-        "002275" to "Qualcomm", "08865D" to "Qualcomm", "40BDE0" to "Qualcomm",
+        // Nota: 002275 foi removido daqui — pertence à Netgear (IEEE OUI registry).
+        "08865D" to "Qualcomm", "40BDE0" to "Qualcomm",
         "706F81" to "Qualcomm", "9CB6D0" to "Qualcomm", "E8DE27" to "Qualcomm",
         // Realtek
         "00E04C" to "Realtek", "1CC1DE" to "Realtek", "34298F" to "Realtek",

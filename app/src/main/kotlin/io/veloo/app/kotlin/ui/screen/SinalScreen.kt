@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.outlined.Cable
 import androidx.compose.material.icons.outlined.CellTower
+import androidx.compose.material.icons.outlined.DevicesOther
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
@@ -230,6 +231,7 @@ fun SinalScreen(
     fotoUri: String? = null,
     onAbrirPerfil: () -> Unit = {},
     wifiLinkSnapshot: WifiLinkSnapshot? = null,
+    onAbrirDispositivos: () -> Unit = {},
 ) {
     val c = LocalLkTokens.current
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -364,6 +366,7 @@ fun SinalScreen(
                             connectedNetwork = connectedNetwork,
                             onRefresh = onRefresh,
                             wifiLinkSnapshot = wifiLinkSnapshot,
+                            onAbrirDispositivos = onAbrirDispositivos,
                         )
                     } else {
                         WifiEmptyState()
@@ -745,6 +748,7 @@ private fun RedesTab(
     connectedNetwork: RedeVizinha?,
     onRefresh: () -> Unit,
     wifiLinkSnapshot: WifiLinkSnapshot? = null,
+    onAbrirDispositivos: () -> Unit = {},
 ) {
     val c = LocalLkTokens.current
     var selectedBanda by remember { mutableStateOf("Todos") }
@@ -993,6 +997,26 @@ private fun RedesTab(
                         item { EmptyStateWifi() }
                     }
                 }
+            }
+
+            // Botão "Ver dispositivos na rede" — último item, só quando conectado em Wi-Fi (tab já garante isso)
+            item {
+                Spacer(Modifier.height(LkSpacing.lg))
+                OutlinedButton(
+                    onClick = onAbrirDispositivos,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = LkSpacing.lg),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.DevicesOther,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(LkSpacing.sm))
+                    Text("Ver dispositivos na rede")
+                }
+                Spacer(Modifier.height(LkSpacing.md))
             }
         }
     }

@@ -119,6 +119,7 @@ private enum class Overlay {
     ResultadoVelocidade,
     Fibra,
     MinhaConexao,
+    Dispositivos,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -388,6 +389,10 @@ fun AppShell(
                                     overlayStack.add(Overlay.DiagnosticoInteligente)
                                 }
                             },
+                            snapshotDispositivos = snapshotDevices,
+                            onAbrirDispositivos = {
+                                if (Overlay.Dispositivos !in overlayStack) overlayStack.add(Overlay.Dispositivos)
+                            },
                         )
                     // NAV-E: Tab 1 — Velocidade (SpeedTestScreen como tab fixa)
                     1 ->
@@ -442,6 +447,9 @@ fun AppShell(
                             fotoUri = fotoUriUsuario,
                             onAbrirPerfil = { showPerfilSheet = true },
                             wifiLinkSnapshot = snapshotRede.wifiLinkSnapshot,
+                            onAbrirDispositivos = {
+                                if (Overlay.Dispositivos !in overlayStack) overlayStack.add(Overlay.Dispositivos)
+                            },
                         )
                     // Tab 3 — Historico (indice mantido conforme spec)
                     3 ->
@@ -861,6 +869,23 @@ fun AppShell(
                 onVoltar = { overlayStack.remove(Overlay.Fibra) },
                 onRetentar = { onReconectarFibra(modemHost ?: "", modemUsername, modemPassword) },
                 onAbrirAjustes = { selectedTab = 4 },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = Overlay.Dispositivos in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            DispositivosScreen(
+                snapshotDevices = snapshotDevices,
+                snapshotRede = snapshotRede,
+                onRefresh = {
+                    onRefreshDispositivos()
+                },
+                apelidos = apelidos,
+                onSalvarApelido = onSalvarApelido,
+                onVoltar = { overlayStack.remove(Overlay.Dispositivos) },
             )
         }
 

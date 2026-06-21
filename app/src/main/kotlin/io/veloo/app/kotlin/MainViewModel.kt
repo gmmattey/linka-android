@@ -19,6 +19,7 @@ import io.veloo.app.core.telephony.MonitorTelephony
 import io.veloo.app.core.telephony.MovelSimSnapshot
 import io.veloo.app.core.telephony.MovelSnapshot
 import io.veloo.app.feature.devices.ScannerDispositivos
+import io.veloo.app.feature.devices.SnapshotScanDispositivos
 import io.veloo.app.feature.diagnostico.DiagnosticOrchestrator
 import io.veloo.app.feature.diagnostico.FibraDiagnosticInput
 import io.veloo.app.feature.diagnostico.InternetDiagnosticInput
@@ -1063,6 +1064,16 @@ class MainViewModel
                     ApelidoDispositivoEntity(mac = mac, apelido = apelido),
                 )
             }
+        }
+
+        /**
+         * Snapshot do scan de dispositivos exposto publicamente.
+         * A UI pode observar este flow para exibir contagem no card Wi-Fi da Home
+         * e alimentar a DispositivosScreen sem passar pelo orquestrador.
+         */
+        val snapshotDispositivos: StateFlow<SnapshotScanDispositivos> by lazy {
+            scannerDispositivos.snapshotFlow
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), scannerDispositivos.snapshotFlow.value)
         }
 
         fun refreshDispositivos() {

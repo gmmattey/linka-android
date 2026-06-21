@@ -6,9 +6,11 @@ import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
+import android.net.wifi.WifiManager
 import android.util.Log
 import androidx.core.content.ContextCompat
-import android.net.wifi.WifiManager
+import com.stealthcopter.networktools.ARPInfo
+import com.stealthcopter.networktools.SubnetDevices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -16,6 +18,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -27,13 +30,42 @@ import java.net.NetworkInterface
 import java.net.Socket
 import java.net.SocketException
 import java.util.Locale
+import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.coroutines.resume
 
+/**
+ * Motor de scan de dispositivos de rede.
+ *
+ * Fontes de descoberta (em ordem de confiabilidade):
+ *  1. SubnetDevices (AndroidNetworkTools) — ping nativo /system/bin/ping, funciona sem root.
+ *     Substitui InetAddress.isReachable() que requeria root em Android 10+.
+ *  2. ARPInfo.getMacFromIPAddress() — obtém MAC do cache ARP do kernel por host encontrado.
+ *     Funciona sem root quando o kernel já tem o host em cache (o SubnetDevices popula isso).
+ *  3. mDNS — Bonjour/Avahi, identifica nomes de instância e tipos de serviço.
+ *  4. SSDP/UPnP — identifica nomes amigáveis de dispositivos smart home.
+ *  5. TCP probe — como complemento para hosts que bloqueiam ICMP mas têm portas abertas.
+ *     Limitado por Semaphore(50) para não estourar file descriptors.
+ *
+ * NBNS (NetBIOS) foi aposentado: retorna praticamente zero resultados em redes modernas
+ * (Windows 10+ usa mDNS/LLMNR por padrão; broadcast UDP na porta 137 é bloqueado por
+ * roteadores modernos). A slot de progresso que ele ocupava foi redistribuída.
+ *
+ * Gating de permissão:
+ *  - Scan principal (SubnetDevices/ping/TCP/mDNS/SSDP) NÃO requer permissão nenhuma.
+ *  - Apenas o Wi-Fi scan (WifiManager) requer NEARBY_WIFI_DEVICES (API 33+) /
+ *    ACCESS_FINE_LOCATION — mas esse módulo não faz Wi-Fi scan, então a permissão
+ *    era desnecessária aqui. Removida do gating obrigatório.
+ *
+ * Guarda Wi-Fi: o scan só roda em Wi-Fi (EstadoConexao.wifi). Em rede móvel,
+ * emite erro semântico "naoWifi" imediatamente.
+ */
 class ScannerDispositivosAndroid(
     private val context: Context,
 ) : ScannerDispositivos {
+
     private val scanEmAndamento = AtomicBoolean(false)
 
     private val mutableSnapshotFlow =
@@ -55,12 +87,13 @@ class ScannerDispositivosAndroid(
                 return@withContext
             }
             try {
-                if (!temPermissaoParaScan()) {
+                // Guarda Wi-Fi: só escanear em Wi-Fi
+                if (!estaEmWifi()) {
                     mutableSnapshotFlow.value =
                         mutableSnapshotFlow.value.copy(
                             estado = EstadoScanDispositivos.erro,
                             progressoPercentual = 0,
-                            erroMensagem = "semPermissaoLocalizacao",
+                            erroMensagem = "naoWifi",
                         )
                     return@withContext
                 }
@@ -87,52 +120,65 @@ class ScannerDispositivosAndroid(
                 publicar(dispositivos.values.toList(), 10)
 
                 if (profundo) {
-                    // Varredura ICMP: popula a tabela ARP do kernel antes de lê-la.
-                    // Apps concorrentes usam exatamente esta técnica — sem ela a tabela
-                    // ARP só contém dispositivos com comunicação recente.
-                    val subnet = inferirPrefixoRede(gatewayIp ?: localIp)
-                    Log.d("SignallQDevices", "subnet=$subnet")
-                    if (subnet != null) varrerSubrede(subnet)
-                    publicar(dispositivos.values.toList(), 45)
+                    // 1. Descoberta de hosts via SubnetDevices (ping nativo — funciona sem root)
+                    val hostsDescobertos = descobrirViaSubnetDevices()
+                    Log.d("SignallQDevices", "subnetDevices: ${hostsDescobertos.size} hosts")
+                    hostsDescobertos.forEach { adicionarDispositivo(dispositivos, it) }
+                    publicar(dispositivos.values.toList(), 40)
 
-                    val arp = coletarViaArp()
+                    // 2. ARP legado — complementa para redes que ainda preenchem /proc/net/arp
+                    val arp = coletarViaArpLegado()
                     Log.d("SignallQDevices", "arp: ${arp.size} dispositivos")
                     arp.forEach { adicionarDispositivo(dispositivos, it) }
-                    publicar(dispositivos.values.toList(), 55)
+                    publicar(dispositivos.values.toList(), 50)
 
+                    // 3. mDNS — nomes Bonjour/Avahi
                     val mdns = coletarViaMdns()
                     Log.d("SignallQDevices", "mdns: ${mdns.size} dispositivos")
                     mdns.forEach { adicionarDispositivo(dispositivos, it) }
-                    publicar(dispositivos.values.toList(), 68)
+                    publicar(dispositivos.values.toList(), 65)
 
+                    // 4. SSDP/UPnP — nomes amigáveis de smart home
                     val ssdp = coletarViaSsdp()
                     Log.d("SignallQDevices", "ssdp: ${ssdp.size} dispositivos")
                     ssdp.forEach { adicionarDispositivo(dispositivos, it) }
-                    publicar(dispositivos.values.toList(), 80)
+                    publicar(dispositivos.values.toList(), 78)
 
-                    val nbns = coletarViaNbns(gatewayIp)
-                    Log.d("SignallQDevices", "nbns: ${nbns.size} dispositivos")
-                    nbns.forEach { adicionarDispositivo(dispositivos, it) }
-                    publicar(dispositivos.values.toList(), 90)
-
-                    // TCP probe complementa ARP para dispositivos que bloqueiam ICMP
-                    val tcpProbe = coletarViaTcpProbe(gatewayIp)
+                    // 5. TCP probe — hosts que bloqueiam ICMP mas têm portas abertas
+                    val tcpProbe = coletarViaTcpProbe(gatewayIp, localIp)
                     Log.d("SignallQDevices", "tcpProbe: ${tcpProbe.size} dispositivos")
                     tcpProbe.forEach { adicionarDispositivo(dispositivos, it) }
-                    publicar(dispositivos.values.toList(), 96)
+                    publicar(dispositivos.values.toList(), 90)
+
+                    // NBNS aposentado: retorna ~zero em redes modernas (Windows 10+ usa mDNS/LLMNR).
                 } else {
-                    val arp = coletarViaArp()
-                    Log.d("SignallQDevices", "scan leve arp: ${arp.size} dispositivos")
+                    // Scan leve: SubnetDevices + ARP legado
+                    val hostsDescobertos = descobrirViaSubnetDevices()
+                    hostsDescobertos.forEach { adicionarDispositivo(dispositivos, it) }
+                    val arp = coletarViaArpLegado()
                     arp.forEach { adicionarDispositivo(dispositivos, it) }
                     publicar(dispositivos.values.toList(), 65)
                 }
 
+                // 6. Enriquecimento: MAC via ARPInfo, OUI lookup, classificação, hostname reverso
                 val genericosParaResolver = setOf(
                     "Dispositivo não identificado", "Host ativo",
-                    "Serviço mDNS", "Dispositivo SSDP", "Host NetBIOS",
+                    "Serviço mDNS", "Dispositivo SSDP",
                 )
                 val dispositivosEnriquecidos = dispositivos.values.map { d ->
-                    val fabricante = OuiDatabase.lookupFabricante(d.mac)
+                    // Tenta obter MAC via ARPInfo para hosts sem MAC (quando não veio do SubnetDevices)
+                    val macResolvido: String? = if (d.mac != null) {
+                        d.mac
+                    } else {
+                        val ip = d.ip
+                        if (ip != null) {
+                            try {
+                                val mac: String? = ARPInfo.getMACFromIPAddress(ip)
+                                if (!mac.isNullOrBlank() && mac != "00:00:00:00:00:00") mac else null
+                            } catch (_: Throwable) { null }
+                        } else null
+                    }
+                    val fabricante = OuiDatabase.lookupFabricante(macResolvido)
                     val tipo = ClassificadorDispositivoRede.classificar(d, fabricante)
                     val hostname = if (d.ip != null && d.fonteNome != "gateway") resolverHostname(d.ip) else null
                     val nomeResolvido = when {
@@ -143,6 +189,7 @@ class ScannerDispositivosAndroid(
                         else -> d.ip ?: d.nomeExibicao
                     }
                     d.copy(
+                        mac = macResolvido,
                         fabricante = fabricante,
                         tipoDispositivo = tipo,
                         nomeExibicao = nomeResolvido,
@@ -176,156 +223,111 @@ class ScannerDispositivosAndroid(
         }
     }
 
-    private fun temPermissaoParaScan(): Boolean {
-        val localizacaoOk =
-            ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-            ) == PackageManager.PERMISSION_GRANTED
-        if (!localizacaoOk) return false
-
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
-            return true
-        }
-
-        val nearbyWifiOk =
-            ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.NEARBY_WIFI_DEVICES,
-            ) == PackageManager.PERMISSION_GRANTED
-        return nearbyWifiOk
-    }
-
-    private fun publicar(dispositivos: List<DispositivoRede>, progresso: Int) {
-        mutableSnapshotFlow.value =
-            mutableSnapshotFlow.value.copy(
-                estado = EstadoScanDispositivos.varrendo,
-                progressoPercentual = min(99, max(0, progresso)),
-                dispositivos = enriquecer(dispositivos),
-            )
-    }
-
-    private fun enriquecer(dispositivos: List<DispositivoRede>): List<DispositivoRede> =
-        dispositivos.map { d ->
-            val fabricante = OuiDatabase.lookupFabricante(d.mac)
-            d.copy(
-                fabricante = fabricante,
-                tipoDispositivo = ClassificadorDispositivoRede.classificar(d, fabricante),
-            )
-        }
-
-    private fun atualizarEstado(estado: EstadoScanDispositivos, progresso: Int, erro: String?) {
-        mutableSnapshotFlow.value =
-            mutableSnapshotFlow.value.copy(
-                estado = estado,
-                progressoPercentual = progresso,
-                erroMensagem = erro,
-            )
-    }
-
-    private fun adicionarDispositivo(
-        mapa: LinkedHashMap<String, DispositivoRede>,
-        dispositivo: DispositivoRede,
-    ) {
-        val chave = dispositivo.mac?.lowercase(Locale.ROOT) ?: "ip:${dispositivo.ip}" ?: dispositivo.id
-        val existente = mapa[chave]
-        if (existente == null) {
-            mapa[chave] = dispositivo
-            return
-        }
-
-        // Prioridade de fonte: ssdp > mdns > nbns > arp > tcpProbe
-        val prioFonte = mapOf("ssdp" to 4, "mdns" to 3, "nbns" to 2, "arp" to 1, "tcpProbe" to 0)
-        val prioExistente = prioFonte[existente.fonteNome] ?: 0
-        val prioNova = prioFonte[dispositivo.fonteNome] ?: 0
-        val genericos = setOf("Dispositivo não identificado", "Host ativo", "Serviço mDNS", "Dispositivo SSDP", "Host NetBIOS")
-        val nome = when {
-            existente.nomeExibicao in genericos -> dispositivo.nomeExibicao
-            dispositivo.nomeExibicao !in genericos && prioNova > prioExistente -> dispositivo.nomeExibicao
-            else -> existente.nomeExibicao
-        }
-        val fonte = if (prioNova > prioExistente) dispositivo.fonteNome else existente.fonteNome
-        mapa[chave] =
-            existente.copy(
-                ip = existente.ip ?: dispositivo.ip,
-                mac = existente.mac ?: dispositivo.mac,
-                nomeExibicao = nome,
-                fonteNome = fonte,
-                tiposServicoMdns = existente.tiposServicoMdns + dispositivo.tiposServicoMdns,
-                portasAbertas = existente.portasAbertas + dispositivo.portasAbertas,
-            )
-    }
+    // ── Guarda Wi-Fi ────────────────────────────────────────────────────────────
 
     @SuppressLint("MissingPermission")
-    private fun detectarGatewayIp(): String? {
-        try {
-            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val network: Network = connectivityManager.activeNetwork ?: error("sem rede ativa")
-            val lp: LinkProperties = connectivityManager.getLinkProperties(network) ?: error("sem link properties")
-            val ip = lp.routes.firstOrNull { it.isDefaultRoute }?.gateway?.hostAddress
-            if (!ip.isNullOrBlank()) return ip
-        } catch (_: Throwable) {}
-
-        // Fallback: WifiManager.dhcpInfo (funciona mesmo sem permissão de localização fina)
-        try {
-            val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-            @Suppress("DEPRECATION")
-            val dhcp = wm.dhcpInfo
-            val gw = dhcp.gateway
-            if (gw != 0) {
-                return String.format(
-                    Locale.ROOT,
-                    "%d.%d.%d.%d",
-                    gw and 0xff,
-                    (gw shr 8) and 0xff,
-                    (gw shr 16) and 0xff,
-                    (gw shr 24) and 0xff,
-                )
-            }
-        } catch (_: Throwable) {}
-
-        return null
+    private fun estaEmWifi(): Boolean {
+        return try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
+                caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
+        } catch (_: Throwable) {
+            true // se não conseguir verificar, deixa passar
+        }
     }
 
-    private fun coletarViaArp(): List<DispositivoRede> {
-        // /proc/net/arp é restrito a apps em Android 10+ (target SDK 29+).
-        // O try-catch impede que a IOException aborte o scan inteiro.
-        try {
+    // ── Descoberta via SubnetDevices (AndroidNetworkTools) ────────────────────
+
+    /**
+     * Usa [SubnetDevices.fromLocalAddress] para descobrir hosts via ping nativo.
+     * O ping usa /system/bin/ping com fallback TCP — funciona sem root em Android 10+.
+     * Subnet é inferida automaticamente pela lib a partir do endereço local.
+     *
+     * Complementamos o resultado com o prefixo correto de rede via [LinkAddress.getPrefixLength()]
+     * para garantir coerência nos cálculos de broadcast/range usados pelo mDNS/SSDP.
+     */
+    private suspend fun descobrirViaSubnetDevices(): List<DispositivoRede> =
+        suspendCancellableCoroutine { cont ->
+            val resultados = mutableListOf<DispositivoRede>()
+            val scanner = SubnetDevices.fromLocalAddress()
+                .setTimeOutMillis(800)
+                .findDevices(object : SubnetDevices.OnSubnetDeviceFound {
+                    override fun onDeviceFound(device: com.stealthcopter.networktools.subnet.Device?) {
+                        val ip = device?.ip ?: return
+                        if (!validarIpv4(ip)) return
+                        val mac = device.mac?.takeIf { it.isNotBlank() && it != "00:00:00:00:00:00" }
+                        val hostname = device.hostname?.takeIf { it.isNotBlank() && it != ip }
+                        resultados.add(
+                            DispositivoRede(
+                                id = if (mac != null) "subnet:$mac" else "subnet:$ip",
+                                ip = ip,
+                                mac = mac,
+                                nomeExibicao = hostname ?: "Host ativo",
+                                fonteNome = if (hostname != null) "subnetMdns" else "subnet",
+                            ),
+                        )
+                    }
+
+                    override fun onFinished(devicesFound: ArrayList<com.stealthcopter.networktools.subnet.Device>?) {
+                        if (cont.isActive) cont.resume(resultados)
+                    }
+                })
+
+            cont.invokeOnCancellation {
+                try { scanner.cancel() } catch (_: Throwable) {}
+            }
+        }
+
+    // ── ARP legado (/proc/net/arp) ──────────────────────────────────────────────
+
+    private fun coletarViaArpLegado(): List<DispositivoRede> {
+        // /proc/net/arp está restrito em Android 10+ (target SDK 29+).
+        // A tentativa não aborta o scan — retorna lista vazia se negado.
+        return try {
             val arquivo = java.io.File("/proc/net/arp")
             if (!arquivo.exists()) return emptyList()
             val linhas = arquivo.readLines()
             if (linhas.size <= 1) return emptyList()
-            return linhas
-                .drop(1)
-                .mapNotNull { linha ->
-                    val p = linha.trim().split(Regex("\\s+"))
-                    if (p.size < 6) return@mapNotNull null
-                    val ip = p[0]
-                    val mac = p[3]
-                    if (!validarIpv4(ip) || !validarMac(mac)) return@mapNotNull null
-                    DispositivoRede(
-                        id = "arp:$mac",
-                        ip = ip,
-                        mac = mac,
-                        nomeExibicao = "Dispositivo não identificado",
-                        fonteNome = "arp",
-                    )
-                }
+            linhas.drop(1).mapNotNull { linha ->
+                val p = linha.trim().split(Regex("\\s+"))
+                if (p.size < 6) return@mapNotNull null
+                val ip = p[0]
+                val mac = p[3]
+                if (!validarIpv4(ip) || !validarMac(mac)) return@mapNotNull null
+                DispositivoRede(
+                    id = "arp:$mac",
+                    ip = ip,
+                    mac = mac,
+                    nomeExibicao = "Dispositivo não identificado",
+                    fonteNome = "arp",
+                )
+            }
         } catch (_: Throwable) {
-            Log.d("SignallQDevices", "arp: acesso negado a /proc/net/arp (Android 10+)")
-            return emptyList()
+            Log.d("SignallQDevices", "arp: acesso negado a /proc/net/arp (Android 10+, esperado)")
+            emptyList()
         }
     }
 
-    private suspend fun coletarViaTcpProbe(gatewayIp: String?): List<DispositivoRede> = coroutineScope {
-        val base = inferirPrefixoRede(gatewayIp) ?: return@coroutineScope emptyList()
-        val portas = intArrayOf(80, 443, 22, 53, 139, 445, 8080, 8443)
-        val alvos = (1..254).map { host -> "$base.$host" }.filter { it != gatewayIp }
+    // ── TCP probe (Semaphore limitado) ─────────────────────────────────────────
 
-        val tarefas =
-            alvos.map { ip ->
-                async {
-                    val portasAbertas = portas.filter { porta -> testarPortaAberta(ip, porta, 500) }.toSet()
+    /**
+     * Limita a concorrência via Semaphore(50) para evitar estouro de file descriptors
+     * em ranges /24 (254 alvos x N portas = muitas conexões simultâneas sem limite).
+     */
+    private suspend fun coletarViaTcpProbe(gatewayIp: String?, localIp: String?): List<DispositivoRede> = coroutineScope {
+        val base = inferirPrefixoRedeCorreto() ?: inferirPrefixoRede(gatewayIp) ?: return@coroutineScope emptyList()
+        val portas = intArrayOf(80, 443, 22, 53, 139, 445, 8080, 8443)
+        val alvos = (1..254).map { host -> "$base.$host" }
+            .filter { it != gatewayIp && it != localIp }
+
+        val semaphore = Semaphore(50)
+        val tarefas = alvos.map { ip ->
+            async {
+                semaphore.acquire()
+                try {
+                    val portasAbertas = portas.filter { porta -> testarPortaAberta(ip, porta, 400) }.toSet()
                     if (portasAbertas.isEmpty()) return@async null
                     DispositivoRede(
                         id = "tcp:$ip",
@@ -335,16 +337,24 @@ class ScannerDispositivosAndroid(
                         fonteNome = "tcpProbe",
                         portasAbertas = portasAbertas,
                     )
+                } finally {
+                    semaphore.release()
                 }
             }
-
+        }
         tarefas.awaitAll().filterNotNull()
     }
 
-    // Fase 1: queries para tipos comuns (900ms) + coleta de tipos anunciados via _services.
-    // Fase 2: se restarem dispositivos sem nome, consulta os tipos descobertos na fase 1 (600ms).
-    // Dispositivos como Spotify Connect e HomeKit só respondem com nome quando interrogados
-    // diretamente pelo tipo de serviço que suportam.
+    // ── mDNS ────────────────────────────────────────────────────────────────────
+
+    /**
+     * Fase 1: queries para tipos comuns (900ms) + coleta de tipos anunciados via _services.
+     * Fase 2: se restarem dispositivos sem nome, consulta os tipos descobertos na fase 1 (1200ms).
+     *
+     * O MulticastSocket é criado sem porta fixa (porta 0) para evitar conflito com outros
+     * processos que possam estar ouvindo na 5353. O bind na porta de envio é implícito.
+     * O multicastLock é liberado em finally — garante liberação mesmo em erro.
+     */
     private fun coletarViaMdns(): List<DispositivoRede> {
         val resultados = mutableMapOf<String, DispositivoRede>()
         val tiposDescobertos = mutableSetOf<String>()
@@ -357,12 +367,13 @@ class ScannerDispositivosAndroid(
 
         val grupo = InetAddress.getByName("224.0.0.251")
         val grupoAddr = InetSocketAddress(grupo, 5353)
+        val ifaceWifi = obterInterfaceWifi()
         val socket = MulticastSocket(0)
         try {
             socket.timeToLive = 1
             socket.soTimeout = 300
             socket.broadcast = false
-            socket.joinGroup(grupoAddr, obterInterfaceWifi())
+            socket.joinGroup(grupoAddr, ifaceWifi)
 
             val consulta1 = construirConsultaMdnsMulti()
             socket.send(DatagramPacket(consulta1, consulta1.size, grupo, 5353))
@@ -407,7 +418,10 @@ class ScannerDispositivosAndroid(
                         val nome = extrairNomeMdnsDoPayload(buf, resp.length) ?: continue
                         val existente = resultados[ip]
                         if (existente == null || existente.nomeExibicao == "Serviço mDNS") {
-                            resultados[ip] = DispositivoRede(id = "mdns:$ip", ip = ip, mac = null, nomeExibicao = nome, fonteNome = "mdns", tiposServicoMdns = (existente?.tiposServicoMdns ?: emptySet()) + (tiposPorIp[ip] ?: emptySet()))
+                            resultados[ip] = DispositivoRede(
+                                id = "mdns:$ip", ip = ip, mac = null, nomeExibicao = nome, fonteNome = "mdns",
+                                tiposServicoMdns = (existente?.tiposServicoMdns ?: emptySet()) + (tiposPorIp[ip] ?: emptySet()),
+                            )
                         }
                     } catch (_: java.net.SocketTimeoutException) {}
                 }
@@ -420,44 +434,23 @@ class ScannerDispositivosAndroid(
         return resultados.values.toList()
     }
 
-    // Prefere interface wlan* para evitar que usb0/rmnet0 seja selecionada quando
-    // o celular está conectado via USB tethering.
-    private fun obterInterfaceWifi(): NetworkInterface? =
-        try {
-            val candidatos = NetworkInterface.getNetworkInterfaces()?.toList()
-                ?.filter { iface ->
-                    iface.isUp && !iface.isLoopback && iface.supportsMulticast() &&
-                        iface.inetAddresses.toList().any { it is Inet4Address && !it.isLoopbackAddress }
-                } ?: emptyList()
-            candidatos.firstOrNull { it.name.startsWith("wlan") } ?: candidatos.firstOrNull()
-        } catch (_: Throwable) {
-            null
-        }
+    // ── SSDP/UPnP ──────────────────────────────────────────────────────────────
 
     private fun coletarViaSsdp(): List<DispositivoRede> {
-        // mapa IP -> (device, qualidade): 2=FRIENDLYNAME, 1=SERVER, 0=genérico
         val resultados = mutableMapOf<String, Pair<DispositivoRede, Int>>()
-        val payload =
-            (
-                "M-SEARCH * HTTP/1.1\r\n" +
-                    "HOST: 239.255.255.250:1900\r\n" +
-                    "MAN: \"ssdp:discover\"\r\n" +
-                    "MX: 1\r\n" +
-                    "ST: ssdp:all\r\n\r\n"
-                ).toByteArray()
+        val payload = (
+            "M-SEARCH * HTTP/1.1\r\n" +
+                "HOST: 239.255.255.250:1900\r\n" +
+                "MAN: \"ssdp:discover\"\r\n" +
+                "MX: 1\r\n" +
+                "ST: ssdp:all\r\n\r\n"
+        ).toByteArray()
 
         val socket = DatagramSocket()
         try {
             socket.broadcast = true
             socket.soTimeout = 250
-            socket.send(
-                DatagramPacket(
-                    payload,
-                    payload.size,
-                    InetAddress.getByName("239.255.255.250"),
-                    1900,
-                ),
-            )
+            socket.send(DatagramPacket(payload, payload.size, InetAddress.getByName("239.255.255.250"), 1900))
             val inicio = System.currentTimeMillis()
             while (System.currentTimeMillis() - inicio < 900) {
                 try {
@@ -474,9 +467,7 @@ class ScannerDispositivosAndroid(
                             qualidade,
                         )
                     }
-                } catch (_: java.net.SocketTimeoutException) {
-                    // Continua.
-                }
+                } catch (_: java.net.SocketTimeoutException) {}
             }
         } finally {
             socket.close()
@@ -484,108 +475,149 @@ class ScannerDispositivosAndroid(
         return resultados.values.map { it.first }
     }
 
-    private fun coletarViaNbns(gatewayIp: String?): List<DispositivoRede> {
-        val alvo = inferirBroadcast(gatewayIp) ?: return emptyList()
-        val transacaoId = byteArrayOf(0x13, 0x37)
-        val consulta = construirConsultaNbns(transacaoId)
-        val resultados = mutableListOf<DispositivoRede>()
+    // ── Helpers de rede ─────────────────────────────────────────────────────────
 
-        val socket = DatagramSocket(null)
+    /**
+     * Deriva o prefixo de rede correto via ConnectivityManager.getLinkProperties,
+     * usando [LinkAddress.getPrefixLength()] em vez de assumir /24.
+     * Suporta redes como 192.168.1.0/24, 10.0.0.0/24, 172.16.x.x/20, etc.
+     */
+    @SuppressLint("MissingPermission")
+    fun inferirPrefixoRedeCorreto(): String? {
+        return try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network: Network = cm.activeNetwork ?: return null
+            val lp: LinkProperties = cm.getLinkProperties(network) ?: return null
+            val linkAddr = lp.linkAddresses.firstOrNull { la ->
+                la.address is Inet4Address && !la.address.isLoopbackAddress
+            } ?: return null
+            val ipInt = ipToInt(linkAddr.address.hostAddress ?: return null)
+            val prefix = linkAddr.prefixLength
+            val mask = if (prefix == 0) 0 else (-1 shl (32 - prefix))
+            val networkInt = ipInt and mask
+            intToIpPrefix(networkInt, prefix)
+        } catch (_: Throwable) { null }
+    }
+
+    /** Converte IP string para Int (big-endian). */
+    internal fun ipToInt(ip: String): Int {
+        val parts = ip.split(".")
+        return (parts[0].toInt() shl 24) or (parts[1].toInt() shl 16) or
+            (parts[2].toInt() shl 8) or parts[3].toInt()
+    }
+
+    /** Converte IP network int para prefixo de 3 octetos (ex: "192.168.1" para /24)
+     *  ou prefixo completo sem o octeto de host para outros prefixos. */
+    internal fun intToIpPrefix(networkInt: Int, prefixLen: Int): String? {
+        val a = (networkInt shr 24) and 0xFF
+        val b = (networkInt shr 16) and 0xFF
+        val c = (networkInt shr 8) and 0xFF
+        // Para /24 exato ou maior, retorna os 3 octetos (comportamento existente)
+        return if (prefixLen >= 24) "$a.$b.$c" else null
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun detectarGatewayIp(): String? {
         try {
-            socket.reuseAddress = true
-            socket.broadcast = true
-            socket.bind(InetSocketAddress(0))
-            socket.soTimeout = 250
-            socket.send(DatagramPacket(consulta, consulta.size, InetAddress.getByName(alvo), 137))
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network: Network = cm.activeNetwork ?: error("sem rede ativa")
+            val lp: LinkProperties = cm.getLinkProperties(network) ?: error("sem link properties")
+            val ip = lp.routes.firstOrNull { it.isDefaultRoute }?.gateway?.hostAddress
+            if (!ip.isNullOrBlank()) return ip
+        } catch (_: Throwable) {}
 
-            val inicio = System.currentTimeMillis()
-            while (System.currentTimeMillis() - inicio < 900) {
-                try {
-                    val buf = ByteArray(2048)
-                    val resp = DatagramPacket(buf, buf.size)
-                    socket.receive(resp)
-                    val ip = resp.address?.hostAddress ?: continue
-                    if (!validarIpv4(ip)) continue
-                    val nome = extrairNomeNbns(buf, resp.length) ?: "Host NetBIOS"
-                    resultados.add(
-                        DispositivoRede(
-                            id = "nbns:$ip",
-                            ip = ip,
-                            mac = null,
-                            nomeExibicao = nome,
-                            fonteNome = "nbns",
-                        ),
-                    )
-                } catch (_: java.net.SocketTimeoutException) {
-                    // Continua.
-                }
+        try {
+            val wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            @Suppress("DEPRECATION")
+            val dhcp = wm.dhcpInfo
+            val gw = dhcp.gateway
+            if (gw != 0) {
+                return String.format(
+                    Locale.ROOT,
+                    "%d.%d.%d.%d",
+                    gw and 0xff,
+                    (gw shr 8) and 0xff,
+                    (gw shr 16) and 0xff,
+                    (gw shr 24) and 0xff,
+                )
             }
-        } finally {
-            socket.close()
+        } catch (_: Throwable) {}
+
+        return null
+    }
+
+    private fun publicar(dispositivos: List<DispositivoRede>, progresso: Int) {
+        mutableSnapshotFlow.value =
+            mutableSnapshotFlow.value.copy(
+                estado = EstadoScanDispositivos.varrendo,
+                progressoPercentual = min(99, max(0, progresso)),
+                dispositivos = enriquecer(dispositivos),
+            )
+    }
+
+    private fun enriquecer(dispositivos: List<DispositivoRede>): List<DispositivoRede> =
+        dispositivos.map { d ->
+            val fabricante = OuiDatabase.lookupFabricante(d.mac)
+            d.copy(
+                fabricante = fabricante,
+                tipoDispositivo = ClassificadorDispositivoRede.classificar(d, fabricante),
+            )
         }
-        return resultados.distinctBy { it.ip }
+
+    private fun atualizarEstado(estado: EstadoScanDispositivos, progresso: Int, erro: String?) {
+        mutableSnapshotFlow.value =
+            mutableSnapshotFlow.value.copy(
+                estado = estado,
+                progressoPercentual = progresso,
+                erroMensagem = erro,
+            )
     }
 
-    // Constrói uma query mDNS com múltiplas perguntas PTR para tipos de serviço comuns.
-    // Respostas PTR têm RDATA no formato "NomeInstancia._tipo._tcp.local" — o primeiro
-    // label é o nome amigável do dispositivo (ex: "Minha TV", "Notebook do João").
-    private fun construirConsultaMdnsMulti(): ByteArray {
-        val tiposServico = listOf(
-            listOf("_http", "_tcp", "local"),
-            listOf("_https", "_tcp", "local"),
-            listOf("_airplay", "_tcp", "local"),
-            listOf("_googlecast", "_tcp", "local"),
-            listOf("_ipp", "_tcp", "local"),
-            listOf("_smb", "_tcp", "local"),
-            listOf("_afpovertcp", "_tcp", "local"),
-            listOf("_ssh", "_tcp", "local"),
-            listOf("_raop", "_tcp", "local"),
-            listOf("_companion-link", "_tcp", "local"),
-            listOf("_services", "_dns-sd", "_udp", "local"),
-        )
-        return buildList<Byte> {
-            add(0x00); add(0x00) // Transaction ID
-            add(0x00); add(0x00) // Flags (standard query)
-            add(0x00); add(tiposServico.size.toByte()) // Questions
-            add(0x00); add(0x00) // Answers
-            add(0x00); add(0x00) // Authority
-            add(0x00); add(0x00) // Additional
-            for (labels in tiposServico) {
-                for (label in labels) {
-                    add(label.length.toByte())
-                    label.forEach { add(it.code.toByte()) }
-                }
-                add(0x00)            // terminador de nome
-                add(0x00); add(0x0C) // Type PTR
-                add(0x00); add(0x01) // Class IN
-            }
-        }.toByteArray()
+    private fun adicionarDispositivo(
+        mapa: LinkedHashMap<String, DispositivoRede>,
+        dispositivo: DispositivoRede,
+    ) {
+        val chave = dispositivo.mac?.lowercase(Locale.ROOT) ?: "ip:${dispositivo.ip}" ?: dispositivo.id
+        val existente = mapa[chave]
+        if (existente == null) {
+            mapa[chave] = dispositivo
+            return
+        }
+
+        // Prioridade de fonte: ssdp > mdns > subnetMdns > arp > subnet > tcpProbe
+        val prioFonte = mapOf("ssdp" to 5, "mdns" to 4, "subnetMdns" to 3, "arp" to 2, "subnet" to 1, "tcpProbe" to 0)
+        val prioExistente = prioFonte[existente.fonteNome] ?: 0
+        val prioNova = prioFonte[dispositivo.fonteNome] ?: 0
+        val genericos = setOf("Dispositivo não identificado", "Host ativo", "Serviço mDNS", "Dispositivo SSDP")
+        val nome = when {
+            existente.nomeExibicao in genericos -> dispositivo.nomeExibicao
+            dispositivo.nomeExibicao !in genericos && prioNova > prioExistente -> dispositivo.nomeExibicao
+            else -> existente.nomeExibicao
+        }
+        val fonte = if (prioNova > prioExistente) dispositivo.fonteNome else existente.fonteNome
+        mapa[chave] =
+            existente.copy(
+                ip = existente.ip ?: dispositivo.ip,
+                mac = existente.mac ?: dispositivo.mac,
+                nomeExibicao = nome,
+                fonteNome = fonte,
+                tiposServicoMdns = existente.tiposServicoMdns + dispositivo.tiposServicoMdns,
+                portasAbertas = existente.portasAbertas + dispositivo.portasAbertas,
+            )
     }
 
-    private fun construirConsultaNbns(transactionId: ByteArray): ByteArray {
-        val nome = ByteArray(32) { 'A'.code.toByte() } // * (wildcard) codificado simplificado
-        return buildList {
-            add(transactionId[0]); add(transactionId[1])
-            add(0x00); add(0x00) // Flags
-            add(0x00); add(0x01) // Questions
-            add(0x00); add(0x00) // Answer RRs
-            add(0x00); add(0x00) // Authority RRs
-            add(0x00); add(0x00) // Additional RRs
-            add(0x20) // NetBIOS name length (32)
-            nome.forEach { add(it) }
-            add(0x00) // Null terminator
-            add(0x00); add(0x21) // NBSTAT
-            add(0x00); add(0x01) // IN
-        }.toByteArray()
-    }
+    // ── Helpers de interface/IP ─────────────────────────────────────────────────
 
-    private fun inferirBroadcast(gatewayIp: String?): String? {
-        if (gatewayIp.isNullOrBlank()) return null
-        if (!validarIpv4(gatewayIp)) return null
-        val partes = gatewayIp.split(".")
-        if (partes.size != 4) return null
-        return "${partes[0]}.${partes[1]}.${partes[2]}.255"
-    }
+    /** Prefere interface wlan* para evitar que usb0/rmnet0 seja selecionada. */
+    private fun obterInterfaceWifi(): NetworkInterface? =
+        try {
+            val candidatos = NetworkInterface.getNetworkInterfaces()?.toList()
+                ?.filter { iface ->
+                    iface.isUp && !iface.isLoopback && iface.supportsMulticast() &&
+                        iface.inetAddresses.toList().any { it is Inet4Address && !it.isLoopbackAddress }
+                } ?: emptyList()
+            candidatos.firstOrNull { it.name.startsWith("wlan") } ?: candidatos.firstOrNull()
+        } catch (_: Throwable) { null }
 
     private fun inferirPrefixoRede(gatewayIp: String?): String? {
         if (gatewayIp.isNullOrBlank()) return null
@@ -595,16 +627,13 @@ class ScannerDispositivosAndroid(
         return "${partes[0]}.${partes[1]}.${partes[2]}"
     }
 
-    private fun testarPortaAberta(ip: String, porta: Int, timeoutMs: Int): Boolean {
-        return try {
+    private fun testarPortaAberta(ip: String, porta: Int, timeoutMs: Int): Boolean =
+        try {
             Socket().use { socket ->
                 socket.connect(InetSocketAddress(ip, porta), timeoutMs)
                 true
             }
-        } catch (_: Throwable) {
-            false
-        }
-    }
+        } catch (_: Throwable) { false }
 
     private fun validarIpv4(ip: String): Boolean {
         val partes = ip.split(".")
@@ -612,9 +641,8 @@ class ScannerDispositivosAndroid(
         return partes.all { p -> p.toIntOrNull()?.let { it in 0..255 } == true }
     }
 
-    private fun validarMac(mac: String): Boolean {
-        return Regex("^[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}$").matches(mac)
-    }
+    private fun validarMac(mac: String): Boolean =
+        Regex("^[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}$").matches(mac)
 
     private fun detectarIpLocal(): String? =
         try {
@@ -625,14 +653,6 @@ class ScannerDispositivosAndroid(
                 ?.hostAddress
         } catch (_: Throwable) { null }
 
-    private suspend fun varrerSubrede(subnet: String): Unit = coroutineScope {
-        (1..254).map { host ->
-            async(Dispatchers.IO) {
-                try { InetAddress.getByName("$subnet.$host").isReachable(300) } catch (_: Throwable) {}
-            }
-        }.awaitAll()
-    }
-
     private fun resolverHostname(ip: String): String? =
         try {
             val partes = ip.split(".").map { it.toInt().toByte() }.toByteArray()
@@ -642,9 +662,8 @@ class ScannerDispositivosAndroid(
             else hostname.removeSuffix(".local").removeSuffix(".").takeIf { it.isNotBlank() }
         } catch (_: Throwable) { null }
 
-    // --- Extração de nomes dos protocolos ---
+    // ── Extração de nomes dos protocolos ────────────────────────────────────────
 
-    // Retorna (nome, qualidade): 2=FRIENDLYNAME, 1=SERVER-derivado, 0=genérico
     private fun extrairNomeSsdpComQualidade(payload: ByteArray, tamanho: Int): Pair<String, Int> {
         val texto = try { String(payload, 0, tamanho, Charsets.UTF_8) } catch (_: Throwable) { return Pair("Dispositivo SSDP", 0) }
         val linhas = texto.split("\r\n", "\n")
@@ -660,8 +679,7 @@ class ScannerDispositivosAndroid(
                 val genericos = setOf("linux", "windows", "macos", "darwin", "ios", "android", "upnp", "http")
                 val tokens = server.split(" ").map { it.trimEnd(',') }.filter { it.isNotBlank() }
                 val produto = tokens.lastOrNull { tok ->
-                    tok.contains("/") &&
-                    tok.substringBefore("/").lowercase() !in genericos
+                    tok.contains("/") && tok.substringBefore("/").lowercase() !in genericos
                 }
                 val nome = produto?.substringBefore("/")?.takeIf { it.isNotBlank() }
                 if (nome != null) return Pair(nome, 1)
@@ -670,32 +688,6 @@ class ScannerDispositivosAndroid(
         return Pair("Dispositivo SSDP", 0)
     }
 
-    // Parseia a resposta NBSTAT buscando o primeiro nome NetBIOS (tipo 0x00 = workstation).
-    // Suporta tanto ponteiro de compressão (0xC0) quanto nome completo (34 bytes) no campo
-    // de nome da seção de resposta.
-    private fun extrairNomeNbns(payload: ByteArray, tamanho: Int): String? {
-        return try {
-            if (tamanho < 24) return null
-            // Header: 12 bytes. Depois vem o nome da seção de resposta.
-            var offset = 12
-            offset += if ((payload[offset].toInt() and 0xFF) == 0xC0) 2 else 34
-            // type(2) + class(2) + ttl(4) + rdlength(2) = 10 bytes
-            if (offset + 10 >= tamanho) return null
-            offset += 10
-            if (offset >= tamanho) return null
-            val numNomes = payload[offset].toInt() and 0xFF
-            offset++
-            if (numNomes == 0 || offset + 15 > tamanho) return null
-            // Cada entrada: 15 bytes de nome (padded com espaços) + 1 byte tipo + 2 bytes flags
-            val nomeRaw = String(payload, offset, 15, Charsets.US_ASCII).trimEnd()
-            nomeRaw.takeIf { it.isNotBlank() }
-        } catch (_: Throwable) { null }
-    }
-
-    // Parseia a resposta mDNS iterando todos os records para encontrar o melhor nome:
-    //   TXT (fn=/name=/md=) > PTR first label > A/AAAA record hostname
-    // Itera todos os records sem retorno antecipado para garantir que o TXT seja avaliado
-    // mesmo que venha depois do PTR (ordem não garantida em mDNS).
     private fun extrairNomeMdnsDoPayload(payload: ByteArray, tamanho: Int): String? {
         if (tamanho < 12) return null
         val reservados = setOf("local", "tcp", "udp", "ip6", "ipv6", "arpa", "in-addr")
@@ -711,8 +703,8 @@ class ScannerDispositivosAndroid(
                 pos = if (novo >= 0 && novo + 4 <= tamanho) novo + 4 else tamanho
             }
 
-            var nomeInstancia: String? = null // de PTR ou A/AAAA
-            var nomeTxt: String? = null        // de TXT — preferido
+            var nomeInstancia: String? = null
+            var nomeTxt: String? = null
 
             fun candidatoValido(nome: String?) =
                 !nome.isNullOrBlank() && !nome.startsWith("_") &&
@@ -746,9 +738,6 @@ class ScannerDispositivosAndroid(
         } catch (_: Throwable) { null }
     }
 
-    // Parseia o RDATA de um TXT record buscando chaves de nome amigável.
-    // Formato TXT: sequência de [len][string], onde string = "chave=valor".
-    // Ordem de preferência: fn > name > n > md (model).
     private fun extrairNomeTxtMdns(payload: ByteArray, rdataOffset: Int, rdlen: Int): String? {
         val prioridade = listOf("fn", "name", "n", "md", "model", "integrator", "manufacturer")
         val encontrados = mutableMapOf<String, String>()
@@ -771,8 +760,6 @@ class ScannerDispositivosAndroid(
         return prioridade.firstNotNullOfOrNull { encontrados[it] }
     }
 
-    // Extrai os tipos de serviço anunciados via PTR em respostas a _services._dns-sd._udp.local.
-    // Retorna strings como "_spotify-connect._tcp.local" para uso na Fase 2.
     private fun extrairTiposServicoMdns(payload: ByteArray, tamanho: Int): List<String> {
         val tipos = mutableListOf<String>()
         if (tamanho < 12) return tipos
@@ -801,8 +788,99 @@ class ScannerDispositivosAndroid(
         return tipos
     }
 
-    // Lê o nome DNS completo como string pontuada (ex: "_airplay._tcp.local"),
-    // seguindo ponteiros de compressão.
+    // ── Construção de queries ───────────────────────────────────────────────────
+
+    private fun construirConsultaMdnsMulti(): ByteArray {
+        val tiposServico = listOf(
+            listOf("_http", "_tcp", "local"),
+            listOf("_https", "_tcp", "local"),
+            listOf("_airplay", "_tcp", "local"),
+            listOf("_googlecast", "_tcp", "local"),
+            listOf("_ipp", "_tcp", "local"),
+            listOf("_smb", "_tcp", "local"),
+            listOf("_afpovertcp", "_tcp", "local"),
+            listOf("_ssh", "_tcp", "local"),
+            listOf("_raop", "_tcp", "local"),
+            listOf("_companion-link", "_tcp", "local"),
+            listOf("_services", "_dns-sd", "_udp", "local"),
+        )
+        return buildList<Byte> {
+            add(0x00); add(0x00)
+            add(0x00); add(0x00)
+            add(0x00); add(tiposServico.size.toByte())
+            add(0x00); add(0x00)
+            add(0x00); add(0x00)
+            add(0x00); add(0x00)
+            for (labels in tiposServico) {
+                for (label in labels) {
+                    add(label.length.toByte())
+                    label.forEach { add(it.code.toByte()) }
+                }
+                add(0x00)
+                add(0x00); add(0x0C)
+                add(0x00); add(0x01)
+            }
+        }.toByteArray()
+    }
+
+    private fun construirConsultaMdnsParaTipos(tipos: List<String>): ByteArray {
+        return buildList<Byte> {
+            add(0x00); add(0x00)
+            add(0x00); add(0x00)
+            add(0x00); add(tipos.size.toByte())
+            add(0x00); add(0x00)
+            add(0x00); add(0x00)
+            add(0x00); add(0x00)
+            for (tipo in tipos) {
+                for (label in tipo.split(".")) {
+                    add(label.length.toByte())
+                    label.forEach { add(it.code.toByte()) }
+                }
+                add(0x00)
+                add(0x00); add(0x0C)
+                add(0x00); add(0x01)
+            }
+        }.toByteArray()
+    }
+
+    // ── DNS helpers ─────────────────────────────────────────────────────────────
+
+    private fun pularNomeDns(payload: ByteArray, offset: Int): Int {
+        var pos = offset
+        while (pos < payload.size) {
+            val len = payload[pos].toInt() and 0xFF
+            when {
+                (len and 0xC0) == 0xC0 -> return pos + 2
+                len == 0               -> return pos + 1
+                len in 1..63           -> pos += len + 1
+                else                   -> return -1
+            }
+        }
+        return -1
+    }
+
+    private fun lerPrimeiroLabelDns(payload: ByteArray, offset: Int): String? {
+        var pos = offset
+        val visitados = mutableSetOf<Int>()
+        while (pos < payload.size) {
+            if (!visitados.add(pos)) return null
+            val len = payload[pos].toInt() and 0xFF
+            when {
+                (len and 0xC0) == 0xC0 -> {
+                    if (pos + 1 >= payload.size) return null
+                    pos = ((len and 0x3F) shl 8) or (payload[pos + 1].toInt() and 0xFF)
+                }
+                len == 0 -> return null
+                len in 1..63 -> {
+                    if (pos + 1 + len > payload.size) return null
+                    return String(payload, pos + 1, len, Charsets.UTF_8)
+                }
+                else -> return null
+            }
+        }
+        return null
+    }
+
     private fun lerNomeDnsCompleto(payload: ByteArray, offset: Int): String? {
         val labels = mutableListOf<String>()
         var pos = offset
@@ -825,66 +903,5 @@ class ScannerDispositivosAndroid(
             }
         }
         return if (labels.isEmpty()) null else labels.joinToString(".")
-    }
-
-    // Constrói uma query PTR para uma lista de tipos de serviço já descobertos
-    // (ex: ["_spotify-connect._tcp.local", "_homekit._tcp.local"]).
-    private fun construirConsultaMdnsParaTipos(tipos: List<String>): ByteArray {
-        return buildList<Byte> {
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            add(0x00); add(tipos.size.toByte())
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            add(0x00); add(0x00)
-            for (tipo in tipos) {
-                for (label in tipo.split(".")) {
-                    add(label.length.toByte())
-                    label.forEach { add(it.code.toByte()) }
-                }
-                add(0x00)
-                add(0x00); add(0x0C)
-                add(0x00); add(0x01)
-            }
-        }.toByteArray()
-    }
-
-    // Avança o offset além de um nome DNS comprimido ou plano.
-    // Retorna o offset do byte imediatamente após o nome, ou -1 em erro.
-    private fun pularNomeDns(payload: ByteArray, offset: Int): Int {
-        var pos = offset
-        while (pos < payload.size) {
-            val len = payload[pos].toInt() and 0xFF
-            when {
-                (len and 0xC0) == 0xC0 -> return pos + 2 // ponteiro de compressão: 2 bytes
-                len == 0               -> return pos + 1 // terminador nulo
-                len in 1..63           -> pos += len + 1
-                else                   -> return -1
-            }
-        }
-        return -1
-    }
-
-    // Lê o primeiro label de um nome DNS, seguindo ponteiros de compressão se necessário.
-    private fun lerPrimeiroLabelDns(payload: ByteArray, offset: Int): String? {
-        var pos = offset
-        val visitados = mutableSetOf<Int>()
-        while (pos < payload.size) {
-            if (!visitados.add(pos)) return null // loop de ponteiro
-            val len = payload[pos].toInt() and 0xFF
-            when {
-                (len and 0xC0) == 0xC0 -> {
-                    if (pos + 1 >= payload.size) return null
-                    pos = ((len and 0x3F) shl 8) or (payload[pos + 1].toInt() and 0xFF)
-                }
-                len == 0 -> return null // nome vazio
-                len in 1..63 -> {
-                    if (pos + 1 + len > payload.size) return null
-                    return String(payload, pos + 1, len, Charsets.UTF_8)
-                }
-                else -> return null
-            }
-        }
-        return null
     }
 }
