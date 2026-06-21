@@ -74,7 +74,6 @@ import io.veloo.app.feature.devices.SnapshotScanDispositivos
 import io.veloo.app.feature.diagnostico.ConnectionType
 import io.veloo.app.feature.diagnostico.SnapshotDiagnostico
 import io.veloo.app.feature.diagnostico.ai.AiDiagnosisRepository
-import io.veloo.app.feature.diagnostico.ai.AiDiagnosisState
 import io.veloo.app.feature.diagnostico.ai.AiMetricasAtuais
 import io.veloo.app.feature.diagnostico.ai.DiagChatEntry
 import io.veloo.app.feature.diagnostico.ai.DiagnosisAiContext
@@ -108,9 +107,6 @@ import kotlinx.coroutines.launch
 private enum class Overlay {
     Laudo,
     Chat,
-
-    /** @deprecated Substituído por [ChatDiagnosticoIa]. Mantido para fallback. Remover na próxima major. */
-    DiagnosticoInteligente,
     ChatDiagnosticoIa,
     LLMChat,
     Ping,
@@ -266,8 +262,6 @@ fun AppShell(
     val overlayStack = remember { mutableStateListOf<Overlay>() }
     var showDnsSheet by remember { mutableStateOf(false) }
     var showForaDoWifiDialog by remember { mutableStateOf(false) }
-    var diagInteligenteAnaliseSolicitada by remember { mutableStateOf(false) }
-    var diagInteligenteAiState: AiDiagnosisState by remember { mutableStateOf(AiDiagnosisState.idle) }
     var showPerfilSheet by remember { mutableStateOf(false) }
     var testeAtivo by remember { mutableStateOf(false) }
     var mostrarConcluido by remember { mutableStateOf(false) }
@@ -383,8 +377,8 @@ fun AppShell(
                                 if (Overlay.Ping !in overlayStack) overlayStack.add(Overlay.Ping)
                             },
                             onAbrirDiagnostico = {
-                                if (Overlay.DiagnosticoInteligente !in overlayStack) {
-                                    overlayStack.add(Overlay.DiagnosticoInteligente)
+                                if (Overlay.ChatDiagnosticoIa !in overlayStack) {
+                                    overlayStack.add(Overlay.ChatDiagnosticoIa)
                                 }
                             },
                             snapshotDispositivos = snapshotDevices,
@@ -675,40 +669,6 @@ fun AppShell(
             NovidadesScreen(
                 appVersion = BuildConfig.VERSION_NAME,
                 onVoltar = { overlayStack.remove(Overlay.Novidades) },
-            )
-        }
-
-        @Suppress("DEPRECATION")
-        AnimatedVisibility(
-            visible = Overlay.DiagnosticoInteligente in overlayStack,
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-        ) {
-            @Suppress("DEPRECATION")
-            DiagnosticoScreen(
-                snapshotDiagnostico = snapshotDiagnostico,
-                onAbrirRedes = { selectedTab = 2 },
-                onIniciarDiagnostico = onIniciarDiagnostico,
-                analiseSolicitada = diagInteligenteAnaliseSolicitada,
-                onAnaliseSolicitadaChange = { diagInteligenteAnaliseSolicitada = it },
-                aiState = diagInteligenteAiState,
-                onAiStateChange = { diagInteligenteAiState = it },
-                onVoltar = {
-                    overlayStack.remove(Overlay.DiagnosticoInteligente)
-                    onLimparDiagChat()
-                },
-                onRefazer = {
-                    overlayStack.remove(Overlay.DiagnosticoInteligente)
-                },
-                onAbrirChat = {
-                    if (Overlay.LLMChat !in overlayStack) {
-                        overlayStack.add(Overlay.LLMChat)
-                    }
-                },
-                chatHistorico = diagChatHistorico,
-                chatCarregando = diagChatCarregando,
-                onEnviarChat = onEnviarPerguntaDiagnostico,
-                aiRepository = aiRepository,
             )
         }
 
