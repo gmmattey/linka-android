@@ -33,8 +33,11 @@ import io.veloo.app.speedtest.SpeedtestPersistenceCoordinator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import okhttp3.OkHttpClient
+import javax.inject.Named
 import javax.inject.Qualifier
 import javax.inject.Singleton
+import java.util.concurrent.TimeUnit
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -80,9 +83,20 @@ object AppModule {
 
     @Provides
     @Singleton
+    @Named("upnpClient")
+    fun provideUpnpOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(2, TimeUnit.SECONDS)
+            .readTimeout(2, TimeUnit.SECONDS)
+            .writeTimeout(2, TimeUnit.SECONDS)
+            .build()
+
+    @Provides
+    @Singleton
     fun provideScannerDispositivos(
         @ApplicationContext ctx: Context,
-    ): ScannerDispositivos = FeatureDevicesModulo.criarScannerDispositivos(ctx)
+        @Named("upnpClient") okHttpClient: OkHttpClient,
+    ): ScannerDispositivos = FeatureDevicesModulo.criarScannerDispositivos(ctx, okHttpClient)
 
     @Provides
     @Singleton
