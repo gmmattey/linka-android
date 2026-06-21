@@ -122,9 +122,12 @@ private enum class Overlay {
 @Composable
 fun AppShell(
     snapshotRede: SnapshotRede,
-    snapshotSpeedtest: SnapshotExecucaoSpeedtest,
+    speedtest: AppShellSpeedtestState,
+    wifi: AppShellWifiState,
+    diagnostico: AppShellDiagnosticoState,
+    signallQ: AppShellSignallQState,
+    chatDiag: AppShellChatDiagState,
     snapshotDns: SnapshotBenchmarkDns,
-    snapshotDevices: SnapshotScanDispositivos,
     history: List<HistoryPoint>,
     localIp: UiState<String>,
     publicIp: UiState<String>,
@@ -132,9 +135,6 @@ fun AppShell(
     gateways: List<GatewayInfo>,
     deviceName: String,
     dnsResolverIp: String?,
-    connectedNetwork: RedeVizinha?,
-    snapshotDiagnostico: SnapshotDiagnostico,
-    snapshotWifi: SnapshotScanWifi,
     historico: List<MedicaoEntity>,
     blocoUptime: List<io.veloo.app.feature.history.BlocoUptime> = emptyList(),
     narrativaUptime: String = "",
@@ -148,13 +148,7 @@ fun AppShell(
     localizacaoServidor: UiState<String>,
     temaSelecionado: String,
     analiseAvancada: Boolean,
-    onNovoTeste: (ModoSpeedtest) -> Unit,
-    onCancelarTeste: () -> Unit,
     onDispararBenchmarkDns: () -> Unit,
-    onRefreshDispositivos: () -> Unit,
-    apelidos: Map<String, String>,
-    onSalvarApelido: (mac: String, apelido: String) -> Unit,
-    onRefreshSinal: () -> Unit,
     onReconectarFibra: (host: String, username: String, password: String) -> Unit,
     onSalvarConfiguracaoModem: (host: String, username: String, password: String, permanecer: Boolean) -> Unit,
     onDefinirTemaSelecionado: (String) -> Unit,
@@ -187,8 +181,6 @@ fun AppShell(
     onConfirmarIsp: (operadora: String) -> Unit,
     onDispensarBannerIsp: () -> Unit,
     onSalvarLimiteAlerta: (Int) -> Unit,
-    onIniciarDiagnostico: () -> Unit,
-    signallQUiState: SignallQUiState,
     movelSnapshot: MovelSnapshot?,
     simsAtivos: List<MovelSimSnapshot> = emptyList(),
     temPermissaoTelefonia: Boolean = false,
@@ -196,29 +188,6 @@ fun AppShell(
     temPermissaoLocalizacao: Boolean = true,
     localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
-    onIniciarSignallQ: (foco: String?) -> Unit,
-    onResetSignallQ: () -> Unit,
-    onSelecionarChip: (OpcaoResposta) -> Unit,
-    onResponderPergunta: (OpcaoResposta) -> Unit,
-    gemmaAvailable: Boolean = false,
-    operadoraMovel: String? = null,
-    onVerificarGemma: () -> Unit = {},
-    onIniciarSignallQComResultado: (ResultadoSpeedtest, String?) -> Unit = { _, _ -> },
-    // T6.2/T6.5: mensagens digitadas têm fluxo separado do selecionarChip
-    onEnviarMensagemTexto: (String) -> Unit = {},
-    // Task 4 — confirmação de speedtest em rede medida
-    speedtestPendenteModoMovel: ModoSpeedtest? = null,
-    onConfirmarSpeedtestMovel: () -> Unit = {},
-    onCancelarSpeedtestMovel: () -> Unit = {},
-    // Task 5 — preferências de dados móveis para AjustesScreen
-    speedtestPermiteHeavyMovel: Boolean = false,
-    onSetSpeedtestPermiteHeavyMovel: (Boolean) -> Unit = {},
-    speedtestMbConsumidosMes: Long = 0L,
-    // Issue #66 — chat inline DiagnosticoScreen
-    diagChatHistorico: List<DiagChatEntry> = emptyList(),
-    diagChatCarregando: Boolean = false,
-    onEnviarPerguntaDiagnostico: (String) -> Unit = {},
-    onLimparDiagChat: () -> Unit = {},
     // Issue #85 — Minha Conexão
     velocidadeContratadaDownMbps: Int = 0,
     velocidadeContratadaUpMbps: Int = 0,
@@ -234,21 +203,59 @@ fun AppShell(
     filtroOperadoraHistorico: String? = null,
     onFiltroOperadoraHistoricoChange: (String?) -> Unit = {},
     operadorasDisponiveisHistorico: List<String> = emptyList(),
-    // Chat Diagnóstico IA
-    chatDiagUiState: ChatDiagUiState = ChatDiagUiState(),
-    onChatDiagEnviarMensagem: (String) -> Unit = {},
-    onChatDiagAtualizarDraft: (String) -> Unit = {},
-    onChatDiagEscolherOpcao: (TipoDiagnostico) -> Unit = {},
-    onChatDiagAbrirSessao: (String) -> Unit = {},
-    onChatDiagApagarSessao: (String) -> Unit = {},
-    onChatDiagRenomearSessao: (String, String) -> Unit = { _, _ -> },
-    onChatDiagNovaSessao: () -> Unit = {},
-    onChatDiagToggleDrawer: () -> Unit = {},
-    onChatDiagCancelarAcaoAtual: () -> Unit = {},
     /** AiDiagnosisRepository injetada pelo Hilt como @Singleton — compartilhada por todos
      *  os Composables filhos. Evita instancias duplicadas via remember {} em telas. */
     aiRepository: AiDiagnosisRepository,
 ) {
+    // Desempacota os grupos de estado para variaveis locais — mantém compatibilidade com
+    // o corpo interno sem precisar propagar o prefixo `speedtest.x` por toda a funcao.
+    val snapshotSpeedtest = speedtest.snapshotSpeedtest
+    val speedtestPendenteModoMovel = speedtest.speedtestPendenteModoMovel
+    val speedtestPermiteHeavyMovel = speedtest.speedtestPermiteHeavyMovel
+    val speedtestMbConsumidosMes = speedtest.speedtestMbConsumidosMes
+    val onNovoTeste = speedtest.onNovoTeste
+    val onCancelarTeste = speedtest.onCancelarTeste
+    val onConfirmarSpeedtestMovel = speedtest.onConfirmarSpeedtestMovel
+    val onCancelarSpeedtestMovel = speedtest.onCancelarSpeedtestMovel
+    val onSetSpeedtestPermiteHeavyMovel = speedtest.onSetSpeedtestPermiteHeavyMovel
+
+    val snapshotWifi = wifi.snapshotWifi
+    val connectedNetwork = wifi.connectedNetwork
+    val snapshotDevices = wifi.snapshotDevices
+    val apelidos = wifi.apelidos
+    val onRefreshDispositivos = wifi.onRefreshDispositivos
+    val onRefreshSinal = wifi.onRefreshSinal
+    val onSalvarApelido = wifi.onSalvarApelido
+
+    val snapshotDiagnostico = diagnostico.snapshotDiagnostico
+    val onIniciarDiagnostico = diagnostico.onIniciarDiagnostico
+    val diagChatHistorico = diagnostico.diagChatHistorico
+    val diagChatCarregando = diagnostico.diagChatCarregando
+    val onEnviarPerguntaDiagnostico = diagnostico.onEnviarPerguntaDiagnostico
+    val onLimparDiagChat = diagnostico.onLimparDiagChat
+
+    val signallQUiState = signallQ.signallQUiState
+    val gemmaAvailable = signallQ.gemmaAvailable
+    val operadoraMovel = signallQ.operadoraMovel
+    val onIniciarSignallQ = signallQ.onIniciarSignallQ
+    val onResetSignallQ = signallQ.onResetSignallQ
+    val onSelecionarChip = signallQ.onSelecionarChip
+    val onResponderPergunta = signallQ.onResponderPergunta
+    val onEnviarMensagemTexto = signallQ.onEnviarMensagemTexto
+    val onVerificarGemma = signallQ.onVerificarGemma
+    val onIniciarSignallQComResultado = signallQ.onIniciarSignallQComResultado
+
+    val chatDiagUiState = chatDiag.chatDiagUiState
+    val onChatDiagEnviarMensagem = chatDiag.onEnviarMensagem
+    val onChatDiagAtualizarDraft = chatDiag.onAtualizarDraft
+    val onChatDiagEscolherOpcao = chatDiag.onEscolherOpcao
+    val onChatDiagAbrirSessao = chatDiag.onAbrirSessao
+    val onChatDiagApagarSessao = chatDiag.onApagarSessao
+    val onChatDiagRenomearSessao = chatDiag.onRenomearSessao
+    val onChatDiagNovaSessao = chatDiag.onNovaSessao
+    val onChatDiagToggleDrawer = chatDiag.onToggleDrawer
+    val onChatDiagCancelarAcaoAtual = chatDiag.onCancelarAcaoAtual
+
     val c = LocalLkTokens.current
     // Desempacota UiState<T> → tipos opcionais para as telas filhas que ainda recebem primitivos.
     // Loading e Error resultam em null — as telas exibem fallback textual próprio.

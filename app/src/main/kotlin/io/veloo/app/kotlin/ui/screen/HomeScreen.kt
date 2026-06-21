@@ -431,102 +431,17 @@ fun HomeScreen(
 
             // 2. Medições card
             item {
-                SignallQCard(c) {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column {
-                                Text(
-                                    stringResource(R.string.home_medicoes_titulo),
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.W500,
-                                    color = c.textPrimary,
-                                )
-                                effectiveTs?.let {
-                                    Text(
-                                        "Última: ${formatTimestamp(it)}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = c.textTertiary,
-                                    )
-                                }
-                            }
-                            if (history.isNotEmpty()) {
-                                Text(
-                                    stringResource(R.string.home_btn_ver_historico),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.W600,
-                                    color = LkColors.accent,
-                                    modifier = Modifier.minimumInteractiveComponentSize().clickable { onAbrirHistorico() },
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(LkSpacing.md))
-                        if (hasEffectiveResult && effectiveTs != null && effectiveDl != null && effectiveUl != null) {
-                            LastResultHero(
-                                timestampEpochMs = effectiveTs,
-                                downloadMbps = effectiveDl,
-                                uploadMbps = effectiveUl,
-                                c = c,
-                            )
-                            Spacer(modifier = Modifier.height(LkSpacing.md))
-                        }
-                        val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
-                        val chartHeight = (screenHeightDp * 0.10f).coerceIn(72.dp, 120.dp)
-                        val hasChartData = remember(history) { history.any { it.downloadMbps != null || it.uploadMbps != null } }
-                        if (hasChartData) {
-                            Column(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(LkRadius.card))
-                                        .clickable { onAbrirUltimoResultado() },
-                            ) {
-                                MiniLineChart(
-                                    history = history,
-                                    modifier = Modifier.fillMaxWidth().height(chartHeight),
-                                    c = c,
-                                )
-                                Spacer(modifier = Modifier.height(LkSpacing.xs))
-                                Text(
-                                    text = "Ver detalhes →",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = LkColors.accent,
-                                    modifier = Modifier.align(Alignment.End),
-                                )
-                            }
-                        } else {
-                            Box(
-                                modifier = Modifier.fillMaxWidth().height(72.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        stringResource(R.string.home_medicoes_sem_dados),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = c.textTertiary,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                    TextButton(onClick = { showMedicaoTipoSheet = true }) {
-                                        Text(stringResource(R.string.home_btn_fazer_teste_agora))
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(LkSpacing.lg))
-                        Button(
-                            onClick = { showMedicaoTipoSheet = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(LkRadius.card),
-                            colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                            contentPadding = PaddingValues(vertical = 14.dp),
-                        ) {
-                            Text(stringResource(R.string.home_btn_medir_velocidade), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.W600)
-                        }
-                    }
-                }
+                CardMedicoes(
+                    effectiveTs = effectiveTs,
+                    effectiveDl = effectiveDl,
+                    effectiveUl = effectiveUl,
+                    hasEffectiveResult = hasEffectiveResult,
+                    history = history,
+                    onAbrirHistorico = onAbrirHistorico,
+                    onAbrirUltimoResultado = onAbrirUltimoResultado,
+                    onIniciarTeste = { showMedicaoTipoSheet = true },
+                    c = c,
+                )
             }
 
             // 3. Mini-cards DNS / Ping / Diagnóstico IA
@@ -574,6 +489,122 @@ fun HomeScreen(
                 item {
                     CardMovelDualSim(simsAtivos = simsAtivos, c = c)
                 }
+            }
+        }
+    }
+}
+
+// ─── CardMedicoes ─────────────────────────────────────────────────────────────
+
+/**
+ * Card de medicoes (download/upload/historico) extraido do corpo principal do HomeScreen.
+ * Recebe apenas os dados que a secao precisa — nao o estado inteiro da tela.
+ */
+@Composable
+private fun CardMedicoes(
+    effectiveTs: Long?,
+    effectiveDl: Double?,
+    effectiveUl: Double?,
+    hasEffectiveResult: Boolean,
+    history: List<HistoryPoint>,
+    onAbrirHistorico: () -> Unit,
+    onAbrirUltimoResultado: () -> Unit,
+    onIniciarTeste: () -> Unit,
+    c: LkTokens,
+) {
+    SignallQCard(c) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        stringResource(R.string.home_medicoes_titulo),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.W500,
+                        color = c.textPrimary,
+                    )
+                    effectiveTs?.let {
+                        Text(
+                            "Última: ${formatTimestamp(it)}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = c.textTertiary,
+                        )
+                    }
+                }
+                if (history.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.home_btn_ver_historico),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.W600,
+                        color = LkColors.accent,
+                        modifier = Modifier.minimumInteractiveComponentSize().clickable { onAbrirHistorico() },
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(LkSpacing.md))
+            if (hasEffectiveResult && effectiveTs != null && effectiveDl != null && effectiveUl != null) {
+                LastResultHero(
+                    timestampEpochMs = effectiveTs,
+                    downloadMbps = effectiveDl,
+                    uploadMbps = effectiveUl,
+                    c = c,
+                )
+                Spacer(modifier = Modifier.height(LkSpacing.md))
+            }
+            val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
+            val chartHeight = (screenHeightDp * 0.10f).coerceIn(72.dp, 120.dp)
+            val hasChartData = remember(history) { history.any { it.downloadMbps != null || it.uploadMbps != null } }
+            if (hasChartData) {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(LkRadius.card))
+                            .clickable { onAbrirUltimoResultado() },
+                ) {
+                    MiniLineChart(
+                        history = history,
+                        modifier = Modifier.fillMaxWidth().height(chartHeight),
+                        c = c,
+                    )
+                    Spacer(modifier = Modifier.height(LkSpacing.xs))
+                    Text(
+                        text = "Ver detalhes →",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = LkColors.accent,
+                        modifier = Modifier.align(Alignment.End),
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(72.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            stringResource(R.string.home_medicoes_sem_dados),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = c.textTertiary,
+                            textAlign = TextAlign.Center,
+                        )
+                        TextButton(onClick = onIniciarTeste) {
+                            Text(stringResource(R.string.home_btn_fazer_teste_agora))
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(LkSpacing.lg))
+            Button(
+                onClick = onIniciarTeste,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(LkRadius.card),
+                colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                contentPadding = PaddingValues(vertical = 14.dp),
+            ) {
+                Text(stringResource(R.string.home_btn_medir_velocidade), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.W600)
             }
         }
     }
