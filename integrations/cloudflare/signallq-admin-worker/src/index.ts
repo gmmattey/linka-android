@@ -250,23 +250,48 @@ async function handleSettings(request: Request, env: Env): Promise<Response> {
 
 // --- handlers /ingest ---
 
+// Migration SQL necessaria no D1 para suportar o campo operator:
+// ALTER TABLE diagnostic_sessions ADD COLUMN operator TEXT;
 async function handleIngestDiagnostic(request: Request, env: Env): Promise<Response> {
   let p: any;
   try { p = await request.json(); } catch { return err("invalid JSON", 400, env); }
   if (!p.id) return err("id obrigatorio", 400, env);
 
-  await env.DB.prepare(
-    `INSERT OR REPLACE INTO diagnostic_sessions
-       (id, created_at, network_type, status, score,
-        download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss, issues, resolved)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
-  ).bind(
-    p.id, p.created_at ?? nowSec(),
-    p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
-    p.download_mbps ?? null, p.upload_mbps ?? null,
-    p.latency_ms ?? null, p.jitter_ms ?? null, p.packet_loss ?? null,
-    JSON.stringify(p.issues ?? []),
-  ).run();
+  // Tenta INSERT com campo operator. Se falhar por coluna inexistente (D1 sem migration),
+  // re-tenta sem o campo para nao perder o registro.
+  try {
+    await env.DB.prepare(
+      `INSERT OR REPLACE INTO diagnostic_sessions
+         (id, created_at, network_type, status, score,
+          download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss, issues, resolved, operator)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`
+    ).bind(
+      p.id, p.created_at ?? nowSec(),
+      p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
+      p.download_mbps ?? null, p.upload_mbps ?? null,
+      p.latency_ms ?? null, p.jitter_ms ?? null, p.packet_loss ?? null,
+      JSON.stringify(p.issues ?? []),
+      p.operator ?? null,
+    ).run();
+  } catch (e: any) {
+    // Fallback: coluna operator ainda nao existe no D1 — inserir sem ela
+    if (e?.message?.includes("no column named operator") || e?.message?.includes("table diagnostic_sessions has no column")) {
+      await env.DB.prepare(
+        `INSERT OR REPLACE INTO diagnostic_sessions
+           (id, created_at, network_type, status, score,
+            download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss, issues, resolved)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
+      ).bind(
+        p.id, p.created_at ?? nowSec(),
+        p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
+        p.download_mbps ?? null, p.upload_mbps ?? null,
+        p.latency_ms ?? null, p.jitter_ms ?? null, p.packet_loss ?? null,
+        JSON.stringify(p.issues ?? []),
+      ).run();
+    } else {
+      throw e;
+    }
+  }
 
   return json({ ok: true, id: p.id }, 201, env);
 }
