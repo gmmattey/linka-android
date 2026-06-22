@@ -48,14 +48,14 @@ export interface ProviderUsageItem {
 export interface OverviewMetricsResponse {
   diagnosticsCount: DashboardMetricValue;
   activeUsers: DashboardMetricValue;
-  successRate: DashboardMetricValue;
+  successRate: DashboardMetricValue | null;
   aiCost: DashboardMetricValue;
-  topProblem: DashboardMetricValue;
-  mostTestType: DashboardMetricValue;
-  downloadsToday: DashboardMetricValue;
-  activeInstalls: DashboardMetricValue;
-  crashFreeUsers: DashboardMetricValue;
-  prodVersion: DashboardMetricValue;
+  topProblem: DashboardMetricValue | null;
+  mostTestType: DashboardMetricValue | null;
+  downloadsToday: DashboardMetricValue | null;
+  activeInstalls: DashboardMetricValue | null;
+  crashFreeUsers: DashboardMetricValue | null;
+  prodVersion: DashboardMetricValue | null;
 }
 
 // 1. Core metric values for PROD - Daily baseline

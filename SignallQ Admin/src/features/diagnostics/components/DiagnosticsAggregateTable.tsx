@@ -1,8 +1,9 @@
 import React from "react";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { DataTable } from "../../../components/ui/DataTable";
-import { TrendingUp, TrendingDown, RefreshCw, Layers } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { diagnosticsService } from "../../../services/diagnosticsService";
+import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 
 export interface AggregateRow {
   networkType: string;
@@ -207,13 +208,20 @@ export const DiagnosticsAggregateTable: React.FC<DiagnosticsAggregateTableProps>
       description="Consolidado multivariado de telemetria segmentado pelas interfaces ativas."
       id="diagnostics-aggregate-card"
     >
-      <DataTable
-        data={data}
-        columns={columns}
-        keyExtractor={(row) => row.networkType}
-        emptyMessage="Nenhuma agregação disponível para estes parâmetros"
-        id="aggregate-table"
-      />
+      {!loading && data.length === 0 ? (
+        <FeatureComingSoon
+          feature="Diagnósticos Agregados"
+          reason="Requer rota de agregação no worker"
+        />
+      ) : (
+        <DataTable
+          data={data}
+          columns={columns}
+          keyExtractor={(row) => row.networkType}
+          emptyMessage="Nenhuma agregação disponível para estes parâmetros"
+          id="aggregate-table"
+        />
+      )}
     </SectionCard>
   );
 };

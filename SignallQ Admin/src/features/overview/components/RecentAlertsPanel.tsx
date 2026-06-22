@@ -2,6 +2,7 @@ import React from "react";
 import { AlertList } from "../../../components/ui/AlertList";
 import { RecentAlertItem } from "../../../mocks/overview.mock";
 import { AlertOctagon } from "lucide-react";
+import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 
 interface RecentAlertsPanelProps {
   alerts: RecentAlertItem[];
@@ -24,7 +25,14 @@ export const RecentAlertsPanel: React.FC<RecentAlertsPanelProps> = ({ alerts }) 
         </div>
 
         <div className="max-h-[290px] overflow-y-auto pr-1 space-y-1">
-          <AlertList alerts={alerts} />
+          {alerts.length === 0 ? (
+            <FeatureComingSoon
+              feature="Alertas Recentes"
+              reason="Sistema de alertas não implementado"
+            />
+          ) : (
+            <AlertList alerts={alerts} />
+          )}
         </div>
       </div>
     </div>

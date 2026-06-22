@@ -21,12 +21,14 @@ export const diagnosticsService = {
         criticalIssuesCount: 0,
         attentionIssuesCount: raw.activeSessions ?? 0,
         averageScore: raw.avgNetworkScore ?? 0,
-        averageDownloadMbps: 0,
-        averageUploadMbps: 0,
-        averageLatencyMs: 0,
-        averageJitterMs: 0,
-        averagePacketLossPercentage: 0,
-        issueDistribution: {},
+        // O worker /admin/metrics/overview não serve médias de velocidade por sessão.
+        // Esses campos não têm fonte real — retornar null em vez de zero.
+        averageDownloadMbps: null,
+        averageUploadMbps: null,
+        averageLatencyMs: null,
+        averageJitterMs: null,
+        averagePacketLossPercentage: null,
+        issueDistribution: {} as Record<import("../types/diagnostics").DiagnosisIssue, number>,
       };
     }
 
@@ -67,13 +69,13 @@ export const diagnosticsService = {
       );
       const mapped: DiagnosticSession[] = (raw.sessions ?? []).map((r: any) => ({
         id: r.id,
+        deviceId: r.device_id ?? "",
+        deviceModel: r.device_model ?? "Android",
+        osVersion: r.os_version ?? "",
+        appVersion: r.app_version ?? "",
         timestamp: new Date(r.created_at * 1000).toISOString(),
-        environment: "production" as const,
         networkType: r.network_type ?? "unknown",
-        deviceModel: "Android",
-        status: r.status ?? "unknown",
-        score: r.score ?? 0,
-        resolved: !!r.resolved,
+        environment: "production" as const,
         speed: {
           downloadMbps: r.download_mbps ?? 0,
           uploadMbps: r.upload_mbps ?? 0,
@@ -83,6 +85,7 @@ export const diagnosticsService = {
           bufferbloatGrade: r.score >= 80 ? "A" : r.score >= 60 ? "B" : r.score >= 40 ? "C" : "D",
         },
         issues: Array.isArray(r.issues) ? r.issues : [],
+        aiStatus: (r.ai_status as DiagnosticSession["aiStatus"]) ?? "none",
         networkStrength: undefined,
       }));
 

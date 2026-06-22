@@ -1,11 +1,16 @@
 // SignallQ Admin API Worker
-// /admin/* exige Bearer token. /ingest/* aceita o mesmo token do AI Diagnosis Worker.
+// /admin/* exige Bearer ADMIN_SECRET (painel web, nao vai no APK).
+// /ingest/* exige Bearer INGEST_KEY (chave separada, scope limitado, vai no APK).
+// Separar os secrets reduz o blast radius: vazar INGEST_KEY nao da acesso
+// aos dados do admin. INGEST_KEY so pode escrever em /ingest/*.
 
 export interface Env {
   ALLOWED_ORIGIN: string;
   FIREBASE_PROJECT_ID: string;
   FIREBASE_GA4_PROPERTY_ID: string;
   ADMIN_SECRET: string;
+  /** Chave separada para ingest do app Android. Scope: POST /ingest/* apenas. */
+  INGEST_KEY: string;
   FIREBASE_CLIENT_EMAIL: string;
   FIREBASE_PRIVATE_KEY: string;
   DB: D1Database;
@@ -35,6 +40,15 @@ function authenticate(request: Request, env: Env): boolean {
   const auth = request.headers.get("Authorization") ?? "";
   const [scheme, token] = auth.split(" ");
   return scheme === "Bearer" && token === env.ADMIN_SECRET;
+}
+
+/** Autentica rotas /ingest/* com a INGEST_KEY (scope limitado — so POST /ingest/*). */
+function authenticateIngest(request: Request, env: Env): boolean {
+  const auth = request.headers.get("Authorization") ?? "";
+  const [scheme, token] = auth.split(" ");
+  if (scheme !== "Bearer") return false;
+  // Aceita INGEST_KEY (chave do app) OU ADMIN_SECRET (retrocompat e dev local).
+  return token === env.INGEST_KEY || token === env.ADMIN_SECRET;
 }
 
 function periodToSeconds(period: string): number {
@@ -296,8 +310,11 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "POST", pattern: /^\/admin\/integrations\/firebase\/sync$/,         handler: handleFirebaseSync },
   { method: "GET",  pattern: /^\/admin\/settings$/,                             handler: handleSettings },
   { method: "POST", pattern: /^\/admin\/settings$/,                             handler: handleSettings },
-  { method: "POST", pattern: /^\/ingest\/diagnostic$/,                          handler: handleIngestDiagnostic },
-  { method: "POST", pattern: /^\/ingest\/ai-usage$/,                            handler: handleIngestAiUsage },
+];
+
+const INGEST_ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
+  { method: "POST", pattern: /^\/ingest\/diagnostic$/, handler: handleIngestDiagnostic },
+  { method: "POST", pattern: /^\/ingest\/ai-usage$/,   handler: handleIngestAiUsage },
 ];
 
 export default {
@@ -309,6 +326,16 @@ export default {
     if (url.pathname === "/health") {
       return json({ status: "ok", worker: "signallq-admin-worker" }, 200, env);
     }
+
+    // Rotas /ingest/* — autenticam com INGEST_KEY (scope limitado, vai no APK).
+    for (const route of INGEST_ROUTES) {
+      if (route.method === request.method && route.pattern.test(url.pathname)) {
+        if (!authenticateIngest(request, env)) return err("Unauthorized", 401, env);
+        return route.handler(request, env);
+      }
+    }
+
+    // Rotas /admin/* — autenticam com ADMIN_SECRET (painel web, nao vai no APK).
     if (!authenticate(request, env)) {
       return err("Unauthorized", 401, env);
     }

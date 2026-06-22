@@ -1,28 +1,17 @@
 import { apiClient } from "./apiClient";
 import { mockSystemErrors, mockAppVersions } from "../mocks/errors.mock";
-import { SystemErrorLog, AppVersionDetail, AdminSettingsPayload, AppEnvironment } from "../types/admin";
+import { SystemErrorLog, AppVersionDetail, AppEnvironment } from "../types/admin";
 import { DashboardFilters } from "./adminMetricsService";
-
-const SETTINGS_LOCAL_STORAGE_KEY = "signallq_admin_settings_v1";
-
-const DEFAULT_SETTINGS: AdminSettingsPayload = {
-  selectedDefaultAiModel: "gemini_flash",
-  aiFallbackEnabled: true,
-  maxTokensPerDiagnostic: 1024,
-  speedtestIntervalSeconds: 30,
-  androidLogsCollectionEnabled: true,
-  stagingAlertWebhookUrl: "https://hooks.example.invalid/signallq/staging",
-  productionAlertWebhookUrl: "https://hooks.example.invalid/signallq/production",
-  cloudflareWorkerEndpoint: "https://worker.signallq.workers.dev"
-};
 
 export const analyticsService = {
   /**
    * Returns active system error metrics from Android SDK, DB pools, or Edge Cloudflare Worker API
    */
   async getErrorMetrics(filters: DashboardFilters = {}): Promise<SystemErrorLog[]> {
+    if (!apiClient.isMockEnabled()) return [];
+
     const list = await apiClient.simulateFetch(mockSystemErrors, filters);
-    
+
     let filtered = list;
     if (filters.environment) {
       filtered = filtered.filter(e => e.environment === filters.environment);
@@ -34,6 +23,8 @@ export const analyticsService = {
    * Returns live app deployment rollouts, codes, release note guidelines, and crash ratios
    */
   async getAppVersionMetrics(filters: { search?: string; environment?: AppEnvironment } = {}): Promise<AppVersionDetail[]> {
+    if (!apiClient.isMockEnabled()) return [];
+
     const list = await apiClient.simulateFetch(mockAppVersions, filters);
     
     let processed = list;
@@ -61,44 +52,4 @@ export const analyticsService = {
     return processed;
   },
 
-  /**
-   * Retrieves active operations variables, loaded from localStorage or default configuration state
-   */
-  async getAdminSettings(): Promise<AdminSettingsPayload> {
-    // Artificial Api call
-    await apiClient.simulateFetch(null, {});
-    
-    if (typeof window !== "undefined") {
-      const data = localStorage.getItem(SETTINGS_LOCAL_STORAGE_KEY);
-      if (data) {
-        try {
-          return { ...DEFAULT_SETTINGS, ...JSON.parse(data) };
-        } catch (e) {
-          console.error("Failed to parse local storage settings, reverting to default parameters", e);
-        }
-      }
-    }
-    return DEFAULT_SETTINGS;
-  },
-
-  /**
-   * Commits modified options either to server PATCH endpoint or save them securely in localStorage state
-   */
-  async updateAdminSettings(payload: Partial<AdminSettingsPayload>): Promise<{ success: boolean; data: AdminSettingsPayload }> {
-    // Real Axios/Fetch PATCH simulation
-    await apiClient.request("PATCH", "/admin/settings", payload);
-    
-    const current = await this.getAdminSettings();
-    const updated = { ...current, ...payload };
-    
-    if (typeof window !== "undefined") {
-      localStorage.setItem(SETTINGS_LOCAL_STORAGE_KEY, JSON.stringify(updated));
-      console.log("[ApiClient Saved] Successfully synchronized local browser cache with mock telemetry configs.", updated);
-    }
-    
-    return {
-      success: true,
-      data: updated
-    };
-  }
 };

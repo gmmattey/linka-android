@@ -69,16 +69,32 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
     };
   }, [searchQuery, environment, triggerRefreshCounter]);
 
-  // Compute stats or fallback
+  // Compute stats — null quando fonte real não disponível (sem mock)
   const isStg = environment === "staging";
-  
-  const activeVersion = "0.18.1";
-  const activeVersionAdoption = isStg ? "61%" : "61%";
-  const crashFreeUsers = fbAnalytics?.crashFreeUsersPercentage ?? (isStg ? 99.8 : 99.22);
-  const crashFreeSessions = fbAnalytics?.crashFreeSessionsPercentage ?? (isStg ? 99.9 : 99.60);
-  const dailyDownloads = gpInstalls?.dailyDownloads ?? (isStg ? 21 : 214);
-  const activeInstalls = gpInstalls?.activeInstalls ?? (isStg ? 482 : 4820);
-  const currentRollout = isStg ? 100 : 100;
+
+  // activeVersion e activeVersionAdoption derivam dos dados de versão carregados.
+  // Se versions estiver vazio (sem mock), não há valor real disponível.
+  const latestActiveVersion = versions.find(v => v.status === "active" || v.status === "stable");
+  const activeVersion = latestActiveVersion?.versionCode ?? null;
+  const activeVersionAdoption = latestActiveVersion?.activeUsersPercentage != null
+    ? `${latestActiveVersion.activeUsersPercentage}%`
+    : null;
+
+  // Firebase: crashFreeUsersPercentage retorna 0 quando sem dados GA4 reais (apenas activeUsers é populado).
+  // Tratar 0 como indisponível — Crashlytics requer BigQuery export (stub no worker).
+  const crashFreeUsers = (fbAnalytics?.crashFreeUsersPercentage != null && fbAnalytics.crashFreeUsersPercentage > 0)
+    ? fbAnalytics.crashFreeUsersPercentage
+    : null;
+  const crashFreeSessions = (fbAnalytics?.crashFreeSessionsPercentage != null && fbAnalytics.crashFreeSessionsPercentage > 0)
+    ? fbAnalytics.crashFreeSessionsPercentage
+    : null;
+
+  // Google Play: sem rota no worker — gpInstalls é null em produção.
+  const dailyDownloads = gpInstalls?.dailyDownloads ?? null;
+  const activeInstalls = gpInstalls?.activeInstalls ?? null;
+
+  // Rollout: derivar do mock de versões quando disponível, sem valor inventado em produção.
+  const currentRollout = latestActiveVersion?.rolloutPercentage ?? null;
 
   const tableColumns = [
     {
@@ -218,8 +234,10 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
             <div className="bg-gradient-to-br from-zinc-900/60 to-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-1">
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-medium block">Versão mais usada</span>
               <div className="flex items-baseline justify-between">
-                <span className="text-lg font-bold text-white font-mono">{activeVersion}</span>
-                <span className="text-[10px] text-green-400 bg-green-950/20 px-1.5 py-0.5 rounded-md font-mono">{activeVersionAdoption}</span>
+                <span className="text-lg font-bold text-white font-mono">{activeVersion ?? "—"}</span>
+                {activeVersionAdoption != null && (
+                  <span className="text-[10px] text-green-400 bg-green-950/20 px-1.5 py-0.5 rounded-md font-mono">{activeVersionAdoption}</span>
+                )}
               </div>
               <span className="text-[9px] text-zinc-500 block">Predominância no parque ativo</span>
             </div>
@@ -229,7 +247,7 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-medium block">Versão de Produção</span>
               <div className="flex items-center gap-1.5 mt-1">
                 <Server className="w-3.5 h-3.5 text-[#6C2BFF]" />
-                <span className="text-lg font-bold text-white font-mono">{activeVersion}</span>
+                <span className="text-lg font-bold text-white font-mono">{activeVersion ?? "—"}</span>
               </div>
               <span className="text-[9px] text-zinc-500 block">Google Play Console Track</span>
             </div>
@@ -238,7 +256,7 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
             <div className="bg-gradient-to-br from-zinc-900/60 to-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-1">
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-medium block">Adoção Versão Atual</span>
               <div className="flex items-baseline justify-between mt-0.5">
-                <span className="text-lg font-bold text-white font-mono">{activeVersionAdoption}</span>
+                <span className="text-lg font-bold text-white font-mono">{activeVersionAdoption ?? "—"}</span>
                 <span className="text-[10.1px] text-zinc-400 font-mono">Consolidado</span>
               </div>
               <span className="text-[9px] text-zinc-500 block">Percentual de sessões hoje</span>
@@ -251,8 +269,12 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
                 Crash-Free Users
               </span>
               <div className="flex items-baseline justify-between mt-0.5">
-                <span className="text-lg font-bold text-white font-mono">{crashFreeUsers}%</span>
-                <span className="text-[9.5px] text-green-400 font-mono">Meta &gt;99%</span>
+                <span className="text-lg font-bold text-white font-mono">
+                  {crashFreeUsers != null ? `${crashFreeUsers}%` : "—"}
+                </span>
+                {crashFreeUsers != null && (
+                  <span className="text-[9.5px] text-green-400 font-mono">Meta &gt;99%</span>
+                )}
               </div>
               <span className="text-[9px] text-zinc-500 block">Firebase Crashlytics Analytics</span>
             </div>
@@ -261,8 +283,12 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
             <div className="bg-gradient-to-br from-zinc-900/60 to-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-1">
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-medium block">Crash-Free Sessions</span>
               <div className="flex items-baseline justify-between">
-                <span className="text-lg font-bold text-white font-mono">{crashFreeSessions}%</span>
-                <span className="text-[10px] text-green-400 font-mono">Estável</span>
+                <span className="text-lg font-bold text-white font-mono">
+                  {crashFreeSessions != null ? `${crashFreeSessions}%` : "—"}
+                </span>
+                {crashFreeSessions != null && (
+                  <span className="text-[10px] text-green-400 font-mono">Estável</span>
+                )}
               </div>
               <span className="text-[9px] text-zinc-500 block">Sessões livres de erros fatais</span>
             </div>
@@ -271,8 +297,12 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
             <div className="bg-gradient-to-br from-zinc-900/60 to-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-1">
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-medium block">Downloads Hoje</span>
               <div className="flex items-baseline justify-between">
-                <span className="text-lg font-bold text-white font-mono">+{dailyDownloads}</span>
-                <span className="text-[10px] text-purple-400 font-mono">+8.4%</span>
+                <span className="text-lg font-bold text-white font-mono">
+                  {dailyDownloads != null ? `+${dailyDownloads}` : "—"}
+                </span>
+                {dailyDownloads != null && (
+                  <span className="text-[10px] text-purple-400 font-mono">+8.4%</span>
+                )}
               </div>
               <span className="text-[9px] text-zinc-500 block">Origem Google Play Developer API</span>
             </div>
@@ -281,7 +311,9 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
             <div className="bg-gradient-to-br from-zinc-900/60 to-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-1">
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-medium block">Instalações Ativas</span>
               <div className="flex items-baseline justify-between">
-                <span className="text-lg font-bold text-white font-mono">{activeInstalls.toLocaleString("pt-BR")}</span>
+                <span className="text-lg font-bold text-white font-mono">
+                  {activeInstalls != null ? activeInstalls.toLocaleString("pt-BR") : "—"}
+                </span>
                 <span className="text-[10px] text-zinc-400 font-mono">Total</span>
               </div>
               <span className="text-[9px] text-zinc-500 block">Dispositivos com app instalado</span>
@@ -291,8 +323,12 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
             <div className="bg-gradient-to-br from-zinc-900/60 to-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-1">
               <span className="text-[10px] uppercase font-mono text-zinc-500 font-medium block">Rollout Atual</span>
               <div className="flex items-baseline justify-between">
-                <span className="text-lg font-bold text-white font-mono">{currentRollout}%</span>
-                <span className="text-[10px] text-[#6C2BFF] font-semibold font-mono">Concluído</span>
+                <span className="text-lg font-bold text-white font-mono">
+                  {currentRollout != null ? `${currentRollout}%` : "—"}
+                </span>
+                {currentRollout != null && (
+                  <span className="text-[10px] text-[#6C2BFF] font-semibold font-mono">Concluído</span>
+                )}
               </div>
               <span className="text-[9px] text-zinc-500 block">Estágio de rollout em produção</span>
             </div>

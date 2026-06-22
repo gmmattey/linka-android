@@ -1,23 +1,16 @@
 import React from "react";
 import { errorMetricsService } from "../../services/errorMetricsService";
-import { ErrorMetricGrid } from "./components/ErrorMetricGrid";
-import { ErrorByEndpointChart } from "./components/ErrorByEndpointChart";
-import { ErrorAlertsPanel } from "./components/ErrorAlertsPanel";
+import { apiClient } from "../../services/apiClient";
 import { RecentErrorsTable } from "./components/RecentErrorsTable";
 import { LoadingState } from "../../components/ui/LoadingState";
+import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { AppEnvironment } from "../../types/admin";
 import { SystemError } from "../../types/errors";
 import {
-  AlertTriangle,
   RefreshCw,
   Search,
   CheckCircle,
-  Eye,
-  Info,
-  Layers,
   Terminal,
-  Clock,
-  UserCheck2,
   Workflow
 } from "lucide-react";
 
@@ -48,54 +41,6 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
   // Resolution states
   const [resolvingId, setResolvingId] = React.useState<string | null>(null);
   const [statusMessage, setStatusMessage] = React.useState<string | null>(null);
-
-  // Grouping state for error mapping
-  const [activeGroup, setActiveGroup] = React.useState<string>("feature");
-
-  const groupingData = React.useMemo(() => {
-    switch (activeGroup) {
-      case "feature":
-        return [
-          { name: "Scan de Dispositivos", count: 31, percentage: 53, subtitle: "Multicast scan overload & network buffer crash" },
-          { name: "Análise Móvel", count: 14, percentage: 24, subtitle: "TelephonyManager broadcast timeout exception" },
-          { name: "Diagnóstico Completo", count: 9, percentage: 15, subtitle: "API sequential pipeline connection failure" },
-          { name: "SpeedTest", count: 4, percentage: 7, subtitle: "Saturação de link / socket connection abort" },
-        ];
-      case "screen":
-        return [
-          { name: "Painel de Dispositivos (devices)", count: 28, percentage: 48, subtitle: "Multicast address response parser failure" },
-          { name: "Análise Móvel (signal)", count: 18, percentage: 31, subtitle: "Cellular signal strength callback failure" },
-          { name: "Laudo Técnico (laudo)", count: 8, percentage: 14, subtitle: "PDF native serialization crash" },
-          { name: "Diagnóstico guiado (home)", count: 4, percentage: 7, subtitle: "Guided wizard navigation flow exception" },
-        ];
-      case "version":
-        return [
-          { name: "Build 0.18.1 (Critical)", count: 38, percentage: 65, subtitle: "Novo Core Network Multicast Discovery SDK" },
-          { name: "Build 0.18.0", count: 16, percentage: 27, subtitle: "Permissões de rede local no Android 13+" },
-          { name: "Build 0.17.5", count: 4, percentage: 8, subtitle: "Incompatibilidade SSL Handshake de Legacy OS" },
-        ];
-      case "network":
-        return [
-          { name: "Conexões Móveis (4G/5G)", count: 34, percentage: 58, subtitle: "Timeouts de socket do modem de telefonia (Tim/Vivo)" },
-          { name: "Wi-Fi (Multicast local)", count: 20, percentage: 34, subtitle: "Local gateway router dropping multicast probes" },
-          { name: "Ethernet (Cabada)", count: 4, percentage: 8, subtitle: "Inconsistências de MTU estático em switchboards" },
-        ];
-      case "provider":
-        return [
-          { name: "Google Gemini API Gateway", count: 12, percentage: 66, subtitle: "Quota Exceeded / rate limit 429 response" },
-          { name: "Fallback Local (On-device)", count: 4, percentage: 22, subtitle: "Regex pattern compilation out of memory" },
-          { name: "Workers AI Qwen", count: 2, percentage: 12, subtitle: "Edge gateway connection reset by Cloudflare" },
-        ];
-      case "endpoint":
-      default:
-        return [
-          { name: "/api/diagnostics/submit", count: 18, percentage: 39, subtitle: "Erro 500 PostgreSQL database connection pool spike" },
-          { name: "/api/ai/laudo", count: 12, percentage: 26, subtitle: "Gemini server-side API Gateway timeout" },
-          { name: "/api/error/logger", count: 10, percentage: 21, subtitle: "Erro 413 Client Payload Too Large Exception" },
-          { name: "/api/auth/session", count: 6, percentage: 14, subtitle: "Invalidação precoce de tokens JWT expirados" },
-        ];
-    }
-  }, [activeGroup]);
 
   // Sync prop changes
   React.useEffect(() => {
@@ -236,109 +181,41 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
         </div>
       </div>
 
-      {/* 2. Grid cards (4 stats items) */}
-      <ErrorMetricGrid environment={localEnv} />
+      {/* 2. Grid cards — sem fonte real no worker */}
+      <FeatureComingSoon
+        feature="Métricas de Erros"
+        reason="Requer rota de erros no worker"
+      />
 
-      {/* 3. Operational grid layouts (Visual chart left + alerts logs right) */}
+      {/* 3. Operational grid layouts — sem fonte real no worker */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
         <div className="lg:col-span-2">
-          <ErrorByEndpointChart environment={localEnv} />
+          <FeatureComingSoon
+            feature="Volume de Erros por Interface"
+            reason="Requer rota de erros no worker"
+          />
         </div>
         <div>
-          <ErrorAlertsPanel />
+          <FeatureComingSoon
+            feature="Alertas Críticos de Infraestrutura"
+            reason="Sistema de alertas não implementado"
+          />
         </div>
       </div>
 
-      {/* 3.5. Agrupamentos e Respostas Operacionais */}
+      {/* 3.5. Agrupamentos e Respostas Operacionais — sem fonte real */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
-        {/* Left column: Dynamic group list */}
-        <div className="lg:col-span-7 bg-[#0E0E12] border border-[#262626] rounded-2xl p-6 space-y-5">
-          <div className="space-y-1">
-            <h4 className="text-xs font-semibold font-mono text-zinc-500 uppercase tracking-widest">Agrupador Inteligente de Falhas</h4>
-            <h3 className="text-sm font-bold text-white font-sans">Estatísticas Operacionais Consolidadas</h3>
-            <p className="text-[10px] text-zinc-550 font-sans">Agrupe logs de exceção do Worker para localizar pontos fracos de estabilidade no Android.</p>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5 p-1 bg-[#15151A] border border-zinc-900 rounded-xl">
-            {[
-              { key: "feature", label: "Função" },
-              { key: "screen", label: "Tela" },
-              { key: "version", label: "Versão" },
-              { key: "network", label: "Rede" },
-              { key: "provider", label: "Provedor IA" },
-              { key: "endpoint", label: "Endpoint API" },
-            ].map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setActiveGroup(opt.key)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold transition-all ${
-                  activeGroup === opt.key
-                    ? "bg-[#6C2BFF] text-white"
-                    : "text-zinc-400 hover:text-white hover:bg-zinc-900"
-                }`}
-              >
-                {opt.label.toUpperCase()}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-4 pt-1">
-            {groupingData.map((item, idx) => (
-              <div key={idx} className="space-y-1.5">
-                <div className="flex justify-between items-end text-xs font-sans">
-                  <div>
-                    <span className="font-bold text-zinc-200">{item.name}</span>
-                    <span className="text-[10px] text-zinc-500 block">{item.subtitle}</span>
-                  </div>
-                  <span className="font-mono text-zinc-400 font-bold">
-                    {item.count} erros <span className="text-zinc-600">({item.percentage}%)</span>
-                  </span>
-                </div>
-                <div className="w-full h-1.5 bg-[#171720] border border-zinc-900 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full"
-                    style={{ width: `${item.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="lg:col-span-7">
+          <FeatureComingSoon
+            feature="Agrupador de Falhas por Função / Tela / Versão"
+            reason="Requer rota de agregação de erros no worker"
+          />
         </div>
-
-        {/* Right column: QA answers (Google Vitals FAQ) */}
-        <div className="lg:col-span-5 bg-[#0E0E12] border border-[#262626] rounded-2xl p-6 space-y-4">
-          <div className="space-y-1">
-            <span className="text-[9px] text-[#FF4D4F] font-mono uppercase tracking-widest font-bold">Análise Google Vitals</span>
-            <h3 className="text-sm font-bold text-white font-sans">FAQ de Diagnóstico Técnico</h3>
-            <p className="text-[10px] text-zinc-550 font-sans">Respostas imediatas inferidas a partir da volumetria ativa de erros.</p>
-          </div>
-
-          <div className="space-y-3.5 pt-2">
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[9px] font-mono text-[#FF4D4F] uppercase tracking-wider block">Qual função mais deu crash?</span>
-              <p className="text-xs font-bold text-white font-sans">Scan de Dispositivos (Multicast)</p>
-              <p className="text-[10px] text-zinc-400 font-sans">Registrou <strong className="text-red-400">31 crashes</strong> devido a sobrecarga de buffer na leitura de pacotes UDP.</p>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[9px] font-mono text-indigo-400 uppercase tracking-wider block">Qual tela mais concentrou erro?</span>
-              <p className="text-xs font-bold text-white font-sans">Painel de Dispositivos (devices)</p>
-              <p className="text-[10px] text-zinc-400 font-sans">Concentra <b className="text-[#6C2BFF]">48% dos erros</b> com taxa média de evasão e cancelamento de 55%.</p>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[9px] font-mono text-amber-400 uppercase tracking-wider block">Qual versão mais afetada?</span>
-              <p className="text-xs font-bold text-white font-sans">Lançamento v0.18.1</p>
-              <p className="text-[10px] text-zinc-400 font-sans">Fator crítico respondendo por <strong className="text-amber-500">65% das falhas</strong> do ecossistema Android.</p>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-wider block">Qual erro está ligado ao diagnóstico móvel?</span>
-              <p className="text-xs font-bold text-white font-sans">and_tel_mob_analysis_failed</p>
-              <p className="text-[10px] text-zinc-400 font-sans">Falha de callback no listener <code className="font-mono text-[9px] text-emerald-400">TelephonyManager</code> por timeout.</p>
-            </div>
-          </div>
+        <div className="lg:col-span-5">
+          <FeatureComingSoon
+            feature="Análise Automática de Vitals"
+            reason="Requer integração com Firebase Crashlytics e Google Play Vitals"
+          />
         </div>
       </div>
 
@@ -418,18 +295,29 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
                         <Workflow className="w-4 h-4 text-zinc-500 mr-1" />
                         <span>Resoldor do Caso</span>
                       </div>
-                      <button
-                        onClick={() => handleResolve(selectedError.id)}
-                        disabled={selectedError.resolved || resolvingId !== null}
-                        className={`flex items-center gap-1.5 px-3.5 py-2 border rounded-xl font-mono text-[10px] font-bold uppercase transition-all select-none cursor-pointer ${
-                          selectedError.resolved
-                            ? "bg-emerald-950/20 border-emerald-500/20 text-emerald-400 cursor-not-allowed"
-                            : "bg-[#FF4D4F]/10 border-[#FF4D4F]/20 text-[#FF4D4F] hover:bg-[#FF4D4F]/20"
-                        }`}
-                      >
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        <span>{selectedError.resolved ? "Resolvido no Cluster" : resolvingId ? "Disparando..." : "Marcar Resolvido"}</span>
-                      </button>
+                      {apiClient.isMockEnabled() ? (
+                        <button
+                          onClick={() => handleResolve(selectedError.id)}
+                          disabled={selectedError.resolved || resolvingId !== null}
+                          className={`flex items-center gap-1.5 px-3.5 py-2 border rounded-xl font-mono text-[10px] font-bold uppercase transition-all select-none cursor-pointer ${
+                            selectedError.resolved
+                              ? "bg-emerald-950/20 border-emerald-500/20 text-emerald-400 cursor-not-allowed"
+                              : "bg-[#FF4D4F]/10 border-[#FF4D4F]/20 text-[#FF4D4F] hover:bg-[#FF4D4F]/20"
+                          }`}
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>{selectedError.resolved ? "Resolvido no Cluster" : resolvingId ? "Disparando..." : "Marcar Resolvido"}</span>
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          title="Em Implementação"
+                          className="flex items-center gap-1.5 px-3.5 py-2 border rounded-xl font-mono text-[10px] font-bold uppercase opacity-50 cursor-not-allowed bg-zinc-900/40 border-zinc-700/40 text-zinc-500"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Em Implementação</span>
+                        </button>
+                      )}
                     </div>
 
                     {statusMessage && (

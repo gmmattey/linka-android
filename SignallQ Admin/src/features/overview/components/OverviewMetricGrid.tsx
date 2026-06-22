@@ -1,6 +1,7 @@
 import React from "react";
 import { MetricCard } from "../../../components/ui/MetricCard";
 import { OverviewMetricsResponse } from "../../../mocks/overview.mock";
+import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 
 interface OverviewMetricGridProps {
   metrics: OverviewMetricsResponse;
@@ -9,7 +10,7 @@ interface OverviewMetricGridProps {
 export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({ metrics }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      {/* 1. Diagnósticos Hoje */}
+      {/* 1. Diagnósticos */}
       <MetricCard
         label={metrics.diagnosticsCount.label}
         value={metrics.diagnosticsCount.value}
@@ -18,7 +19,7 @@ export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({ metrics 
         id="metric-diagnostics"
       />
 
-      {/* 2. Usuários Ativos */}
+      {/* 2. Score / Usuários Ativos */}
       <MetricCard
         label={metrics.activeUsers.label}
         value={metrics.activeUsers.value}
@@ -28,15 +29,19 @@ export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({ metrics 
       />
 
       {/* 3. Taxa de Sucesso */}
-      <MetricCard
-        label={metrics.successRate.label}
-        value={metrics.successRate.value}
-        trend={metrics.successRate.trend}
-        source="SignallQ Analytics"
-        id="metric-success-rate"
-      />
+      {metrics.successRate !== null ? (
+        <MetricCard
+          label={metrics.successRate.label}
+          value={metrics.successRate.value}
+          trend={metrics.successRate.trend}
+          source="SignallQ Analytics"
+          id="metric-success-rate"
+        />
+      ) : (
+        <FeatureComingSoon feature="Taxa de Sucesso" compact />
+      )}
 
-      {/* 4. Custo IA Hoje */}
+      {/* 4. Custo IA */}
       <MetricCard
         label={metrics.aiCost.label}
         value={metrics.aiCost.value}
@@ -45,59 +50,83 @@ export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({ metrics 
         id="metric-cost"
       />
 
-      {/* 5. Downloads Hoje */}
-      <MetricCard
-        label={metrics?.downloadsToday?.label || "Downloads Hoje"}
-        value={metrics?.downloadsToday?.value !== undefined ? metrics.downloadsToday.value : 0}
-        trend={metrics?.downloadsToday?.trend}
-        source="Google Play"
-        id="metric-downloads"
-      />
+      {/* 5. Downloads Hoje — fonte: Google Play (app não publicado na Play Store) */}
+      {metrics.downloadsToday !== null ? (
+        <MetricCard
+          label={metrics.downloadsToday.label}
+          value={metrics.downloadsToday.value}
+          trend={metrics.downloadsToday.trend}
+          source="Google Play"
+          id="metric-downloads"
+        />
+      ) : (
+        <FeatureComingSoon feature="Google Play Console" reason="App não publicado na Play Store" compact />
+      )}
 
       {/* 6. Instalações Ativas */}
-      <MetricCard
-        label={metrics?.activeInstalls?.label || "Instalações Ativas"}
-        value={metrics?.activeInstalls?.value !== undefined ? metrics.activeInstalls.value : 0}
-        trend={metrics?.activeInstalls?.trend}
-        source="Google Play"
-        id="metric-installs"
-      />
+      {metrics.activeInstalls !== null ? (
+        <MetricCard
+          label={metrics.activeInstalls.label}
+          value={metrics.activeInstalls.value}
+          trend={metrics.activeInstalls.trend}
+          source="Google Play"
+          id="metric-installs"
+        />
+      ) : (
+        <FeatureComingSoon feature="Google Play Console" reason="App não publicado na Play Store" compact />
+      )}
 
       {/* 7. Crash-free users */}
-      <MetricCard
-        label={metrics?.crashFreeUsers?.label || "Crash-Free Users"}
-        value={metrics?.crashFreeUsers?.value !== undefined ? metrics.crashFreeUsers.value : "100.0%"}
-        trend={metrics?.crashFreeUsers?.trend}
-        source="Firebase Crashlytics"
-        id="metric-crash-free"
-      />
+      {metrics.crashFreeUsers !== null ? (
+        <MetricCard
+          label={metrics.crashFreeUsers.label}
+          value={metrics.crashFreeUsers.value}
+          trend={metrics.crashFreeUsers.trend}
+          source="Firebase Crashlytics"
+          id="metric-crash-free"
+        />
+      ) : (
+        <FeatureComingSoon feature="Crashlytics" reason="Requer exportação BigQuery" compact />
+      )}
 
       {/* 8. Versão em produção */}
-      <MetricCard
-        label={metrics?.prodVersion?.label || "Versão em Produção"}
-        value={metrics?.prodVersion?.value !== undefined ? metrics.prodVersion.value : "0.0.0"}
-        trend={metrics?.prodVersion?.trend}
-        source="Google Play"
-        id="metric-prod-version"
-      />
+      {metrics.prodVersion !== null ? (
+        <MetricCard
+          label={metrics.prodVersion.label}
+          value={metrics.prodVersion.value}
+          trend={metrics.prodVersion.trend}
+          source="Google Play"
+          id="metric-prod-version"
+        />
+      ) : (
+        <FeatureComingSoon feature="Google Play Console" reason="App não publicado na Play Store" compact />
+      )}
 
       {/* 9. Problema mais comum */}
-      <MetricCard
-        label={metrics.topProblem.label}
-        value={metrics.topProblem.value}
-        trend={metrics.topProblem.trend}
-        source="SignallQ Analytics"
-        id="metric-common-issue"
-      />
+      {metrics.topProblem !== null ? (
+        <MetricCard
+          label={metrics.topProblem.label}
+          value={metrics.topProblem.value}
+          trend={metrics.topProblem.trend}
+          source="SignallQ Analytics"
+          id="metric-common-issue"
+        />
+      ) : (
+        <FeatureComingSoon feature="Top Problem" reason="Requer agregação no worker" compact />
+      )}
 
       {/* 10. Tipo mais testado */}
-      <MetricCard
-        label={metrics.mostTestType.label}
-        value={metrics.mostTestType.value}
-        trend={metrics.mostTestType.trend}
-        source="SignallQ Analytics"
-        id="metric-most-test-type"
-      />
+      {metrics.mostTestType !== null ? (
+        <MetricCard
+          label={metrics.mostTestType.label}
+          value={metrics.mostTestType.value}
+          trend={metrics.mostTestType.trend}
+          source="SignallQ Analytics"
+          id="metric-most-test-type"
+        />
+      ) : (
+        <FeatureComingSoon feature="Tipo de Rede Predominante" reason="Requer agregação no worker" compact />
+      )}
     </div>
   );
 };

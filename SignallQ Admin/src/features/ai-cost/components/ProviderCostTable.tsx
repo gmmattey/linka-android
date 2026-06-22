@@ -1,8 +1,9 @@
 import React from "react";
 import { SectionCard } from "../../../components/ui/SectionCard";
 import { DataTable } from "../../../components/ui/DataTable";
-import { Cpu, Server, Layers, HelpCircle, HardDrive } from "lucide-react";
+import { Cpu, Server, Layers, HardDrive } from "lucide-react";
 import { AiModelInsights } from "../../../types/ai";
+import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 
 interface ProviderCostTableProps {
   insights: AiModelInsights[];
@@ -65,6 +66,11 @@ export const ProviderCostTable: React.FC<ProviderCostTableProps> = ({ insights }
     {
       header: "Taxa de Sucesso",
       accessor: (row: AiModelInsights) => {
+        if (row.reliabilityPercentage === null) {
+          return (
+            <FeatureComingSoon feature="Taxa de Sucesso" compact />
+          );
+        }
         const val = row.reliabilityPercentage;
         const color = val > 99 ? "text-emerald-400" : val > 97 ? "text-amber-500" : "text-red-400";
         return (

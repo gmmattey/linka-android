@@ -1,6 +1,7 @@
 import React from "react";
 import { ChartCard } from "../../../components/ui/ChartCard";
 import { LineChart } from "../../../components/charts/LineChart";
+import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 
 interface DiagnosticsTimelineProps {
   timelineData: any[];
@@ -36,15 +37,22 @@ export const DiagnosticsTimeline: React.FC<DiagnosticsTimelineProps> = ({ timeli
       description={getTimelineDescription()}
       id="diagnostics-timeline-card"
     >
-      <LineChart
-        data={timelineData}
-        xAxisKey="timestamp"
-        series={[
-          { key: "completedDiagnostics", name: "Diagnósticos Executados", color: "#6C2BFF" },
-          { key: "activeUsers", name: "Dispositivos Ativos", color: "#38BDF8" },
-        ]}
-        height={260}
-      />
+      {timelineData.length === 0 ? (
+        <FeatureComingSoon
+          feature="Timeline de Diagnósticos"
+          reason="Requer série temporal no worker"
+        />
+      ) : (
+        <LineChart
+          data={timelineData}
+          xAxisKey="timestamp"
+          series={[
+            { key: "completedDiagnostics", name: "Diagnósticos Executados", color: "#6C2BFF" },
+            { key: "activeUsers", name: "Dispositivos Ativos", color: "#38BDF8" },
+          ]}
+          height={260}
+        />
+      )}
     </ChartCard>
   );
 };

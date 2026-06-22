@@ -41,25 +41,30 @@ export const adminMetricsService = {
 
       const score = raw.avgNetworkScore ?? 0;
       const verdict = score >= 80 ? "Excelente" : score >= 60 ? "Bom" : score >= 40 ? "Regular" : "Fraco";
-      const base = mockOverviewProd7d;
 
       return {
-        ...base,
         diagnosticsCount: {
-          ...base.diagnosticsCount,
+          label: "Diagnósticos",
           value: raw.totalDiagnostics,
           trend: { value: raw.activeSessions, changePercentage: 0, type: "neutral" as const, intervalLabel: `${raw.activeSessions} sessões ativas` },
         },
         activeUsers: {
-          ...base.activeUsers,
+          label: "Score de Rede",
           value: `${score} · ${verdict}`,
           trend: { value: score, changePercentage: 0, type: score >= 60 ? "up" as const : "down" as const, intervalLabel: "score de rede" },
         },
         aiCost: {
-          ...base.aiCost,
+          label: "Custo IA",
           value: `$${(raw.aiCostToday ?? 0).toFixed(6)}`,
           trend: { value: raw.aiCallsToday, changePercentage: 0, type: "neutral" as const, intervalLabel: `${raw.aiCallsToday} chamadas hoje · ${raw.aiTokensToday} tokens` },
         },
+        successRate: null,
+        topProblem: null,
+        mostTestType: null,
+        downloadsToday: null,
+        activeInstalls: null,
+        crashFreeUsers: null,
+        prodVersion: null,
       };
     }
 

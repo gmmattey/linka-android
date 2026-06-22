@@ -1,6 +1,5 @@
 import React from "react";
 import { aiUsageService } from "../../services/aiUsageService";
-import { productAnalyticsService } from "../../services/productAnalyticsService";
 import { AiCostMetricGrid } from "./components/AiCostMetricGrid";
 import { ProviderCostTable } from "./components/ProviderCostTable";
 import { AiCostTimeline } from "./components/AiCostTimeline";
@@ -10,9 +9,10 @@ import { DataTable } from "../../components/ui/DataTable";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { LoadingState } from "../../components/ui/LoadingState";
+import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { AppEnvironment } from "../../types/admin";
 import { AiModelInsights, AiUsageRecord } from "../../types/ai";
-import { Bot, Key, Cpu, HelpCircle, HardDrive, RefreshCw, Zap, Sliders, PlayCircle, HelpCircle as HelpIcon, Flame } from "lucide-react";
+import { Bot, RefreshCw } from "lucide-react";
 
 interface AiCostPageProps {
   environment: AppEnvironment;
@@ -31,55 +31,21 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
   const [modelInsights, setModelInsights] = React.useState<AiModelInsights[]>([]);
   const [timelineData, setTimelineData] = React.useState<any[]>([]);
   const [records, setRecords] = React.useState<AiUsageRecord[]>([]);
-  const [featureAiUsageList, setFeatureAiUsageList] = React.useState<any[]>([]);
 
   const loadAiStats = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const filters = { environment, period };
-      const [insights, dailyCosts, logs, featureAiRes] = await Promise.all([
+      const [insights, dailyCosts, logs] = await Promise.all([
         aiUsageService.getAiUsageMetrics(filters),
         aiUsageService.getAiDailyCostsTimeSeries(filters),
         aiUsageService.getAiUsageRecords(filters),
-        productAnalyticsService.getFeatureAiUsage(filters as any),
       ]);
 
       setModelInsights(insights);
       setTimelineData(dailyCosts);
       setRecords(logs);
-      
-      // Let's add Fallback and Testes internos items to match Brazilian specs literal
-      const enrichedList = [
-        ...featureAiRes,
-        {
-          feature: "fallback_local",
-          label: "Fallback Local (On-device)",
-          aiCalls: 0,
-          tokensInput: 0,
-          tokensOutput: 0,
-          totalTokens: 0,
-          estimatedCost: 0.00,
-          avgLatencyMs: 5,
-          fallbackCount: 410,
-          invalidJsonPercent: 0,
-          avgCostCompleted: 0.00
-        },
-        {
-          feature: "test_internos",
-          label: "Testes Internos (Desenvolvimento)",
-          aiCalls: 15,
-          tokensInput: 12000,
-          tokensOutput: 8000,
-          totalTokens: 20000,
-          estimatedCost: 0.15,
-          avgLatencyMs: 920,
-          fallbackCount: 0,
-          invalidJsonPercent: 0,
-          avgCostCompleted: 0.01
-        }
-      ];
-      setFeatureAiUsageList(enrichedList);
     } catch (e: any) {
       console.error("Failed to sync AI usage insights", e);
       const code = e?.code;
@@ -245,69 +211,10 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
         title="Faturamento e Consumo IA por Função"
         description="Mapeamento econômico de processamento de tokens por finalidade de IA e as devidas contingências."
       >
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-zinc-900 text-[10px] font-mono text-zinc-550 uppercase tracking-wider">
-                <th className="py-3 px-4 font-normal">Função</th>
-                <th className="py-3 px-4 text-right font-normal">Chamadas IA</th>
-                <th className="py-3 px-4 text-right font-normal">Tokens Pre-Fill</th>
-                <th className="py-3 px-4 text-right font-normal">Tokens Geração</th>
-                <th className="py-3 px-4 text-right font-normal">Latência Média</th>
-                <th className="py-3 px-4 text-center font-normal">Contingência Fallback</th>
-                <th className="py-3 px-4 text-center font-normal">JSON Inválido</th>
-                <th className="py-3 px-4 text-right font-normal">Custo Total</th>
-                <th className="py-3 px-4 text-right font-normal">Custo/Diag Concluído</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-900/45 text-[11px] font-sans">
-              {featureAiUsageList.map((item) => {
-                const totalTokens = item.tokensInput + item.tokensOutput;
-                const isLocal = item.feature === "fallback_local";
-                const fallbackCounts = item.fallbackCount !== undefined ? item.fallbackCount : 0;
-                const invalidJsonVal = item.invalidJsonPercent !== undefined ? item.invalidJsonPercent : 0;
-                const avgCost = item.avgCostCompleted !== undefined ? item.avgCostCompleted : (item.estimatedCost / (item.aiCalls || 1));
-                
-                return (
-                  <tr key={item.feature} className="hover:bg-zinc-950/25 transition-all">
-                    <td className="py-3.5 px-4 font-bold text-white">
-                      {item.label}
-                      <span className="text-[10px] font-mono text-zinc-550 font-normal block mt-0.5">key: {item.feature}</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-300">
-                      {item.aiCalls.toLocaleString("pt-BR")}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-400">
-                      {item.tokensInput ? item.tokensInput.toLocaleString("pt-BR") : "-"}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-400">
-                      {item.tokensOutput ? item.tokensOutput.toLocaleString("pt-BR") : "-"}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-400">
-                      {item.avgLatencyMs}ms
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-mono">
-                      {fallbackCounts > 0 ? (
-                        <span className="text-amber-500 font-semibold">{fallbackCounts} acionamentos</span>
-                      ) : (
-                        <span className="text-zinc-650">Nenhuma</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-mono text-zinc-500">
-                      {invalidJsonVal}%
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-zinc-200 font-semibold">
-                      {isLocal ? "R$ 0,00" : `R$ ${item.estimatedCost.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-mono text-amber-500 font-semibold">
-                      R$ {avgCost.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <FeatureComingSoon
+          feature="Faturamento e Consumo IA por Função"
+          reason="Requer rota de breakdown por feature no worker"
+        />
       </SectionCard>
 
       {/* 5. Fine-grained execution logging table */}

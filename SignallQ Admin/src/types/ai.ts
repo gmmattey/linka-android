@@ -19,5 +19,5 @@ export interface AiModelInsights {
   totalTokens: number;
   averageLatencyMs: number;
   estimatedCostUsd: number;
-  reliabilityPercentage: number;
+  reliabilityPercentage: number | null;
 }

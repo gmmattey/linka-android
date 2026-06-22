@@ -36,12 +36,12 @@ export interface DiagnosticsSummary {
   totalTests: number;
   criticalIssuesCount: number;
   attentionIssuesCount: number;
-  averageDownloadMbps: number;
-  averageUploadMbps: number;
-  averageLatencyMs: number;
+  averageDownloadMbps: number | null;
+  averageUploadMbps: number | null;
+  averageLatencyMs: number | null;
   averageScore: number;
-  averageJitterMs: number;
-  averagePacketLossPercentage: number;
+  averageJitterMs: number | null;
+  averagePacketLossPercentage: number | null;
   issueDistribution: Record<DiagnosisIssue, number>;
 }
 

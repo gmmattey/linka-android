@@ -8,6 +8,11 @@ FIREBASE_PROJECT_ID = "device-streaming-ef179de4"
 FIREBASE_GA4_PROPERTY_ID = "542463828"
 
 # Secrets: npx wrangler secret put ADMIN_SECRET / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY
+# INGEST_KEY: chave separada para autenticar o app Android em POST /ingest/*
+#   Scope limitado — nao da acesso de leitura ao painel.
+#   Gerar: openssl rand -hex 32
+#   Deploy: npx wrangler secret put INGEST_KEY
+#   App: adicionar em local.properties -> ADMIN_INGEST_KEY=<valor>
 
 [[d1_databases]]
 binding = "DB"

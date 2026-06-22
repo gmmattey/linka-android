@@ -12,12 +12,15 @@ export const aiUsageService = {
         `/admin/metrics/ai-usage?period=${period}`
       );
       return (raw.byModel ?? []).map((r: any) => ({
-        id: r.model,
-        name: r.model,
+        provider: r.model as import("../types/ai").AiProvider,
+        displayName: r.model,
         totalCalls: r.calls ?? 0,
         totalTokens: r.tokens ?? 0,
+        averageLatencyMs: 0,
         estimatedCostUsd: r.cost_usd ?? 0,
-        reliabilityPercentage: 99.5,
+        // O worker /admin/metrics/ai-usage não serve taxa de confiabilidade.
+        // Sem fonte real — retornar null em vez de valor hardcoded.
+        reliabilityPercentage: null,
       }));
     }
 

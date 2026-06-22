@@ -5,9 +5,10 @@ import { ChartCard } from "../../components/ui/ChartCard";
 import { DataTable } from "../../components/ui/DataTable";
 import { BarChart } from "../../components/charts/BarChart";
 import { LoadingState } from "../../components/ui/LoadingState";
+import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { OperatorRecord } from "../../types/admin";
 import { AppEnvironment } from "../../types/admin";
-import { Award, Globe, HelpCircle } from "lucide-react";
+import { Award, Globe } from "lucide-react";
 
 interface OperatorsTabProps {
   environment: AppEnvironment;
@@ -46,6 +47,15 @@ export const OperatorsTab: React.FC<OperatorsTabProps> = ({
 
   if (loading) {
     return <LoadingState message="Recuperando benchmarks de operadoras no repositório de analytics..." />;
+  }
+
+  if (operators.length === 0) {
+    return (
+      <FeatureComingSoon
+        feature="Benchmarks de Operadoras"
+        reason="Requer rota de métricas de operadoras no worker"
+      />
+    );
   }
 
   // Format columns for carriers comparison

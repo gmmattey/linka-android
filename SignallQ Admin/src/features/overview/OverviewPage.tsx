@@ -1,6 +1,5 @@
 import React from "react";
 import { adminMetricsService } from "../../services/adminMetricsService";
-import { productAnalyticsService } from "../../services/productAnalyticsService";
 import { OverviewMetricGrid } from "./components/OverviewMetricGrid";
 import { DiagnosticsTimeline } from "./components/DiagnosticsTimeline";
 import { NetworkTypeDistribution } from "./components/NetworkTypeDistribution";
@@ -10,7 +9,7 @@ import { AiProviderUsagePanel } from "./components/AiProviderUsagePanel";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { AppEnvironment } from "../../types/admin";
 import { OverviewMetricsResponse } from "../../mocks/overview.mock";
-import { Zap, Layers, AlertCircle, Cpu, FileText, Activity, UserCheck, Battery } from "lucide-react";
+import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 
 interface OverviewPageProps {
   environment: AppEnvironment;
@@ -34,7 +33,6 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   const [topIssues, setTopIssues] = React.useState<any[]>([]);
   const [alerts, setAlerts] = React.useState<any[]>([]);
   const [aiUsage, setAiUsage] = React.useState<any[]>([]);
-  const [productMetrics, setProductMetrics] = React.useState<any>(null);
 
   React.useEffect(() => {
     let active = true;
@@ -45,7 +43,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       try {
         const filters = { environment, period };
         
-        // Parallelized loading using the mock services
+        // Parallelized loading
         const [
           metricsRes,
           timelineRes,
@@ -53,7 +51,6 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           issuesRes,
           alertsRes,
           aiUsageRes,
-          productRes,
         ] = await Promise.all([
           adminMetricsService.getOverviewMetrics(filters),
           adminMetricsService.getDiagnosticsTimeline(filters),
@@ -61,7 +58,6 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           adminMetricsService.getTopIssues(filters),
           adminMetricsService.getRecentAlerts(filters),
           adminMetricsService.getAiProviderUsage(filters),
-          productAnalyticsService.getOverviewCards(filters as any),
         ]);
 
         if (active) {
@@ -71,7 +67,6 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           setTopIssues(issuesRes);
           setAlerts(alertsRes);
           setAiUsage(aiUsageRes);
-          setProductMetrics(productRes);
         }
       } catch (err: any) {
         console.error("Failed to load overview telemetry dashboard:", err);
@@ -153,91 +148,11 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         </div>
       </div>
 
-      {/* 5. Health Section "Saúde do Produto" - Cards menores */}
-      {productMetrics && (
-        <div className="p-6 bg-[#0E0E12] border border-[#262626] rounded-2xl space-y-4">
-          <div className="flex justify-between items-center border-b border-zinc-900 pb-3">
-            <div>
-              <h3 className="text-sm font-bold text-white font-sans">Saúde e Engajamento do Produto</h3>
-              <p className="text-[10px] text-zinc-500 font-sans mt-0.5">Indicadores do comportamento do usuário e estabilidade por funcionalidade.</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 select-none">
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Função mais usada</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <Zap className="w-3 h-3 text-purple-400 shrink-0" />
-                {productMetrics.mostUsedFeature}
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">{productMetrics.mostUsedFeatureCount} usos</span>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Tela mais acessada</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <Layers className="w-3 h-3 text-emerald-400 shrink-0" />
-                {productMetrics.topViewedScreen}
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">{productMetrics.topViewedScreenCount} views</span>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Função c/ mais falhas</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
-                {productMetrics.mostCrashingFeature}
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">{productMetrics.crashCount}</span>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Custos IA / Diag.</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <Cpu className="w-3 h-3 text-amber-500 shrink-0" />
-                R$ 0,014
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">Médio por sessão</span>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Tokens Hoje</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <FileText className="w-3 h-3 text-zinc-400 shrink-0" />
-                26.1M tkn
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">Inferência API</span>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Crash-free Users</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <Activity className="w-3 h-3 text-emerald-400 shrink-0" />
-                99,2%
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">Estável</span>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Retenção D7</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <UserCheck className="w-3 h-3 text-indigo-400 shrink-0" />
-                {productMetrics.d7Retention}
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">Tempo médio útil</span>
-            </div>
-
-            <div className="p-3 bg-[#111115] border border-zinc-900 rounded-xl space-y-1">
-              <span className="text-[8px] font-mono text-zinc-550 uppercase block">Bateria / Em Obs.</span>
-              <div className="text-[11px] font-bold text-white flex items-center gap-1">
-                <Battery className="w-3 h-3 text-pink-400 shrink-0" />
-                {productMetrics.batteryHighestFeature}
-              </div>
-              <span className="text-[9px] font-mono text-zinc-500 block">Impacto: Alto</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 5. Health Section "Saúde do Produto" — dados de produto sem fonte real */}
+      <FeatureComingSoon
+        feature="Saúde e Engajamento do Produto"
+        reason="Requer Firebase Analytics, Crashlytics e Product Analytics no worker"
+      />
     </div>
   );
 };

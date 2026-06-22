@@ -1,9 +1,9 @@
 import React from "react";
 import { adminMetricsService } from "../../services/adminMetricsService";
-import { MetricCard } from "../../components/ui/MetricCard";
 import { ChartCard } from "../../components/ui/ChartCard";
 import { BarChart } from "../../components/charts/BarChart";
 import { LoadingState } from "../../components/ui/LoadingState";
+import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { Wifi, Radio, Cpu, Network, ZapOff } from "lucide-react";
 import { AppEnvironment } from "../../types/admin";
 
@@ -51,12 +51,24 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
     return <LoadingState message="Buscando performance de antenas celular e canais Wi-Fi..." />;
   }
 
+  // Em produção, getNetworkInsights retorna [] — sem dados reais desta rota.
+  const hasData = networkDistribution.length > 0;
+
+  if (!hasData) {
+    return (
+      <FeatureComingSoon
+        feature="Análise de Redes e RF"
+        reason="Requer rota de telemetria de rede no worker"
+      />
+    );
+  }
+
   // Settle server-provided bar charts comparing quality features
   const barData = specs?.physicalAverages || [];
 
-  const wifiCount = specs?.summaryStats?.wifiCount ?? 8120;
-  const cellCount = specs?.summaryStats?.cellCount ?? 384;
-  const attenuationRate = specs?.summaryStats?.attenuationRate ?? 14.1;
+  const wifiCount = specs?.summaryStats?.wifiCount ?? 0;
+  const cellCount = specs?.summaryStats?.cellCount ?? 0;
+  const attenuationRate = specs?.summaryStats?.attenuationRate ?? 0;
 
   return (
     <div className="space-y-6">
