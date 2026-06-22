@@ -349,6 +349,7 @@ export default {
     }
     const url = new URL(request.url);
     if (url.pathname === "/health") {
+      if (!authenticate(request, env)) return err("Unauthorized", 401, env);
       return json({ status: "ok", worker: "signallq-admin-worker" }, 200, env);
     }
 
