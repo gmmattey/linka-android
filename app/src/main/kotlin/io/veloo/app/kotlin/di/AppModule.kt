@@ -10,6 +10,7 @@ import io.veloo.app.BuildConfig
 import io.veloo.app.core.database.CoreDatabaseModulo
 import io.veloo.app.core.database.SignallQDatabase
 import io.veloo.app.core.database.MedicaoDao
+import io.veloo.app.core.database.chat.ChatSessionDao
 import io.veloo.app.core.datastore.PreferenciasAppRepository
 import io.veloo.app.core.network.CoreNetworkModulo
 import io.veloo.app.core.network.DefaultDispatcherProvider
@@ -176,6 +177,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideMedicaoDao(bancoDados: SignallQDatabase): MedicaoDao = bancoDados.medicaoDao()
+
+    @Provides
+    @Singleton
+    fun provideChatSessionDao(bancoDados: SignallQDatabase): ChatSessionDao = bancoDados.chatSessionDao()
 
     @Provides
     @Singleton

@@ -114,6 +114,7 @@ class AdminIngestRepository(
             issues.forEach { arr.put(it) }
             o.put("issues", arr)
         }
+        operator?.let { o.put("operator", it) }
         return o
     }
 

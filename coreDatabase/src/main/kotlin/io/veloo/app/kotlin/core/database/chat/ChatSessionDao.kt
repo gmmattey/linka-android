@@ -44,4 +44,20 @@ interface ChatSessionDao {
     /** Atualiza apenas o campo atualizadoEmEpochMs, sem alterar outros campos. */
     @Query("UPDATE chat_sessions SET atualizadoEmEpochMs = :atualizadoEmEpochMs WHERE id = :id")
     suspend fun atualizarAtualizadoEm(id: String, atualizadoEmEpochMs: Long)
+
+    /**
+     * Retorna sessoes concluidas apos [desde] (epoch ms) para sync retroativo.
+     *
+     * Filtros: status = completed AND nomeModelo != null (sessoes com IA ativa).
+     * Ordenadas por criadoEmEpochMs ASC para processar do mais antigo para o mais recente
+     * e atualizar o checkpoint corretamente por batch.
+     */
+    @Query(
+        "SELECT * FROM chat_sessions " +
+            "WHERE criadoEmEpochMs > :desde " +
+            "AND status = 'completed' " +
+            "AND nomeModelo IS NOT NULL " +
+            "ORDER BY criadoEmEpochMs ASC",
+    )
+    suspend fun buscarCompletasDesde(desde: Long): List<ChatSessionEntity>
 }

@@ -1,5 +1,8 @@
 package io.veloo.app.feature.diagnostico.ingest
 
+import io.veloo.app.core.database.MedicaoEntity
+import io.veloo.app.core.database.chat.ChatSessionEntity
+
 // ---------------------------------------------------------------------------
 // Utilitarios de serialização — usados por SignallQOrchestrator ao montar payloads.
 // ---------------------------------------------------------------------------
@@ -65,6 +68,8 @@ data class DiagnosticIngestPayload(
     val packetLoss: Float? = null,
     /** Lista de problemas identificados, ex: ["alta_latencia", "sinal_fraco"]. */
     val issues: List<String> = emptyList(),
+    /** Operadora movel ou ISP identificado, ex: "Claro", "Vivo". Null se desconhecido. */
+    val operator: String? = null,
 )
 
 /**
@@ -87,4 +92,47 @@ data class AiUsageIngestPayload(
     val totalTokens: Int = promptTokens + completionTokens,
     /** Custo em USD. Null = worker calcula fallback baseado em tokens. */
     val costUsd: Double? = null,
+)
+
+// ---------------------------------------------------------------------------
+// Mapeamento de entidades Room para payloads de ingest (sync retroativo)
+// ---------------------------------------------------------------------------
+
+/**
+ * Converte [MedicaoEntity] para [DiagnosticIngestPayload].
+ *
+ * Precondição: chamador DEVE garantir que [MedicaoEntity.contaminado] == false
+ * antes de invocar. Esta funcao nao valida — filtragem e responsabilidade do chamador.
+ */
+fun MedicaoEntity.toIngestPayload() = DiagnosticIngestPayload(
+    id = id,
+    createdAt = timestampEpochMs / 1000,
+    networkType = connectionType,
+    status = "completed",
+    score = null,
+    downloadMbps = downloadMbps?.toFloat(),
+    uploadMbps = uploadMbps?.toFloat(),
+    latencyMs = latencyMs?.toInt(),
+    jitterMs = jitterMs?.toInt(),
+    packetLoss = perdaPercentual?.toFloat(),
+    issues = gargaloPrimario?.takeIf { it.isNotBlank() }
+        ?.let { listOf(idParaIssueLabel(it)) } ?: emptyList(),
+    operator = operadoraMovel?.takeIf { it.isNotBlank() },
+)
+
+/**
+ * Converte [ChatSessionEntity] para [AiUsageIngestPayload].
+ *
+ * Precondição: chamador DEVE garantir que [ChatSessionEntity.status] == "completed"
+ * e [ChatSessionEntity.nomeModelo] != null antes de invocar.
+ */
+fun ChatSessionEntity.toIngestPayload() = AiUsageIngestPayload(
+    id = id,
+    model = nomeModelo ?: "unknown",
+    sessionId = null,
+    createdAt = criadoEmEpochMs / 1000,
+    promptTokens = 0,
+    completionTokens = 0,
+    totalTokens = 0,
+    costUsd = null,
 )

@@ -6,11 +6,14 @@ import android.net.NetworkCapabilities
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.veloo.app.core.database.CoreDatabaseModulo
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import io.veloo.app.core.database.MedicaoDao
 import io.veloo.app.core.database.MedicaoEntity
-import io.veloo.app.core.datastore.CoreDatastoreModulo
+import io.veloo.app.core.datastore.PreferenciasAppRepository
 import io.veloo.app.notificacao.SignallQNotificationHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -23,9 +26,12 @@ import java.net.InetAddress
 import java.net.URL
 import java.util.UUID
 
-internal class MonitoramentoWorker(
-    appContext: Context,
-    params: WorkerParameters,
+@HiltWorker
+internal class MonitoramentoWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted params: WorkerParameters,
+    private val preferenciasAppRepository: PreferenciasAppRepository,
+    private val medicaoDao: MedicaoDao,
 ) : CoroutineWorker(appContext, params) {
     private companion object {
         /** Timeout total por amostra HTTP (cobre connect + read + overhead de rede). */
@@ -39,10 +45,6 @@ internal class MonitoramentoWorker(
 
         /** Timeout para resolução DNS via InetAddress. */
         const val DNS_TIMEOUT_MS = 5_000L
-    }
-
-    private val preferenciasAppRepository by lazy {
-        CoreDatastoreModulo.criarPreferenciasAppRepository(appContext)
     }
 
     private enum class RssiMotivo { SemWifi, SemPermissao, Invalido }
@@ -115,7 +117,7 @@ internal class MonitoramentoWorker(
                     fonte = "monitor",
                 )
             withContext(Dispatchers.IO) {
-                CoreDatabaseModulo.criarBanco(applicationContext).medicaoDao().salvar(medicao)
+                medicaoDao.salvar(medicao)
             }
             Timber.d("Medicao monitor persistida id=${medicao.id} latencia=${latenciaMs}ms")
         } catch (e: Exception) {

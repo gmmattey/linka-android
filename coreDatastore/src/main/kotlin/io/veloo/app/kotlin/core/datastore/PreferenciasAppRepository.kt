@@ -74,6 +74,10 @@ class PreferenciasAppRepository(
      */
     private val chaveDispositivosConhecidos = stringPreferencesKey("dispositivos_conhecidos_set")
 
+    // Sync retroativo para admin worker — checkpoint de progresso por tipo
+    private val chaveAdminSyncMedicaoLastEpochMs = longPreferencesKey("admin_sync_medicao_last_epoch_ms")
+    private val chaveAdminSyncChatLastEpochMs = longPreferencesKey("admin_sync_chat_last_epoch_ms")
+
     val monitoramentoAtivoFlow: Flow<Boolean> =
         context.dataStore.data.map { it[chaveMonitoramentoAtivo] ?: false }
 
@@ -342,6 +346,32 @@ class PreferenciasAppRepository(
 
     suspend fun setAlertaSemInternetAtivo(ativo: Boolean) {
         withContext(ioDispatcher) { context.dataStore.edit { it[chaveAlertaSemInternetAtivo] = ativo } }
+    }
+
+    // --- Sync retroativo admin worker ---
+
+    /** Leitura pontual do checkpoint de sync de medicoes (epoch ms). */
+    suspend fun buscarAdminSyncMedicaoLastEpochMs(): Long =
+        withContext(ioDispatcher) {
+            context.dataStore.data.first()[chaveAdminSyncMedicaoLastEpochMs] ?: 0L
+        }
+
+    suspend fun salvarAdminSyncMedicaoLastEpochMs(epochMs: Long) {
+        withContext(ioDispatcher) {
+            context.dataStore.edit { it[chaveAdminSyncMedicaoLastEpochMs] = epochMs }
+        }
+    }
+
+    /** Leitura pontual do checkpoint de sync de sessoes de chat (epoch ms). */
+    suspend fun buscarAdminSyncChatLastEpochMs(): Long =
+        withContext(ioDispatcher) {
+            context.dataStore.data.first()[chaveAdminSyncChatLastEpochMs] ?: 0L
+        }
+
+    suspend fun salvarAdminSyncChatLastEpochMs(epochMs: Long) {
+        withContext(ioDispatcher) {
+            context.dataStore.edit { it[chaveAdminSyncChatLastEpochMs] = epochMs }
+        }
     }
 
     suspend fun limparTodasPreferencias() {

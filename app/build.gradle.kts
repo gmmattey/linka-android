@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.devtools.ksp")
     alias(libs.plugins.hilt)
     id("com.google.gms.google-services")
     id("com.google.firebase.appdistribution")
@@ -206,6 +207,10 @@ kotlin {
     }
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
 detekt {
     buildUponDefaultConfig = true
     config.setFrom("$rootDir/config/detekt.yml")
@@ -256,6 +261,8 @@ dependencies {
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.work.compiler)
     implementation(libs.timber)
     implementation(libs.androidx.profileinstaller)
     implementation(libs.coil.compose)
