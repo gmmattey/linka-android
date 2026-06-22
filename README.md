@@ -9,7 +9,7 @@ App Android de **diagnóstico de conectividade** com IA — analisa Wi-Fi, fibra
 - **Android** Kotlin + Jetpack Compose (Material 3), MVVM + `StateFlow`
 - **DI** Hilt · **Persistência** Room (`SignallQDatabase`) + DataStore · **Background** WorkManager (`MonitoramentoWorker`)
 - **IA** Cloudflare Worker (`integrations/cloudflare/ai-diagnosis-worker`), modelo Qwen3 30B MoE FP8, URL via `BuildConfig.AI_WORKER_URL`
-- minSdk 24 · target/compileSdk 36 · JVM 17
+- minSdk 24 · target/compileSdk 36 · JVM 17 (alvo de build) · CI roda em Java 21
 
 ## Arquitetura (15 módulos Gradle)
 
