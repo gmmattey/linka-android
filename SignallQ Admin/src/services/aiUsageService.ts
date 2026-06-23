@@ -1,6 +1,6 @@
 import { apiClient } from "./apiClient";
-import { mockAiUsageRecords, mockAiModelInsights, mockAiDailyCostsTimeSeries } from "../mocks/aiUsage.mock";
-import { AiUsageRecord, AiModelInsights } from "../types/ai";
+import { mockAiUsageRecords, mockAiModelInsights, mockAiDailyUsageTimeSeries } from "../mocks/aiUsage.mock";
+import { AiUsageRecord, AiModelInsights, AiDailyUsage } from "../types/ai";
 import { DashboardFilters } from "./adminMetricsService";
 
 export const aiUsageService = {
@@ -103,19 +103,41 @@ export const aiUsageService = {
     };
   },
 
-  async getAiDailyCostsTimeSeries(filters: DashboardFilters = {}) {
-    if (!apiClient.isMockEnabled()) return [];
+  /** Série temporal de uso de tokens por provedor por dia. */
+  async getAiUsageTimeSeries(filters: DashboardFilters = {}): Promise<AiDailyUsage[]> {
+    if (!apiClient.isMockEnabled()) {
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return [];
+      try {
+        const days = filters.period === "today" ? 1 : filters.period === "7d" ? 7 : 30;
+        const raw = await apiClient.request<{ source: string; days: number; series: any[] }>(
+          "GET",
+          `/admin/metrics/ai-usage/timeline?days=${days}`
+        );
+        return (raw.series ?? []).map((entry: any) => ({
+          date:       entry.date as string,
+          byProvider: (entry.byProvider ?? {}) as Record<string, number>,
+        }));
+      } catch {
+        return [];
+      }
+    }
 
-    const timeline = await apiClient.simulateFetch(mockAiDailyCostsTimeSeries, filters);
+    const timeline = await apiClient.simulateFetch(mockAiDailyUsageTimeSeries, filters);
 
     if (filters.environment === "staging") {
+      // Staging tem volume ~5% do produção.
       return timeline.map(day => ({
         ...day,
-        geminiCost: Number((day.geminiCost * 0.08).toFixed(3)),
-        cloudflareCost: Number((day.cloudflareCost * 0.08).toFixed(3)),
-        openaiCost: Number((day.openaiCost * 0.08).toFixed(3)),
+        byProvider: Object.fromEntries(
+          Object.entries(day.byProvider).map(([k, v]) => [k, Math.round((v as number) * 0.05)])
+        ),
       }));
     }
     return timeline;
+  },
+
+  /** @deprecated Use getAiUsageTimeSeries — mantido para retrocompatibilidade. */
+  async getAiDailyCostsTimeSeries(filters: DashboardFilters = {}): Promise<AiDailyUsage[]> {
+    return this.getAiUsageTimeSeries(filters);
   }
 };

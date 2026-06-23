@@ -12,6 +12,14 @@ export interface AiUsageRecord {
   diagnosisId: string;
 }
 
+/** Série temporal de uso de tokens por provedor por dia. */
+export interface AiDailyUsage {
+  /** Data no formato ISO YYYY-MM-DD. */
+  date: string;
+  /** Tokens por provedor: chave = nome do provedor (ex.: "Gemini", "Qwen / Workers AI"). */
+  byProvider: Record<string, number>;
+}
+
 export interface AiModelInsights {
   provider: AiProvider;
   displayName: string;

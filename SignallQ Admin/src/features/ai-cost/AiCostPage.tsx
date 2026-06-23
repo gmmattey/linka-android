@@ -11,7 +11,7 @@ import { StatusBadge } from "../../components/ui/StatusBadge";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { AppEnvironment } from "../../types/admin";
-import { AiModelInsights, AiUsageRecord } from "../../types/ai";
+import { AiModelInsights, AiUsageRecord, AiDailyUsage } from "../../types/ai";
 import { Bot, RefreshCw } from "lucide-react";
 
 interface AiCostPageProps {
@@ -29,7 +29,7 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
   const [error, setError] = React.useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [modelInsights, setModelInsights] = React.useState<AiModelInsights[]>([]);
-  const [timelineData, setTimelineData] = React.useState<any[]>([]);
+  const [timelineData, setTimelineData] = React.useState<AiDailyUsage[]>([]);
   const [records, setRecords] = React.useState<AiUsageRecord[]>([]);
 
   const loadAiStats = React.useCallback(async () => {
@@ -39,7 +39,7 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
       const filters = { environment, period };
       const [insights, dailyCosts, logs] = await Promise.all([
         aiUsageService.getAiUsageMetrics(filters),
-        aiUsageService.getAiDailyCostsTimeSeries(filters),
+        aiUsageService.getAiUsageTimeSeries(filters),
         aiUsageService.getAiUsageRecords(filters),
       ]);
 

@@ -1,4 +1,4 @@
-import { AiUsageRecord, AiModelInsights } from "../types/ai";
+import { AiUsageRecord, AiModelInsights, AiDailyUsage } from "../types/ai";
 
 export const mockAiUsageRecords: AiUsageRecord[] = [
   {
@@ -108,12 +108,24 @@ export const mockAiModelInsights: AiModelInsights[] = [
   }
 ];
 
-export const mockAiDailyCostsTimeSeries = [
-  { date: "15 Jun", geminiCost: 1.25, cloudflareCost: 0.12, openaiCost: 0.15 },
-  { date: "16 Jun", geminiCost: 1.44, cloudflareCost: 0.18, openaiCost: 0.22 },
-  { date: "17 Jun", geminiCost: 1.82, cloudflareCost: 0.25, openaiCost: 0.354 },
-  { date: "18 Jun", geminiCost: 2.10, cloudflareCost: 0.28, openaiCost: 0.24 },
-  { date: "19 Jun", geminiCost: 2.45, cloudflareCost: 0.34, openaiCost: 0.29 },
-  { date: "20 Jun", geminiCost: 2.95, cloudflareCost: 0.38, openaiCost: 0.18 },
-  { date: "21 Jun", geminiCost: 3.12, cloudflareCost: 0.41, openaiCost: 0.12 },
+// Tokens por provedor por dia — distribuição plausível para app de diagnóstico:
+// Gemini ~85% do volume (modelo principal), Qwen/Workers AI ~12% (fallback edge),
+// local_fallback ~3% (offline). Variância diária ±15% para refletir uso real.
+export const mockAiDailyUsageTimeSeries: AiDailyUsage[] = [
+  { date: "2026-06-08", byProvider: { "Gemini": 87200,  "Qwen / Workers AI": 12800,  "local_fallback": 3100 } },
+  { date: "2026-06-09", byProvider: { "Gemini": 93500,  "Qwen / Workers AI": 13900,  "local_fallback": 2800 } },
+  { date: "2026-06-10", byProvider: { "Gemini": 104700, "Qwen / Workers AI": 15200,  "local_fallback": 3400 } },
+  { date: "2026-06-11", byProvider: { "Gemini": 79300,  "Qwen / Workers AI": 11600,  "local_fallback": 2500 } },
+  { date: "2026-06-12", byProvider: { "Gemini": 98100,  "Qwen / Workers AI": 14400,  "local_fallback": 3200 } },
+  { date: "2026-06-13", byProvider: { "Gemini": 88600,  "Qwen / Workers AI": 12100,  "local_fallback": 2900 } },
+  { date: "2026-06-14", byProvider: { "Gemini": 72400,  "Qwen / Workers AI": 10700,  "local_fallback": 2100 } },
+  { date: "2026-06-15", byProvider: { "Gemini": 96800,  "Qwen / Workers AI": 14100,  "local_fallback": 3000 } },
+  { date: "2026-06-16", byProvider: { "Gemini": 112300, "Qwen / Workers AI": 16500,  "local_fallback": 3700 } },
+  { date: "2026-06-17", byProvider: { "Gemini": 108900, "Qwen / Workers AI": 15900,  "local_fallback": 3500 } },
+  { date: "2026-06-18", byProvider: { "Gemini": 121400, "Qwen / Workers AI": 17800,  "local_fallback": 4100 } },
+  { date: "2026-06-19", byProvider: { "Gemini": 115700, "Qwen / Workers AI": 16900,  "local_fallback": 3800 } },
+  { date: "2026-06-20", byProvider: { "Gemini": 103200, "Qwen / Workers AI": 15100,  "local_fallback": 3300 } },
+  { date: "2026-06-21", byProvider: { "Gemini": 118600, "Qwen / Workers AI": 17300,  "local_fallback": 4000 } },
+  { date: "2026-06-22", byProvider: { "Gemini": 126900, "Qwen / Workers AI": 18500,  "local_fallback": 4300 } },
+  { date: "2026-06-23", byProvider: { "Gemini": 131200, "Qwen / Workers AI": 19200,  "local_fallback": 4500 } },
 ];
