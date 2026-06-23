@@ -327,6 +327,16 @@ async function handleAiCostMetrics(request: Request, env: Env): Promise<Response
   }, 200, env);
 }
 
+// Mapeia model → nome legível do provedor. Cor não vem do worker.
+function providerName(model: string): string {
+  const m = (model ?? "").toLowerCase();
+  if (m.includes("gemini"))                      return "Gemini";
+  if (m.includes("qwen") || m.startsWith("@cf/")) return "Qwen / Workers AI";
+  if (m.includes("gpt"))                         return "OpenAI GPT";
+  if (m.includes("claude"))                      return "Anthropic Claude";
+  return model; // fallback: nome técnico do modelo
+}
+
 async function handleAiProviders(request: Request, env: Env): Promise<Response> {
   const url    = new URL(request.url);
   const period = url.searchParams.get("period") ?? "7d";
@@ -343,16 +353,6 @@ async function handleAiProviders(request: Request, env: Env): Promise<Response> 
   const results = rows.results ?? [];
   const grandTotal = results.reduce((acc: number, r: any) => acc + (r.tokensProcessed ?? 0), 0);
 
-  // Mapeia model → nome legível do provedor. Cor não vem do worker.
-  function providerName(model: string): string {
-    const m = (model ?? "").toLowerCase();
-    if (m.includes("gemini"))               return "Gemini";
-    if (m.includes("qwen") || m.startsWith("@cf/")) return "Qwen / Workers AI";
-    if (m.includes("gpt"))                  return "OpenAI GPT";
-    if (m.includes("claude"))               return "Anthropic Claude";
-    return model; // fallback: nome técnico do modelo
-  }
-
   const items = results.map((r: any) => ({
     name:            providerName(r.model ?? ""),
     tokensProcessed: r.tokensProcessed ?? 0,
@@ -360,6 +360,40 @@ async function handleAiProviders(request: Request, env: Env): Promise<Response> 
   }));
 
   return json({ source: "d1", period, items }, 200, env);
+}
+
+async function handleAiUsageTimeline(request: Request, env: Env): Promise<Response> {
+  const url  = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get("days") ?? "30"), 1), 90);
+  const since = nowSec() - days * 86400;
+
+  // Agrega total_tokens por dia × provedor (via providerName).
+  // strftime converte unix epoch → YYYY-MM-DD (UTC). Ordenado por data asc para plotagem.
+  const rows = await env.DB.prepare(
+    `SELECT
+       strftime('%Y-%m-%d', datetime(created_at, 'unixepoch')) AS date,
+       model,
+       SUM(total_tokens) AS tokens
+     FROM ai_usage
+     WHERE created_at >= ?
+     GROUP BY date, model
+     ORDER BY date ASC`
+  ).bind(since).all();
+
+  // Reagrega por data e provedor (múltiplos modelos podem pertencer ao mesmo provedor).
+  const byDate = new Map<string, Record<string, number>>();
+  for (const r of (rows.results ?? []) as any[]) {
+    const date     = r.date as string;
+    const provider = providerName(r.model ?? "");
+    const tokens   = (r.tokens as number) ?? 0;
+    if (!byDate.has(date)) byDate.set(date, {});
+    const entry = byDate.get(date)!;
+    entry[provider] = (entry[provider] ?? 0) + tokens;
+  }
+
+  const series = Array.from(byDate.entries()).map(([date, byProvider]) => ({ date, byProvider }));
+
+  return json({ source: "d1", days, series }, 200, env);
 }
 
 async function handleFirebaseAnalytics(request: Request, env: Env): Promise<Response> {
@@ -557,6 +591,7 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/metrics\/alerts$/,                      handler: handleRecentAlerts },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-costs$/,                    handler: handleAiCostMetrics },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-providers$/,                handler: handleAiProviders },
+  { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage\/timeline$/,          handler: handleAiUsageTimeline },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crashlytics$/,  handler: handleFirebaseCrashlytics },
