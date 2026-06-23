@@ -16,6 +16,7 @@ Após `/refine-story`. Antes de distribuir trabalho aos agentes.
 4. **Verificar WIP** de cada agente antes de atribuir.
 5. **Ordenar execução**: o que bloqueia o quê.
 6. **Criar task files** em `.claude/tasks/active/` ou `.claude/tasks/queue/<agente>/`.
+7. **Registrar no Linear** a subissue ou checklist correspondente, se a task derivar de uma issue aprovada.
 
 ## Task size limits
 - Android/PWA: ≤1 módulo principal, ≤2 dias de trabalho.

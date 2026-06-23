@@ -26,6 +26,7 @@ Uma task está DONE quando **todos** os itens abaixo são verdadeiros:
 - [ ] Arquivo de task atualizado com status DONE e data
 
 ### Handoff
+- [ ] Status atualizado para DONE no Linear (issue correspondente)
 - [ ] Claudete notificada do fechamento
 - [ ] Follow-up tasks (bugs menores, melhorias futuras) criadas no backlog se necessário
 

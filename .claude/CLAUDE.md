@@ -2,62 +2,203 @@
 
 Instructions here apply to this project and are shared with team members.
 
+## Identidade
+
+- App: **SignallQ** -- diagnostico de conectividade Android.
+- Package/applicationId/namespace: **`io.veloo.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). O veloo aqui e tecnico, nao marca.
+- Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
+- Versao atual: **0.21.0** (versionCode 52), em `gradle/libs.versions.toml`. minSdk 24, target/compileSdk 36, JVM 17.
+- Stack: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
+- 15 modulos Gradle: `app` + core(5): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
+- MVVM + StateFlow, Hilt DI (`AppModule.kt` + `DiagnosticoModule.kt`), Room v10 (`SignallQDatabase`), DataStore `linkaPreferencias`.
+- IA: Worker Cloudflare (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL`, modelo Qwen3 30B MoE FP8, persona SignallQ.
+- Navegacao: `AppShell.kt` -- 5 abas (Inicio, Velocidade, Sinal, Historico, Ajustes). Diagnostico/IA, Dispositivos, Fibra sao overlays, nao abas.
+- Background: WorkManager `MonitoramentoWorker` (30 min).
+
+**Identificadores tecnicos a preservar** (parecem marca, sao tecnicos): `io.veloo.app`, repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`, skill `linka-design`, banco `linkaKotlin.db`, canais `linka_*`, DataStore `linkaPreferencias`.
+
+---
+
+## Fontes da Verdade
+
+| Dominio | Ferramenta |
+|---|---|
+| Execucao, backlog, cycles, prioridades | **Linear** |
+| Codigo, branches, PRs, releases, historico tecnico | **GitHub** |
+| Documentacao viva, decisoes consolidadas, roadmap, OS | **Notion** |
+| Comunicacao e alertas | **Slack** (via integracao Linear -- nao criar fluxo manual paralelo) |
+| Fluxos visuais, arquitetura, jornada, onboarding | **Miro** (so quando visual ajuda) |
+| Workers, paginas publicas, infra produto | **Cloudflare** |
+| Analytics, crash/logs, config Android | **Firebase / Google Cloud** |
+| Pre-lancamento | **Play Console** (somente fase M3 -- nao e bloqueio atual) |
+
+**Regra Slack:** o Linear notifica o Slack diretamente. Decisao que surgir no Slack vira issue no Linear ou pagina no Notion. Slack e saida, nao fonte da verdade.
+
+---
+
+## Milestones
+
+| Milestone | Data |
+|---|---|
+| M0 -- Fundacao e Setup | 27/06/2026 |
+| M1 -- App pronto para Beta | 17/07/2026 |
+| M2 -- Beta Fechado | 31/07/2026 |
+| M3 -- Lancamento Play Store | 07/08/2026 |
+
+---
+
 ## Design System
 
-Toda UI deste projeto segue o **SignallQ Design System** (`.claude/skills/linka-design/`).
+Toda UI segue o **SignallQ Design System** (`.claude/skills/linka-design/`).
 Antes de criar ou editar telas/componentes, consulte a skill `linka-design` e use os tokens de `colors_and_type.css` / `SignallQTheme.kt` como fonte de verdade.
 
-Não-negociáveis:
-- Material 3 claro, acento violeta `#6C2BFF`, semântica de status verde/âmbar/vermelho
-- Ícones Material Symbols (Outlined), tipo Roboto, grid 8dp, card radius 16dp, flat (sem sombras pesadas)
-- Superfícies SignallQ (IA) sempre escuras (`#0D0D1A` / `#1A0B2E` / `#1E1130`)
-- Copy em PT-BR com "você", sentence case em títulos, UPPERCASE em overlines, SEM emoji
-- Métrica crua sempre acompanhada de veredito humano (Excelente/Bom/Regular/Fraco/Forte)
-- Separador inline: ponto médio `·`
+Nao-negociaveis:
+- Material 3 claro, acento violeta `#6C2BFF`, semantica de status verde/ambar/vermelho
+- Icones Material Symbols (Outlined), tipo Roboto, grid 8dp, card radius 16dp, flat (sem sombras pesadas)
+- Superficies SignallQ (IA) sempre escuras (`#0D0D1A` / `#1A0B2E` / `#1E1130`)
+- Copy em PT-BR com voce, sentence case em titulos, UPPERCASE em overlines, SEM emoji
+- Metrica crua sempre acompanhada de veredito humano (Excelente/Bom/Regular/Fraco/Forte)
+- Separador inline: ponto medio
 
-Referência rápida de tokens: ver `.claude/skills/linka-design/HANDOFF_README.md` (tabela completa de cores, espaçamento, raios e tipografia).
+Referencia rapida de tokens: `.claude/skills/linka-design/HANDOFF_README.md`.
+
+---
 
 ## Release Process
 
-Quando o usuário pedir para subir/deploy/publicar no Firebase, seguir OBRIGATORIAMENTE nesta ordem:
+Quando o usuario pedir para subir/deploy/publicar no Firebase, seguir OBRIGATORIAMENTE nesta ordem:
 
-1. **Commit** — stage todos os arquivos modificados, commit com mensagem descritiva
-2. **Push** — `git push origin main` para sincronizar GitHub
-3. **Clean build** — `./gradlew clean assembleRelease --no-build-cache` (NUNCA usar cache em release)
-4. **Upload** — `./gradlew appDistributionUploadRelease`
+1. **Commit** -- stage todos os arquivos modificados, commit com mensagem descritiva
+2. **Push** -- `git push origin main`
+3. **Clean build** -- `./gradlew clean assembleRelease --no-build-cache` (NUNCA usar cache em release)
+4. **Upload** -- `./gradlew appDistributionUploadRelease`
 
-Nunca pular etapas. Nunca fazer assembleRelease sem clean + --no-build-cache antes. O cache do Gradle já causou builds desatualizados no Firebase.
+Nunca pular etapas. Nunca fazer assembleRelease sem clean + --no-build-cache antes. O cache do Gradle ja causou builds desatualizados no Firebase.
 
-Worker Cloudflare: quando houver mudanças em `integrations/cloudflare/ai-diagnosis-worker/src/`, fazer `npx wrangler deploy` ANTES do commit.
+Worker Cloudflare: quando houver mudancas em `integrations/cloudflare/ai-diagnosis-worker/src/`, fazer `npx wrangler deploy` ANTES do commit.
 
-## Context
+---
 
-> Resumo factual do projeto (fonte de verdade = código). Atualizado em 2026-06-21 (v0.16.0).
+## Autonomia dos Agentes
 
-**Identidade**
-- App: **SignallQ** (`app_name`). Marca anterior: Linka → Veloo → **SignallQ** (rebrand em 0.16.0).
-- Package/applicationId/namespace: **`io.veloo.app`** — identificador técnico, **NÃO renomear** (mexer quebra Firebase/assinatura). O "veloo" aqui é técnico, não marca.
-- Versão atual: **0.16.0** (versionCode 46), em `gradle/libs.versions.toml`. minSdk 24, target/compileSdk 36, JVM 17.
+### Pode fazer sem aprovacao do Luiz
+- Organizar issues dentro das regras
+- Atualizar descricoes/comentarios/checklist no Linear
+- Criar subissues tecnicas de issue aprovada
+- Propor melhorias de fluxo
+- Atualizar documentacao operacional
+- Criar branch para issue aprovada
+- Abrir PR pequeno ou medio
+- Corrigir bug evidente dentro do escopo
+- Documentar mudanca tecnica
+- Consolidar informacao duplicada
+- Registrar decisao ja tomada
 
-**Arquitetura**
-- **15 módulos Gradle**: `app` + core(5): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
-- DI: **Hilt** (`app/.../di/AppModule.kt` + `featureDiagnostico/.../di/DiagnosticoModule.kt`). MVVM + Jetpack Compose; ViewModels por escopo: `AppViewModel`, `DevicesViewModel`, `SpeedtestViewModel`, `DiagnosticoViewModel` (substituem o antigo `MainViewModel` god-object); estado via `StateFlow`.
-- Features são **independentes entre si** — sem dependência cruzada `:feature*` → `:feature*`. `featureDiagnostico` não depende de `featureWifi` nem `featureWifi`.
-- Persistência: **Room** `SignallQDatabase` (v10; entidades Medicao, ApelidoDispositivo, ChatSession, ChatMessage) + **DataStore** `linkaPreferencias` (nome técnico — manter).
-- Navegação: `AppShell.kt` — bottom bar de **5 abas** (índice 0–4): **Início, Velocidade, Sinal, Histórico, Ajustes**. Parâmetros agrupados em `@Stable` data classes. Diagnóstico/IA, Dispositivos, Fibra, Laudo etc. são **overlays** (`overlayStack`), não abas. `navigation/AppNavGraph.kt` tem constantes legadas que NÃO refletem a nav atual.
-- Background: WorkManager `MonitoramentoWorker` (30 min, histerese) + `SignallQNotificationHelper`.
-- HTTP UPnP: `OkHttpClient` `@Named("upnpClient")` provido como `@Singleton` via `AppModule`.
+### Precisa de aprovacao do Luiz
+- Custo novo ou assinatura/plano pago
+- Mudanca de escopo
+- Alteracao arquitetural relevante
+- Exclusao destrutiva
+- Publicacao em loja
+- Uso de conta pessoal/sensivel
+- Mudanca de package (`io.veloo.app` -- nunca)
+- Mudanca de marca
+- Alteracao de cronograma principal
+- Cancelamento de entrega relevante
+- Automacao que envie mensagem externa ou execute acao irreversivel
 
-**IA de diagnóstico**
-- App → **worker Cloudflare** (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL` (não mais hardcoded). Nome do worker = infra, manter.
-- Modelo padrão: **Qwen3 30B MoE FP8** (`@cf/qwen/qwen3-30b-a3b-fp8`). Fallback local sem IA (`AiFallbackFactory`). Persona = "SignallQ". Chat/Pulse via `SignallQOrchestrator` (vive em `featureDiagnostico/pulse/`).
-- `AiDiagnosisRepository`: `@Singleton` provido por `DiagnosticoModule` (não mais instanciado manualmente em múltiplos pontos).
+---
+
+## Modo Piloto Automatico
+
+Quando a tarefa for bem delimitada, os agentes operam em piloto automatico:
+
+1. Entender a issue
+2. Planejar
+3. Executar
+4. Validar
+5. Atualizar Linear
+6. Abrir PR se houver codigo
+7. Registrar resumo
+8. Comunicar via Linear/Slack se aplicavel
+9. Pedir intervencao apenas se houver bloqueio real
+
+### Classificacao de tamanho
+
+| Tamanho | Criterio | Modo |
+|---|---|---|
+| **Pequena** | Correcao localizada, doc, ajuste UI, refactor, organizacao | Piloto automatico |
+| **Media** | Feature delimitada, fluxo simples, integracao prevista | Planejar, executar, registrar |
+| **Grande** | Mudanca arquitetural, feature ampla, multiplos modulos | Propor plano, pedir aprovacao antes |
+| **Sensivel** | Custo, conta, publicacao, seguranca, Play Console, package | Parar e pedir decisao do Luiz |
+
+---
+
+## Metodo de Trabalho do Luiz
+
+- Luiz atua como CEO/fundador.
+- Recebe decisoes claras, poucas, objetivas.
+- Nao perguntar o obvio. Nao pedir aprovacao para tarefa operacional no escopo.
+- Escalar com recomendacao + motivo, nao com pergunta aberta.
+- Atualizacoes: curtas, praticas, orientadas a decisao.
+- Visibilidade via Views no Linear e documentacao executiva no Notion.
+
+---
+
+## Agentes
+
+**Claudete / PM**
+- Manter Linear limpo, organizar backlog, priorizar, quebrar issues grandes
+- Cuidar de milestones e cycles, decidir fluxo operacional
+- Ferramentas: Linear, Notion, Slack via Linear, Miro, GitHub para PR/release
+
+**Tech Lead (Claudio / Gema)**
+- Validar arquitetura, revisar PRs, definir abordagem tecnica, garantir qualidade
+- Garantir que `io.veloo.app` nao seja alterado
+- Ferramentas: GitHub, Linear para status, Notion para decisoes, Miro para arquitetura
+
+**Dev Agent (Camilo / Renan / Marcelo)**
+- Implementar issues aprovadas, criar branches, abrir PRs, corrigir bugs
+- Atualizar status no Linear
+- Ferramentas: GitHub, Linear, Firebase/Cloudflare quando aplicavel
+
+**UX/Design (Lia)**
+- Propor fluxos, revisar telas, manter coerencia Material 3 + design system
+- Gerar especificacao que vire issue no Linear
+- Ferramentas: Miro, Notion para doc de design, Linear para execucao
+
+**QA/Review (Gema / Otavio / Bernardo)**
+- Validar criterios de aceite, testar fluxos, apontar regressoes
+- Issue so vai para Done com validacao
+- Ferramentas: Linear, GitHub, Firebase/Crashlytics, Notion para checklist
+
+**Monitoring/Docs (Nina / Taisa)**
+- Documentacao viva, consolidar decisoes, organizar Notion
+- Ferramentas: Notion, Linear, Firebase/Cloudflare, Slack via Linear
+
+---
+
+## Rotinas Ativas
+
+| Rotina | Frequencia | Responsavel | Saida |
+|---|---|---|---|
+| Daily Assincrona do Linear | Dias uteis | Claudete | Comentario no Linear + Slack via integracao |
+| Weekly Planning / Grooming | Semanal | Claudete | Cycle pronto no Linear |
+| Cycle Review | Final do cycle | Claudete | Resumo no Linear + Notion executivo |
+| Review de Bloqueios | 2-3x por semana | Claudete | Lista curta com recomendacao para o Luiz |
+| Release Readiness | Por milestone/release | Tech Lead + Claudete | Checklist no Linear/Notion |
+| Docs Sync | Semanal ou por milestone | Nina/Taisa | Notion atualizado |
+
+Rotinas que NAO devem existir: email diario, automacao Slack fora do Linear, dashboards pagos, Play Console antes de M3.
+
+---
+
+## Contexto Tecnico
+
+> Estado do codigo -- atualizado em 2026-06-23 (v0.21.0).
 
 **Testes**
-- ~37 classes de teste unitário (JUnit4 + Robolectric + coroutines-test + room-testing) em `*/src/test/`; 3 `androidTest` de Room/DAO/migração. Sem androidTest de UI. Rodar: `./gradlew test`. Plano em `tests/`.
+- ~37 classes de teste unitario. JUnit4 + Robolectric + coroutines-test + room-testing em `*/src/test/`. 3 androidTest de Room/DAO. Rodar: `./gradlew test`.
 
-**Documentação**
-- Doc viva para agentes em `docs_ai/` (subpastas `ai/`, `design-system/`, `functional/`, `operations/`, `technical/`). Material histórico/obsoleto em `docs/_archive/` e `docs_ai/_archive/` — não usar como verdade atual. Índice: `docs_ai/README.md`.
-
-**Identificadores técnicos a preservar** (parecem marca, mas são técnicos): package `io.veloo.app`, repo GitHub `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`, skill/comando `linka-design` / `/linka*`, banco `linkaKotlin.db`, canais `linka_*`, DataStore `linkaPreferencias`.
-
+**Documentacao**
+- Doc viva em `docs_ai/` (ai/, design-system/, functional/, operations/, technical/). Obsoleto em `docs/_archive/` e `docs_ai/_archive/`. Indice: `docs_ai/README.md`.
