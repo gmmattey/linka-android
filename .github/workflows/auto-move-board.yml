@@ -109,3 +109,51 @@ jobs:
             --field-id "$FIELD_COLUNA_ID" --single-select-option-id "$TARGET"
 
           echo "#$NUM movida no board"
+
+      - name: Sincronizar Project #9 (Bug Control) se issue for bug
+        if: steps.decide.outputs.num != '' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+          NUM: ${{ steps.decide.outputs.num }}
+          ACTION: ${{ github.event.action }}
+          MERGED: ${{ github.event.pull_request.merged }}
+        run: |
+          set -e
+
+          # Verifica se a issue tem label bug
+          IS_BUG=$(gh issue view "$NUM" --repo "${{ github.repository }}" \
+            --json labels --jq '[.labels[].name] | contains(["bug"])')
+
+          if [ "$IS_BUG" != "true" ]; then
+            echo "Issue #$NUM não é bug — sem ação no Project #9"
+            exit 0
+          fi
+
+          PROJECT_NUMBER_9="9"
+          PROJECT_ID_9="PVT_kwHOD83n7c4BbZ6R"
+          FIELD_STATUS_9="PVTSSF_lAHOD83n7c4BbZ6RzhWKp9I"
+          OPT_IN_PROGRESS_9="47fc9ee4"
+          OPT_DONE_9="98236657"
+
+          case "$ACTION" in
+            opened|reopened|ready_for_review) TARGET9="$OPT_IN_PROGRESS_9" ;;
+            closed) [ "$MERGED" = "true" ] && TARGET9="$OPT_DONE_9" || TARGET9="" ;;
+          esac
+
+          [ -z "$TARGET9" ] && exit 0
+
+          ITEM_ID=$(gh project item-list "$PROJECT_NUMBER_9" --owner "$PROJECT_OWNER" \
+            --format json --limit 200 \
+            --jq ".items[] | select(.content.number == $NUM) | .id")
+
+          if [ -z "$ITEM_ID" ]; then
+            echo "Issue #$NUM não encontrada no Project #9 — adicionando"
+            ITEM_ID=$(gh project item-add "$PROJECT_NUMBER_9" --owner "$PROJECT_OWNER" \
+              --url "https://github.com/${{ github.repository }}/issues/$NUM" \
+              --format json --jq '.id')
+          fi
+
+          gh project item-edit --project-id "$PROJECT_ID_9" --id "$ITEM_ID" \
+            --field-id "$FIELD_STATUS_9" --single-select-option-id "$TARGET9"
+
+          echo "Bug #$NUM atualizado no Project #9"
