@@ -10,6 +10,34 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
+## [0.21.0] — 2026-06-22
+
+### Added
+
+- **Novo ícone do app:** assets atualizados em todas as densidades (mdpi → xxxhdpi) e ícone adaptativo com camadas foreground/background/monochrome (SIG-7/SIG-8)
+- **Play Store asset:** `assets/store/play_store_512.png` adicionado ao repositório
+- **signallq-privacy-worker:** novo worker Cloudflare para conformidade de privacidade (`integrations/cloudflare/signallq-privacy-worker/`)
+- **CI — Code Quality:** workflow `.github/workflows/quality.yml` com Ktlint, Detekt, Unit tests e Build APK em cada PR (SIG-28/SIG-37)
+- **README.md:** documentação inicial do repositório com stack, arquitetura e instruções de setup
+
+### Fixed
+
+- **Admin Panel — Erro de Telemetria (SIG-5):** erro 401 no Overview agora exibe mensagem de autenticação clara em vez de silenciar o erro e deixar a tela vazia
+- **Admin Panel — Dados mockados em produção (SIG-9):** `productAnalyticsService` corrigido para retornar coleção vazia quando `VITE_ENABLE_MOCKS=false`, eliminando vazamento de dados hardcoded para produção
+- **Admin Panel — título da aba:** `index.html` atualizado para exibir "SignallQ Admin" (SIG-28)
+
+### Changed
+
+- **Ktlint:** formatação corrigida em ~30 arquivos do módulo `app` (imports, chain methods, annotations, multiline expressions)
+- **.editorconfig:** path de supressão `function-naming` corrigido de `io/linka/app` para `io/veloo/app` — regra agora se aplica corretamente a todas as funções `@Composable`
+
+### Docs
+
+- `docs/ARCHITECTURE_REVIEW.md`: relatório de auditoria de arquitetura (read-only, referência)
+- `docs_ai/technical/architecture/MIGRACAO_ARQUITETURA_2026.old.md`: versão anterior arquivada
+
+---
+
 ## [0.16.0] — 2026-06-21
 
 ### Changed — Rebranding completo para SignallQ
