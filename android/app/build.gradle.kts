@@ -136,7 +136,7 @@ android {
             // MVP core
             buildConfigField("Boolean", "FEATURE_SPEEDTEST", "true")
             buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_LOCAL", "true")
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_IA", "true")  // card + laudo
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_IA", "true") // card + laudo
             buildConfigField("Boolean", "FEATURE_WIFI_ANALISE", "true")
             buildConfigField("Boolean", "FEATURE_REDE_MOVEL_ANALISE", "true")
             buildConfigField("Boolean", "FEATURE_HISTORICO", "true")
@@ -164,7 +164,7 @@ android {
             buildConfigField("Boolean", "FEATURE_QUICK_SETTINGS_TILE", "false")
             // Pós-MVP Sprint 2
             buildConfigField("Boolean", "FEATURE_PROVA_REAL_COMPLETO", "false")
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_ITERATIVO","false")
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_ITERATIVO", "false")
             buildConfigField("Boolean", "FEATURE_TRACEROUTE", "false")
             // Pós-MVP Sprint 3+
             buildConfigField("Boolean", "FEATURE_TELEPHONY_AVANCADO", "false")

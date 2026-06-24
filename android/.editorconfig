@@ -8,5 +8,9 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{kt,kts}]
+[*.kt]
 ktlint_function_naming_ignore_when_annotated_with = Composable
+
+[*.kts]
+ktlint_standard_chain-wrapping = disabled
+ktlint_standard_function-naming = disabled
