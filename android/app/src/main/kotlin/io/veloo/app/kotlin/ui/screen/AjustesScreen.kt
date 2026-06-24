@@ -353,7 +353,7 @@ fun AjustesScreen(
                                 contentDescription = "Minha conexão. ${
                                     if (operadora.isNotBlank()) "Operadora: $operadora." else ""
                                 } Toque para editar."
-                            }.clickable { showProvedorSheet = true }
+                            }.clickable { onAbrirMinhaConexao() }
                             .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
@@ -425,20 +425,6 @@ fun AjustesScreen(
                         tint = c.textTertiary,
                         modifier = Modifier.size(16.dp),
                     )
-                }
-            }
-            item {
-                TextButton(
-                    onClick = onAbrirMinhaConexao,
-                    modifier = Modifier.padding(start = LkSpacing.lg, top = 0.dp),
-                ) {
-                    Icon(
-                        Icons.Outlined.Edit,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text("Editar em Minha Conexão")
                 }
             }
             item { Spacer(Modifier.height(16.dp)) }
