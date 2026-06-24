@@ -4,8 +4,9 @@ import { AiUsageRecord, AiModelInsights, AiDailyUsage } from "../types/ai";
 import { DashboardFilters } from "./adminMetricsService";
 
 export const aiUsageService = {
-  async getAiUsageMetrics(filters: DashboardFilters = {}): Promise<AiModelInsights[]> {
+  async getAiUsageMetrics(filters: DashboardFilters = {}): Promise<AiModelInsights[] | null> {
     if (!apiClient.isMockEnabled()) {
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return null;
       const period = filters.period === "today" ? "1d" : (filters.period ?? "7d");
       const raw = await apiClient.request<{ byModel: any[]; totals: any }>(
         "GET",

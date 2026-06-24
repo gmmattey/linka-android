@@ -43,7 +43,7 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
         aiUsageService.getAiUsageRecords(filters),
       ]);
 
-      setModelInsights(insights);
+      setModelInsights(insights ?? []);
       setTimelineData(dailyCosts);
       setRecords(logs);
     } catch (e: any) {
