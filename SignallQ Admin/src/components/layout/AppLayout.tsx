@@ -82,6 +82,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           onLogout={onLogout}
         />
 
+        {/* Staging warning banner */}
+        {environment === "staging" && (
+          <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-1.5 text-amber-400 text-xs text-center">
+            Modo Homologacao — dados de staging. Alterne para Producao para ver dados reais.
+          </div>
+        )}
+
         {/* 3. Main scrollable panel */}
         <main className="flex-1 overflow-y-auto p-8 space-y-8 bg-[#08080A]">
           {children}
