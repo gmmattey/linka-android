@@ -382,6 +382,7 @@ fun AppShell(
                             speedtestPendenteModoMovel = speedtestPendenteModoMovel,
                             onConfirmarSpeedtestMovel = onConfirmarSpeedtestMovel,
                             onCancelarSpeedtestMovel = onCancelarSpeedtestMovel,
+                            movelSnapshot = movelSnapshot,
                         )
                     // NAV-B: Tab 2 — Sinal (SinalScreen como tab fixa, sem botão voltar)
                     2 ->
