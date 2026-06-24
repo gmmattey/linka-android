@@ -115,6 +115,10 @@ class AdminIngestRepository(
             o.put("issues", arr)
         }
         operator?.let { o.put("operator", it) }
+        deviceModel?.let { o.put("device_model", it) }
+        osVersion?.let { o.put("os_version", it) }
+        appVersion?.let { o.put("app_version", it) }
+        if (aiSummaryReport.isNotBlank()) o.put("ai_summary_report", aiSummaryReport)
         return o
     }
 
