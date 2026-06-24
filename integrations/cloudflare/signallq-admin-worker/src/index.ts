@@ -147,14 +147,30 @@ async function handleDiagnostics(request: Request, env: Env): Promise<Response> 
   const rows = await env.DB.prepare(
     `SELECT id, created_at, network_type, status, score,
             download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss,
-            issues, resolved
+            issues, resolved, operator,
+            device_model, os_version, app_version, ai_summary_report
      FROM diagnostic_sessions WHERE created_at >= ?
      ORDER BY created_at DESC LIMIT ?`
   ).bind(since, limit).all();
 
   const sessions = (rows.results ?? []).map((r: any) => ({
-    ...r,
-    issues: JSON.parse(r.issues ?? "[]"),
+    id:               r.id,
+    created_at:       r.created_at,
+    network_type:     r.network_type,
+    status:           r.status,
+    score:            r.score,
+    download_mbps:    r.download_mbps,
+    upload_mbps:      r.upload_mbps,
+    latency_ms:       r.latency_ms,
+    jitter_ms:        r.jitter_ms,
+    packet_loss:      r.packet_loss,
+    issues:           JSON.parse(r.issues ?? "[]"),
+    resolved:         r.resolved,
+    operator:         r.operator,
+    device_model:     r.device_model     ?? '',
+    os_version:       r.os_version       ?? '',
+    app_version:      r.app_version      ?? '',
+    ai_summary_report: r.ai_summary_report ?? '',
   }));
 
   return json({ source: "d1", period, sessions }, 200, env);
@@ -396,6 +412,43 @@ async function handleAiUsageTimeline(request: Request, env: Env): Promise<Respon
   return json({ source: "d1", days, series }, 200, env);
 }
 
+// SIG-139: métricas de diagnóstico agrupadas por operadora.
+async function handleOperators(request: Request, env: Env): Promise<Response> {
+  const url    = new URL(request.url);
+  const period = url.searchParams.get("period") ?? "30d";
+  const since  = nowSec() - periodToSeconds(period);
+
+  const rows = await env.DB.prepare(
+    `SELECT
+       operator,
+       COUNT(*)                                                  AS total_diagnostics,
+       AVG(score)                                               AS avg_score,
+       AVG(download_mbps)                                       AS avg_download,
+       AVG(upload_mbps)                                         AS avg_upload,
+       AVG(latency_ms)                                          AS avg_latency,
+       SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END)   AS completed,
+       SUM(CASE WHEN resolved = 1         THEN 1 ELSE 0 END)   AS resolved
+     FROM diagnostic_sessions
+     WHERE created_at >= ?
+       AND operator IS NOT NULL AND operator != ''
+     GROUP BY operator
+     ORDER BY total_diagnostics DESC`
+  ).bind(since).all();
+
+  const operators = (rows.results ?? []).map((r: any) => ({
+    operator:          r.operator,
+    total_diagnostics: r.total_diagnostics ?? 0,
+    avg_score:         r.avg_score         != null ? Math.round(r.avg_score) : null,
+    avg_download:      r.avg_download      ?? null,
+    avg_upload:        r.avg_upload        ?? null,
+    avg_latency:       r.avg_latency       != null ? Math.round(r.avg_latency) : null,
+    completed:         r.completed         ?? 0,
+    resolved:          r.resolved          ?? 0,
+  }));
+
+  return json({ source: "d1", period, operators }, 200, env);
+}
+
 async function handleFirebaseAnalytics(request: Request, env: Env): Promise<Response> {
   if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
     return json({ source: "no_credentials", activeUsersToday: 0, sessionsToday: 0 }, 200, env);
@@ -490,23 +543,75 @@ async function handleSettings(request: Request, env: Env): Promise<Response> {
   return err("método não suportado", 405, env);
 }
 
+// --- SIG-135 Fase A: pipeline de erros via D1 ---
+
+// Fire-and-forget: nunca propaga exceção. Deduplica por (source + message) via id determinístico.
+async function logError(env: Env, source: string, message: string, stack = ''): Promise<void> {
+  try {
+    const id = btoa(`${source}:${message}`).slice(0, 64);
+    const now = Date.now();
+    await env.DB.prepare(`
+      INSERT INTO system_errors (id, source, message, stack_trace, count, first_seen, last_seen)
+      VALUES (?, ?, ?, ?, 1, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        count      = count + 1,
+        last_seen  = excluded.last_seen,
+        stack_trace = excluded.stack_trace
+    `).bind(id, source, message, stack, now, now).run();
+  } catch { /* fire-and-forget — nunca propaga */ }
+}
+
+async function handleErrors(request: Request, env: Env): Promise<Response> {
+  const url    = new URL(request.url);
+  const period = url.searchParams.get("period") ?? "30d";
+  // last_seen é em milissegundos (Date.now()), mas periodToSeconds retorna segundos.
+  // Multiplicamos por 1000 para ficar na mesma escala.
+  const sinceMs = (Date.now()) - periodToSeconds(period) * 1000;
+
+  const rows = await env.DB.prepare(
+    `SELECT id, source, message, stack_trace, count, first_seen, last_seen
+     FROM system_errors
+     WHERE last_seen >= ?
+     ORDER BY count DESC, last_seen DESC
+     LIMIT 100`
+  ).bind(sinceMs).all();
+
+  const errors = (rows.results ?? []).map((r: any) => ({
+    id:               r.id,
+    source:           r.source,
+    message:          r.message,
+    stackTrace:       r.stack_trace ?? '',
+    count:            r.count       ?? 1,
+    first_seen:       r.first_seen,
+    last_seen:        r.last_seen,
+    timestamp:        new Date(r.last_seen).toISOString(),
+    affectedUserCount: 0,
+  }));
+
+  return json({ source: "d1", period, errors }, 200, env);
+}
+
 // --- handlers /ingest ---
 
-// Migration SQL necessaria no D1 para suportar o campo operator:
-// ALTER TABLE diagnostic_sessions ADD COLUMN operator TEXT;
 async function handleIngestDiagnostic(request: Request, env: Env): Promise<Response> {
   let p: any;
   try { p = await request.json(); } catch { return err("invalid JSON", 400, env); }
   if (!p.id) return err("id obrigatorio", 400, env);
 
-  // Tenta INSERT com campo operator. Se falhar por coluna inexistente (D1 sem migration),
-  // re-tenta sem o campo para nao perder o registro.
+  // SIG-138: campos de dispositivo e laudo IA opcionais (default '' no schema).
+  const deviceModel      = p.device_model      ?? '';
+  const osVersion        = p.os_version        ?? '';
+  const appVersion       = p.app_version       ?? '';
+  const aiSummaryReport  = p.ai_summary_report ?? '';
+
   try {
     await env.DB.prepare(
       `INSERT OR REPLACE INTO diagnostic_sessions
          (id, created_at, network_type, status, score,
-          download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss, issues, resolved, operator)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`
+          download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss,
+          issues, resolved, operator,
+          device_model, os_version, app_version, ai_summary_report)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`
     ).bind(
       p.id, p.created_at ?? nowSec(),
       p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
@@ -514,25 +619,11 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
       p.latency_ms ?? null, p.jitter_ms ?? null, p.packet_loss ?? null,
       JSON.stringify(p.issues ?? []),
       p.operator ?? null,
+      deviceModel, osVersion, appVersion, aiSummaryReport,
     ).run();
-  } catch (e: any) {
-    // Fallback: coluna operator ainda nao existe no D1 — inserir sem ela
-    if (e?.message?.includes("no column named operator") || e?.message?.includes("table diagnostic_sessions has no column")) {
-      await env.DB.prepare(
-        `INSERT OR REPLACE INTO diagnostic_sessions
-           (id, created_at, network_type, status, score,
-            download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss, issues, resolved)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
-      ).bind(
-        p.id, p.created_at ?? nowSec(),
-        p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
-        p.download_mbps ?? null, p.upload_mbps ?? null,
-        p.latency_ms ?? null, p.jitter_ms ?? null, p.packet_loss ?? null,
-        JSON.stringify(p.issues ?? []),
-      ).run();
-    } else {
-      throw e;
-    }
+  } catch (e) {
+    await logError(env, 'ingest', String(e), e instanceof Error ? e.stack ?? '' : '');
+    throw e;
   }
 
   return json({ ok: true, id: p.id }, 201, env);
@@ -564,15 +655,20 @@ async function handleIngestAiUsage(request: Request, env: Env): Promise<Response
   const total      = p.total_tokens      ?? (prompt + completion);
   const cost       = p.cost_usd          ?? costForModel(p.model, total);
 
-  await env.DB.prepare(
-    `INSERT OR REPLACE INTO ai_usage
-       (id, session_id, created_at, model,
-        prompt_tokens, completion_tokens, total_tokens, cost_usd)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(
-    p.id, p.session_id ?? null, p.created_at ?? nowSec(), p.model,
-    prompt, completion, total, cost,
-  ).run();
+  try {
+    await env.DB.prepare(
+      `INSERT OR REPLACE INTO ai_usage
+         (id, session_id, created_at, model,
+          prompt_tokens, completion_tokens, total_tokens, cost_usd)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      p.id, p.session_id ?? null, p.created_at ?? nowSec(), p.model,
+      prompt, completion, total, cost,
+    ).run();
+  } catch (e) {
+    await logError(env, 'ai-usage', String(e), e instanceof Error ? e.stack ?? '' : '');
+    throw e;
+  }
 
   return json({ ok: true, id: p.id }, 201, env);
 }
@@ -592,6 +688,8 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-costs$/,                    handler: handleAiCostMetrics },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-providers$/,                handler: handleAiProviders },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage\/timeline$/,          handler: handleAiUsageTimeline },
+  { method: "GET",  pattern: /^\/admin\/metrics\/operators$/,                   handler: handleOperators },
+  { method: "GET",  pattern: /^\/admin\/metrics\/errors$/,                      handler: handleErrors },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crashlytics$/,  handler: handleFirebaseCrashlytics },

@@ -43,3 +43,21 @@ CREATE INDEX IF NOT EXISTS idx_sessions_network_type ON diagnostic_sessions(netw
 CREATE INDEX IF NOT EXISTS idx_sessions_status       ON diagnostic_sessions(status);
 CREATE INDEX IF NOT EXISTS idx_ai_usage_created_at  ON ai_usage(created_at);
 CREATE INDEX IF NOT EXISTS idx_ai_usage_session_id  ON ai_usage(session_id);
+
+-- SIG-138: campos de contexto de dispositivo e laudo IA (migration para D1 existente)
+ALTER TABLE diagnostic_sessions ADD COLUMN device_model       TEXT DEFAULT '';
+ALTER TABLE diagnostic_sessions ADD COLUMN os_version         TEXT DEFAULT '';
+ALTER TABLE diagnostic_sessions ADD COLUMN app_version        TEXT DEFAULT '';
+ALTER TABLE diagnostic_sessions ADD COLUMN ai_summary_report  TEXT DEFAULT '';
+
+-- SIG-135 Fase A: pipeline de erros do worker
+CREATE TABLE IF NOT EXISTS system_errors (
+  id          TEXT    PRIMARY KEY,
+  source      TEXT    NOT NULL,
+  message     TEXT    NOT NULL,
+  stack_trace TEXT    DEFAULT '',
+  count       INTEGER NOT NULL DEFAULT 1,
+  first_seen  INTEGER NOT NULL,
+  last_seen   INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_system_errors_last_seen ON system_errors(last_seen);
