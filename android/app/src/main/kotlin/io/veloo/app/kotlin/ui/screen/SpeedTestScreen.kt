@@ -61,7 +61,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.veloo.app.core.network.EstadoConexao
 import io.veloo.app.core.network.SnapshotRede
+import io.veloo.app.core.telephony.MovelSnapshot
 import io.veloo.app.feature.speedtest.EstadoExecucaoSpeedtest
 import io.veloo.app.feature.speedtest.FaseSpeedtest
 import io.veloo.app.feature.speedtest.ModoSpeedtest
@@ -98,6 +100,7 @@ fun SpeedTestScreen(
     onCancelarSpeedtestMovel: () -> Unit = {},
     onAbrirPerfil: () -> Unit = {},
     planoInternet: String = "",
+    movelSnapshot: MovelSnapshot? = null,
 ) {
     val c = LocalLkTokens.current
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -206,6 +209,75 @@ fun SpeedTestScreen(
             )
         },
     ) { padding ->
+        val temResultado = snapshotSpeedtest.resultado != null
+        val estadoIdle =
+            snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.idle ||
+                snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.concluido
+
+        ConteudoSpeedTest(
+            padding = padding,
+            snapshotSpeedtest = snapshotSpeedtest,
+            snapshotRede = snapshotRede,
+            movelSnapshot = movelSnapshot,
+            localizacaoServidor = localizacaoServidor,
+            modoSelecionado = modoSelecionado,
+            onModoSelecionado = onModoSelecionado,
+            onIniciarTeste = onIniciarTeste,
+            onVerResultado = onVerResultado,
+            onAbrirHistorico = onAbrirHistorico,
+            mostrarDialogCancelar = { mostrarDialogCancelar = true },
+            temResultado = temResultado,
+            estadoIdle = estadoIdle,
+            c = c,
+        )
+    }
+}
+
+@Composable
+private fun ConteudoSpeedTest(
+    padding: androidx.compose.foundation.layout.PaddingValues,
+    snapshotSpeedtest: SnapshotExecucaoSpeedtest,
+    snapshotRede: SnapshotRede,
+    movelSnapshot: MovelSnapshot?,
+    localizacaoServidor: String?,
+    modoSelecionado: ModoSpeedtest,
+    onModoSelecionado: (ModoSpeedtest) -> Unit,
+    onIniciarTeste: () -> Unit,
+    onVerResultado: () -> Unit,
+    onAbrirHistorico: () -> Unit,
+    mostrarDialogCancelar: () -> Unit,
+    temResultado: Boolean,
+    estadoIdle: Boolean,
+    c: LkTokens,
+) {
+    if (!temResultado) {
+        // Sem resultado: centraliza verticalmente no espaço disponível, sem vazio inferior
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = LkSpacing.lg),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                BlocoCirculoSpeedTest(
+                    snapshotSpeedtest = snapshotSpeedtest,
+                    snapshotRede = snapshotRede,
+                    movelSnapshot = movelSnapshot,
+                    localizacaoServidor = localizacaoServidor,
+                    modoSelecionado = modoSelecionado,
+                    onModoSelecionado = onModoSelecionado,
+                    onIniciarTeste = onIniciarTeste,
+                    onVerResultado = onVerResultado,
+                    mostrarDialogCancelar = mostrarDialogCancelar,
+                    estadoIdle = estadoIdle,
+                    c = c,
+                )
+            }
+        }
+    } else {
+        // Com resultado: scroll para acomodar o card
         Column(
             modifier =
                 Modifier
@@ -215,121 +287,196 @@ fun SpeedTestScreen(
                     .padding(horizontal = LkSpacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.height(LkSpacing.xxl))
+            Spacer(Modifier.height(LkSpacing.lg))
 
-            if (modoSelecionado == ModoSpeedtest.triplo && snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.executando) {
-                IndicadorRodadaTriplo(
-                    rodadaAtual = snapshotSpeedtest.rodadaAtual,
-                    aguardando = snapshotSpeedtest.aguardandoProximaRodada,
-                )
-                Spacer(Modifier.height(LkSpacing.md))
-            }
-
-            SpeedTestCircle(
-                estado = snapshotSpeedtest.estado,
-                progresso = snapshotSpeedtest.progressoPercentual,
-                fase = snapshotSpeedtest.faseAtual,
-                velocidadeMbps = if (snapshotSpeedtest.aguardandoProximaRodada) 0.0 else snapshotSpeedtest.velocidadeAtualMbps,
+            BlocoCirculoSpeedTest(
+                snapshotSpeedtest = snapshotSpeedtest,
+                snapshotRede = snapshotRede,
+                movelSnapshot = movelSnapshot,
+                localizacaoServidor = localizacaoServidor,
+                modoSelecionado = modoSelecionado,
+                onModoSelecionado = onModoSelecionado,
                 onIniciarTeste = onIniciarTeste,
+                onVerResultado = onVerResultado,
+                mostrarDialogCancelar = mostrarDialogCancelar,
+                estadoIdle = estadoIdle,
+                c = c,
             )
 
-            if (!snapshotRede.conectado) {
-                Spacer(Modifier.height(LkSpacing.sm))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.WifiOff,
-                        contentDescription = null,
-                        tint = LkColors.warning,
-                        modifier = Modifier.size(14.dp),
-                    )
-                    Text(
-                        "Sem conexão — teste indisponível",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = LkColors.warning,
-                    )
-                }
-            }
+            Spacer(Modifier.height(LkSpacing.lg))
 
-            if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.executando) {
-                Spacer(Modifier.height(LkSpacing.sm))
-                TextButton(onClick = { mostrarDialogCancelar = true }) {
-                    Text(
-                        text = if (modoSelecionado == ModoSpeedtest.triplo) "Cancelar teste" else "Cancelar",
-                        color = c.textTertiary,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                }
-                val mbConsumidos = snapshotSpeedtest.bytesConsumidos / 1_000_000.0
-                if (snapshotSpeedtest.bytesConsumidos > 0L) {
-                    Text(
-                        text = "%.1f MB usados".format(mbConsumidos),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = c.textTertiary,
-                    )
-                }
-            } else if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.concluido && snapshotSpeedtest.resultado != null) {
-                Spacer(Modifier.height(LkSpacing.sm))
-                TextButton(onClick = onVerResultado) {
-                    Text(
-                        text = "Ver resultado",
-                        color = LkColors.accent,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                }
-            } else {
-                Spacer(Modifier.height(LkSpacing.xl))
-            }
-
-            ModeSelector(modoSelecionado = modoSelecionado, onSelect = onModoSelecionado)
-
-            val erroMsg = snapshotSpeedtest.erroMensagem
-            if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.erro && erroMsg != null) {
-                Spacer(Modifier.height(LkSpacing.md))
-                Text(
-                    text = erroMsg,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = LkColors.error,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = LkSpacing.xl),
-                )
-            }
-
-            Spacer(Modifier.height(LkSpacing.xl))
-
-            val resultado = snapshotSpeedtest.resultado
-            if (resultado != null) {
-                val timestampRelativo =
-                    remember(resultado.timestampEpochMs) {
-                        val diffMin = ((System.currentTimeMillis() - resultado.timestampEpochMs) / 60_000).toInt()
-                        when {
-                            diffMin < 1 -> "agora"
-                            diffMin < 60 -> "há $diffMin min"
-                            diffMin < 1440 -> "há ${diffMin / 60}h"
-                            else -> "há ${diffMin / 1440}d"
-                        }
+            val resultado = snapshotSpeedtest.resultado!!
+            val timestampRelativo =
+                remember(resultado.timestampEpochMs) {
+                    val diffMin = ((System.currentTimeMillis() - resultado.timestampEpochMs) / 60_000).toInt()
+                    when {
+                        diffMin < 1 -> "agora"
+                        diffMin < 60 -> "há $diffMin min"
+                        diffMin < 1440 -> "há ${diffMin / 60}h"
+                        else -> "há ${diffMin / 1440}d"
                     }
-                LastResultCard(
-                    c = c,
-                    downloadMbps = resultado.downloadMbps,
-                    uploadMbps = resultado.uploadMbps,
-                    latencyMs = resultado.latenciaMs,
-                    relativeTimestamp = timestampRelativo,
-                    label = if (modoSelecionado == ModoSpeedtest.triplo) "Média das 3 medições" else "Último resultado",
-                    onClick = onAbrirHistorico,
-                )
-                if (modoSelecionado == ModoSpeedtest.triplo && snapshotSpeedtest.rodadasTriplo.isNotEmpty()) {
-                    Spacer(Modifier.height(LkSpacing.sm))
-                    CardRodadasTriplo(c = c, rodadas = snapshotSpeedtest.rodadasTriplo)
                 }
-                Spacer(Modifier.height(LkSpacing.lg))
+            LastResultCard(
+                c = c,
+                downloadMbps = resultado.downloadMbps,
+                uploadMbps = resultado.uploadMbps,
+                latencyMs = resultado.latenciaMs,
+                relativeTimestamp = timestampRelativo,
+                label = if (modoSelecionado == ModoSpeedtest.triplo) "Média das 3 medições" else "Último resultado",
+                onClick = onAbrirHistorico,
+            )
+            if (modoSelecionado == ModoSpeedtest.triplo && snapshotSpeedtest.rodadasTriplo.isNotEmpty()) {
+                Spacer(Modifier.height(LkSpacing.sm))
+                CardRodadasTriplo(c = c, rodadas = snapshotSpeedtest.rodadasTriplo)
             }
-
             Spacer(Modifier.height(LkSpacing.xxl))
         }
     }
+}
+
+@Composable
+private fun BlocoCirculoSpeedTest(
+    snapshotSpeedtest: SnapshotExecucaoSpeedtest,
+    snapshotRede: SnapshotRede,
+    movelSnapshot: MovelSnapshot?,
+    localizacaoServidor: String?,
+    modoSelecionado: ModoSpeedtest,
+    onModoSelecionado: (ModoSpeedtest) -> Unit,
+    onIniciarTeste: () -> Unit,
+    onVerResultado: () -> Unit,
+    mostrarDialogCancelar: () -> Unit,
+    estadoIdle: Boolean,
+    c: LkTokens,
+) {
+    if (modoSelecionado == ModoSpeedtest.triplo && snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.executando) {
+        IndicadorRodadaTriplo(
+            rodadaAtual = snapshotSpeedtest.rodadaAtual,
+            aguardando = snapshotSpeedtest.aguardandoProximaRodada,
+        )
+        Spacer(Modifier.height(LkSpacing.md))
+    }
+
+    SpeedTestCircle(
+        estado = snapshotSpeedtest.estado,
+        progresso = snapshotSpeedtest.progressoPercentual,
+        fase = snapshotSpeedtest.faseAtual,
+        velocidadeMbps = if (snapshotSpeedtest.aguardandoProximaRodada) 0.0 else snapshotSpeedtest.velocidadeAtualMbps,
+        onIniciarTeste = onIniciarTeste,
+    )
+
+    // Linha de contexto: tipo de conexão + servidor (só no estado idle/concluído)
+    if (estadoIdle) {
+        Spacer(Modifier.height(LkSpacing.sm))
+        LinhaContextoConexao(
+            snapshotRede = snapshotRede,
+            movelSnapshot = movelSnapshot,
+            localizacaoServidor = localizacaoServidor,
+            c = c,
+        )
+    }
+
+    if (!snapshotRede.conectado) {
+        Spacer(Modifier.height(LkSpacing.sm))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.WifiOff,
+                contentDescription = null,
+                tint = LkColors.warning,
+                modifier = Modifier.size(14.dp),
+            )
+            Text(
+                "Sem conexão — teste indisponível",
+                style = MaterialTheme.typography.labelSmall,
+                color = LkColors.warning,
+            )
+        }
+    }
+
+    if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.executando) {
+        Spacer(Modifier.height(LkSpacing.sm))
+        TextButton(onClick = mostrarDialogCancelar) {
+            Text(
+                text = if (modoSelecionado == ModoSpeedtest.triplo) "Cancelar teste" else "Cancelar",
+                color = c.textTertiary,
+                style = MaterialTheme.typography.titleSmall,
+            )
+        }
+        val mbConsumidos = snapshotSpeedtest.bytesConsumidos / 1_000_000.0
+        if (snapshotSpeedtest.bytesConsumidos > 0L) {
+            Text(
+                text = "%.1f MB usados".format(mbConsumidos),
+                style = MaterialTheme.typography.labelMedium,
+                color = c.textTertiary,
+            )
+        }
+    } else if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.concluido && snapshotSpeedtest.resultado != null) {
+        Spacer(Modifier.height(LkSpacing.sm))
+        TextButton(onClick = onVerResultado) {
+            Text(
+                text = "Ver resultado",
+                color = LkColors.accent,
+                style = MaterialTheme.typography.titleSmall,
+            )
+        }
+    } else {
+        Spacer(Modifier.height(LkSpacing.md))
+    }
+
+    ModeSelector(modoSelecionado = modoSelecionado, onSelect = onModoSelecionado)
+
+    val erroMsg = snapshotSpeedtest.erroMensagem
+    if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.erro && erroMsg != null) {
+        Spacer(Modifier.height(LkSpacing.md))
+        Text(
+            text = erroMsg,
+            style = MaterialTheme.typography.titleSmall,
+            color = LkColors.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = LkSpacing.xl),
+        )
+    }
+}
+
+@Composable
+private fun LinhaContextoConexao(
+    snapshotRede: SnapshotRede,
+    movelSnapshot: MovelSnapshot?,
+    localizacaoServidor: String?,
+    c: LkTokens,
+) {
+    val tipoConexao =
+        when (snapshotRede.estadoConexao) {
+            EstadoConexao.wifi -> {
+                val freq = snapshotRede.wifiLinkSnapshot?.frequenciaMhz
+                val banda =
+                    when {
+                        freq != null && freq >= 5900 -> "Wi-Fi 6 GHz"
+                        freq != null && freq >= 3000 -> "Wi-Fi 5 GHz"
+                        freq != null -> "Wi-Fi 2.4 GHz"
+                        else -> "Wi-Fi"
+                    }
+                banda
+            }
+            EstadoConexao.movel -> {
+                val tec = movelSnapshot?.tecnologia?.ifBlank { null }?.uppercase()
+                if (tec != null) "Rede móvel · $tec" else "Rede móvel"
+            }
+            EstadoConexao.ethernet -> "Ethernet"
+            else -> null
+        }
+
+    val partes = listOfNotNull(tipoConexao, localizacaoServidor?.takeIf { it.isNotBlank() })
+    if (partes.isEmpty()) return
+
+    Text(
+        text = partes.joinToString(" · "),
+        style = MaterialTheme.typography.labelSmall,
+        color = c.textTertiary,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable
