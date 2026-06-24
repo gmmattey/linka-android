@@ -3,7 +3,7 @@ description: Checklist de qualidade React/TypeScript para o PWA SignallQ — pad
 ---
 
 ## Quando usar
-Antes de implementar ou revisar código React/TypeScript no PWA (`linkaSpeedtestPwa/`).
+Antes de implementar ou revisar código React/TypeScript no PWA (`pwa/`).
 
 ## Padrões obrigatórios
 

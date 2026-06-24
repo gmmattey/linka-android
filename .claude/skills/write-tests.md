@@ -24,13 +24,13 @@ Escrever testes automatizados para o módulo ou feature especificado. Cobre Andr
 
 ## Tipos de teste por plataforma
 
-### Android (`linkaAndroidKotlin/`)
+### Android (`android/`)
 
 - **Unit** — ViewModels (com `TestDispatcher`), UseCases, Engines de diagnóstico (JUnit5 + MockK)
 - **Integration** — DAOs com Room in-memory, fluxo completo de diagnóstico
 - **UI** — Composables críticos com `ComposeTestRule`, estados: loading / erro / sucesso / vazio
 
-### PWA (`linkaSpeedtestPwa/`)
+### PWA (`pwa/`)
 
 - **Unit** — hooks (`renderHook`), utilitários, lógica de cálculo de velocidade (Vitest)
 - **Component** — componentes React com Testing Library (`render`, `screen`, `userEvent`)
