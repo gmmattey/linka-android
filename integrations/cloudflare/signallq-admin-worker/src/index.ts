@@ -1077,6 +1077,11 @@ export default {
     }
     const url = new URL(request.url);
 
+    // Redireciona browser direto para o painel (evita exibir JSON cru em Edge/Chrome).
+    if (url.pathname === "/" || url.pathname === "") {
+      return Response.redirect("https://signallq-admin-panel.pages.dev", 302);
+    }
+
     if (url.pathname === "/health") {
       if (!authenticate(request, env)) return err("Unauthorized", 401, env);
       return json({ status: "ok", worker: "signallq-admin-worker" }, 200, env);
