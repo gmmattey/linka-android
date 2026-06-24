@@ -35,13 +35,21 @@ private val adminIngestKey: String =
 
 android {
     namespace = "io.veloo.app"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk = libs.versions.compileSdk
+        .get()
+        .toInt()
 
     defaultConfig {
         applicationId = "io.veloo.app"
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = libs.versions.versionCode.get().toInt()
+        minSdk = libs.versions.minSdk
+            .get()
+            .toInt()
+        targetSdk = libs.versions.targetSdk
+            .get()
+            .toInt()
+        versionCode = libs.versions.versionCode
+            .get()
+            .toInt()
         versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
