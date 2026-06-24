@@ -49,7 +49,6 @@ Camilo executa no máximo 1 task Android ativa por vez. Se ocupado, próximas ta
 - `/motor-diagnostico` — fluxo de speedtest e diagnóstico
 - `/checar-release` — checklist de release Android
 - `/linka-design` — design system oficial do SignallQ: tokens, componentes, padrões visuais
-- `/software-engineer` — engenharia de software, arquitetura, patterns e melhores práticas
 
 ## Design System — OBRIGATÓRIO antes de implementar UI
 
