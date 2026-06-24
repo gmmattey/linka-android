@@ -36,11 +36,29 @@ export default function App() {
   const baseUrl = import.meta.env.VITE_ADMIN_API_BASE_URL ?? "";
 
   // SIG-136: verifica sessão via cookie httpOnly na montagem.
+  // AbortController garante que o fetch seja cancelado no cleanup (evita atualização
+  // de estado em componente desmontado e race condition do StrictMode).
+  // Functional update `prev => r.ok || prev` impede que um fetch obsoleto
+  // sobrescreva um isAuthenticated=true definido por um login explícito.
   useEffect(() => {
-    fetch(`${baseUrl}/admin/auth/me`, { credentials: "include" })
-      .then((r) => setIsAuthenticated(r.ok))
-      .catch(() => setIsAuthenticated(false))
-      .finally(() => setAuthChecked(true));
+    let cancelled = false;
+    const controller = new AbortController();
+
+    fetch(`${baseUrl}/admin/auth/me`, { credentials: "include", signal: controller.signal })
+      .then((r) => {
+        if (!cancelled) setIsAuthenticated((prev) => r.ok || prev);
+      })
+      .catch((e) => {
+        if (!cancelled && e.name !== "AbortError") setIsAuthenticated(false);
+      })
+      .finally(() => {
+        if (!cancelled) setAuthChecked(true);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [baseUrl]);
 
   const handleLogin = useCallback(() => {
