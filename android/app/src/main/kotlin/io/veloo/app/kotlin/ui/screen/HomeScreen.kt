@@ -968,7 +968,8 @@ private fun NetworkPath(
                     ?: when {
                         hasInternetError -> stringResource(R.string.home_network_sem_conexao)
                         isIspInfoLoading -> stringResource(R.string.home_network_conectando)
-                        else -> "—"
+                        // #220: "—" substituído por texto útil quando IP público não está disponível
+                        else -> "IP indisponível"
                     }
             val internetSubColor: Color? =
                 when {
