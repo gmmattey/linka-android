@@ -15,17 +15,25 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-private val keyPropertiesFile = rootProject.file("key.properties")
-private val keyProperties = Properties().apply {
-    if (keyPropertiesFile.exists()) load(keyPropertiesFile.inputStream())
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    filter {
+        exclude("**/*.kts")
+    }
 }
+
+private val keyPropertiesFile = rootProject.file("key.properties")
+private val keyProperties =
+    Properties().apply {
+        if (keyPropertiesFile.exists()) load(keyPropertiesFile.inputStream())
+    }
 
 // Secrets de telemetria — lidos de local.properties em dev (nunca commitados).
 // Em CI/release, injetar via variavel de ambiente: ADMIN_INGEST_KEY=xxx
 private val localPropertiesFile = rootProject.file("local.properties")
-private val localProperties = Properties().apply {
-    if (localPropertiesFile.exists()) load(localPropertiesFile.inputStream())
-}
+private val localProperties =
+    Properties().apply {
+        if (localPropertiesFile.exists()) load(localPropertiesFile.inputStream())
+    }
 private val adminIngestKey: String =
     localProperties.getProperty("ADMIN_INGEST_KEY")
         ?: System.getenv("ADMIN_INGEST_KEY")
@@ -33,13 +41,21 @@ private val adminIngestKey: String =
 
 android {
     namespace = "io.veloo.app"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk = libs.versions.compileSdk
+        .get()
+        .toInt()
 
     defaultConfig {
         applicationId = "io.veloo.app"
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = libs.versions.versionCode.get().toInt()
+        minSdk = libs.versions.minSdk
+            .get()
+            .toInt()
+        targetSdk = libs.versions.targetSdk
+            .get()
+            .toInt()
+        versionCode = libs.versions.versionCode
+            .get()
+            .toInt()
         versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -134,7 +150,7 @@ android {
             // MVP core
             buildConfigField("Boolean", "FEATURE_SPEEDTEST", "true")
             buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_LOCAL", "true")
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_IA", "true")  // card + laudo
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_IA", "true") // card + laudo
             buildConfigField("Boolean", "FEATURE_WIFI_ANALISE", "true")
             buildConfigField("Boolean", "FEATURE_REDE_MOVEL_ANALISE", "true")
             buildConfigField("Boolean", "FEATURE_HISTORICO", "true")
@@ -162,7 +178,7 @@ android {
             buildConfigField("Boolean", "FEATURE_QUICK_SETTINGS_TILE", "false")
             // Pós-MVP Sprint 2
             buildConfigField("Boolean", "FEATURE_PROVA_REAL_COMPLETO", "false")
-            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_ITERATIVO","false")
+            buildConfigField("Boolean", "FEATURE_DIAGNOSTICO_ITERATIVO", "false")
             buildConfigField("Boolean", "FEATURE_TRACEROUTE", "false")
             // Pós-MVP Sprint 3+
             buildConfigField("Boolean", "FEATURE_TELEPHONY_AVANCADO", "false")

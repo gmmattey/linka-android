@@ -17,7 +17,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Run Detekt
-        run: ./gradlew detekt
+        run: cd android && ./gradlew detekt
 
   ktlint:
     name: Ktlint
@@ -29,7 +29,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Run Ktlint check
-        run: ./gradlew ktlintCheck
+        run: cd android && ./gradlew ktlintCheck
 
   unit-tests:
     name: Unit tests
@@ -42,13 +42,13 @@ jobs:
           java-version: 21
           cache: gradle
       - name: Run unit tests
-        run: ./gradlew test
+        run: cd android && ./gradlew test
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-reports
-          path: '**/build/reports/tests/'
+          path: 'android/**/build/reports/tests/'
           if-no-files-found: ignore
 
   build-debug:
@@ -62,4 +62,4 @@ jobs:
           java-version: 21
           cache: gradle
       - name: Assemble debug
-        run: ./gradlew assembleDebug
+        run: cd android && ./gradlew assembleDebug
