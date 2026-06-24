@@ -56,16 +56,9 @@ Gema deve declarar explicitamente quando está escalando: `Gema: Escalando para 
 ## Skills recomendadas
 
 - `/issue-conventions` — abrir bug no GitHub no formato `[BUG]` e roteamento Linear/GitHub
-- `/release-check` — checklist completo de release
-- `/qa-acceptance-check` — validar critérios de aceite
-- `/regression-check` — verificar regressões
-- `/test-failure-summary` — resumir falhas de testes
-- `/changelog-update` — atualizar changelog
-- `/docs-hygiene` — revisar documentação
-- `/workspace-hygiene` — verificar ambiente
-- `/done-not-done` — emitir veredito final
-- `/task-retention-cleanup` — limpar tasks antigas
-- `/branch-worktree-audit` — auditar branches/worktrees
+- `/checar-entrega` — gate de qualidade: critérios de aceite, regressão, release gate e veredito Done
+- `/checar-release` — checklist de release por stack + changelog
+- `/higiene` — docs, workspace, branches/worktrees, tasks e custo de tokens
 
 ## Delegação ao Marcelo — OBRIGATÓRIO
 

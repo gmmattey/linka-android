@@ -45,12 +45,11 @@ Camilo executa no máximo 1 task Android ativa por vez. Se ocupado, próximas ta
 
 ## Skills recomendadas
 
-- `/regras-dispositivos-android` — regras Android por API level e OEM quirks (substitui Otávio)
-- `/compose-implementation` — padrões de implementação Compose
-- `/checklist-permissoes-android` — checklist de permissões
+- `/regras-android` — regras Android por API level, OEM quirks e permissões (substitui Otávio)
+- `/padroes-compose` — padrões de implementação Compose
 - `/regras-diagnostico-rede` — thresholds e diagnóstico de rede (substitui Bernardo)
-- `/speedtest-flow` — fluxo de speedtest Android
-- `/release-ready-android` — checklist de release Android
+- `/motor-diagnostico` — fluxo de speedtest e diagnóstico
+- `/checar-release` — checklist de release Android
 - `/linka-design` — design system oficial do SignallQ: tokens, componentes, padrões visuais
 - `/software-engineer` — engenharia de software, arquitetura, patterns e melhores práticas
 

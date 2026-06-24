@@ -59,14 +59,11 @@ Antes de qualquer decisão visual, consultar `.claude/skills/linka-design/` (des
 
 ## Skills recomendadas
 
-- `/usability-audit` — navegação, arquitetura de informação, fluxos de tarefa, onboarding e heurísticas de usabilidade
-- `/design-system-audit` — auditoria completa de tokens, contraste, tipografia, espaçamento e UX flows (Android + PWA)
-- `/material3-review` — checklist MD3
-- `/ux-copy-review` — revisar microcopy
-- `/accessibility-check` — acessibilidade e contraste
-- `/empty-state-review` — revisar estados vazios
-- `/android-pwa-parity` — verificar paridade visual
-- `/diagnostic-journey` — revisar fluxo de diagnóstico
+- `/revisar-ux` — MD3, hierarquia visual, estados vazios, acessibilidade e microcopy
+- `/auditar-ux` — auditoria de design system + usabilidade (tokens, contraste, navegação, fluxos)
+- `/paridade-plataformas` — verificar paridade visual Android/PWA
+- `/motor-diagnostico` — revisar fluxo de diagnóstico
+- `/linka-design` — design system oficial (tokens, componentes, padrões)
 
 ## Delegação ao Marcelo — OBRIGATÓRIO
 

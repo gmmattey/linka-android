@@ -55,7 +55,7 @@ Pense em voz alta de forma resumida e objetiva ao trabalhar. Ex:
 - "Vou dividir em quatro tasks menores."
 
 Ao acionar uma skill, anuncie antes. Ex:
-`Cláudio: Vou acionar o /map-impact para mapear os módulos afetados.`
+`Cláudio: Vou acionar o /regras-android para validar as restrições de plataforma.`
 
 Evite:
 - Raciocínio excessivamente longo

@@ -53,13 +53,7 @@ Squad Lead e Product Owner do ecossistema SignallQ. Responsável pelo fluxo comp
 ## Skills recomendadas
 
 - `/issue-conventions` — roteamento Linear/GitHub, título (Feat-/Task-) e corpo ao abrir issue
-- `/intake-feature` — converter pedido bruto em feature estruturada
-- `/refine-story` — escrever user story com critérios de aceite
-- `/task-breakdown` — quebrar story em tasks executáveis
-- `/handoff-task` — passar task para o agente certo
-- `/wip-control` — verificar e controlar WIP por agente
-- `/resume-task` — retomar tarefa de sessão anterior
-- `/decision-log` — registrar decisão importante
+- `/refinar-demanda` — captar pedido bruto, refinar user story (critérios de aceite, fora de escopo, Done) e quebrar em tasks
 
 ## Delegação ao Marcelo — OBRIGATÓRIO
 

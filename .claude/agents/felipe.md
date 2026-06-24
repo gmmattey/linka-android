@@ -119,11 +119,9 @@ Felipe executa no máximo 1 task ativa por vez. Se ocupado, próximas tasks vão
 
 ## Skills recomendadas
 
-- `/painel-admin` — **ponto de entrada obrigatório**: classifica task, checklist de qualidade de código, mock e análise de dados
-- `/react-typescript-check` — checklist React/TypeScript
-- `/cloudflare-pages-check` — checklist de deploy Cloudflare
+- `/padroes-react` — checklist React/TypeScript
+- `/checar-release` — checklist de deploy Cloudflare Pages
 - `/linka-design` — design system oficial do SignallQ: tokens e padrões visuais
-- `/anti-overengineering` — identificar complexidade desnecessária
 
 ## Design System — OBRIGATÓRIO antes de implementar UI
 

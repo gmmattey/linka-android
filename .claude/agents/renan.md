@@ -47,12 +47,10 @@ Renan executa no máximo 1 task PWA ativa por vez. Se ocupado, próximas tasks v
 
 ## Skills recomendadas
 
-- `/pwa-platform-rules` — regras e limites da plataforma web
-- `/react-typescript-check` — checklist React/TypeScript
-- `/cloudflare-pages-check` — checklist de deploy Cloudflare
-- `/android-pwa-parity` — verificar paridade com Android
-- `/browser-limitations` — documentar limitações reais do navegador
-- `/pwa-release-check` — checklist de release PWA
+- `/regras-pwa` — regras da plataforma web e limitações reais do navegador
+- `/padroes-react` — checklist React/TypeScript
+- `/checar-release` — checklist de release/deploy PWA (Cloudflare Pages)
+- `/paridade-plataformas` — verificar paridade com Android
 - `/linka-design` — design system oficial do SignallQ: tokens, componentes, padrões visuais
 
 ## Design System — OBRIGATÓRIO antes de implementar UI

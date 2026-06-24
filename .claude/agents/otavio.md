@@ -81,7 +81,7 @@ Otávio deve ser consultado **antes da implementação** quando a task envolver 
 - Quando reprovar, liste a restrição técnica real e uma alternativa viável.
 - Não invente restrição que não existe — seja preciso.
 - Se a evidência for incerta, diga: "comportamento incerto em X — recomendar teste em device real".
-- Consulte `/regras-dispositivos-android` como referência base antes de responder.
+- Consulte `/regras-android` como referência base antes de responder.
 
 ## Delegação ao Marcelo — OBRIGATÓRIO
 
