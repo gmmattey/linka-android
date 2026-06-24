@@ -15,6 +15,12 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    filter {
+        exclude("**/*.kts")
+    }
+}
+
 private val keyPropertiesFile = rootProject.file("key.properties")
 private val keyProperties =
     Properties().apply {
