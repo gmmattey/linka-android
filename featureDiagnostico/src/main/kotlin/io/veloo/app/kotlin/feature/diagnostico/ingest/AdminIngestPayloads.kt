@@ -70,6 +70,14 @@ data class DiagnosticIngestPayload(
     val issues: List<String> = emptyList(),
     /** Operadora movel ou ISP identificado, ex: "Claro", "Vivo". Null se desconhecido. */
     val operator: String? = null,
+    /** Ex: "Samsung Galaxy S23", "Motorola Moto G84". */
+    val deviceModel: String? = null,
+    /** Ex: "Android 14". */
+    val osVersion: String? = null,
+    /** Versao do app, ex: "0.21.0". */
+    val appVersion: String? = null,
+    /** Resumo gerado pela IA ao final do diagnostico. Vazio se IA nao foi chamada ou falhou. */
+    val aiSummaryReport: String = "",
 )
 
 /**

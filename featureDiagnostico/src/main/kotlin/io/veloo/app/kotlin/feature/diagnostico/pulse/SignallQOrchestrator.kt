@@ -1,5 +1,7 @@
 package io.veloo.app.feature.diagnostico.pulse
 
+import android.os.Build
+import io.veloo.app.feature.diagnostico.BuildConfig
 import io.veloo.app.core.database.MedicaoDao
 import io.veloo.app.core.network.GatewayLatencyMeasurer
 import io.veloo.app.core.network.MonitorRede
@@ -300,6 +302,7 @@ class SignallQOrchestrator(
             wifiFrequenciaMhz = wifiSnapshot?.frequenciaMhz,
             movelTecnologia = extraContext.movel?.tecnologia,
             operadoraMovel = extraContext.movel?.operadora,
+            aiSummaryReport = if (!aiEntry.isFallback) aiEntry.content else "",
         )
 
         Timber.i("iniciarDiagnosticoComResultado concluído estado=$pulseState")
@@ -503,6 +506,7 @@ class SignallQOrchestrator(
             wifiFrequenciaMhz = wifiSnapshot?.frequenciaMhz,
             movelTecnologia = extraContext.movel?.tecnologia,
             operadoraMovel = extraContext.movel?.operadora,
+            aiSummaryReport = if (!aiEntry.isFallback) aiEntry.content else "",
         )
 
         Timber.i("iniciarDiagnostico concluído estado=$pulseState")
@@ -1008,6 +1012,8 @@ class SignallQOrchestrator(
         movelTecnologia: String? = null,
         /** Operadora movel identificada — ex: "Claro", "Vivo". Null se Wi-Fi ou indisponivel. */
         operadoraMovel: String? = null,
+        /** Resumo gerado pela IA. Vazio se IA nao foi chamada ou falhou. */
+        aiSummaryReport: String = "",
     ) {
         val repo = adminIngestRepository ?: return
         scope.launch {
@@ -1048,6 +1054,10 @@ class SignallQOrchestrator(
                     packetLoss = speedtestResult?.perdaPercentual?.toFloat(),
                     issues = issues,
                     operator = operadoraMovel?.takeIf { it.isNotBlank() },
+                    deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}",
+                    osVersion = "Android ${Build.VERSION.RELEASE}",
+                    appVersion = BuildConfig.APP_VERSION,
+                    aiSummaryReport = aiSummaryReport,
                 ),
             )
         }
