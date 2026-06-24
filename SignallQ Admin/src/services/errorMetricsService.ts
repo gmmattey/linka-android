@@ -4,13 +4,48 @@ import { DashboardFilters } from "./adminMetricsService";
 import { InfraAlert, AiAlert, ErrorMetricSummary, ErrorByEndpointEntry } from "../mocks/errors.mock";
 
 export const errorMetricsService = {
-  /**
-   * Retrieves fine-grained telemetry logging for errors occurring in the gateways, databases, and apps.
-   * Sem rota real no worker — retorna [] em produção.
-   */
   async getSystemErrors(_filters: DashboardFilters & { search?: string } = {}): Promise<SystemError[]> {
     if (!apiClient.isMockEnabled()) {
-      return [];
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return [];
+
+      const period = _filters.period === "today" ? "1d" : (_filters.period ?? "30d");
+      try {
+        const raw = await apiClient.request<{ errors: Array<{
+          id: string;
+          source: string;
+          message: string;
+          stackTrace: string;
+          count: number;
+          timestamp: string;
+          affectedUserCount: number;
+        }> }>("GET", `/admin/metrics/errors?period=${period}`);
+
+        let results = (raw.errors ?? []).map((r): SystemError => ({
+          id:               r.id,
+          timestamp:        r.timestamp,
+          source:           r.source,
+          message:          r.message,
+          stackTrace:       r.stackTrace ?? '',
+          count:            r.count      ?? 1,
+          environment:      "production",
+          resolved:         false,
+          affectedUserCount: r.affectedUserCount ?? 0,
+        }));
+
+        if (_filters.search) {
+          const q = _filters.search.toLowerCase();
+          results = results.filter(e =>
+            e.id.toLowerCase().includes(q) ||
+            e.message.toLowerCase().includes(q) ||
+            e.source.toLowerCase().includes(q) ||
+            e.stackTrace.toLowerCase().includes(q)
+          );
+        }
+
+        return results;
+      } catch {
+        return [];
+      }
     }
 
     // Modo mock: importação dinâmica para não incluir dados mock no bundle de produção

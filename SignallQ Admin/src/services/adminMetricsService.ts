@@ -370,7 +370,38 @@ export const adminMetricsService = {
   },
 
   async getOperatorMetrics(filters: DashboardFilters = {}): Promise<OperatorRecord[]> {
-    if (!apiClient.isMockEnabled()) return [];
+    if (!apiClient.isMockEnabled()) {
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return [];
+
+      const period = filters.period === "today" ? "1d" : (filters.period ?? "30d");
+      try {
+        const raw = await apiClient.request<{ operators: Array<{
+          operator: string;
+          total_diagnostics: number;
+          avg_score: number | null;
+          avg_download: number | null;
+          avg_upload: number | null;
+          avg_latency: number | null;
+          completed: number;
+          resolved: number;
+        }> }>("GET", `/admin/metrics/operators?period=${period}`);
+
+        return (raw.operators ?? []).map((r, idx) => ({
+          id:                             `op_${idx}`,
+          name:                           r.operator,
+          country:                        "Brasil",
+          type:                           "mobile" as const,
+          testCount:                      r.total_diagnostics,
+          averageDownloadMbps:            r.avg_download         ?? 0,
+          averageUploadMbps:              r.avg_upload           ?? 0,
+          averageLatencyMs:               r.avg_latency          ?? 0,
+          packetLossAverage:              0,
+          customerSatisfactionPercentage: r.avg_score            ?? 0,
+        }));
+      } catch {
+        return [];
+      }
+    }
 
     const list = await apiClient.simulateFetch(mockOperatorsList, filters);
 

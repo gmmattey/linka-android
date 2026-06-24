@@ -2,6 +2,8 @@ import React from "react";
 import { errorMetricsService } from "../../services/errorMetricsService";
 import { apiClient } from "../../services/apiClient";
 import { RecentErrorsTable } from "./components/RecentErrorsTable";
+import { ErrorMetricGrid } from "./components/ErrorMetricGrid";
+import { ErrorByEndpointChart } from "./components/ErrorByEndpointChart";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { AppEnvironment } from "../../types/admin";
@@ -181,19 +183,13 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
         </div>
       </div>
 
-      {/* 2. Grid cards — sem fonte real no worker */}
-      <FeatureComingSoon
-        feature="Métricas de Erros"
-        reason="Requer rota de erros no worker"
-      />
+      {/* 2. Grid de métricas de erros — dados via D1 (SIG-135 Fase A) */}
+      <ErrorMetricGrid environment={localEnv} />
 
-      {/* 3. Operational grid layouts — sem fonte real no worker */}
+      {/* 3. Operational grid layouts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
         <div className="lg:col-span-2">
-          <FeatureComingSoon
-            feature="Volume de Erros por Interface"
-            reason="Requer rota de erros no worker"
-          />
+          <ErrorByEndpointChart environment={localEnv} />
         </div>
         <div>
           <FeatureComingSoon
