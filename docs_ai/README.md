@@ -52,6 +52,9 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 ## Technical
 
 - [Architecture Overview (`technical/ARCHITECTURE.md`)](./technical/ARCHITECTURE.md)
+- [Architecture Review (`technical/ARCHITECTURE_REVIEW.md`)](./technical/ARCHITECTURE_REVIEW.md) — revisão de arquitetura com riscos e recomendações
+- [Project Structure (`technical/PROJECT_STRUCTURE.md`)](./technical/PROJECT_STRUCTURE.md) — estrutura de pastas e convenções do repositório
+- [Notificações (`technical/NOTIFICACOES.md`)](./technical/NOTIFICACOES.md) — sistema de notificações push e locais
 - [Module Breakdown (`technical/MODULES.md`)](./technical/MODULES.md)
 - [Data Flow (`technical/DATA_FLOW.md`)](./technical/DATA_FLOW.md)
 - [API Map (`technical/API_MAP.md`)](./technical/API_MAP.md)
@@ -92,6 +95,11 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [Environments (`operations/ENVIRONMENTS.md`)](./operations/ENVIRONMENTS.md) — doc canonico de ambientes
 - [Admin Auth (`operations/ADMIN_AUTH.md`)](./operations/ADMIN_AUTH.md) — autenticacao propria do painel via D1 (SIG-136)
 - [Admin Panel (`operations/ADMIN_PANEL.md`)](./operations/ADMIN_PANEL.md) — estado real do painel, telas, schema D1, endpoints, etapas manuais do Luiz (SIG-143/136/132/125/133)
+- [APK Output Policy (`operations/APK_OUTPUT_POLICY.md`)](./operations/APK_OUTPUT_POLICY.md) — convenção de nomes e destinos de APKs/AABs
+- [Guia Release Build (`operations/GuiaReleaseBuild.md`)](./operations/GuiaReleaseBuild.md) — passo a passo de build de release
+- [Maintenance Plan (`operations/MAINTENANCE_PLAN.md`)](./operations/MAINTENANCE_PLAN.md) — plano de manutenção contínua
+- [Pipeline Autônomo (`operations/PIPELINE_AUTONOMO.md`)](./operations/PIPELINE_AUTONOMO.md) — fluxo autônomo de agentes: intake → merge
+- [Workflow Board (`operations/WORKFLOW_BOARD.md`)](./operations/WORKFLOW_BOARD.md) — board de status e fluxo de trabalho
 
 ---
 
