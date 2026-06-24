@@ -221,7 +221,7 @@ Problemas críticos (contraste quebrado, touch target < 48dp, ARIA ausente em el
 ## Limites
 
 - Não inclui auditoria de performance (recomposição, reflow, FPS) — escopo é consistência visual e UX.
-- Não valida lógica de diagnóstico de rede — usar `/network-diagnostic-rules`.
+- Não valida lógica de diagnóstico de rede — usar `/regras-diagnostico-rede`.
 - Não define novo design system do zero em uma task — auditar e propor incrementalmente.
 - Contraste: calcular com referência nos valores de cor declarados — sem depender de ferramentas externas de browser.
 - Não bloqueia entrega por problema de melhoria — somente crítico bloqueia.

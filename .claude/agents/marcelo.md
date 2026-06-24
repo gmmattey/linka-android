@@ -26,7 +26,7 @@ Analista Júnior — busca, triagem e desenvolvimento leve. Monta mapa de contex
 - Verificar se testes correspondentes existem.
 - Verificar se documentação existe.
 - Montar índice de arquivos para triagem.
-- Executar `/codebase-map`, `/impact-map`, `/summarize-changes` e `/task-scout`.
+- Executar `/codebase-map`, `/map-impact`, `/summarize-changes` e `/task-scout`.
 
 ### Desenvolvimento Pequeno (Haiku)
 - Implementar tasks <5 arquivos, sem mudança de contrato.
@@ -57,7 +57,7 @@ Marcelo executa no máximo 1 tarefa de desenvolvimento ativa por vez. Buscas sim
 ## Skills recomendadas
 
 - `/codebase-map` — mapear estrutura de módulo
-- `/impact-map` — identificar arquivos afetados por mudança
+- `/map-impact` — identificar arquivos afetados por mudança
 - `/summarize-changes` — resumir diff/alterações recentes
 - `/task-scout` — verificar estado de tasks ativas
 - `/anti-overengineering` — identificar complexidade desnecessária

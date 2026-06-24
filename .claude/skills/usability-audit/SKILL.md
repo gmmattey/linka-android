@@ -181,5 +181,5 @@ Severidade: [crítico | importante | melhoria]
 - Não revisa microcopy em detalhe — usar `/ux-copy-review`.
 - Não audita estados vazios isolados — usar `/empty-state-review`.
 - Não avalia fluxo de diagnóstico em profundidade — usar `/diagnostic-journey`.
-- Não valida regras de negócio do diagnóstico de rede — usar `/network-diagnostic-rules`.
+- Não valida regras de negócio do diagnóstico de rede — usar `/regras-diagnostico-rede`.
 - Testes com usuário real estão fora do escopo — esta skill avalia heurísticas, não comportamento observado.

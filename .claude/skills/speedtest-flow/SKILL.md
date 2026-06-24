@@ -38,7 +38,7 @@ UI (SpeedtestScreen) → SpeedtestViewModel → SpeedtestUseCase → NetworkEngi
 | Perda de pacotes | % | 1 casa decimal |
 
 ## Thresholds de resultado (Brasil)
-Consulte `/network-diagnostic-rules` para thresholds completos de qualidade.
+Consulte `/regras-diagnostico-rede` para thresholds completos de qualidade.
 
 ## Anti-padrões
 - ❌ Bloquear Main thread durante medição.

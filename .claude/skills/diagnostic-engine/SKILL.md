@@ -9,7 +9,7 @@ $ARGUMENTS
 
 Agentes recomendados por fase:
 - **Cláudio** — planeja e mapeia impacto
-- **`/android-platform-rules`** — valida comportamento real em device (DNS, Wi-Fi, NetworkCallback, OEM quirks)
+- **`/regras-dispositivos-android`** — valida comportamento real em device (DNS, Wi-Fi, NetworkCallback, OEM quirks)
 - **Camilo** — implementa Android
 - **Lia** — valida impacto visual e estados de UI
 - **Gema** — revisão final
@@ -27,9 +27,9 @@ Antes de propor nova engine, orchestrator ou use case de diagnóstico:
 
 ---
 
-## Gatilho `/android-platform-rules` — OBRIGATÓRIO
+## Gatilho `/regras-dispositivos-android` — OBRIGATÓRIO
 
-Se a tarefa de diagnóstico envolver qualquer um destes, **consultar `/android-platform-rules` é obrigatório**:
+Se a tarefa de diagnóstico envolver qualquer um destes, **consultar `/regras-dispositivos-android` é obrigatório**:
 
 - DNS real (não mock) — resolução, servidores, privateDns
 - Wi-Fi scan, RSSI, frequência, padrão de conexão, NetworkCapabilities
@@ -37,9 +37,9 @@ Se a tarefa de diagnóstico envolver qualquer um destes, **consultar `/android-p
 - Comportamento de rede em background/Doze mode
 - Restrições de permissão (ACCESS_FINE_LOCATION para Wi-Fi)
 
-→ Invocar `/android-platform-rules` antes de Camilo implementar.
+→ Invocar `/regras-dispositivos-android` antes de Camilo implementar.
 
-`[PRÓXIMO: /android-platform-rules — task envolve [DNS/Wi-Fi/NetworkCallback], validação obrigatória antes de Camilo]`
+`[PRÓXIMO: /regras-dispositivos-android — task envolve [DNS/Wi-Fi/NetworkCallback], validação obrigatória antes de Camilo]`
 
 ---
 
@@ -66,4 +66,4 @@ Se a tarefa de diagnóstico envolver qualquer um destes, **consultar `/android-p
 5. **Riscos** — o que pode regredir no diagnóstico ou na experiência do usuário
 6. **Testes necessários** — cenários de rede que devem ser validados
 
-[PRÓXIMO: /android-platform-rules (se domínio crítico) | Cláudio (planejamento) | Camilo (implementação)]
+[PRÓXIMO: /regras-dispositivos-android (se domínio crítico) | Cláudio (planejamento) | Camilo (implementação)]
