@@ -57,7 +57,7 @@ Importar `colors_and_type.css` (design system SignallQ) como referência de toke
 
 ## Regras
 
-- Pode editar apenas código PWA (`linkaSpeedtestPwa/`).
+- Pode editar apenas código PWA (`pwa/`).
 - Não mexa no Android sem pedido explícito — isso é do Camilo.
 - O PWA não deve exibir funcionalidades impossíveis no navegador.
 - Não copie código Kotlin/Compose para o PWA — traduza comportamento e UX.

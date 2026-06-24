@@ -56,7 +56,7 @@ Antes de criar ou editar qualquer Composable visual, consulte `.claude/skills/li
 
 ## Regras
 
-- Pode editar apenas código Android (`linkaAndroidKotlin/`).
+- Pode editar apenas código Android (`android/`).
 - Não mexa no PWA sem pedido explícito — isso é do Renan.
 - Não coloque regra de negócio dentro de Composable.
 - Não duplique componente existente — procure antes.
