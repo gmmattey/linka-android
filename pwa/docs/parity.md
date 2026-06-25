@@ -14,6 +14,8 @@ Paridade não significa copiar tudo do Android.
 
 Paridade no PWA significa entregar a mesma promessa central quando o navegador permitir, e declarar degradação ou impossibilidade quando o browser não permitir.
 
+**Exceção importante:** SpeedTest é promessa central do produto e deve buscar paridade metodológica com o Android. Não tratar SpeedTest como versão inferior por padrão.
+
 ## Status de paridade
 
 Usar estas classificações:
@@ -21,6 +23,7 @@ Usar estas classificações:
 | Status | Significado |
 |---|---|
 | `equivalente` | O PWA entrega comportamento funcional comparável ao Android. |
+| `paridade-metodologica` | O PWA usa o mesmo endpoint, amostragem, cálculo e classificação do Android quando a plataforma permite. |
 | `degradado` | O PWA entrega parte do valor, com limitação conhecida. |
 | `ausente` | Ainda não implementado no PWA. |
 | `n/a-browser` | Impossível no browser por limitação técnica. |
@@ -32,9 +35,9 @@ Usar estas classificações:
 
 - App shell.
 - Home simples.
-- SpeedTest por HTTP.
+- SpeedTest por HTTP com paridade metodológica.
 - Latência HTTP.
-- Jitter estimado por amostras HTTP.
+- Jitter por amostras HTTP.
 - Histórico local com IndexedDB.
 - Exportação futura por Blob/arquivo.
 - Compartilhamento via Web Share API quando disponível.
@@ -46,9 +49,8 @@ Usar estas classificações:
 ### Degradado no PWA
 
 - Tipo de conexão: depende de Network Information API, ausente em Safari/Firefox.
-- Ping: apenas latência HTTP, não ICMP.
-- Upload: depende de endpoint controlado.
-- Bufferbloat: possível com múltiplas requisições, mas deve ser tratado como métrica avançada futura.
+- Ping ICMP real: indisponível, mas SpeedTest deve usar a mesma latência HTTP/endpoint de referência definido para o produto.
+- Upload: depende de endpoint controlado, que deve ser o mesmo contrato usado pelo Android sempre que possível.
 - Notificações: Web Push é possível, mas sem RSSI real e com suporte desigual.
 - Monitoramento passivo: apenas com app aberto ou Periodic Background Sync onde disponível.
 
@@ -73,9 +75,27 @@ Usar estas classificações:
 
 ### SpeedTest
 
-Status alvo: `equivalente-degradado`.
+Status alvo: `paridade-metodologica`.
 
-O PWA pode medir download, upload e latência por HTTP. A UI deve comunicar que latência é HTTP e não ICMP.
+O PWA deve buscar precisão equivalente ao Android para as métricas que fazem parte do SpeedTest:
+
+- download;
+- upload;
+- latência HTTP;
+- jitter;
+- bufferbloat, se entrar no modo completo;
+- classificação qualitativa.
+
+Regras:
+
+- usar o mesmo endpoint/worker de medição do Android quando possível;
+- usar o mesmo tamanho de payload ou uma justificativa documentada;
+- usar a mesma regra de amostragem ou uma justificativa documentada;
+- usar a mesma fórmula de cálculo de Mbps;
+- usar a mesma classificação qualitativa;
+- registrar limitação apenas quando a diferença for de plataforma, não por simplificação arbitrária.
+
+A única ressalva obrigatória é terminológica: browser não faz ICMP real. Se a métrica for latência HTTP, a UI deve chamar de latência, não de ping ICMP.
 
 ### DNS
 
@@ -124,3 +144,5 @@ Quando o PWA implementar ou rejeitar feature por limitação do browser, atualiz
 Nenhuma feature nativa pode aparecer como promessa do PWA sem classificação explícita.
 
 Se for impossível no browser, deve ser marcada como `n/a-browser` e refletida na UI ou no escopo.
+
+SpeedTest só pode ser aceito quando houver paridade metodológica documentada ou justificativa técnica explícita para divergência.
