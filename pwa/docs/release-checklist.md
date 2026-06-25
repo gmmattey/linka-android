@@ -62,6 +62,7 @@ Se algum script não existir, declarar no PR.
 - Exposição de segredo no client.
 - PR mistura feature com refatoração grande.
 - PR muda contrato de diagnóstico sem documentar.
+- PR promete feature classificada como `n/a-browser` em `parity.md`.
 
 ## Checklist PWA
 
@@ -74,6 +75,44 @@ Quando aplicável:
 - Estados de loading/erro/vazio/sucesso existem.
 - Sem console debug desnecessário.
 - Sem texto técnico sem explicação.
+- Limitações do browser aparecem quando impactam o resultado.
+
+## Cenários mínimos de QA PWA
+
+Inspirado no plano E2E do Android, adaptado para Web.
+
+### SpeedTest
+
+- Happy path: teste conclui com download e latência HTTP.
+- Sem conexão: app mostra estado offline ou erro recuperável.
+- Timeout: app mostra erro recuperável com retry.
+- Interrupção durante teste: app encerra de forma controlada.
+- Upload indisponível: aparece como não medido, sem valor falso.
+
+### Diagnóstico
+
+- Diagnóstico local funciona sem IA.
+- Métricas parciais geram diagnóstico com confiança menor.
+- IA indisponível usa fallback local.
+- Resultado separa velocidade e estabilidade.
+- Limitações aparecem quando métrica não é nativa.
+
+### Histórico
+
+- Histórico vazio mostra CTA para novo teste.
+- Resultado salvo aparece na lista.
+- Detalhe deixa claro que é medição salva.
+- Apagar item funciona.
+- Limpar histórico exige confirmação.
+- Falha de IndexedDB não trava o app.
+
+### Paridade e limitações
+
+- RSSI não aparece como medido.
+- Scan Wi-Fi não é prometido.
+- Dispositivos não é prometido como scan real.
+- Fibra/modem não é prometido como acesso direto.
+- DNS benchmark real não é prometido sem proxy/Worker dedicado.
 
 ## Checklist Cloudflare Pages
 
