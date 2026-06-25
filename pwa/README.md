@@ -33,7 +33,7 @@ Skills:
 
 - `pwa/.agents/skills/regras-pwa/SKILL.md`
 - `pwa/.agents/skills/padroes-react/SKILL.md`
-- `pwa/.agents/skills/linka-design/SKILL.md`
+- `pwa/.agents/skills/signallq-design/SKILL.md`
 - `pwa/.agents/skills/checar-release/SKILL.md`
 - `pwa/.agents/skills/paridade-plataformas/SKILL.md`
 
