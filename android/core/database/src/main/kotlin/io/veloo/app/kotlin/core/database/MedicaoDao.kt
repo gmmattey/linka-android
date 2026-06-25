@@ -64,4 +64,15 @@ interface MedicaoDao {
 
     @Query("DELETE FROM medicao")
     suspend fun deletarTodos()
+
+    @Query(
+        "UPDATE medicao SET diagnosticoTexto = :texto, diagnosticoOrigem = :origem, " +
+            "diagnosticoProblemas = :problemas WHERE id = :id",
+    )
+    suspend fun atualizarDiagnostico(
+        id: String,
+        texto: String?,
+        origem: String?,
+        problemas: String?,
+    )
 }

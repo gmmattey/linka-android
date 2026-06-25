@@ -35,6 +35,7 @@ import io.veloo.app.feature.wifi.FeatureWifiModulo
 import io.veloo.app.feature.wifi.ScannerRedesWifi
 import io.veloo.app.featureflags.FeatureFlagManager
 import io.veloo.app.featureflags.FeatureFlagRepository
+import io.veloo.app.feature.diagnostico.DiagnosticOrchestrator
 import io.veloo.app.speedtest.SpeedtestPersistenceCoordinator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -223,6 +224,7 @@ object AppModule {
         medicaoDao: MedicaoDao,
         monitorTelephony: MonitorTelephony,
         monitorRede: MonitorRede,
+        diagnosticOrchestrator: DiagnosticOrchestrator,
         @ApplicationScope applicationScope: CoroutineScope,
     ): SpeedtestPersistenceCoordinator =
         SpeedtestPersistenceCoordinator(
@@ -230,6 +232,7 @@ object AppModule {
             medicaoDao = medicaoDao,
             monitorTelephony = monitorTelephony,
             monitorRede = monitorRede,
+            diagnosticOrchestrator = diagnosticOrchestrator,
             applicationScope = applicationScope,
         )
 }

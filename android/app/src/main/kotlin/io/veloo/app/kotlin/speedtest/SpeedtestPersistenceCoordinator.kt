@@ -4,6 +4,10 @@ import io.veloo.app.core.database.MedicaoDao
 import io.veloo.app.core.database.MedicaoEntity
 import io.veloo.app.core.network.MonitorRede
 import io.veloo.app.core.telephony.MonitorTelephony
+import io.veloo.app.feature.diagnostico.DiagnosticOrchestrator
+import io.veloo.app.feature.diagnostico.DiagnosticReport
+import io.veloo.app.feature.diagnostico.DiagnosticStatus
+import io.veloo.app.feature.diagnostico.EstadoDiagnostico
 import io.veloo.app.feature.speedtest.EstadoExecucaoSpeedtest
 import io.veloo.app.feature.speedtest.ExecutorSpeedtest
 import kotlinx.coroutines.CoroutineScope
@@ -19,12 +23,13 @@ import javax.inject.Singleton
  * Observa [ExecutorSpeedtest.snapshotFlow], detecta estado concluído, monta a
  * [MedicaoEntity] completa (com operadoraMovel via [MonitorTelephony]) e salva.
  *
+ * Também observa [DiagnosticOrchestrator.snapshotFlow]: quando o diagnóstico local
+ * é concluído após um speedtest, atualiza o registro com o texto do diagnóstico e
+ * a origem ("local"). O diagnóstico por IA (SIG-113) atualiza via [atualizarDiagnosticoIa].
+ *
  * Guard interno [ultimoResultadoPersistidoEpochMs] garante que o mesmo resultado
  * não seja salvo mais de uma vez, mesmo que o snapshotFlow emita múltiplas vezes
  * com o mesmo timestamp.
- *
- * Centraliza a persistência que antes estava duplicada em MainViewModel e
- * ChatDiagnosticoIaViewModel (issues #184 e #185).
  */
 @Singleton
 class SpeedtestPersistenceCoordinator
@@ -34,14 +39,20 @@ class SpeedtestPersistenceCoordinator
         private val medicaoDao: MedicaoDao,
         private val monitorTelephony: MonitorTelephony,
         private val monitorRede: MonitorRede,
+        private val diagnosticOrchestrator: DiagnosticOrchestrator,
         private val applicationScope: CoroutineScope,
     ) {
         private var ultimoResultadoPersistidoEpochMs: Long? = null
 
+        @Volatile
+        var ultimaMedicaoId: String? = null
+            private set
+
+        private var aguardandoDiagnostico = false
+
         /**
-         * Inicia a observação do snapshotFlow do speedtest.
-         * Deve ser chamado uma única vez na inicialização do app (Application ou AppModule).
-         * Idempotente — chamadas adicionais são ignoradas pois o CoroutineScope é o applicationScope.
+         * Inicia a observação do snapshotFlow do speedtest e do orquestrador de diagnóstico.
+         * Deve ser chamado uma única vez na inicialização do app.
          */
         fun iniciar() {
             applicationScope.launch {
@@ -52,10 +63,11 @@ class SpeedtestPersistenceCoordinator
 
                     ultimoResultadoPersistidoEpochMs = resultado.timestampEpochMs
 
+                    val novoId = UUID.randomUUID().toString()
                     try {
                         medicaoDao.salvar(
                             MedicaoEntity(
-                                id = UUID.randomUUID().toString(),
+                                id = novoId,
                                 timestampEpochMs = resultado.timestampEpochMs,
                                 connectionType = monitorRede.snapshotFlow.value.estadoConexao.name,
                                 connectionTypeStart = resultado.connectionTypeStart,
@@ -77,11 +89,64 @@ class SpeedtestPersistenceCoordinator
                                 operadoraMovel = monitorTelephony.snapshotFlow.value?.operadora,
                             ),
                         )
-                        Timber.d("SpeedtestPersistenceCoordinator: salvo ts=${resultado.timestampEpochMs}")
+                        ultimaMedicaoId = novoId
+                        aguardandoDiagnostico = true
+                        Timber.d("SpeedtestPersistenceCoordinator: salvo ts=${resultado.timestampEpochMs} id=$novoId")
                     } catch (e: Exception) {
                         Timber.e(e, "SpeedtestPersistenceCoordinator: falha ao salvar medicao")
                     }
                 }
             }
+
+            applicationScope.launch {
+                diagnosticOrchestrator.snapshotFlow.collect { snap ->
+                    if (snap.estado != EstadoDiagnostico.concluido) return@collect
+                    if (!aguardandoDiagnostico) return@collect
+                    val relatorio = snap.relatorio ?: return@collect
+                    val id = ultimaMedicaoId ?: return@collect
+
+                    aguardandoDiagnostico = false
+
+                    try {
+                        val texto = relatorio.decisao.mensagemUsuario.ifBlank { null }
+                        val problemas = extrairProblemasRelatorio(relatorio)
+                        medicaoDao.atualizarDiagnostico(id, texto, "local", problemas)
+                        Timber.d("SpeedtestPersistenceCoordinator: diagnostico local salvo id=$id")
+                    } catch (e: Exception) {
+                        Timber.e(e, "SpeedtestPersistenceCoordinator: falha ao salvar diagnostico local")
+                    }
+                }
+            }
+        }
+
+        /**
+         * Atualiza o registro mais recente com o diagnóstico gerado por IA (SIG-113).
+         * Sobrescreve o diagnóstico local, se existir.
+         */
+        suspend fun atualizarDiagnosticoIa(
+            texto: String?,
+            problemas: String?,
+        ) {
+            val id = ultimaMedicaoId ?: return
+            try {
+                medicaoDao.atualizarDiagnostico(id, texto, "ia", problemas)
+                Timber.d("SpeedtestPersistenceCoordinator: diagnostico IA salvo id=$id")
+            } catch (e: Exception) {
+                Timber.e(e, "SpeedtestPersistenceCoordinator: falha ao salvar diagnostico IA")
+            }
+        }
+
+        private fun extrairProblemasRelatorio(relatorio: DiagnosticReport): String? {
+            val problemas =
+                (relatorio.wifiResultados +
+                    relatorio.internetResultados +
+                    relatorio.mobileResultados +
+                    relatorio.fibraResultados +
+                    relatorio.dnsResultados)
+                    .filter { it.status == DiagnosticStatus.critical || it.status == DiagnosticStatus.attention }
+                    .map { it.titulo }
+                    .distinct()
+                    .take(5)
+            return if (problemas.isEmpty()) null else problemas.joinToString(";")
         }
     }

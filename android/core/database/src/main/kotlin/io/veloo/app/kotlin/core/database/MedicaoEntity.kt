@@ -27,4 +27,7 @@ data class MedicaoEntity(
     val gargaloPrimario: String?,
     val fonte: String? = null,
     val operadoraMovel: String? = null,
+    val diagnosticoTexto: String? = null,
+    val diagnosticoOrigem: String? = null,
+    val diagnosticoProblemas: String? = null,
 )
