@@ -1144,6 +1144,87 @@ private fun HistoricoDetailSheet(medicao: MedicaoEntity) {
             item { SheetRow("Gargalo identificado", gargalo, valueColor = LkColors.warning) }
             item { HorizontalDivider(color = c.border) }
         }
+        val diagTexto = medicao.diagnosticoTexto
+        if (!diagTexto.isNullOrBlank()) {
+            item {
+                DiagnosticoHistoricoSection(
+                    texto = diagTexto,
+                    origem = medicao.diagnosticoOrigem,
+                    problemas = medicao.diagnosticoProblemas,
+                    c = c,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiagnosticoHistoricoSection(
+    texto: String,
+    origem: String?,
+    problemas: String?,
+    c: LkTokens,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = LkSpacing.xl, vertical = LkSpacing.lg),
+    ) {
+        Text(
+            text = "DIAGNÓSTICO",
+            style = MaterialTheme.typography.labelSmall,
+            color = c.textTertiary,
+            letterSpacing = 0.8.sp,
+        )
+        Spacer(Modifier.height(LkSpacing.sm))
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(c.bgSecondary)
+                    .padding(LkSpacing.lg),
+        ) {
+            Text(
+                text = texto,
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.textPrimary,
+                lineHeight = 20.sp,
+            )
+            if (!problemas.isNullOrBlank()) {
+                val lista = problemas.split(";").filter { it.isNotBlank() }
+                if (lista.isNotEmpty()) {
+                    Spacer(Modifier.height(LkSpacing.sm))
+                    lista.forEach { problema ->
+                        Row(
+                            modifier = Modifier.padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(
+                                Modifier
+                                    .size(4.dp)
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(LkColors.warning),
+                            )
+                            Spacer(Modifier.width(LkSpacing.xs))
+                            Text(
+                                text = problema,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = c.textSecondary,
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(LkSpacing.sm))
+            Text(
+                text = if (origem == "ia") "Gerado por IA" else "Diagnóstico local",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (origem == "ia") LkColors.accent else c.textTertiary,
+                fontWeight = FontWeight.W500,
+            )
+        }
     }
 }
 

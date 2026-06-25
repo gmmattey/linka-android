@@ -128,6 +128,15 @@ object CoreDatabaseModulo {
             }
         }
 
+    private val migracao10para11 =
+        object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE medicao ADD COLUMN diagnosticoTexto TEXT")
+                db.execSQL("ALTER TABLE medicao ADD COLUMN diagnosticoOrigem TEXT")
+                db.execSQL("ALTER TABLE medicao ADD COLUMN diagnosticoProblemas TEXT")
+            }
+        }
+
     fun criarBanco(context: Context): SignallQDatabase {
         return Room.databaseBuilder(
             context.applicationContext,
@@ -142,6 +151,7 @@ object CoreDatabaseModulo {
             .addMigrations(migracao7para8)
             .addMigrations(migracao8para9)
             .addMigrations(migracao9para10)
+            .addMigrations(migracao10para11)
             .build()
     }
 
