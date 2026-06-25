@@ -7,6 +7,34 @@
 - `version.ps1`: altera `gradle/libs.versions.toml`.
 - `check-env.ps1`: valida ambiente local.
 - `clean-build.ps1`: remove outputs/cache locais sem apagar `builds/apk/`.
+- `pre-commit-android.sh`: Git pre-commit hook para validar versionamento, changelog e higiene antes de commitar mudanças no Android.
+
+## Git Hooks
+
+### pre-commit-android.sh
+
+Automatiza validações de release readiness no momento do commit:
+- Verifica se `versionCode` e `versionName` estão definidos em `android/gradle/libs.versions.toml`
+- Confirma que a versão está documentada em `CHANGELOG.md`
+- Valida que não há arquivos `.old`, `.bak` ou `.tmp` em `android/`
+- Roda `ktlintCheck` se ktlint estiver configurado (aviso, não bloqueador)
+
+**Instalação:**
+```bash
+cp scripts/pre-commit-android.sh .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+**O que faz:**
+- Pula automaticamente se não há mudanças em `android/`
+- Imprime relatório colorido com ✓/✗/⚠
+- Bloqueia commit se: versionCode/versionName vazios, versão não está em CHANGELOG, ou há arquivos de lixo
+- Avisa (não bloqueia) se ktlint falhar
+
+**Desinstalar (restaurar hook padrão ou remover):**
+```bash
+rm .git/hooks/pre-commit
+```
 
 ## Agentes
 
