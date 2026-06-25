@@ -83,8 +83,28 @@ Quando uma funcionalidade é impossível ou parcial, a UI deve:
 3. Oferecer alternativa quando possível (deeplink para app, instrução manual)
 4. Nunca exibir métrica nativa como "Wi-Fi Signal: -72dBm" sem ter essa informação real
 
+## Casos reais documentados
+
+Ver `CASOS-REAIS.md` nesta mesma pasta — 13 casos com thresholds reais do Android, codigo de referencia e o que comunicar ao usuario. Consultar antes de implementar qualquer feature de rede.
+
+Casos cobertos:
+1. RSSI e scan Wi-Fi — impossivel
+2. Sinal movel (RSRP/RSRQ/SINR) — impossivel
+3. Speedtest no browser — limitacoes de precisao e mitigacoes
+4. Latencia DNS — tecnica de estimativa via fetch e limitacoes
+5. Deteccao de tipo de conexao — Network Info API, suporte por browser, fallbacks
+6. Latencia (ping) sem ICMP — como fazer com fetch, o que reportar
+7. Thresholds reais de veredicto — todos os valores do Android (dl, ul, jitter, DNS, bufferbloat, RSSI)
+8. Background monitoring — impossivel de forma continua, alternativas
+9. Deploy Cloudflare Pages — variaveis de ambiente, checklist pre-deploy
+10. CORS em diagnostico de modem/IP local — por que falha, que erro aparece
+11. IP local — RTCPeerConnection inconsistente, nao implementar
+12. Veredicto qualitativo — mapeamento status IA → cor e texto na UI
+13. Compartilhar resultado — navigator.share, restricoes e fallback
+
 ## Limites
-- Esta skill orienta e classifica, não implementa.
-- Implementação → Renan.
-- Qualquer funcionalidade "impossível no browser" → não implementar ou documentar limitação honesta ao usuário.
+- Esta skill orienta e classifica, nao implementa.
+- Implementacao → Renan.
+- Qualquer funcionalidade "impossivel no browser" → nao implementar ou documentar limitacao honesta ao usuario.
 - Para paridade Android/PWA detalhada → `/paridade-plataformas`.
+- Para casos reais com codigo de referencia → `CASOS-REAIS.md`.
