@@ -47,8 +47,10 @@ internal class AdminSyncWorker
         override suspend fun doWork(): Result {
             Log.d(TAG, "Iniciando sync retroativo (tentativa ${runAttemptCount + 1})")
             return try {
-                val environment = if (BuildConfig.DEBUG) "staging" else "production"
                 val distChannel = getDistributionChannel(applicationContext)
+                // "production" apenas quando instalado via Play Store.
+                // Firebase App Distribution chega como "sideload" → homologação.
+                val environment = if (distChannel == "play_store") "production" else "staging"
                 val buildType = BuildConfig.BUILD_TYPE
                 val versionCode = BuildConfig.VERSION_CODE
                 val deviceId =
