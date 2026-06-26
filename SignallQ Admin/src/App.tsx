@@ -44,9 +44,12 @@ export default function App() {
   // sobrescreva um isAuthenticated=true definido por um login explícito.
   useEffect(() => {
     let cancelled = false;
-    const controller = new AbortController();
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
 
-    fetch(`${baseUrl}/admin/auth/me`, { credentials: "include", signal: controller.signal })
+    fetch(`${baseUrl}/admin/auth/me`, {
+      credentials: "include",
+      ...(controller ? { signal: controller.signal } : {}),
+    })
       .then((r) => {
         if (!cancelled) setIsAuthenticated((prev) => r.ok || prev);
       })
@@ -59,7 +62,7 @@ export default function App() {
 
     return () => {
       cancelled = true;
-      controller.abort();
+      if (controller) controller.abort();
     };
   }, [baseUrl]);
 

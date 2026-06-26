@@ -73,8 +73,11 @@ class ApiClient {
       );
     }
 
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), this.config.timeoutMs);
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timeoutId = window.setTimeout(
+      () => { if (controller) controller.abort(); },
+      this.config.timeoutMs
+    );
 
     try {
       const response = await fetch(`${this.config.baseUrl}${path}`, {
@@ -86,7 +89,7 @@ class ApiClient {
           ...headers,
         },
         body: body === undefined ? undefined : JSON.stringify(body),
-        signal: controller.signal,
+        ...(controller ? { signal: controller.signal } : {}),
       });
 
       if (response.status === 401 && this.onAuthErrorCallback) {

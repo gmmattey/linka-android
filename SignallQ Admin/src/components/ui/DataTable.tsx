@@ -33,7 +33,7 @@ export function DataTable<T>({
     >
       <table className="min-w-[600px] w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-[#262626] bg-[#111111] sticky top-0">
+          <tr className="border-b border-[#262626] bg-[#111111]">
             {columns.map((col, idx) => (
               <th
                 key={idx}

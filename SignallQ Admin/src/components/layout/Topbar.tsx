@@ -33,7 +33,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   return (
     <header
       id={id || "topbar-header"}
-      className="h-14 lg:h-16 border-b border-[#262626] bg-[#08080A] px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 select-none"
+      className="h-14 lg:h-16 border-b border-[#262626] bg-[#08080A] px-4 lg:px-8 flex items-center justify-between [position:-webkit-sticky] sticky top-0 z-30 select-none"
     >
       {/* Left: hamburger (mobile) + title */}
       <div className="flex items-center gap-3 min-w-0">
