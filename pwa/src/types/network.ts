@@ -1,3 +1,10 @@
+export type {
+  AdminDiagnosticPayload,
+  DiagnosisResult,
+  DiagnosticPayload,
+  LegacySpeedtestResult as SpeedtestResult,
+} from '@shared/contracts';
+
 export enum ConnectionStatus {
   Online = 'online',
   Offline = 'offline',
@@ -18,22 +25,4 @@ export interface ConnectionSnapshot {
   effectiveType: string | null;
   downlinkMbps: number | null;
   browserSupportsNetworkInfo: boolean;
-}
-
-export interface SpeedtestResult {
-  latencyMs: number | null;
-  downloadMbps: number | null;
-  uploadMbps: number | null;
-  measuredAt: string;
-}
-
-export interface DiagnosticPayload {
-  schemaVersion: 'pwa_foundation_v1';
-  source: 'pwa';
-  connectionType: string;
-  metricasAtuais: {
-    downloadMbps: number | null;
-    uploadMbps: number | null;
-    latenciaMs: number | null;
-  };
 }

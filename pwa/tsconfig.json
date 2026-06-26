@@ -17,8 +17,9 @@
     "types": ["@cloudflare/workers-types"],
     "paths": {
       "@/*": ["./src/*"],
-      "@functions/*": ["./functions/*"]
+      "@functions/*": ["./functions/*"],
+      "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["src", "functions", "vite.config.ts"]
+  "include": ["src", "functions", "shared", "tests", "vite.config.ts"]
 }

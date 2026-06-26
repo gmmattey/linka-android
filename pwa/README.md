@@ -17,6 +17,7 @@ React + TypeScript + Vite + Tailwind CSS + Cloudflare Pages Functions.
 - `/api/admin/ingest` faz ingest server-side no SignallQ Admin sem expor `INGEST_KEY` no bundle.
 - `/api/speedtest/*` fornece endpoints web sem cache para a primeira medição PWA.
 - Service Worker ignora `/api/*` para não cachear medições ou diagnósticos.
+- Contratos compartilhados ficam em `shared/`; handlers Pages ficam finos e chamam módulos em `functions/_modules/`.
 
 ## PWA e offline parcial
 
@@ -91,6 +92,35 @@ Para typecheck:
 ```powershell
 npm run typecheck
 ```
+
+Para testes automatizados:
+
+```powershell
+npm test
+```
+
+## Backend, Swagger e Postman
+
+Para validar as Cloudflare Pages Functions localmente:
+
+```powershell
+npm run pages:dev
+```
+
+Com o servidor local ativo, abra:
+
+- Swagger UI: `http://localhost:8788/docs/swagger.html`
+- OpenAPI servido: `http://localhost:8788/docs/openapi.yaml`
+- OpenAPI canônico no repo: `docs/openapi.yaml`
+
+Para validar pelo Postman instalado:
+
+1. Importe `postman/signallq-pwa-backend.postman_collection.json`.
+2. Importe `postman/signallq-pwa-local.postman_environment.json`.
+3. Se o `wrangler pages dev` subir em outra porta, ajuste `baseUrl`.
+4. Execute a collection inteira.
+
+Os testes de `AI Diagnosis - missing server env` e `Admin Ingest - missing server env` esperam `503` quando `.dev.vars` não está configurado. Com secrets reais configurados, esses casos devem ser ajustados ou executados em ambiente local sem secrets.
 
 Variáveis esperadas no Cloudflare Pages:
 

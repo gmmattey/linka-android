@@ -1,9 +1,25 @@
+import { createLocalDiagnosis } from '@shared/diagnosis';
+import { calculateJitterMs, calculateMbps } from '@shared/speedtest-metrics';
 import { DiagnosticPayload, SpeedtestResult } from '@/types/network';
+import type { DiagnosisResult } from '@/types/network';
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   ok: boolean;
   data?: T;
   error?: string;
+}
+
+interface LatencyResponse {
+  ok: boolean;
+  now: number;
+  method: 'http_timing';
+  limitations: string[];
+}
+
+interface UploadResponse {
+  ok: boolean;
+  receivedBytes: number;
+  receivedAt: number;
 }
 
 async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<ApiResponse<T>> {
@@ -36,11 +52,21 @@ function fillRandomValues(payload: Uint8Array): void {
 }
 
 export async function runSpeedtestProbe(): Promise<ApiResponse<SpeedtestResult>> {
-  const latencyStart = performance.now();
-  const latency = await requestJson<{ ok: boolean; now: number }>('/api/speedtest/latency?cacheBust=' + Date.now(), {
-    method: 'GET',
-  });
-  const latencyMs = latency.ok ? Math.round(performance.now() - latencyStart) : null;
+  const latencySamples: number[] = [];
+  for (let sample = 0; sample < 3; sample += 1) {
+    const latencyStart = performance.now();
+    const latency = await requestJson<LatencyResponse>('/api/speedtest/latency?cacheBust=' + Date.now() + '_' + sample, {
+      method: 'GET',
+    });
+    if (latency.ok) {
+      latencySamples.push(Math.round(performance.now() - latencyStart));
+    }
+  }
+
+  const latencyMs = latencySamples.length > 0
+    ? Math.round(latencySamples.reduce((sum, sample) => sum + sample, 0) / latencySamples.length)
+    : null;
+  const jitter = calculateJitterMs(latencySamples);
 
   const downloadStart = performance.now();
   const downloadResponse = await fetch('/api/speedtest/download?bytes=524288&cacheBust=' + Date.now(), {
@@ -50,8 +76,8 @@ export async function runSpeedtestProbe(): Promise<ApiResponse<SpeedtestResult>>
     return { ok: false, error: 'Falha no endpoint de download' };
   }
   const downloadBuffer = await downloadResponse.arrayBuffer();
-  const downloadSeconds = Math.max((performance.now() - downloadStart) / 1000, 0.001);
-  const downloadMbps = (downloadBuffer.byteLength * 8) / downloadSeconds / 1_000_000;
+  const downloadDurationMs = Math.max(performance.now() - downloadStart, 1);
+  const downloadMbps = calculateMbps(downloadBuffer.byteLength, downloadDurationMs);
 
   const uploadPayload = new Uint8Array(256 * 1024);
   fillRandomValues(uploadPayload);
@@ -64,15 +90,17 @@ export async function runSpeedtestProbe(): Promise<ApiResponse<SpeedtestResult>>
   if (!upload.ok) {
     return { ok: false, error: 'Falha no endpoint de upload' };
   }
-  const uploadSeconds = Math.max((performance.now() - uploadStart) / 1000, 0.001);
-  const uploadMbps = (uploadPayload.byteLength * 8) / uploadSeconds / 1_000_000;
+  const uploadBody = (await upload.json().catch(() => null)) as UploadResponse | null;
+  const uploadDurationMs = Math.max(performance.now() - uploadStart, 1);
+  const uploadMbps = calculateMbps(uploadBody?.receivedBytes ?? uploadPayload.byteLength, uploadDurationMs);
 
   return {
     ok: true,
     data: {
       latencyMs,
-      downloadMbps: Math.round(downloadMbps * 10) / 10,
-      uploadMbps: Math.round(uploadMbps * 10) / 10,
+      downloadMbps,
+      uploadMbps,
+      jitterMs: jitter.ms,
       measuredAt: new Date().toISOString(),
     },
   };
@@ -83,6 +111,37 @@ export function requestAiDiagnosis(payload: DiagnosticPayload): Promise<ApiRespo
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+export async function requestDiagnosisWithFallback(
+  payload: DiagnosticPayload,
+  speedtest: SpeedtestResult | null,
+): Promise<ApiResponse<DiagnosisResult>> {
+  const aiResult = await requestAiDiagnosis(payload);
+  if (aiResult.ok && aiResult.data && typeof aiResult.data === 'object') {
+    return { ok: true, data: aiResult.data as DiagnosisResult };
+  }
+
+  const fallback = createLocalDiagnosis({ speedTest: speedtest });
+  const response: ApiResponse<DiagnosisResult> = {
+    ok: true,
+    data: {
+      ...fallback,
+      source: 'fallback',
+      limitations: [
+        ...fallback.limitations,
+        {
+          code: 'ai_unavailable',
+          message: aiResult.error ?? 'Analise avancada indisponivel no momento.',
+        },
+      ],
+    },
+  };
+  if (aiResult.error) {
+    response.error = aiResult.error;
+  }
+
+  return response;
 }
 
 export function sendAdminDiagnostic(payload: Record<string, unknown>): Promise<ApiResponse<{ ok: boolean; id: string }>> {

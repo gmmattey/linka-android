@@ -26,6 +26,7 @@ Estado atual: transposta na branch `codex-pwa-sig-39-docs-operacionais`.
 - `design-system.md` — design system operacional.
 - `release-checklist.md` — checklist de PR e release.
 - `decisions.md` — decisões relevantes.
+- `openapi.yaml` — contrato HTTP das rotas backend PWA em `/api/*`.
 
 ## Ordem sugerida
 
@@ -39,6 +40,7 @@ Estado atual: transposta na branch `codex-pwa-sig-39-docs-operacionais`.
 8. `release-checklist.md`
 9. `history-model.md`
 10. `decisions.md`
+11. `openapi.yaml`
 
 ## Fonte técnica de paridade
 
