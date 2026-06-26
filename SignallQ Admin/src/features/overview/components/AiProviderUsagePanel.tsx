@@ -49,13 +49,13 @@ export const AiProviderUsagePanel: React.FC<AiProviderUsagePanelProps> = ({ usag
                     <div>
                       <span className="text-white font-medium block">{item.name}</span>
                       <span className="text-[10px] text-[#9CA3AF] font-mono">
-                        {item.tokensProcessed.toLocaleString("pt-BR")} tokens
+                        {(item.tokensProcessed ?? 0).toLocaleString("pt-BR")} tokens
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="px-2 py-0.5 rounded bg-[#18181B] border border-[#262626] font-mono text-[10px] text-[#9CA3AF]">
-                      {(item.tokensProcessed / 1000).toFixed(0)}k Tkn
+                      {((item.tokensProcessed ?? 0) / 1000).toFixed(0)}k Tkn
                     </div>
                     <span className="font-mono text-white font-bold w-10 text-right">
                       {item.percentage}%

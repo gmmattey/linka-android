@@ -14,14 +14,31 @@ export const ErrorMetricGrid: React.FC<ErrorMetricGridProps> = ({ environment })
     impactedUsers: string;
     mainSources: string;
   } | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     let active = true;
+    setLoading(true);
     errorMetricsService.getErrorMetricSummary({ environment }).then((data) => {
-      if (active) setSummary(data);
+      if (active) {
+        setSummary(data);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (active) setLoading(false);
     });
     return () => { active = false; };
   }, [environment]);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="h-24 bg-zinc-900/40 border border-[#262626] rounded-2xl animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   const metrics = summary
     ? [

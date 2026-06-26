@@ -75,6 +75,9 @@ export const LineChart: React.FC<LineChartProps> = ({
             tickLine={false}
             axisLine={false}
             dx={-8}
+            domain={["auto", "auto"]}
+            allowDataOverflow={false}
+            tickFormatter={(v: number) => Number.isFinite(v) ? (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))) : ""}
           />
           <Tooltip
             contentStyle={{

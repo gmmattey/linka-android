@@ -148,11 +148,11 @@ export const IntegrationsSettings: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Eventos Importados:</span>
-                  <span className="text-white">{(fb.eventsImported).toLocaleString("pt-BR")}</span>
+                  <span className="text-white">{(fb.eventsImported ?? 0).toLocaleString("pt-BR")}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Crashes Importados:</span>
-                  <span className="text-white">{(fb.crashesImported).toLocaleString("pt-BR")}</span>
+                  <span className="text-white">{(fb.crashesImported ?? 0).toLocaleString("pt-BR")}</span>
                 </div>
               </div>
             </div>
@@ -202,7 +202,7 @@ export const IntegrationsSettings: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Downloads Ativos:</span>
-                  <span className="text-white">{(gp.downloadsImported).toLocaleString("pt-BR")}</span>
+                  <span className="text-white">{(gp.downloadsImported ?? 0).toLocaleString("pt-BR")}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Mapeamento:</span>
