@@ -3,9 +3,14 @@
   "short_name": "SignallQ",
   "description": "Diagnóstico inteligente de conectividade no navegador.",
   "start_url": "/",
+  "scope": "/",
+  "id": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#FFFFFF",
   "theme_color": "#6C2BFF",
+  "categories": ["utilities", "productivity"],
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -18,6 +23,21 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Abrir diagnóstico",
+      "short_name": "Diagnóstico",
+      "description": "Abrir o diagnóstico de conectividade do SignallQ.",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
