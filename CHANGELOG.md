@@ -10,13 +10,15 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
-## [Unreleased] — Admin Worker / SIG-129
+## [Unreleased] — Admin Worker / SIG-129 / SIG-133
 
 ### Added
 
 - **Admin Worker — Pipeline de erros de sistema (SIG-129, Fase A):** tabela `system_errors` no D1 para deduplicar e contabilizar erros do próprio worker. Helper `logError` com hash djb2 determinístico (fire-and-forget, nunca propaga). Wrapper `withErrorLogging` aplicado a todos os handlers `GET /admin/metrics/*`. Handler `handleFirebaseAnalytics` instrumentado diretamente no catch. Endpoint `GET /admin/metrics/errors?period=` retorna erros agrupados por source, ordenados por frequência.
 - **Admin Worker — migration `003_sig129.sql`:** `CREATE TABLE IF NOT EXISTS system_errors` + índice `idx_system_errors_last_seen`.
 - **Admin Panel — `errorMetricsService`:** `getErrorMetricSummary` e `getErrorByEndpoint` derivam dados reais do endpoint `/admin/metrics/errors` em produção (antes retornavam `null`/`[]`).
+- **Admin Worker — Sistema de alertas (SIG-133):** tabela `alerts` no D1 (migration `004_sig133.sql`) com geração idempotente (`INSERT OR IGNORE`) de candidatos por threshold — budget de IA lido de `admin_settings` agregando `ai_usage`, e pico de taxa de erros a partir de `system_errors`. Endpoints `GET /admin/alerts` (ativos + histórico 24h) e `POST /admin/alerts/:id/resolve`, com compat `GET /admin/metrics/alerts`. Sem budget/sem dado → nenhum alerta fabricado.
+- **Admin Panel — `AiAlertsPanel` / `RecentAlertsPanel`:** passam a consumir `/admin/alerts` real, sem dado hardcoded.
 
 ### Notes
 
