@@ -1,9 +1,10 @@
 import React from "react";
+import { AppEnvironment } from "../../../types/admin";
 import { MetricCard } from "../../../components/ui/MetricCard";
 import { aiUsageService } from "../../../services/aiUsageService";
 
 interface AiCostMetricGridProps {
-  environment: "production" | "staging";
+  environment: AppEnvironment;
   period?: string;
 }
 

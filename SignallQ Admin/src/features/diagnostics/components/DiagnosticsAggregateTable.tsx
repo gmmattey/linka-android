@@ -4,9 +4,10 @@ import { DataTable } from "../../../components/ui/DataTable";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { diagnosticsService } from "../../../services/diagnosticsService";
 import { AggregateRow } from "../../../types/diagnostics";
+import { AppEnvironment } from "../../../types/admin";
 
 interface DiagnosticsAggregateTableProps {
-  environment: "production" | "staging";
+  environment: AppEnvironment;
   period?: string;
 }
 

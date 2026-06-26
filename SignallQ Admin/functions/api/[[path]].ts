@@ -1,6 +1,8 @@
 const WORKER_URL = 'https://signallq-admin.giammattey-luiz.workers.dev'
 
-export async function onRequest(context: EventContext<Record<string, unknown>, string, Record<string, unknown>>) {
+// Pages Function: só precisamos de `request`. Tipo estrutural evita depender
+// do global EventContext (@cloudflare/workers-types) no tsconfig do app.
+export async function onRequest(context: { request: Request }) {
   const { request } = context
   const url = new URL(request.url)
 

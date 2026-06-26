@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, RefreshCw } from "lucide-react";
 import { DistChannel, BuildType } from "../../../types/diagnostics";
+import { AppEnvironment } from "../../../types/admin";
 
 interface DiagnosticsFiltersProps {
   searchText: string;
@@ -17,8 +18,8 @@ interface DiagnosticsFiltersProps {
   onAiProviderChange: (provider: string) => void;
   selectedPeriod: string;
   onPeriodChange: (period: string) => void;
-  selectedEnvironment: "production" | "staging";
-  onEnvironmentChange: (env: "production" | "staging") => void;
+  selectedEnvironment: AppEnvironment;
+  onEnvironmentChange: (env: AppEnvironment) => void;
   selectedDistChannel: DistChannel | "";
   onDistChannelChange: (channel: DistChannel | "") => void;
   selectedBuildType: BuildType | "";

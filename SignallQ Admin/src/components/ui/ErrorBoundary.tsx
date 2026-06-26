@@ -1,5 +1,9 @@
 import React from "react";
 
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
 interface ErrorBoundaryState {
   hasError: boolean;
   message: string;
@@ -7,18 +11,14 @@ interface ErrorBoundaryState {
 
 // Evita que um erro de render em uma aba derrube o painel inteiro (tela preta).
 // Sem isto, qualquer exceção no render desmonta toda a árvore React.
-// `declare` em props/setState: o projeto não usa @types/react, então os membros
-// herdados de React.Component não são tipados — declaramos os que usamos.
-export class ErrorBoundary extends React.Component {
-  declare props: { children?: React.ReactNode };
-  declare setState: (state: ErrorBoundaryState) => void;
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { hasError: false, message: "" };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, message: error?.message ?? "" };
   }
 
-  componentDidCatch(error: Error, info: unknown) {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("Erro de render capturado pelo ErrorBoundary:", error, info);
   }
 

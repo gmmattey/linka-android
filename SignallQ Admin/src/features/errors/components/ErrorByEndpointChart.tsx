@@ -3,9 +3,10 @@ import { ChartCard } from "../../../components/ui/ChartCard";
 import { BarChart } from "../../../components/charts/BarChart";
 import { errorMetricsService } from "../../../services/errorMetricsService";
 import { ErrorByEndpointEntry } from "../../../mocks/errors.mock";
+import { AppEnvironment } from "../../../types/admin";
 
 interface ErrorByEndpointChartProps {
-  environment: "production" | "staging";
+  environment: AppEnvironment;
 }
 
 export const ErrorByEndpointChart: React.FC<ErrorByEndpointChartProps> = ({ environment }) => {

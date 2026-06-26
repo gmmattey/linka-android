@@ -319,12 +319,7 @@ export default function App() {
           triggerRefreshCounter={refreshCounter}
         />
       )}
-      {currentPath === "/settings" && (
-        <SettingsTab
-          triggerRefreshCounter={refreshCounter}
-          onRefreshTrigger={handleRefresh}
-        />
-      )}
+      {currentPath === "/settings" && <SettingsTab />}
       </ErrorBoundary>
     </AppLayout>
   );
