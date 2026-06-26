@@ -11,6 +11,14 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    // SIG-12: transpila ?? e ?. para Safari < 13.1 (iPad 2012).
+    // safari12 suporta const/arrow/classes mas não nullish coalescing (adicionado em 13.1).
+    build: {
+      target: ['safari12'],
+    },
+    esbuild: {
+      target: ['safari12'],
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
