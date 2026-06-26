@@ -104,7 +104,7 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
         if (row.costUsd === 0) return <span className="text-[10px] font-mono leading-none" style={{ color: "var(--sq-success)" }}>FREE</span>;
         return (
           <span className="font-mono font-semibold text-xs" style={{ color: "var(--sq-accent)" }}>
-            ${row.costUsd.toFixed(6)}
+            ${row.costUsd.toFixed(2)}
           </span>
         );
       },

@@ -316,7 +316,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
           {/* Direita: Inspetor completo da sessão e laudo Gemini */}
           <div className="xl:col-span-5">
             {selectedSession ? (
-              <div className="bg-zinc-950/60 border border-[var(--border)] rounded-[8px] p-6 relative overflow-hidden">
+              <div className="rounded-[8px] p-6 relative overflow-hidden" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full filter blur-2xl flex items-center justify-center pointer-events-none" />
 
                 {/* ID and date details */}
@@ -494,7 +494,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="py-20 text-center bg-zinc-950/20 border border-dashed border-[var(--border)] rounded-[8px] p-6 select-none font-sans">
+              <div className="py-20 text-center rounded-[8px] p-6 select-none font-sans" style={{ background: "var(--bg-surface)", border: "1px dashed var(--border)" }}>
                 <p className="text-xs text-[var(--text-tertiary)]">Selecione algum registro físico de rádio para investigar.</p>
               </div>
             )}

@@ -27,12 +27,12 @@ export const SQ_TOKENS = {
   textSecondary:       "#9CA3AF",
   textTertiary:        "#6B7280",
 
-  // Paleta de tipo de rede (donut chart)
-  networkWifi:         "#6C2BFF",  // = accent
-  networkMobile:       "#22C55E",  // = success
-  networkFiber:        "#38BDF8",  // = info
-  networkEthernet:     "#F5A623",  // = warning
-  networkUnknown:      "#6B7280",  // = textTertiary
+  // Paleta de tipo de rede (donut chart) — escala de cinza
+  networkWifi:         "#F5F5F5",
+  networkMobile:       "#A3A3A3",
+  networkFiber:        "#737373",
+  networkEthernet:     "#525252",
+  networkUnknown:      "#404040",
 
   // Paleta de provedores de IA (chart)
   aiGemini:            "#6C2BFF",

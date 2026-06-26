@@ -72,7 +72,7 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
     <div className="space-y-6">
       {/* Top statistics cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl flex items-center gap-4">
+        <div className="p-5 rounded-xl flex items-center gap-4" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
           <div className="w-10 h-10 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 text-[var(--primary)]">
             <Wifi className="w-5 h-5" />
           </div>
@@ -83,7 +83,7 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl flex items-center gap-4">
+        <div className="p-5 rounded-xl flex items-center gap-4" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
           <div className="w-10 h-10 rounded-lg bg-[var(--success)]/10 flex items-center justify-center border border-[var(--success)]/20 text-[var(--success)]">
             <Radio className="w-5 h-5" />
           </div>
@@ -94,7 +94,7 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl flex items-center gap-4">
+        <div className="p-5 rounded-xl flex items-center gap-4" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
           <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center border border-sky-500/20 text-sky-400">
             <Cpu className="w-5 h-5" />
           </div>
@@ -132,14 +132,14 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
       </div>
 
       {/* Telemetry Breakdown Details */}
-      <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-[8px] p-6">
+      <div className="rounded-[8px] p-6" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
         <h4 className="text-sm font-bold font-sans text-[var(--text-primary)] tracking-wide">Quadro Clínico de Radiofrequência</h4>
         <p className="text-xs text-[var(--text-secondary)] mt-1 mb-5">
           Comportamento esperado da conectividade móvel vs canais residenciais deduzido a partir da telemetria de rede.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans text-xs">
-          <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-xl">
+          <div className="p-4 rounded-xl" style={{ background: "var(--bg-surface-muted)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 text-indigo-400 font-semibold mb-2">
               <Network className="w-4 h-4" />
               <span>Gargalo de Upload 4G</span>
@@ -149,7 +149,7 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
             </p>
           </div>
 
-          <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-xl">
+          <div className="p-4 rounded-xl" style={{ background: "var(--bg-surface-muted)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 text-[var(--success)] font-semibold mb-2">
               <Wifi className="w-4 h-4" />
               <span>Saturação 2.4 GHz</span>
@@ -159,7 +159,7 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
             </p>
           </div>
 
-          <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-xl">
+          <div className="p-4 rounded-xl" style={{ background: "var(--bg-surface-muted)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 text-amber-400 font-semibold mb-2">
               <ZapOff className="w-4 h-4" />
               <span>Bufferbloat Crítico</span>

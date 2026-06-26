@@ -3,6 +3,7 @@ import { SectionCard } from "../../../components/ui/SectionCard";
 import { DataTable } from "../../../components/ui/DataTable";
 import { Cpu, Server, Layers, HardDrive } from "lucide-react";
 import { AiModelInsights } from "../../../types/ai";
+import { formatCurrency } from "../../../utils/format";
 import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 import { SQ_TOKENS } from "../../../config/designTokens";
 
@@ -90,11 +91,7 @@ export const ProviderCostTable: React.FC<ProviderCostTableProps> = ({ insights }
         }
         return (
           <span className="font-mono font-bold text-xs" style={{ color: "var(--sq-accent)" }}>
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-              minimumFractionDigits: 2,
-            }).format(costVal)}
+            {formatCurrency(costVal)}
           </span>
         );
       },

@@ -63,7 +63,7 @@ export const adminMetricsService = {
           },
           aiCost: {
             label: "Custo IA",
-            value: `$${(raw.aiCostToday ?? 0).toFixed(6)}`,
+            value: `$${(raw.aiCostToday ?? 0).toFixed(2)}`,
             trend: { value: raw.aiCallsToday, changePercentage: 0, type: "neutral" as const, intervalLabel: `${raw.aiCallsToday} chamadas hoje · ${raw.aiTokensToday} tokens` },
           },
           successRate: null,

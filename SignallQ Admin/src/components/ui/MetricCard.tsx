@@ -24,7 +24,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const formattedValue = React.useMemo(() => {
     if (typeof value === "number") {
       if (format === "usd") {
-        return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 4 }).format(value);
+        return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
       }
       if (format === "percentage") {
         return `${value}%`;

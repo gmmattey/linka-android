@@ -96,13 +96,13 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 <span className="w-2.5 h-2.5 rounded-md shrink-0" style={{ backgroundColor: item.color }} />
                 <span style={{ color: "var(--sq-text-primary)" }}>{item.name}</span>
               </div>
-              <div className="flex items-center gap-3 font-mono">
+              <div className="flex items-center gap-3" style={{ fontFamily: "var(--sq-font-sans)" }}>
                 <span className="font-medium text-[11px]" style={{ color: "var(--sq-text-secondary)" }}>
                   {value.toLocaleString("pt-BR")}
                 </span>
                 <span
-                  className="font-semibold text-[11px] w-12 text-right"
-                  style={{ color: "var(--sq-accent)" }}
+                  className="font-medium text-[12px] w-12 text-right"
+                  style={{ color: "var(--sq-text-secondary)" }}
                 >
                   {itemPercentage}%
                 </span>

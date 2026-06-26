@@ -91,7 +91,7 @@ export const aiUsageService = {
         return {
           totalCostUsd:          `$${totalCost.toFixed(2)}`,
           totalRequests:         totalReq.toLocaleString("pt-BR"),
-          avgCostPerRequest:     `$${avgCost.toFixed(4)}`,
+          avgCostPerRequest:     `$${avgCost.toFixed(2)}`,
           tokensSentM:           `${sentM.toFixed(1)}M`,
           tokensReceivedM:       `${receivedM.toFixed(1)}M`,
           successRate:           "—",
@@ -117,7 +117,7 @@ export const aiUsageService = {
     return {
       totalCostUsd:          `$${totalCost.toFixed(2)}`,
       totalRequests:         totalCalls.toLocaleString("pt-BR"),
-      avgCostPerRequest:     `$${totalCalls > 0 ? (totalCost / totalCalls).toFixed(4) : "0.0000"}`,
+      avgCostPerRequest:     `$${totalCalls > 0 ? (totalCost / totalCalls).toFixed(2) : "0.00"}`,
       tokensSentM:           `${sentM.toFixed(1)}M`,
       tokensReceivedM:       `${receivedM.toFixed(1)}M`,
       successRate:           `${avgReliability.toFixed(1)}%`,

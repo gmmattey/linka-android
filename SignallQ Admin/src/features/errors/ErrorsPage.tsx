@@ -325,7 +325,7 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="py-20 text-center bg-zinc-950/25 border border-dashed border-[var(--border)] rounded-[8px] p-6 select-none font-sans">
+              <div className="py-20 text-center rounded-[8px] p-6 select-none font-sans" style={{ background: "var(--bg-surface)", border: "1px dashed var(--border)" }}>
                 <p className="text-xs text-[var(--text-tertiary)]">Selecione algum dump técnico ativo no console esquerdo para inspecionar.</p>
               </div>
             )}
