@@ -1,6 +1,9 @@
 import { Activity, BrainCircuit, Cloud, Gauge, RadioTower, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { MetricCard } from '@/components/MetricCard';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { RecommendationBlock } from '@/components/RecommendationBlock';
+import { StatusBadge } from '@/components/StatusBadge';
 import { useConnectionSnapshot } from '@/hooks/useConnectionSnapshot';
 import { requestAiDiagnosis, runSpeedtestProbe, sendAdminDiagnostic } from '@/services/api';
 import { DiagnosticPayload, SpeedtestPhase, SpeedtestResult } from '@/types/network';
@@ -82,17 +85,19 @@ export function App() {
         <img src="/icon-192.png" alt="" className="brand-mark" />
         <div>
           <p className="overline">SignallQ PWA</p>
-          <h1>Fundação web pronta para o roadmap</h1>
+          <h1>Diagnóstico web em construção</h1>
         </div>
       </header>
 
       <section className="status-band" aria-label="Status da fundação">
         <div>
-          <p className="overline">Arquitetura</p>
-          <h2>Browser seguro, Workers no servidor</h2>
+          <StatusBadge tone={connection.status === 'online' ? 'success' : 'warning'}>
+            {connection.status === 'online' ? 'Online agora' : 'Sem conexão'}
+          </StatusBadge>
+          <h2>Base segura para medir sem inventar sinal</h2>
           <p>
-            O frontend chama somente rotas locais <strong>/api</strong>. IA, ingest Admin e speedtest passam por
-            Cloudflare Pages Functions para evitar CORS solto e segredo no bundle.
+            O app usa apenas recursos disponíveis no navegador. Testes, IA e ingest Admin dependem de rede e passam
+            por rotas <strong>/api</strong> no servidor para manter segredos fora do bundle.
           </p>
         </div>
         <div className="architecture-list">
@@ -103,31 +108,31 @@ export function App() {
       </section>
 
       <section className="metric-grid" aria-label="Métricas atuais">
-        <MetricCard icon={<Activity size={24} />} label="Conexão" value={connectionLabel} tone="success" />
-        <MetricCard icon={<Gauge size={24} />} label="Latência HTTP" value={formatMetric(speedtest?.latencyMs ?? null)} unit="ms" />
-        <MetricCard icon={<RadioTower size={24} />} label="Download" value={formatMetric(speedtest?.downloadMbps ?? null)} unit="Mbps" tone="accent" />
-        <MetricCard icon={<RadioTower size={24} />} label="Upload" value={formatMetric(speedtest?.uploadMbps ?? null)} unit="Mbps" tone="warning" />
+        <MetricCard icon={<Activity size={24} />} label="Conexão" value={connectionLabel} tone="success" helperText="Informação do navegador." />
+        <MetricCard icon={<Gauge size={24} />} label="Latência HTTP" value={formatMetric(speedtest?.latencyMs ?? null)} unit="ms" helperText="Não é ping ICMP." />
+        <MetricCard icon={<RadioTower size={24} />} label="Download" value={formatMetric(speedtest?.downloadMbps ?? null)} unit="Mbps" tone="accent" helperText="Amostra HTTP." />
+        <MetricCard icon={<RadioTower size={24} />} label="Upload" value={formatMetric(speedtest?.uploadMbps ?? null)} unit="Mbps" tone="warning" helperText="Depende do endpoint." />
       </section>
 
       <section className="control-panel" aria-label="Validações iniciais">
         <div>
-          <p className="overline">Validação M1</p>
-          <h2>Três bloqueios tratados</h2>
+          <p className="overline">Validação M0</p>
+          <h2>Instalável onde o navegador permitir</h2>
           <p>
-            Esta tela é o primeiro cockpit técnico do PWA: mede uma amostra web, valida o proxy da IA e envia ingest
-            de diagnóstico pelo servidor quando as variáveis estiverem configuradas.
+            O shell pode abrir offline depois de carregado, mas medições, diagnóstico IA e envio ao Admin exigem
+            internet. Quando uma métrica não estiver disponível, ela aparece como não medida.
           </p>
         </div>
         <div className="actions">
-          <button type="button" onClick={runProbe}>
-            <Gauge size={18} /> Medir amostra
-          </button>
-          <button type="button" onClick={diagnose}>
-            <BrainCircuit size={18} /> Validar IA
-          </button>
-          <button type="button" onClick={ingest}>
-            <ShieldCheck size={18} /> Validar Admin
-          </button>
+          <PrimaryButton icon={<Gauge size={18} />} onClick={runProbe}>
+            Medir amostra
+          </PrimaryButton>
+          <PrimaryButton icon={<BrainCircuit size={18} />} onClick={diagnose} variant="secondary">
+            Validar IA
+          </PrimaryButton>
+          <PrimaryButton icon={<ShieldCheck size={18} />} onClick={ingest} variant="neutral">
+            Validar Admin
+          </PrimaryButton>
         </div>
         <div className="result-log" aria-live="polite">
           <p><strong>Speedtest:</strong> {phase}</p>
@@ -137,6 +142,11 @@ export function App() {
             <p>Tipo de conexão detalhado indisponível neste navegador. O PWA não vai inventar sinal, RSSI ou rede Wi-Fi.</p>
           ) : null}
         </div>
+        <RecommendationBlock
+          priority="Limite do navegador"
+          title="Offline parcial, sem promessa de teste offline"
+          body="O service worker guarda apenas o shell e assets estáticos. Rotas de SpeedTest, IA e Admin nunca são cacheadas como resultado verdadeiro."
+        />
       </section>
     </main>
   );

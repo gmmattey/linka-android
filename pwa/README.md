@@ -18,6 +18,26 @@ React + TypeScript + Vite + Tailwind CSS + Cloudflare Pages Functions.
 - `/api/speedtest/*` fornece endpoints web sem cache para a primeira medição PWA.
 - Service Worker ignora `/api/*` para não cachear medições ou diagnósticos.
 
+## PWA e offline parcial
+
+- `public/manifest.webmanifest` define nome, escopo, modo standalone, cores e ícones iniciais.
+- `public/sw.js` cacheia apenas o shell e assets estáticos versionáveis.
+- Rotas `/api/*` nunca são atendidas pelo cache do service worker.
+- Offline parcial significa abrir a tela já carregada; SpeedTest, IA e ingest Admin continuam exigindo rede.
+- Os ícones atuais são placeholders operacionais até o pacote visual final.
+
+## Tokens e componentes base
+
+- Tokens CSS ficam em `src/styles/tokens.css`.
+- Estilos globais e layout base ficam em `src/styles/global.css`.
+- Componentes base atuais:
+  - `MetricCard`
+  - `PrimaryButton`
+  - `StatusBadge`
+  - `RecommendationBlock`
+
+Use tokens `--sq-*` antes de criar novos valores soltos de cor, spacing, radius ou tipografia.
+
 ## Caminhos operacionais
 
 - GitHub: `gmmattey/linka-android/tree/main/pwa`
@@ -64,6 +84,12 @@ Para build:
 
 ```powershell
 npm run build
+```
+
+Para typecheck:
+
+```powershell
+npm run typecheck
 ```
 
 Variáveis esperadas no Cloudflare Pages:

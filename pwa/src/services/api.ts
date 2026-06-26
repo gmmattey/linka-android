@@ -15,7 +15,8 @@ async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Pro
         ...init?.headers,
       },
     });
-    const data = (await response.json()) as unknown;
+    const contentType = response.headers.get('content-type') ?? '';
+    const data = contentType.includes('application/json') ? ((await response.json()) as unknown) : null;
     if (!response.ok) {
       const error = data && typeof data === 'object' && 'error' in data ? String(data.error) : response.statusText;
       return { ok: false, error };
@@ -23,6 +24,14 @@ async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Pro
     return { ok: true, data: data as T };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Falha de rede' };
+  }
+}
+
+function fillRandomValues(payload: Uint8Array): void {
+  const maxChunkBytes = 65_536;
+
+  for (let offset = 0; offset < payload.byteLength; offset += maxChunkBytes) {
+    crypto.getRandomValues(payload.subarray(offset, Math.min(offset + maxChunkBytes, payload.byteLength)));
   }
 }
 
@@ -37,12 +46,15 @@ export async function runSpeedtestProbe(): Promise<ApiResponse<SpeedtestResult>>
   const downloadResponse = await fetch('/api/speedtest/download?bytes=524288&cacheBust=' + Date.now(), {
     cache: 'no-store',
   });
+  if (!downloadResponse.ok) {
+    return { ok: false, error: 'Falha no endpoint de download' };
+  }
   const downloadBuffer = await downloadResponse.arrayBuffer();
   const downloadSeconds = Math.max((performance.now() - downloadStart) / 1000, 0.001);
   const downloadMbps = (downloadBuffer.byteLength * 8) / downloadSeconds / 1_000_000;
 
   const uploadPayload = new Uint8Array(256 * 1024);
-  crypto.getRandomValues(uploadPayload);
+  fillRandomValues(uploadPayload);
   const uploadStart = performance.now();
   const upload = await fetch('/api/speedtest/upload?cacheBust=' + Date.now(), {
     method: 'POST',
