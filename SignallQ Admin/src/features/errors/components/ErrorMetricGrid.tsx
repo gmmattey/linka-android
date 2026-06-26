@@ -1,9 +1,10 @@
 import React from "react";
+import { AppEnvironment } from "../../../types/admin";
 import { MetricCard } from "../../../components/ui/MetricCard";
 import { errorMetricsService } from "../../../services/errorMetricsService";
 
 interface ErrorMetricGridProps {
-  environment: "production" | "staging";
+  environment: AppEnvironment;
 }
 
 export const ErrorMetricGrid: React.FC<ErrorMetricGridProps> = ({ environment }) => {

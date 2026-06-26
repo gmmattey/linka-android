@@ -2,9 +2,10 @@ import React from "react";
 import { MetricCard } from "../../../components/ui/MetricCard";
 import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 import { DiagnosticsSummary } from "../../../types/diagnostics";
+import { AppEnvironment } from "../../../types/admin";
 
 interface DiagnosticsMetricGridProps {
-  environment: "production" | "staging";
+  environment: AppEnvironment;
   summary: DiagnosticsSummary | null;
 }
 

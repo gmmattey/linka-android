@@ -17,11 +17,13 @@ import {
   NetworkDistItem,
 } from "../mocks/overview.mock";
 import { mockOperatorsList } from "../mocks/errors.mock";
-import { OperatorRecord } from "../types/admin";
+import { AppEnvironment, OperatorRecord } from "../types/admin";
 
 export interface DashboardFilters {
-  environment?: "production" | "staging" | "all";
-  period?: "today" | "7d" | "30d" | "custom";
+  environment?: AppEnvironment;
+  // period é string: o seletor global do App usa string e os services tratam
+  // os valores conhecidos ("today"/"7d"/"30d"/"1d") por comparação.
+  period?: string;
 }
 
 export const adminMetricsService = {
