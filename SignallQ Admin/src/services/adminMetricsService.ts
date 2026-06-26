@@ -283,7 +283,6 @@ export const adminMetricsService = {
     if (!apiClient.isMockEnabled()) {
       if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return [];
       try {
-        const envAlerts = filters.environment ?? "production";
         const raw = await apiClient.request<{
           items: Array<{
             id: string;
