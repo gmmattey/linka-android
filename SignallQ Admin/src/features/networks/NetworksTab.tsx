@@ -3,7 +3,6 @@ import { adminMetricsService } from "../../services/adminMetricsService";
 import { ChartCard } from "../../components/ui/ChartCard";
 import { BarChart } from "../../components/charts/BarChart";
 import { LoadingState } from "../../components/ui/LoadingState";
-import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { Wifi, Radio, Cpu, Network, ZapOff } from "lucide-react";
 import { AppEnvironment } from "../../types/admin";
 
@@ -49,17 +48,6 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
 
   if (loading) {
     return <LoadingState message="Buscando performance de antenas celular e canais Wi-Fi..." />;
-  }
-
-  const hasData = networkDistribution.length > 0;
-
-  if (!hasData) {
-    return (
-      <FeatureComingSoon
-        feature="Análise de Redes e RF"
-        reason="Requer rota de telemetria de rede no worker"
-      />
-    );
   }
 
   const barData = specs?.physicalAverages || [];

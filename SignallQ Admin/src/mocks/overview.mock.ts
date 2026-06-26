@@ -44,6 +44,7 @@ export interface ProviderUsageItem {
   percentage: number;
   tokensProcessed: number;
   color: string;
+  reliabilityPercentage?: number | null;
 }
 
 export interface OverviewMetricsResponse {

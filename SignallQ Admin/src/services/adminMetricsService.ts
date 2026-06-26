@@ -45,10 +45,26 @@ export const adminMetricsService = {
           aiCallsToday: number;
           aiCostToday: number;
           aiTokensToday: number;
+          successRate?: number | null;
+          topProblem?: string | null;
+          mostTestType?: string | null;
+          mostTestTypePercentage?: number | null;
         }>("GET", `/admin/metrics/overview?environment=${env}&period=${apiPeriod}`);
 
         const score = raw.avgNetworkScore ?? 0;
         const verdict = score >= 80 ? "Excelente" : score >= 60 ? "Bom" : score >= 40 ? "Regular" : "Fraco";
+
+        const successRateValue = raw.successRate != null
+          ? { label: "Taxa de Sucesso", value: `${raw.successRate.toFixed(1)}%`, trend: { value: raw.successRate, changePercentage: 0, type: "neutral" as const, intervalLabel: "sessões com status bom/excelente/regular" } }
+          : null;
+
+        const topProblemValue = raw.topProblem != null
+          ? { label: "Principal Problema", value: raw.topProblem, trend: { value: 0, changePercentage: 0, type: "neutral" as const, intervalLabel: "issue mais frequente no período" } }
+          : null;
+
+        const mostTestTypeValue = raw.mostTestType != null
+          ? { label: "Tipo de Rede Predominante", value: raw.mostTestTypePercentage != null ? `${raw.mostTestType} · ${raw.mostTestTypePercentage.toFixed(0)}%` : raw.mostTestType, trend: { value: raw.mostTestTypePercentage ?? 0, changePercentage: 0, type: "neutral" as const, intervalLabel: "rede predominante" } }
+          : null;
 
         return {
           diagnosticsCount: {
@@ -66,9 +82,9 @@ export const adminMetricsService = {
             value: `$${(raw.aiCostToday ?? 0).toFixed(2)}`,
             trend: { value: raw.aiCallsToday, changePercentage: 0, type: "neutral" as const, intervalLabel: `${raw.aiCallsToday} chamadas hoje · ${raw.aiTokensToday} tokens` },
           },
-          successRate: null,
-          topProblem: null,
-          mostTestType: null,
+          successRate: successRateValue,
+          topProblem: topProblemValue,
+          mostTestType: mostTestTypeValue,
           downloadsToday: null,
           activeInstalls: null,
           crashFreeUsers: null,
@@ -342,13 +358,14 @@ export const adminMetricsService = {
       }
       try {
         const raw = await apiClient.request<{
-          items: Array<{ name: string; percentage: number; tokensProcessed: number }>;
+          items: Array<{ name: string; percentage: number; tokensProcessed: number; reliabilityPercentage?: number | null }>;
         }>("GET", `/admin/metrics/ai-providers?environment=${envAiProviders}&period=${apiPeriod}`);
         return (raw.items ?? []).map((item) => ({
-          name:            item.name,
-          percentage:      item.percentage,
-          tokensProcessed: item.tokensProcessed,
-          color:           colorFor(item.name),
+          name:                  item.name,
+          percentage:            item.percentage,
+          tokensProcessed:       item.tokensProcessed,
+          color:                 colorFor(item.name),
+          reliabilityPercentage: item.reliabilityPercentage ?? null,
         }));
       } catch {
         return [];

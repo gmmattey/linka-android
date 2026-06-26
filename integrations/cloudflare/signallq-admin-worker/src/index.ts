@@ -327,7 +327,7 @@ async function handleOverview(request: Request, env: Env): Promise<Response> {
   const envClause    = envFilter ? " AND environment = ?" : "";
   const envBinds     = envFilter ? [envFilter]            : [];
 
-  const [sessions, aiRows] = await Promise.all([
+  const [sessions, aiRows, successRows, networkRows, issueRows] = await Promise.all([
     env.DB.prepare(
       `SELECT COUNT(*) AS total,
               SUM(CASE WHEN resolved=0 THEN 1 ELSE 0 END) AS active,
@@ -338,17 +338,65 @@ async function handleOverview(request: Request, env: Env): Promise<Response> {
       `SELECT COUNT(*) AS calls, SUM(cost_usd) AS cost, SUM(total_tokens) AS tokens
        FROM ai_usage WHERE created_at >= ?${envClause}`
     ).bind(todaySince, ...envBinds).first<{ calls: number; cost: number; tokens: number }>(),
+    // successRate: % de sessões com status bom/regular (não ruim/critico/inconclusivo)
+    env.DB.prepare(
+      `SELECT COUNT(*) AS total,
+              SUM(CASE WHEN status IN ('bom','excelente','regular') THEN 1 ELSE 0 END) AS successful
+       FROM diagnostic_sessions WHERE created_at >= ?${envClause}`
+    ).bind(since, ...envBinds).first<{ total: number; successful: number }>(),
+    // mostTestType: tipo de rede predominante
+    env.DB.prepare(
+      `SELECT network_type, COUNT(*) AS cnt
+       FROM diagnostic_sessions WHERE created_at >= ?${envClause}
+         AND network_type IS NOT NULL AND network_type != '' AND network_type != 'unknown'
+       GROUP BY network_type ORDER BY cnt DESC LIMIT 1`
+    ).bind(since, ...envBinds).first<{ network_type: string; cnt: number }>(),
+    // topProblem: issue mais frequente no período
+    env.DB.prepare(
+      `SELECT issues FROM diagnostic_sessions WHERE created_at >= ?${envClause} AND issues != '[]'`
+    ).bind(since, ...envBinds).all(),
   ]);
+
+  // Calcula successRate
+  const total = successRows?.total ?? 0;
+  const successRate = total > 0
+    ? Math.round(((successRows?.successful ?? 0) / total) * 100)
+    : null;
+
+  // Determina topProblem a partir dos arrays JSON de issues
+  const countMap: Record<string, number> = {};
+  for (const row of (issueRows.results ?? [])) {
+    let issues: string[] = [];
+    try { issues = JSON.parse((row as any).issues ?? "[]"); } catch { /* ignora */ }
+    for (const label of issues) {
+      if (typeof label === "string" && label.trim()) {
+        countMap[label] = (countMap[label] ?? 0) + 1;
+      }
+    }
+  }
+  const topEntry = Object.entries(countMap).sort(([, a], [, b]) => b - a)[0];
+  const topProblem = topEntry ? topEntry[0] : null;
+
+  // mostTestType
+  const mostTestType = networkRows?.network_type ?? null;
+  const mostTestTypeCount = networkRows?.cnt ?? 0;
+  const mostTestTypePercentage = total > 0 && mostTestTypeCount > 0
+    ? Math.round((mostTestTypeCount / total) * 100)
+    : null;
 
   return json({
     source: "d1", period,
-    environment:      envFilter ?? "all",
-    totalDiagnostics: sessions?.total ?? 0,
-    activeSessions:   sessions?.active ?? 0,
-    avgNetworkScore:  sessions?.avg_score ? Math.round(sessions.avg_score) : 0,
-    aiCallsToday:     aiRows?.calls  ?? 0,
-    aiCostToday:      aiRows?.cost   ?? 0,
-    aiTokensToday:    aiRows?.tokens ?? 0,
+    environment:          envFilter ?? "all",
+    totalDiagnostics:     sessions?.total ?? 0,
+    activeSessions:       sessions?.active ?? 0,
+    avgNetworkScore:      sessions?.avg_score ? Math.round(sessions.avg_score) : 0,
+    aiCallsToday:         aiRows?.calls  ?? 0,
+    aiCostToday:          aiRows?.cost   ?? 0,
+    aiTokensToday:        aiRows?.tokens ?? 0,
+    successRate,
+    topProblem,
+    mostTestType,
+    mostTestTypePercentage,
   }, 200, env);
 }
 
@@ -798,6 +846,58 @@ function providerName(model: string): string {
   return model; // fallback: nome técnico do modelo
 }
 
+async function handleDiagnosticsSummary(request: Request, env: Env): Promise<Response> {
+  const url       = new URL(request.url);
+  const period    = url.searchParams.get("period") ?? "7d";
+  const since     = nowSec() - periodToSeconds(period);
+  const envFilter = getEnvironmentFilter(url);
+
+  const envClause = envFilter ? " AND environment = ?" : "";
+  const envBinds  = envFilter ? [envFilter]            : [];
+
+  const row = await env.DB.prepare(
+    `SELECT
+       COUNT(*) AS total,
+       AVG(latency_ms) AS avg_latency_ms,
+       AVG(jitter_ms) AS avg_jitter_ms,
+       AVG(packet_loss) AS avg_packet_loss,
+       AVG(download_mbps) AS avg_download_mbps,
+       AVG(upload_mbps) AS avg_upload_mbps,
+       AVG(CAST(score AS REAL)) AS avg_score,
+       SUM(CASE WHEN status IN ('ruim','critico') THEN 1 ELSE 0 END) AS critical_count,
+       SUM(CASE WHEN resolved = 0 THEN 1 ELSE 0 END) AS active_count
+     FROM diagnostic_sessions
+     WHERE created_at >= ?${envClause}`
+  ).bind(since, ...envBinds).first<{
+    total: number;
+    avg_latency_ms: number | null;
+    avg_jitter_ms: number | null;
+    avg_packet_loss: number | null;
+    avg_download_mbps: number | null;
+    avg_upload_mbps: number | null;
+    avg_score: number | null;
+    critical_count: number;
+    active_count: number;
+  }>();
+
+  const round1 = (v: number | null) => v != null ? Math.round(v * 10) / 10 : null;
+
+  return json({
+    source:                    "d1",
+    period,
+    environment:               envFilter ?? "all",
+    totalDiagnostics:          row?.total ?? 0,
+    criticalCount:             row?.critical_count ?? 0,
+    activeSessions:            row?.active_count ?? 0,
+    averageScore:              row?.avg_score != null ? Math.round(row.avg_score) : null,
+    averageLatencyMs:          round1(row?.avg_latency_ms ?? null),
+    averageJitterMs:           round1(row?.avg_jitter_ms ?? null),
+    averagePacketLossPercentage: round1(row?.avg_packet_loss ?? null),
+    averageDownloadMbps:       round1(row?.avg_download_mbps ?? null),
+    averageUploadMbps:         round1(row?.avg_upload_mbps ?? null),
+  }, 200, env);
+}
+
 async function handleAiProviders(request: Request, env: Env): Promise<Response> {
   const url       = new URL(request.url);
   const period    = url.searchParams.get("period") ?? "7d";
@@ -808,7 +908,11 @@ async function handleAiProviders(request: Request, env: Env): Promise<Response> 
   const envBinds  = envFilter ? [envFilter]            : [];
 
   const rows = await env.DB.prepare(
-    `SELECT model, SUM(total_tokens) AS tokensProcessed
+    `SELECT
+       model,
+       SUM(total_tokens) AS tokensProcessed,
+       COUNT(*) AS calls,
+       SUM(CASE WHEN completion_tokens > 0 THEN 1 ELSE 0 END) AS successful_calls
      FROM ai_usage
      WHERE created_at >= ?${envClause}
      GROUP BY model
@@ -818,11 +922,16 @@ async function handleAiProviders(request: Request, env: Env): Promise<Response> 
   const results = rows.results ?? [];
   const grandTotal = results.reduce((acc: number, r: any) => acc + (r.tokensProcessed ?? 0), 0);
 
-  const items = results.map((r: any) => ({
-    name:            providerName(r.model ?? ""),
-    tokensProcessed: r.tokensProcessed ?? 0,
-    percentage:      grandTotal > 0 ? Math.round(((r.tokensProcessed ?? 0) / grandTotal) * 100) : 0,
-  }));
+  const items = results.map((r: any) => {
+    const calls      = r.calls ?? 0;
+    const successful = r.successful_calls ?? 0;
+    return {
+      name:                  providerName(r.model ?? ""),
+      tokensProcessed:       r.tokensProcessed ?? 0,
+      percentage:            grandTotal > 0 ? Math.round(((r.tokensProcessed ?? 0) / grandTotal) * 100) : 0,
+      reliabilityPercentage: calls > 0 ? Math.round((successful / calls) * 10000) / 100 : null,
+    };
+  });
 
   return json({ source: "d1", period, environment: envFilter ?? "all", items }, 200, env);
 }
@@ -1607,6 +1716,7 @@ type Handler = (req: Request, env: Env) => Promise<Response>;
 
 const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/metrics\/overview$/,                    handler: withErrorLogging('metrics', handleOverview) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/diagnostics\/summary$/,        handler: withErrorLogging('metrics', handleDiagnosticsSummary) },
   { method: "GET",  pattern: /^\/admin\/metrics\/diagnostics$/,                 handler: withErrorLogging('metrics', handleDiagnostics) },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage$/,                    handler: withErrorLogging('metrics', handleAiCost) },
   { method: "GET",  pattern: /^\/admin\/metrics\/timeline$/,                    handler: withErrorLogging('metrics', handleTimeline) },
