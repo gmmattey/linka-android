@@ -29,16 +29,33 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-red-500/20 bg-[#FF4D4F]/5 rounded-2xl">
-          <h4 className="text-sm font-semibold text-[#FF4D4F] uppercase tracking-wider font-mono">
+        <div
+          className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 rounded-2xl"
+          style={{
+            border: "1px solid color-mix(in srgb, var(--sq-error) 20%, transparent)",
+            backgroundColor: "color-mix(in srgb, var(--sq-error) 5%, transparent)",
+          }}
+        >
+          <h4
+            className="text-sm font-semibold uppercase tracking-wider font-mono"
+            style={{ color: "var(--sq-error)" }}
+          >
             Erro ao renderizar a tela
           </h4>
-          <p className="text-xs text-neutral-400 mt-2 font-sans max-w-md">
+          <p
+            className="text-xs mt-2 max-w-md"
+            style={{ color: "var(--sq-text-secondary)" }}
+          >
             {this.state.message || "Ocorreu um erro inesperado ao montar este painel."}
           </p>
           <button
             onClick={this.handleReset}
-            className="mt-4 px-4 py-2 text-xs bg-[#FF4D4F]/10 border border-[#FF4D4F]/20 text-[#FF4D4F] hover:bg-[#FF4D4F]/20 transition-all rounded-xl font-mono"
+            className="mt-4 px-4 py-2 text-xs rounded-xl font-mono transition-all"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--sq-error) 10%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--sq-error) 20%, transparent)",
+              color: "var(--sq-error)",
+            }}
           >
             TENTAR NOVAMENTE
           </button>

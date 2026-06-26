@@ -24,7 +24,7 @@
 
   /* Superfícies (Admin usa dark como padrão) */
   --sq-bg-primary:    #0D0D1A;   /* fundo geral — SignallQ-black */
-  --sq-bg-secondary:  #1A0B2E;   /* superfícies secundárias */
+  --sq-bg-secondary:  #1A1A1A;   /* superfícies secundárias — dark.bg-secondary do DS */
   --sq-bg-card:       #111111;   /* cards e painéis */
   --sq-bg-elevated:   #1E1130;   /* cards em superfície secundária */
   --sq-bg-overlay:    #18181B;   /* hover states, inputs */
@@ -73,10 +73,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #363636;
+  background: var(--sq-border);
   border-radius: 9px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444444;
+  background: color-mix(in srgb, var(--sq-border) 160%, white);
 }
