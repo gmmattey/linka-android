@@ -174,7 +174,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
     {
       header: "Sessão ID",
       accessor: (row: DiagnosticSession) => (
-        <span className="font-mono font-bold text-zinc-400">{row.id.replace("diag_", "")}</span>
+        <span className="font-mono font-bold text-zinc-400">{(row.id ?? "—").replace("diag_", "")}</span>
       ),
     },
     {
@@ -449,7 +449,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
                           <AlertOctagon className={`w-4 h-4 shrink-0 mt-0.5 ${issue.severity === "critical" ? "text-red-400" : "text-amber-500"}`} />
                           <div>
                             <div className="font-semibold font-mono tracking-wider text-[10px] uppercase text-zinc-300">
-                              {issue.issue.replace(/_/g, " ")}
+                              {(issue.issue ?? "").replace(/_/g, " ")}
                             </div>
                             <p className="text-zinc-400 mt-1 leading-normal text-[11px] font-sans">{issue.description}</p>
                           </div>

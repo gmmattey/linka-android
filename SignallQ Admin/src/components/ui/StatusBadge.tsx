@@ -9,51 +9,77 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, customLabel, className = "", id }) => {
-  // Map severity, status keywords or version codes to technical visual styles
-  let bgClass = "bg-neutral-800/80 border-neutral-700 text-neutral-300";
-  let dotClass = "bg-neutral-500";
+  let style: React.CSSProperties = {
+    backgroundColor: "color-mix(in srgb, var(--sq-text-tertiary) 10%, transparent)",
+    borderColor: "color-mix(in srgb, var(--sq-text-tertiary) 20%, transparent)",
+    color: "var(--sq-text-secondary)",
+  };
+  let dotStyle: React.CSSProperties = { backgroundColor: "var(--sq-text-tertiary)" };
+  let dotClassName = "";
   let label = customLabel || status.toString().toUpperCase();
 
   switch (status) {
     case "ok":
     case "stable":
     case "success":
-      bgClass = "bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]";
-      dotClass = "bg-[#22C55E] animate-pulse";
+      style = {
+        backgroundColor: "color-mix(in srgb, var(--sq-success) 10%, transparent)",
+        borderColor: "color-mix(in srgb, var(--sq-success) 20%, transparent)",
+        color: "var(--sq-success)",
+      };
+      dotStyle = { backgroundColor: "var(--sq-success)" };
+      dotClassName = "animate-pulse";
       if (!customLabel) label = status === "ok" ? "OK" : status === "stable" ? "Estável" : "Sucesso";
       break;
     case "attention":
     case "beta":
     case "cached":
-      bgClass = "bg-[#F5A623]/10 border-[#F5A623]/20 text-[#F5A623]";
-      dotClass = "bg-[#F5A623]";
+      style = {
+        backgroundColor: "color-mix(in srgb, var(--sq-warning) 10%, transparent)",
+        borderColor: "color-mix(in srgb, var(--sq-warning) 20%, transparent)",
+        color: "var(--sq-warning)",
+      };
+      dotStyle = { backgroundColor: "var(--sq-warning)" };
       if (!customLabel) label = status === "attention" ? "Atenção" : status === "beta" ? "Beta" : "Cached";
       break;
     case "critical":
     case "failed":
     case "error":
     case "halted":
-      bgClass = "bg-[#FF4D4F]/10 border-[#FF4D4F]/20 text-[#FF4D4F]";
-      dotClass = "bg-[#FF4D4F]";
+      style = {
+        backgroundColor: "color-mix(in srgb, var(--sq-error) 10%, transparent)",
+        borderColor: "color-mix(in srgb, var(--sq-error) 20%, transparent)",
+        color: "var(--sq-error)",
+      };
+      dotStyle = { backgroundColor: "var(--sq-error)" };
       if (!customLabel) label = status === "critical" ? "Crítico" : status === "failed" ? "Erro" : "Pausado";
       break;
     case "deprecated":
-      bgClass = "bg-[#111111] border-[#262626] text-zinc-500";
-      dotClass = "bg-zinc-600";
+      style = {
+        backgroundColor: "var(--sq-bg-card)",
+        borderColor: "var(--sq-border)",
+        color: "var(--sq-text-tertiary)",
+      };
+      dotStyle = { backgroundColor: "var(--sq-text-tertiary)" };
       if (!customLabel) label = "Obsoleto";
       break;
     case "info":
-      bgClass = "bg-[#38BDF8]/10 border-[#38BDF8]/20 text-[#38BDF8]";
-      dotClass = "bg-[#38BDF8]";
+      style = {
+        backgroundColor: "color-mix(in srgb, var(--sq-accent-blue) 10%, transparent)",
+        borderColor: "color-mix(in srgb, var(--sq-accent-blue) 20%, transparent)",
+        color: "var(--sq-accent-blue)",
+      };
+      dotStyle = { backgroundColor: "var(--sq-accent-blue)" };
       break;
   }
 
   return (
     <span
       id={id}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium border uppercase tracking-wider select-none ${bgClass} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium border uppercase tracking-wider select-none ${className}`}
+      style={style}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${dotClassName}`} style={dotStyle} />
       {label}
     </span>
   );
