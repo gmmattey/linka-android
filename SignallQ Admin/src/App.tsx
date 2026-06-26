@@ -16,6 +16,7 @@ import { AiCostTab } from "./features/ai-cost/AiCostTab";
 import { ErrorsTab } from "./features/errors/ErrorsTab";
 import { VersionsTab } from "./features/app-versions/VersionsTab";
 import { SettingsTab } from "./features/settings/SettingsTab";
+import { FeatureFlagsTab } from "./features/feature-flags/FeatureFlagsTab";
 
 // Lucide accessories
 import { Sparkles, Activity, AlertTriangle } from "lucide-react";
@@ -88,6 +89,7 @@ export default function App() {
         "/ai-cost",
         "/errors",
         "/app-versions",
+        "/feature-flags",
         "/settings",
       ];
       if (hash && validPaths.includes(hash)) {
@@ -208,6 +210,12 @@ export default function App() {
           description: "Lista de builds Android transmitindo métricas e status de distribuição de novas atualizações via Play Store.",
           badge: null,
         };
+      case "/feature-flags":
+        return {
+          title: "Feature Flags",
+          description: "Ative ou desative telas e funcionalidades do app remotamente, sem necessidade de novo build.",
+          badge: null,
+        };
       case "/settings":
         return {
           title: "Configurações Técnicas",
@@ -319,6 +327,7 @@ export default function App() {
           triggerRefreshCounter={refreshCounter}
         />
       )}
+      {currentPath === "/feature-flags" && <FeatureFlagsTab />}
       {currentPath === "/settings" && <SettingsTab />}
       </ErrorBoundary>
     </AppLayout>

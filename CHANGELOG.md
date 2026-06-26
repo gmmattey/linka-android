@@ -10,9 +10,11 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 ---
 
-## [Unreleased] — Admin Worker / SIG-129 / SIG-133
+## [Unreleased] — Admin Worker / SIG-13 / SIG-129 / SIG-133
 
 ### Added
+
+- **(sig-13) Feature flags remotas:** API worker com `GET /admin/feature-flags` (lista da tabela dedicada), `PUT /admin/feature-flags/:key` (update com audit log em `feature_flag_audit`) e `GET /flags` (endpoint público para consumo do Android). Migration `005_sig13.sql` cria tabelas `feature_flags` e `feature_flag_audit` com 6 flags iniciais. Admin Panel ganha aba dedicada `/feature-flags` com toggles otimistas e rollback em caso de erro.
 
 - **Admin Worker — Pipeline de erros de sistema (SIG-129, Fase A):** tabela `system_errors` no D1 para deduplicar e contabilizar erros do próprio worker. Helper `logError` com hash djb2 determinístico (fire-and-forget, nunca propaga). Wrapper `withErrorLogging` aplicado a todos os handlers `GET /admin/metrics/*`. Handler `handleFirebaseAnalytics` instrumentado diretamente no catch. Endpoint `GET /admin/metrics/errors?period=` retorna erros agrupados por source, ordenados por frequência.
 - **Admin Worker — migration `003_sig129.sql`:** `CREATE TABLE IF NOT EXISTS system_errors` + índice `idx_system_errors_last_seen`.

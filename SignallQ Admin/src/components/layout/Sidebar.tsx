@@ -8,6 +8,7 @@ import {
   BrainCircuit,
   AlertTriangle,
   GitBranch,
+  ToggleRight,
   Settings,
   X,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const iconMap = {
   BrainCircuit: BrainCircuit,
   AlertTriangle: AlertTriangle,
   GitBranch: GitBranch,
+  ToggleRight: ToggleRight,
   Settings: Settings,
 };
 
