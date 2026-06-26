@@ -1,7 +1,7 @@
 export interface NavigationItem {
   name: string;
   path: string;
-  iconName: "LayoutDashboard" | "LineChart" | "Activity" | "Wifi" | "Globe" | "BrainCircuit" | "AlertTriangle" | "GitBranch" | "Settings";
+  iconName: "LayoutDashboard" | "LineChart" | "Activity" | "Wifi" | "Globe" | "BrainCircuit" | "AlertTriangle" | "GitBranch" | "ToggleRight" | "Settings";
   badge?: string;
   badgeType?: "info" | "error" | "warning";
 }
@@ -50,6 +50,11 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     name: "Versões do App",
     path: "/app-versions",
     iconName: "GitBranch",
+  },
+  {
+    name: "Feature Flags",
+    path: "/feature-flags",
+    iconName: "ToggleRight",
   },
   {
     name: "Configurações",

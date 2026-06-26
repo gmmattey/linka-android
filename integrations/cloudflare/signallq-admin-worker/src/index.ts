@@ -25,7 +25,7 @@ export interface Env {
 function corsHeaders(env: Env): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Environment",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Max-Age": "86400",
@@ -1175,6 +1175,77 @@ async function handlePublicFeatureFlags(_request: Request, env: Env): Promise<Re
   return json({ flags: publicFlags }, 200, env);
 }
 
+// --- SIG-13: feature flags via tabela dedicada (substitui JSON blob em admin_settings) ---
+
+// GET /admin/feature-flags — lista todas as flags da tabela feature_flags.
+async function handleFeatureFlags(_request: Request, env: Env): Promise<Response> {
+  const rows = await env.DB.prepare(
+    'SELECT key, enabled, description, updated_at, updated_by FROM feature_flags ORDER BY key'
+  ).all();
+
+  const flags = (rows.results ?? []).map((r: any) => ({
+    key:         r.key,
+    enabled:     r.enabled === 1,
+    description: r.description ?? '',
+    updatedAt:   r.updated_at  ?? 0,
+    updatedBy:   r.updated_by  ?? '',
+  }));
+
+  return json({ flags }, 200, env);
+}
+
+// PUT /admin/feature-flags/:key — atualiza enabled de uma flag e grava audit log.
+async function handleUpdateFeatureFlag(request: Request, env: Env, session: { userId: string; role: string }): Promise<Response> {
+  const url = new URL(request.url);
+  const match = url.pathname.match(/^\/admin\/feature-flags\/([^/]+)$/);
+  if (!match) return err('key inválida', 400, env);
+  const key = match[1];
+
+  let body: { enabled?: boolean };
+  try { body = await request.json(); } catch { return err('body JSON inválido', 400, env); }
+  if (typeof body.enabled !== 'boolean') return err('enabled (boolean) obrigatório', 400, env);
+
+  // Busca estado atual para registrar old_enabled no audit.
+  const current = await env.DB.prepare(
+    'SELECT enabled FROM feature_flags WHERE key = ?'
+  ).bind(key).first<{ enabled: number }>();
+  if (!current) return err('flag não encontrada', 404, env);
+
+  const now       = Math.floor(Date.now() / 1000);
+  const newEnabled = body.enabled ? 1 : 0;
+
+  // Obtém email do usuário da sessão para o audit log.
+  const userRow = await env.DB.prepare(
+    'SELECT email FROM admin_users WHERE id = ?'
+  ).bind(session.userId).first<{ email: string }>();
+  const changedBy = userRow?.email ?? 'admin';
+
+  await env.DB.batch([
+    env.DB.prepare(
+      'UPDATE feature_flags SET enabled = ?, updated_at = ?, updated_by = ? WHERE key = ?'
+    ).bind(newEnabled, now, changedBy, key),
+    env.DB.prepare(
+      'INSERT INTO feature_flag_audit (id, flag_key, old_enabled, new_enabled, changed_at, changed_by) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(crypto.randomUUID(), key, current.enabled, newEnabled, now, changedBy),
+  ]);
+
+  return json({ ok: true, key, enabled: body.enabled }, 200, env);
+}
+
+// GET /flags — público, sem auth. Retorna key + enabled para consumo do Android.
+async function handlePublicFlags(_request: Request, env: Env): Promise<Response> {
+  const rows = await env.DB.prepare(
+    'SELECT key, enabled FROM feature_flags ORDER BY key'
+  ).all();
+
+  const flags = (rows.results ?? []).map((r: any) => ({
+    key:     r.key,
+    enabled: r.enabled === 1,
+  }));
+
+  return json({ flags }, 200, env);
+}
+
 // --- router ---
 
 type Handler = (req: Request, env: Env) => Promise<Response>;
@@ -1202,8 +1273,14 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "POST", pattern: /^\/admin\/integrations\/firebase\/sync$/,         handler: handleFirebaseSync },
   { method: "GET",  pattern: /^\/admin\/settings$/,                             handler: handleSettings },
   { method: "POST", pattern: /^\/admin\/settings$/,                             handler: handleSettings },
-  { method: "GET",  pattern: /^\/admin\/feature-flags$/,                        handler: handleGetFeatureFlags },
+  // SIG-13: GET usa nova tabela; POST mantido para compat com adminSettingsService legado.
+  { method: "GET",  pattern: /^\/admin\/feature-flags$/,                        handler: withErrorLogging('feature-flags', handleFeatureFlags) },
   { method: "POST", pattern: /^\/admin\/feature-flags$/,                        handler: handleSetFeatureFlags },
+  { method: "PUT",  pattern: /^\/admin\/feature-flags\/[^/]+$/,                 handler: withErrorLogging('feature-flags', async (req, env) => {
+      const session = await authenticateSession(req, env);
+      if (!session) return err('Unauthorized', 401, env);
+      return handleUpdateFeatureFlag(req, env, session);
+    }) },
 ];
 
 const INGEST_ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
@@ -1228,9 +1305,13 @@ export default {
       return json({ status: "ok", worker: "signallq-admin-worker" }, 200, env);
     }
 
-    // /feature-flags — público, sem auth. O app Android consome este endpoint sem credenciais.
+    // Endpoints públicos sem auth — o app Android consome sem credenciais.
     if (url.pathname === '/feature-flags' && request.method === 'GET') {
       return handlePublicFeatureFlags(request, env);
+    }
+    // SIG-13: /flags — endpoint público da nova tabela feature_flags.
+    if (url.pathname === '/flags' && request.method === 'GET') {
+      return withErrorLogging('flags', handlePublicFlags)(request, env);
     }
 
     // Rotas /ingest/* — autenticam com INGEST_KEY (scope limitado, vai no APK).
