@@ -1,4 +1,5 @@
 import { TimeSeriesData } from "../types/metrics";
+import { SQ_TOKENS } from "../config/designTokens";
 
 export interface DashboardMetricValue {
   label: string;
@@ -251,10 +252,10 @@ export const mockTimeline30d: TimeSeriesData[] = [
 
 // 3. Network type distribution
 export const mockNetworkDistributionList = [
-  { name: "Wi-Fi", value: 72, color: "#6C2BFF" },
-  { name: "Rede móvel", value: 21, color: "#22C55E" },
-  { name: "Fibra", value: 6, color: "#38BDF8" },
-  { name: "Ethernet", value: 1, color: "#F5A623" },
+  { name: "Wi-Fi", value: 72, color: SQ_TOKENS.networkWifi },
+  { name: "Rede móvel", value: 21, color: SQ_TOKENS.networkMobile },
+  { name: "Fibra", value: 6, color: SQ_TOKENS.networkFiber },
+  { name: "Ethernet", value: 1, color: SQ_TOKENS.networkEthernet },
 ];
 
 // 4. Top Issues list
@@ -304,9 +305,9 @@ export const mockRecentAlertsList: RecentAlertItem[] = [
 
 // 6. AI Providers Usage
 export const mockAiProviderUsageList: ProviderUsageItem[] = [
-  { name: "Gemini Flash", percentage: 83, tokensProcessed: 1824500, color: "#6C2BFF" },
-  { name: "Cloudflare Qwen", percentage: 15, tokensProcessed: 329000, color: "#38BDF8" },
-  { name: "Fallback local", percentage: 2, tokensProcessed: 43900, color: "#6B7280" },
+  { name: "Gemini Flash", percentage: 83, tokensProcessed: 1824500, color: SQ_TOKENS.aiGemini },
+  { name: "Cloudflare Qwen", percentage: 15, tokensProcessed: 329000, color: SQ_TOKENS.aiQwen },
+  { name: "Fallback local", percentage: 2, tokensProcessed: 43900, color: SQ_TOKENS.aiFallback },
 ];
 
 // Legacy/Compatibility placeholders to avoid any breaking changes
@@ -359,8 +360,8 @@ export const mockTimeSeriesData: TimeSeriesData[] = [
 ];
 
 export const mockNetworkDistribution = [
-  { name: "Wi-Fi (Rede Local)", value: 72, color: "#6C2BFF" },
-  { name: "Rede Móvel (4G/5G)", value: 21, color: "#22C55E" },
-  { name: "Fibra / Banda Larga", value: 6, color: "#38BDF8" },
-  { name: "Ethernet Cabeada", value: 1, color: "#F5A623" },
+  { name: "Wi-Fi (Rede Local)", value: 72, color: SQ_TOKENS.networkWifi },
+  { name: "Rede Móvel (4G/5G)", value: 21, color: SQ_TOKENS.networkMobile },
+  { name: "Fibra / Banda Larga", value: 6, color: SQ_TOKENS.networkFiber },
+  { name: "Ethernet Cabeada", value: 1, color: SQ_TOKENS.networkEthernet },
 ];

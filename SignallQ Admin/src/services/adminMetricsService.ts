@@ -18,6 +18,7 @@ import {
 } from "../mocks/overview.mock";
 import { mockOperatorsList } from "../mocks/errors.mock";
 import { AppEnvironment, OperatorRecord } from "../types/admin";
+import { SQ_TOKENS } from "../config/designTokens";
 
 export interface DashboardFilters {
   environment?: AppEnvironment;
@@ -159,18 +160,18 @@ export const adminMetricsService = {
       const envNetwork = filters.environment ?? "production";
       // Paleta fixa por nome de tipo de rede — cor não vem do worker (SIG-110).
       const colorMap: Record<string, string> = {
-        wifi:     "#6C2BFF",
-        mobile:   "#22C55E",
-        cellular: "#22C55E",
-        fiber:    "#38BDF8",
-        ethernet: "#F5A623",
+        wifi:     SQ_TOKENS.networkWifi,
+        mobile:   SQ_TOKENS.networkMobile,
+        cellular: SQ_TOKENS.networkMobile,
+        fiber:    SQ_TOKENS.networkFiber,
+        ethernet: SQ_TOKENS.networkEthernet,
       };
       function colorFor(name: string): string {
         const key = (name ?? "").toLowerCase();
         for (const [k, c] of Object.entries(colorMap)) {
           if (key.includes(k)) return c;
         }
-        return "#6B7280"; // cinza neutro para tipos desconhecidos
+        return SQ_TOKENS.networkUnknown;
       }
       try {
         const raw = await apiClient.request<{ items: Array<{ name: string; count: number; percentage: number }> }>(
@@ -195,10 +196,10 @@ export const adminMetricsService = {
 
     if (environment === "staging") {
       return [
-        { name: "Wi-Fi", value: 35, color: "#6C2BFF" },
-        { name: "Rede móvel", value: 51, color: "#22C55E" },
-        { name: "Fibra", value: 11, color: "#38BDF8" },
-        { name: "Ethernet", value: 3, color: "#F5A623" },
+        { name: "Wi-Fi", value: 35, color: SQ_TOKENS.networkWifi },
+        { name: "Rede móvel", value: 51, color: SQ_TOKENS.networkMobile },
+        { name: "Fibra", value: 11, color: SQ_TOKENS.networkFiber },
+        { name: "Ethernet", value: 3, color: SQ_TOKENS.networkEthernet },
       ];
     }
     return response;
@@ -331,13 +332,13 @@ export const adminMetricsService = {
       const envAiProviders = filters.environment ?? "production";
       // Paleta de cores por provedor — não vem do worker (SIG-110).
       const providerColors: Record<string, string> = {
-        "Gemini":              "#6C2BFF",
-        "Qwen / Workers AI":   "#38BDF8",
-        "OpenAI GPT":          "#22C55E",
-        "Anthropic Claude":    "#F5A623",
+        "Gemini":              SQ_TOKENS.aiGemini,
+        "Qwen / Workers AI":   SQ_TOKENS.aiQwen,
+        "OpenAI GPT":          SQ_TOKENS.aiOpenAI,
+        "Anthropic Claude":    SQ_TOKENS.aiAnthropic,
       };
       function colorFor(name: string): string {
-        return providerColors[name] ?? "#6B7280";
+        return providerColors[name] ?? SQ_TOKENS.aiFallback;
       }
       try {
         const raw = await apiClient.request<{
@@ -358,9 +359,9 @@ export const adminMetricsService = {
 
     if (filters.environment === "staging") {
       return [
-        { name: "Gemini Flash", percentage: 70, tokensProcessed: 245000, color: "#6C2BFF" },
-        { name: "Cloudflare Qwen", percentage: 25, tokensProcessed: 87500, color: "#38BDF8" },
-        { name: "Fallback local", percentage: 5, tokensProcessed: 17500, color: "#6B7280" },
+        { name: "Gemini Flash", percentage: 70, tokensProcessed: 245000, color: SQ_TOKENS.aiGemini },
+        { name: "Cloudflare Qwen", percentage: 25, tokensProcessed: 87500, color: SQ_TOKENS.aiQwen },
+        { name: "Fallback local", percentage: 5, tokensProcessed: 17500, color: SQ_TOKENS.aiFallback },
       ];
     }
 
