@@ -58,7 +58,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       id={id || `metric-card-${label.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
-      className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-200 group ${className}`}
+      className={`relative overflow-hidden rounded-[8px] p-5 transition-all duration-200 group ${className}`}
       style={{
         backgroundColor: "var(--bg-surface)",
         border: "1px solid var(--border)",

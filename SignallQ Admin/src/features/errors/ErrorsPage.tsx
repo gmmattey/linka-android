@@ -111,7 +111,7 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Bar of core controls: Search and Filtering */}
-      <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-5 space-y-4 shadow-sm select-none">
+      <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-5 space-y-4 select-none">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)]" />
@@ -177,7 +177,7 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
               disabled={isRefreshing}
               className="flex items-center justify-center p-2.5 bg-[var(--bg-surface)] border border-[var(--border)] hover:border-zinc-700 active:bg-zinc-900 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all rounded-xl disabled:opacity-50"
             >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-purple-400" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[var(--text-secondary)]" : ""}`} />
             </button>
           </div>
         </div>
@@ -231,7 +231,7 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
           {/* Right side investigator panel */}
           <div className="xl:col-span-5">
             {selectedError ? (
-              <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-6 relative overflow-hidden font-sans">
+              <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-6 relative overflow-hidden font-sans">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full filter blur-2xl flex items-center justify-center pointer-events-none" />
 
                 {/* Main title casing */}
@@ -325,7 +325,7 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="py-20 text-center bg-zinc-950/25 border border-dashed border-[var(--border)] rounded-2xl p-6 select-none font-sans">
+              <div className="py-20 text-center bg-zinc-950/25 border border-dashed border-[var(--border)] rounded-[8px] p-6 select-none font-sans">
                 <p className="text-xs text-[var(--text-tertiary)]">Selecione algum dump técnico ativo no console esquerdo para inspecionar.</p>
               </div>
             )}

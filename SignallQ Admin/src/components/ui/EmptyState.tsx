@@ -17,9 +17,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <div
       id={id || "empty-state"}
-      className="flex flex-col items-center justify-center text-center py-14 px-6 rounded-[18px] border border-dashed border-zinc-800 bg-zinc-950/20"
+      className="flex flex-col items-center justify-center text-center py-14 px-6 rounded-[8px] border border-dashed border-zinc-800 bg-zinc-950/20"
     >
-      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 mb-4 select-none">
+      <div className="flex items-center justify-center w-12 h-12 rounded-[8px] bg-zinc-900 border border-zinc-800 text-zinc-500 mb-4 select-none">
         <Inbox className="w-5 h-5 text-neutral-400" />
       </div>
 

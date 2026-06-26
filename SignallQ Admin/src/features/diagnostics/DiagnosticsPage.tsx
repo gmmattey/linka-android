@@ -274,7 +274,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
       {loading ? (
         <LoadingState message="Acompanhando logs de conectividade do app Android..." />
       ) : error ? (
-        <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--error)]/20 bg-[var(--error)]/5 rounded-2xl">
+        <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--error)]/20 bg-[var(--error)]/5 rounded-[8px]">
           <h4 className="text-sm font-semibold text-[var(--error)] uppercase tracking-wider font-sans">Erro de Telemetria</h4>
           <p className="text-xs text-[var(--text-secondary)] mt-2 font-sans">{error}</p>
           <button
@@ -285,7 +285,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
           </button>
         </div>
       ) : sessions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--border)] bg-[var(--bg-sidebar)] rounded-2xl">
+        <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--border)] bg-[var(--bg-sidebar)] rounded-[8px]">
           <h4 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest font-sans">Sem dados</h4>
           <p className="text-xs text-[var(--text-secondary)] mt-2 font-sans">Nenhuma sessão de diagnóstico encontrada neste período.</p>
         </div>
@@ -316,7 +316,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
           {/* Direita: Inspetor completo da sessão e laudo Gemini */}
           <div className="xl:col-span-5">
             {selectedSession ? (
-              <div className="bg-zinc-950/60 border border-[var(--border)] rounded-2xl p-6 relative overflow-hidden">
+              <div className="bg-zinc-950/60 border border-[var(--border)] rounded-[8px] p-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full filter blur-2xl flex items-center justify-center pointer-events-none" />
 
                 {/* ID and date details */}
@@ -339,7 +339,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
                   <div>
                     <div className="text-[10px] text-[var(--text-tertiary)] font-sans uppercase tracking-wider">Dispositivo de Borda</div>
                     <p className="font-semibold text-[var(--text-primary)] mt-0.5 flex items-center gap-1.5 leading-none">
-                      <Smartphone className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                      <Smartphone className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
                       <span>{selectedSession.deviceModel}</span>
                     </p>
                   </div>
@@ -463,7 +463,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
                 <div className="border-t border-[var(--border)] pt-5">
                   <div className="flex items-center justify-between pb-3 select-none">
                     <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <Sparkles className="w-4 h-4 text-[var(--text-secondary)]" />
                       <span className="text-xs font-bold text-[var(--text-primary)] font-sans">Laudo Preditivo Gemini</span>
                     </div>
                     <button
@@ -477,7 +477,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
                   </div>
 
                   {statusMessage && (
-                    <div className="p-2.5 bg-[var(--bg-base)] text-purple-400 text-[10px] font-sans mb-3 rounded-lg border border-[var(--border)] select-none text-center">
+                    <div className="p-2.5 bg-[var(--bg-base)] text-[var(--text-secondary)] text-[10px] font-sans mb-3 rounded-lg border border-[var(--border)] select-none text-center">
                       {statusMessage}
                     </div>
                   )}
@@ -494,7 +494,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="py-20 text-center bg-zinc-950/20 border border-dashed border-[var(--border)] rounded-2xl p-6 select-none font-sans">
+              <div className="py-20 text-center bg-zinc-950/20 border border-dashed border-[var(--border)] rounded-[8px] p-6 select-none font-sans">
                 <p className="text-xs text-[var(--text-tertiary)]">Selecione algum registro físico de rádio para investigar.</p>
               </div>
             )}

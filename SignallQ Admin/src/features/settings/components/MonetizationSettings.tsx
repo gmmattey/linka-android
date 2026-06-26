@@ -82,9 +82,9 @@ export const MonetizationSettings: React.FC<MonetizationSettingsProps> = ({
                     checked={isChecked}
                     disabled={!(settings.contextualAdsEnabled)}
                     onChange={() => handleToggleCategory(cat.key)}
-                    className="rounded text-purple-600 bg-zinc-950 border-zinc-800 focus:ring-purple-500 h-3.5 w-3.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="rounded text-[var(--text-primary)] bg-[var(--bg-surface)] border-[var(--border)] focus:ring-[var(--text-tertiary)] h-3.5 w-3.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   />
-                  <span className={`text-[11px] font-medium font-sans ${isChecked && settings.contextualAdsEnabled ? "text-purple-300 font-bold" : "text-[var(--text-secondary)]"}`}>
+                  <span className={`text-[11px] font-medium font-sans ${isChecked && settings.contextualAdsEnabled ? "text-[var(--text-primary)] font-bold" : "text-[var(--text-secondary)]"}`}>
                     {cat.name} <span className="font-mono text-[9px] text-[var(--text-tertiary)] font-normal">({cat.key})</span>
                   </span>
                 </label>

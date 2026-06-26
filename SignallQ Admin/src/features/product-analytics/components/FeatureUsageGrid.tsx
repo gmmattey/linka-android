@@ -35,8 +35,8 @@ export const FeatureUsageGrid: React.FC<FeatureUsageGridProps> = ({ overview }) 
       title: "Função mais usada",
       value: overview.mostUsedFeature,
       sub: overview.mostUsedFeatureCount,
-      icon: <Zap className="w-4 h-4 text-purple-400" />,
-      color: "border-purple-500/10 hover:border-purple-500/20 bg-purple-950/5"
+      icon: <Zap className="w-4 h-4 text-[var(--text-secondary)]" />,
+      color: "border-[var(--border)] hover:border-[var(--border)] bg-[var(--bg-surface-muted)]"
     },
     {
       title: "Tela mais acessada",
@@ -94,7 +94,7 @@ export const FeatureUsageGrid: React.FC<FeatureUsageGridProps> = ({ overview }) 
       {cards.map((card, i) => (
         <div 
           key={i} 
-          className={`relative border rounded-2xl p-4.5 flex flex-col justify-between overflow-hidden transition-all duration-200 ${card.color}`}
+          className={`relative border rounded-[8px] p-4 flex flex-col justify-between overflow-hidden transition-all duration-200 ${card.color}`}
         >
           {/* Subtle grid bg effect */}
           <div className="absolute -top-6 -right-6 w-16 h-16 bg-white/[0.01] rounded-full filter blur-md pointer-events-none" />

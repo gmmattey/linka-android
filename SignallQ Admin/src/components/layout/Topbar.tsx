@@ -14,6 +14,8 @@ interface TopbarProps {
   onLogout?: () => void;
   onOpenMobileSidebar?: () => void;
   isRefreshing?: boolean;
+  theme?: "dark" | "light";
+  onToggleTheme?: () => void;
   id?: string;
 }
 
@@ -28,6 +30,8 @@ export const Topbar: React.FC<TopbarProps> = ({
   onLogout,
   onOpenMobileSidebar,
   isRefreshing = false,
+  theme = "dark",
+  onToggleTheme,
   id,
 }) => {
   return (
@@ -45,7 +49,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         {onOpenMobileSidebar && (
           <button
             onClick={onOpenMobileSidebar}
-            className="lg:hidden p-2 rounded-xl transition-colors shrink-0"
+            className="lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors shrink-0"
             style={{
               border: "1px solid var(--border)",
               backgroundColor: "var(--bg-surface)",
@@ -174,7 +178,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="p-2 lg:px-4 lg:py-2 rounded-xl text-xs font-semibold text-white transition-all flex items-center gap-2 cursor-pointer disabled:opacity-40"
+            className="p-2 min-w-[44px] min-h-[44px] lg:px-4 lg:py-2 lg:min-w-0 lg:min-h-0 rounded-xl text-xs font-semibold text-white transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
             style={{
               backgroundColor: "var(--primary)",
               boxShadow: "0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent)",
@@ -186,11 +190,30 @@ export const Topbar: React.FC<TopbarProps> = ({
           </button>
         )}
 
+        {/* Action: Toggle tema */}
+        {onToggleTheme && (
+          <button
+            onClick={onToggleTheme}
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all cursor-pointer"
+            style={{
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--bg-surface)",
+              color: "var(--text-tertiary)",
+            }}
+            title={theme === "dark" ? "Alternar para tema claro" : "Alternar para tema escuro"}
+            aria-label={theme === "dark" ? "Alternar para tema claro" : "Alternar para tema escuro"}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: "16px", lineHeight: 1, display: "block" }}>
+              {theme === "dark" ? "light_mode" : "dark_mode"}
+            </span>
+          </button>
+        )}
+
         {/* Action: Logout */}
         {onLogout && (
           <button
             onClick={onLogout}
-            className="p-2 rounded-xl transition-all cursor-pointer"
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all cursor-pointer"
             style={{
               border: "1px solid var(--border)",
               backgroundColor: "var(--bg-surface)",

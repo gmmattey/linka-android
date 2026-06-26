@@ -31,7 +31,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ selectedIssu
 
   if (loading) {
     return (
-      <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-5 shadow-sm h-full flex items-center justify-center">
+      <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-5 h-full flex items-center justify-center">
         <span className="text-xs text-[var(--text-tertiary)] font-sans">Carregando análise...</span>
       </div>
     );
@@ -39,14 +39,14 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ selectedIssu
 
   if (!detail) {
     return (
-      <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-5 shadow-sm h-full flex items-center justify-center">
+      <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-5 h-full flex items-center justify-center">
         <span className="text-xs text-[var(--text-tertiary)] font-sans">Análise indisponível neste ambiente.</span>
       </div>
     );
   }
 
   return (
-    <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-5 shadow-sm h-full flex flex-col justify-between">
+    <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-5 h-full flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-5 select-none">
           <div className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ selectedIssu
 
           <div className="space-y-1">
             <div className="text-[10px] text-[var(--text-tertiary)] font-sans uppercase tracking-wider font-bold flex items-center gap-1.5 select-none">
-              <Cpu className="w-3.5 h-3.5 text-purple-400" />
+              <Cpu className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
               <span>Rotina do Gateway (Cloudflare Edge)</span>
             </div>
             <div className="p-3 bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-xl font-mono text-[10px] text-[var(--text-secondary)] leading-relaxed max-h-24 overflow-y-auto">
@@ -123,7 +123,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = ({ selectedIssu
 
       <div className="mt-5 pt-4 border-t border-[var(--border)] flex items-center justify-between text-[10px] font-mono text-[var(--text-tertiary)] select-none">
         <span>Sincronizado via laudos Gemini</span>
-        <span className="flex items-center gap-1 text-purple-400 font-semibold cursor-pointer hover:underline">
+        <span className="flex items-center gap-1 text-[var(--text-secondary)] font-semibold cursor-pointer hover:underline">
           Abrir documentação <ArrowRight className="w-3 h-3" />
         </span>
       </div>

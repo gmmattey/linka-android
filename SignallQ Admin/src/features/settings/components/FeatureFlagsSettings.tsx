@@ -47,7 +47,7 @@ export const FeatureFlagsSettings: React.FC = () => {
   };
 
   return (
-    <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-4">
+    <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-5 flex flex-col gap-4">
       <div>
         <h4 className="text-xs font-semibold font-sans uppercase tracking-wider text-[var(--text-secondary)]">
           Feature Flags (Controle de Funcionalidades)

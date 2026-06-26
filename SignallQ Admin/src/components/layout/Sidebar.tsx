@@ -1,4 +1,5 @@
 import React from "react";
+import { useTheme } from "../../hooks/useTheme";
 import {
   LayoutDashboard,
   LineChart,
@@ -38,6 +39,21 @@ const iconMap = {
   Settings: Settings,
 };
 
+const LogoBrand: React.FC = () => {
+  const { theme } = useTheme();
+  const logoSrc = theme === "dark"
+    ? "/brand/7agents/logo-light.svg"
+    : "/brand/7agents/logo-dark.svg";
+  return (
+    <img
+      src={logoSrc}
+      alt="7Agents Admin Console"
+      className="h-10 w-auto"
+      draggable={false}
+    />
+  );
+};
+
 export const Sidebar: React.FC<SidebarProps> = ({
   currentPath,
   onNavigate,
@@ -67,24 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="p-6 flex items-center justify-between"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-              style={{
-                background: "linear-gradient(135deg, var(--primary), var(--sq-accent-blue))",
-                boxShadow: "0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent)",
-              }}
-            >
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div>
-              <span className="font-bold text-lg tracking-tight block" style={{ color: "var(--text-primary)" }}>
-                SignallQ <span className="font-normal" style={{ color: "var(--text-tertiary)" }}>Admin</span>
-              </span>
-            </div>
-          </div>
+          <LogoBrand />
           {/* Close button — mobile only */}
           {onClose && (
             <button
@@ -135,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.path}
                 onClick={() => onNavigate(item.path)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-medium border transition-all duration-150 select-none cursor-pointer"
+                className="w-full flex items-center justify-between px-3 py-2 min-h-[44px] rounded-xl text-[13px] font-medium border transition-all duration-150 select-none cursor-pointer"
                 style={
                   isActive
                     ? {

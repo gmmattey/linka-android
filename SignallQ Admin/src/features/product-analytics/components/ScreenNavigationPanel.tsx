@@ -33,14 +33,14 @@ export const ScreenNavigationPanel: React.FC<ScreenNavigationPanelProps> = ({ me
               {/* Progress visual indicator of views */}
               <div className="h-1 bg-zinc-900 w-full rounded overflow-hidden mb-4">
                 <div
-                  className="bg-purple-500 h-full rounded"
+                  className="bg-[var(--text-primary)] h-full rounded"
                   style={{ width: `${Math.min(100, (item.views / (metrics[0]?.views || 1)) * 100)}%` }}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-[10px] font-sans text-[var(--text-secondary)] mb-4">
                 <div className="flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 text-purple-400" />
+                  <Eye className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                   <span>Views: <strong className="text-[var(--text-primary)]">{item.views.toLocaleString("pt-BR")}</strong></span>
                 </div>
                 <div className="flex items-center gap-1.5">

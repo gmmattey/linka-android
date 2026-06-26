@@ -30,7 +30,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError) {
       return (
         <div
-          className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 rounded-2xl"
+          className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 rounded-[8px]"
           style={{
             border: "1px solid color-mix(in srgb, var(--sq-error) 20%, transparent)",
             backgroundColor: "color-mix(in srgb, var(--sq-error) 5%, transparent)",

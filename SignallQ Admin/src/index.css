@@ -1,41 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist/Geist.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono/GeistMono.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* ============================================================
-   N7b Console — Design Tokens
+   7Agents Admin Console — Design Tokens
    Ref: SIG-156
    ============================================================ */
 
 /* Tema dark (padrão) */
 :root {
+  /* Layout */
+  --sidebar-width:   240px;
+  --topbar-height:   56px;
+  --radius-sm:       6px;
+  --radius-md:       8px;
+  --radius-lg:       10px;
+  --space-xs:        4px;
+  --space-sm:        8px;
+  --space-md:        12px;
+  --space-lg:        16px;
+  --space-xl:        24px;
+  --space-2xl:       32px;
+
   /* Superfícies */
-  --bg-base:            #16161A;
-  --bg-sidebar:         #111115;
-  --bg-surface:         #1E1E24;
-  --bg-surface-hover:   #1A1A20;
-  --bg-card-hover:      #22222A;
-  --bg-sidebar-active:  #1E1E28;
+  --bg-base:            #000000;
+  --bg-sidebar:         #050505;
+  --bg-topbar:          #000000;
+  --bg-surface:         #0B0B0B;
+  --bg-surface-muted:   #111111;
+  --bg-surface-hover:   #151515;
+  --bg-card-hover:      #151515;
+  --bg-sidebar-active:  #151515;
 
   /* Bordas */
-  --border:             #2E2E38;
+  --border:             #262626;
+  --border-subtle:      #1F1F1F;
 
   /* Texto */
-  --text-primary:       #FFFFFF;
-  --text-secondary:     #A0A0AB;
-  --text-tertiary:      #6B7280;
+  --text-primary:       #F5F5F5;
+  --text-secondary:     #A3A3A3;
+  --text-tertiary:      #737373;
 
   /* Scrollbar */
-  --scrollbar-thumb:       #2E2E38;
-  --scrollbar-thumb-hover: #3A3A46;
+  --scrollbar-thumb:       #262626;
+  --scrollbar-thumb-hover: #333333;
 
-  /* Semântica (invariante — não mudam entre temas) */
-  --primary:    #6C2BFF;
-  --success:    #22C55E;
-  --attention:  #F5A623;
-  --error:      #FF4D4F;
-  --info:       #38BDF8;
+  /* Semântica funcional */
+  --primary:              #6C2BFF;
+  --interactive:          var(--text-primary);
+  --interactive-muted:    var(--text-secondary);
+  --interactive-hover-bg: var(--bg-surface-hover);
+  --focus-ring:           var(--text-secondary);
+  --success:              var(--text-primary);
+  --attention:            var(--text-primary);
+  --error:                #FF4D4F;
+  --info:                 var(--text-secondary);
+  --chart-line-primary:   var(--text-primary);
+  --chart-line-secondary: var(--text-secondary);
+  --chart-line-tertiary:  var(--text-tertiary);
 
-  /* Legados mantidos para compatibilidade com componentes existentes */
+  /* Aliases legados */
   --sq-accent:          var(--primary);
   --sq-accent-blue:     #2563EB;
   --sq-success:         var(--success);
@@ -58,8 +94,8 @@
   --sq-control-active:  var(--bg-sidebar-active);
 
   /* Tipografia */
-  --sq-font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --sq-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --sq-font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --sq-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* Fases do SpeedTest */
   --sq-phase-latency:   #60A5FA;
@@ -76,20 +112,26 @@
 /* Tema light */
 [data-theme="light"],
 .light {
-  --bg-base:            #F6F6F7;
-  --bg-sidebar:         #F0F0F2;
+  --bg-base:            #F8F8F8;
+  --bg-sidebar:         #F7F7F7;
+  --bg-topbar:          #FFFFFF;
   --bg-surface:         #FFFFFF;
-  --bg-surface-hover:   #F0F0F2;
-  --bg-card-hover:      #E8E8EC;
-  --bg-sidebar-active:  #E4E4F0;
-  --border:             #E4E4E7;
+  --bg-surface-muted:   #F3F3F3;
+  --bg-surface-hover:   #F5F5F5;
+  --bg-card-hover:      #F5F5F5;
+  --bg-sidebar-active:  #EBEBEB;
+  --border:             #DCDCDC;
+  --border-subtle:      #E8E8E8;
   --text-primary:       #111111;
-  --text-secondary:     #6B7280;
-  --text-tertiary:      #9CA3AF;
-  --scrollbar-thumb:       #D1D5DB;
-  --scrollbar-thumb-hover: #9CA3AF;
+  --text-secondary:     #666666;
+  --text-tertiary:      #8A8A8A;
+  --error:              #FF4D4F;
+  --success:            var(--text-primary);
+  --attention:          var(--text-primary);
+  --info:               var(--text-secondary);
+  --scrollbar-thumb:       #D4D4D4;
+  --scrollbar-thumb-hover: #A3A3A3;
 
-  /* Atualiza aliases legados para tema light */
   --sq-bg-primary:      var(--bg-base);
   --sq-bg-secondary:    var(--bg-surface);
   --sq-bg-card:         var(--bg-sidebar);
@@ -105,18 +147,25 @@
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]):not(.dark) {
-    --bg-base:            #F6F6F7;
-    --bg-sidebar:         #F0F0F2;
+    --bg-base:            #F8F8F8;
+    --bg-sidebar:         #F7F7F7;
+    --bg-topbar:          #FFFFFF;
     --bg-surface:         #FFFFFF;
-    --bg-surface-hover:   #F0F0F2;
-    --bg-card-hover:      #E8E8EC;
-    --bg-sidebar-active:  #E4E4F0;
-    --border:             #E4E4E7;
+    --bg-surface-muted:   #F3F3F3;
+    --bg-surface-hover:   #F5F5F5;
+    --bg-card-hover:      #F5F5F5;
+    --bg-sidebar-active:  #EBEBEB;
+    --border:             #DCDCDC;
+    --border-subtle:      #E8E8E8;
     --text-primary:       #111111;
-    --text-secondary:     #6B7280;
-    --text-tertiary:      #9CA3AF;
-    --scrollbar-thumb:       #D1D5DB;
-    --scrollbar-thumb-hover: #9CA3AF;
+    --text-secondary:     #666666;
+    --text-tertiary:      #8A8A8A;
+    --error:              #FF4D4F;
+    --success:            var(--text-primary);
+    --attention:          var(--text-primary);
+    --info:               var(--text-secondary);
+    --scrollbar-thumb:       #D4D4D4;
+    --scrollbar-thumb-hover: #A3A3A3;
 
     --sq-bg-primary:      var(--bg-base);
     --sq-bg-secondary:    var(--bg-surface);
@@ -133,13 +182,13 @@
 }
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 ::selection {
-  background-color: var(--primary);
-  color: #ffffff;
+  background-color: var(--text-primary);
+  color: var(--bg-base);
 }
 
 body {

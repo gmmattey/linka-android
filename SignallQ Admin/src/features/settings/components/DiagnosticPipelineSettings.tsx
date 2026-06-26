@@ -23,7 +23,7 @@ export const DiagnosticPipelineSettings: React.FC<DiagnosticPipelineSettingsProp
               type="number"
               value={settings.speedtestIntervalSeconds}
               onChange={(e) => onChange({ speedtestIntervalSeconds: parseInt(e.target.value) || 300 })}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
               placeholder="e.g. 300"
             />
             <span className="text-[10px] text-[var(--text-tertiary)] block font-sans">
@@ -37,7 +37,7 @@ export const DiagnosticPipelineSettings: React.FC<DiagnosticPipelineSettingsProp
               type="number"
               value={settings.maxSpeedTestDataDailyMb ?? 250}
               onChange={(e) => onChange({ maxSpeedTestDataDailyMb: parseInt(e.target.value) || 250 })}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
               placeholder="e.g. 250"
             />
             <span className="text-[10px] text-[var(--text-tertiary)] block font-sans">
@@ -53,7 +53,7 @@ export const DiagnosticPipelineSettings: React.FC<DiagnosticPipelineSettingsProp
             type="text"
             value={settings.cloudflareWorkerEndpoint}
             onChange={(e) => onChange({ cloudflareWorkerEndpoint: e.target.value })}
-            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
             placeholder="https://example.workers.dev"
           />
           <span className="text-[10px] text-[var(--text-tertiary)] block font-sans">
@@ -68,7 +68,7 @@ export const DiagnosticPipelineSettings: React.FC<DiagnosticPipelineSettingsProp
             id="androidLogsCollectionEnabled"
             checked={settings.androidLogsCollectionEnabled}
             onChange={(e) => onChange({ androidLogsCollectionEnabled: e.target.checked })}
-            className="mt-0.5 rounded text-purple-600 bg-[var(--bg-base)] border-[var(--border)] focus:ring-purple-500 cursor-pointer h-4 w-4"
+            className="mt-0.5 rounded text-[var(--text-primary)] bg-[var(--bg-base)] border-[var(--border)] focus:ring-[var(--text-tertiary)] cursor-pointer h-4 w-4"
           />
           <div>
             <label htmlFor="androidLogsCollectionEnabled" className="text-[var(--text-primary)] font-semibold cursor-pointer block select-none">

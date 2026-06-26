@@ -21,11 +21,11 @@ export const DiagnosticIntelligencePanel: React.FC<DiagnosticIntelligencePanelPr
   }, [filters]);
 
   return (
-    <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+    <div className="bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-5">
       <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-5 select-none">
         <div>
           <h4 className="text-xs font-semibold font-sans uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-[var(--text-secondary)] animate-pulse" />
             Diagnostic Intelligence (IA Co-Pilot)
           </h4>
           <p className="text-[11px] text-[var(--text-tertiary)] font-sans mt-0.5">
@@ -53,7 +53,7 @@ export const DiagnosticIntelligencePanel: React.FC<DiagnosticIntelligencePanelPr
                   <div className="flex items-center justify-between">
                     <span className="p-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)]">
                       {isWifi ? (
-                        <Activity className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                        <Activity className="w-3.5 h-3.5 text-[var(--text-secondary)] animate-pulse" />
                       ) : isMobile ? (
                         <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />
                       ) : (
@@ -73,7 +73,7 @@ export const DiagnosticIntelligencePanel: React.FC<DiagnosticIntelligencePanelPr
                   </div>
 
                   <div>
-                    <h5 className="font-semibold text-[var(--text-primary)] text-xs group-hover:text-purple-400 transition-colors font-sans">
+                    <h5 className="font-semibold text-[var(--text-primary)] text-xs group-hover:text-[var(--text-secondary)] transition-colors font-sans">
                       {item.problem}
                     </h5>
                     <div className="flex items-baseline gap-1.5 mt-1 select-none">

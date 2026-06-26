@@ -13,6 +13,8 @@ interface AppLayoutProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   onLogout?: () => void;
+  theme?: "dark" | "light";
+  onToggleTheme?: () => void;
   children: React.ReactNode;
   id?: string;
 }
@@ -27,6 +29,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onRefresh,
   isRefreshing,
   onLogout,
+  theme,
+  onToggleTheme,
   children,
   id,
 }) => {
@@ -54,7 +58,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       case "/settings":
         return "Configurações";
       default:
-        return "SignallQ Admin";
+        return "7Agents Admin Console";
     }
   }, [currentPath]);
 
@@ -100,6 +104,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           isRefreshing={isRefreshing}
           onLogout={onLogout}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
         />
 
         {/* Staging warning banner */}

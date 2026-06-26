@@ -108,9 +108,9 @@ export const SettingsPage: React.FC = () => {
   return (
     <form onSubmit={handleSave} className="space-y-6">
       {/* Settings Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-2xl p-5 select-none">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[8px] p-5 select-none">
         <div className="flex items-center gap-3">
-          <Settings className="w-5 h-5 text-purple-400" />
+          <Settings className="w-5 h-5 text-[var(--text-secondary)]" />
           <div>
             <h4 className="text-xs font-semibold font-sans text-[var(--text-secondary)] uppercase">Centro Operacional de Parâmetros</h4>
             <p className="text-[10px] text-[var(--text-tertiary)] font-sans mt-0.5">Defina quotas, timeouts e destinos do pipeline de diagnósticos de RF.</p>
@@ -132,7 +132,7 @@ export const SettingsPage: React.FC = () => {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-[var(--primary)] hover:opacity-90 disabled:bg-purple-900/60 font-sans text-xs font-semibold text-white rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-[var(--primary)] hover:opacity-90 disabled:opacity-40 font-sans text-xs font-semibold text-white rounded-xl transition-all shadow-md active:scale-98 cursor-pointer"
           >
             <Save className={`w-3.5 h-3.5 ${saving ? "animate-spin" : ""}`} />
             <span>{saving ? "PERSISTINDO..." : "PERSISTIR ALTERAÇÕES"}</span>
@@ -167,7 +167,7 @@ export const SettingsPage: React.FC = () => {
       {/* SIG-13: Feature Flags — fora do grid 2-col para ocupar largura total */}
       <FeatureFlagsSettings />
 
-      <div className="bg-[var(--bg-sidebar)]/30 border border-dashed border-[var(--border)] rounded-2xl p-4 flex items-center gap-2.5 text-[10px] font-sans text-[var(--text-tertiary)] select-none justify-center">
+      <div className="bg-[var(--bg-sidebar)]/30 border border-dashed border-[var(--border)] rounded-[8px] p-4 flex items-center gap-2.5 text-[10px] font-sans text-[var(--text-tertiary)] select-none justify-center">
         <ShieldCheck className="w-4 h-4 text-[var(--success)]" />
         <span>Todos os dados de seguranças e tokens de gateway estão criptografados na borda do cluster.</span>
       </div>

@@ -26,7 +26,7 @@ export const CostLimitSettings: React.FC<CostLimitSettingsProps> = ({ settings, 
                 type="number"
                 value={settings.monthlyBudgetUsd}
                 onChange={(e) => onChange({ monthlyBudgetUsd: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl pl-8 pr-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl pl-8 pr-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
                 placeholder="e.g. 200.00"
               />
             </div>
@@ -41,7 +41,7 @@ export const CostLimitSettings: React.FC<CostLimitSettingsProps> = ({ settings, 
               type="number"
               value={settings.maxAiTokensUserDaily ?? 150000}
               onChange={(e) => onChange({ maxAiTokensUserDaily: parseInt(e.target.value) || 150000 })}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
               placeholder="e.g. 150000"
             />
             <span className="text-[10px] text-[var(--text-tertiary)] block font-sans">
@@ -57,7 +57,7 @@ export const CostLimitSettings: React.FC<CostLimitSettingsProps> = ({ settings, 
             <select
               value={settings.budgetAction}
               onChange={(e) => onChange({ budgetAction: e.target.value as "block" | "alert" | "throttle" })}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-sans text-xs focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-sans text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors cursor-pointer"
             >
               <option value="alert">Apenas alertar via webhook operacional</option>
               <option value="throttle">Gargalar Latência (Atrasa respostas em 2s para desencorajar flood)</option>

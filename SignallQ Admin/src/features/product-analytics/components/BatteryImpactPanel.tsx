@@ -82,7 +82,7 @@ export const BatteryImpactPanel: React.FC<BatteryImpactPanelProps> = ({ metrics 
         {/* Custom Traces section mapping Firebase Performance Monitoring */}
         <div className="p-4 bg-[var(--bg-sidebar)]/30 border border-zinc-900 rounded-xl space-y-3.5">
           <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-purple-400" />
+            <Cpu className="w-4 h-4 text-[var(--text-secondary)]" />
             <span className="text-xs font-bold text-white font-sans">Custom Traces Previstos (Firebase Performance)</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-[10px] font-mono text-zinc-450 select-none">

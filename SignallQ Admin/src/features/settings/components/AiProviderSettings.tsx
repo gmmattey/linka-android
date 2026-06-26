@@ -23,7 +23,7 @@ export const AiProviderSettings: React.FC<AiProviderSettingsProps> = ({ settings
             <select
               value={settings.selectedDefaultAiModel}
               onChange={(e) => onChange({ selectedDefaultAiModel: e.target.value as AiProvider })}
-              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors cursor-pointer"
             >
               <option value="gemini_flash">Google Gemini 1.5 Flash (Altamente Recomendado)</option>
               <option value="cloudflare_qwen">Qwen 2.5 on Workers AI (Open-source Latência Média)</option>
@@ -43,7 +43,7 @@ export const AiProviderSettings: React.FC<AiProviderSettingsProps> = ({ settings
             type="number"
             value={settings.maxTokensPerDiagnostic}
             onChange={(e) => onChange({ maxTokensPerDiagnostic: parseInt(e.target.value) || 2048 })}
-            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
             placeholder="e.g. 4096"
           />
           <span className="text-[10px] text-[var(--text-tertiary)] block font-sans">
@@ -58,7 +58,7 @@ export const AiProviderSettings: React.FC<AiProviderSettingsProps> = ({ settings
             id="aiFallbackEnabled"
             checked={settings.aiFallbackEnabled}
             onChange={(e) => onChange({ aiFallbackEnabled: e.target.checked })}
-            className="mt-0.5 rounded text-purple-600 bg-[var(--bg-base)] border-[var(--border)] focus:ring-purple-500 cursor-pointer h-4 w-4"
+            className="mt-0.5 rounded text-[var(--text-primary)] bg-[var(--bg-base)] border-[var(--border)] focus:ring-[var(--text-tertiary)] cursor-pointer h-4 w-4"
           />
           <div>
             <label htmlFor="aiFallbackEnabled" className="text-[var(--text-primary)] font-semibold cursor-pointer block select-none">

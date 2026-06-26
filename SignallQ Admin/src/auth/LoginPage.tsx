@@ -52,13 +52,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <img src="/icon-192.png" alt="SignallQ" className="w-16 h-16 rounded-2xl" />
+            <img src="/icon-192.png" alt="7Agents" className="w-16 h-16 rounded-[8px]" />
           </div>
           <h1
             className="text-xl font-semibold tracking-tight"
             style={{ color: "var(--sq-text-primary)" }}
           >
-            SignallQ Admin
+            7Agents Admin Console
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--sq-text-tertiary)" }}>
             Painel de administração
@@ -67,7 +67,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
         {/* Card */}
         <div
-          className="rounded-2xl p-6"
+          className="rounded-[8px] p-6"
           style={{
             backgroundColor: "var(--sq-bg-elevated)",
             border: "1px solid color-mix(in srgb, white 8%, transparent)",

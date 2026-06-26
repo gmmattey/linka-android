@@ -151,7 +151,7 @@ export const OperatorsTab: React.FC<OperatorsTabProps> = ({
         description="Agregado de latências de rádio e perdas de pacotes das operadoras atuantes no território brasileiro."
         id="operators-main-card"
         actions={
-          <div className="flex items-center gap-1.5 text-xs text-[var(--success)] bg-emerald-950/20 border border-emerald-500/25 px-3 py-1 rounded-xl">
+          <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] bg-[var(--bg-surface-muted)] border border-[var(--border)] px-3 py-1 rounded-xl">
             <Award className="w-3.5 h-3.5" />
             <span className="font-semibold">Vivo Fibra Líder em Latência (8ms)</span>
           </div>

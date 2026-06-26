@@ -64,7 +64,7 @@ export const AdsOpportunityPanel: React.FC<AdsOpportunityPanelProps> = ({ opport
           </div>
           <div className="bg-zinc-950/40 border border-zinc-900 p-4 rounded-xl">
             <span className="block text-[8px] font-mono text-zinc-500 uppercase">Categoria Relevante</span>
-            <div className="text-sm font-bold text-purple-400 font-sans mt-1">Equipamentos Wi-Fi</div>
+            <div className="text-sm font-bold text-[var(--text-primary)] font-sans mt-1">Equipamentos Wi-Fi</div>
           </div>
           <div className="bg-zinc-950/40 border border-zinc-900 p-4 rounded-xl">
             <span className="block text-[8px] font-mono text-zinc-500 uppercase">Privacidade / Consentimento</span>

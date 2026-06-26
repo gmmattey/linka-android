@@ -30,7 +30,7 @@ export const AiAlertsPanel: React.FC = () => {
       ) : (
         <div className="space-y-3 font-sans text-xs">
           {alerts.map((alert) => {
-            let icon = <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />;
+            let icon = <Sparkles className="w-4 h-4 text-[var(--text-secondary)] animate-pulse" />;
             let containerClass = "bg-[var(--bg-base)] border-[var(--border)]";
             let titleColor = "text-[var(--text-primary)]";
 

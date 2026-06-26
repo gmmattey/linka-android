@@ -23,7 +23,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ settings, onCh
             type="number"
             value={settings.retentionDays}
             onChange={(e) => onChange({ retentionDays: parseInt(e.target.value) || 30 })}
-            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
             placeholder="e.g. 30"
           />
           <span className="text-[10px] text-[var(--text-tertiary)] block font-sans">
@@ -41,7 +41,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ settings, onCh
                 type="text"
                 value={settings.stagingAlertWebhookUrl}
                 onChange={(e) => onChange({ stagingAlertWebhookUrl: e.target.value })}
-                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl pl-8 pr-3 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl pl-8 pr-3 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
                 placeholder="https://hooks.example.invalid/staging"
               />
             </div>
@@ -55,7 +55,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ settings, onCh
                 type="text"
                 value={settings.productionAlertWebhookUrl}
                 onChange={(e) => onChange({ productionAlertWebhookUrl: e.target.value })}
-                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl pl-8 pr-3 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-purple-500 transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-xl pl-8 pr-3 py-2.5 text-[var(--text-primary)] font-mono text-xs focus:outline-none focus:border-[var(--text-tertiary)] transition-colors"
                 placeholder="https://hooks.example.invalid/production"
               />
             </div>
@@ -70,7 +70,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ settings, onCh
               id="anonymizeIp"
               checked={settings.anonymizeIp}
               onChange={(e) => onChange({ anonymizeIp: e.target.checked })}
-              className="mt-0.5 rounded text-purple-600 bg-[var(--bg-base)] border-[var(--border)] focus:ring-purple-500 cursor-pointer h-4 w-4"
+              className="mt-0.5 rounded text-[var(--text-primary)] bg-[var(--bg-base)] border-[var(--border)] focus:ring-[var(--text-tertiary)] cursor-pointer h-4 w-4"
             />
             <div>
               <label htmlFor="anonymizeIp" className="text-[var(--text-primary)] font-semibold cursor-pointer block select-none">
@@ -88,7 +88,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = ({ settings, onCh
               id="firebaseAnalyticsEnabled"
               checked={settings.firebaseAnalyticsEnabled ?? true}
               onChange={(e) => onChange({ firebaseAnalyticsEnabled: e.target.checked })}
-              className="mt-0.5 rounded text-purple-600 bg-[var(--bg-base)] border-[var(--border)] focus:ring-purple-500 cursor-pointer h-4 w-4"
+              className="mt-0.5 rounded text-[var(--text-primary)] bg-[var(--bg-base)] border-[var(--border)] focus:ring-[var(--text-tertiary)] cursor-pointer h-4 w-4"
             />
             <div>
               <label htmlFor="firebaseAnalyticsEnabled" className="text-[var(--text-primary)] font-semibold cursor-pointer block select-none">

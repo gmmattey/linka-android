@@ -102,7 +102,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--error)]/20 bg-[var(--error)]/5 rounded-2xl">
+      <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--error)]/20 bg-[var(--error)]/5 rounded-[8px]">
         <h4 className="text-sm font-semibold text-[var(--error)] uppercase tracking-wider font-sans">Erro de Telemetria</h4>
         <p className="text-xs text-[var(--text-secondary)] mt-2 font-sans">{error}</p>
         <button
@@ -117,7 +117,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 
   if (!metrics) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--border)] bg-[var(--bg-sidebar)] rounded-2xl">
+      <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--border)] bg-[var(--bg-sidebar)] rounded-[8px]">
         <h4 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest font-sans">Nenhum Registro Encontrado</h4>
         <p className="text-xs text-[var(--text-secondary)] mt-2 font-sans">Nossos Workers não catalogaram dados de diagnósticos neste período.</p>
       </div>

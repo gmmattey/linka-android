@@ -30,7 +30,7 @@ export const RecentErrorsTable: React.FC<RecentErrorsTableProps> = ({
         let color = "text-[var(--info)] bg-[var(--info)]/10 border-[var(--info)]/15";
         if (row.source === "ai_gateway") {
           label = "AI GATEWAY";
-          color = "text-purple-400 bg-purple-950/20 border-purple-500/15";
+          color = "text-[var(--text-secondary)] bg-[var(--bg-surface-muted)] border-[var(--border)]";
         } else if (row.source === "worker") {
           label = "EDGE WORKER";
           color = "text-amber-400 bg-amber-950/25 border-amber-500/15";

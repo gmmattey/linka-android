@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTheme } from "./hooks/useTheme";
 import { AppLayout } from "./components/layout/AppLayout";
 import { PageHeader } from "./components/layout/PageHeader";
 import { AppEnvironment } from "./types/admin";
@@ -22,6 +23,7 @@ import { FeatureFlagsTab } from "./features/feature-flags/FeatureFlagsTab";
 import { Sparkles, Activity, AlertTriangle } from "lucide-react";
 
 export default function App() {
+  const { theme, toggle: onToggleTheme } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [currentPath, setCurrentPath] = useState<string>("/overview");
@@ -255,7 +257,7 @@ export default function App() {
         };
       default:
         return {
-          title: "SignallQ Admin",
+          title: "7Agents Admin Console",
           description: "Plataforma administrativa móvel",
           badge: null,
         };
@@ -292,6 +294,8 @@ export default function App() {
       onRefresh={handleRefresh}
       isRefreshing={isRefreshing}
       onLogout={handleLogout}
+      theme={theme}
+      onToggleTheme={onToggleTheme}
     >
       {/* Dynamic Sub-header */}
       <PageHeader

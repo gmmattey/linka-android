@@ -71,7 +71,7 @@ export const LineChart: React.FC<LineChartProps> = ({
             dataKey={xAxisKey}
             stroke="var(--sq-text-tertiary)"
             fontSize={10}
-            fontFamily="JetBrains Mono"
+            fontFamily="Geist Mono"
             tickLine={false}
             axisLine={false}
             dy={8}
@@ -79,7 +79,7 @@ export const LineChart: React.FC<LineChartProps> = ({
           <YAxis
             stroke="var(--sq-text-tertiary)"
             fontSize={10}
-            fontFamily="JetBrains Mono"
+            fontFamily="Geist Mono"
             tickLine={false}
             axisLine={false}
             dx={-8}
@@ -103,7 +103,7 @@ export const LineChart: React.FC<LineChartProps> = ({
               color: "var(--sq-text-primary)",
             }}
             itemStyle={{ color: "var(--sq-text-primary)", fontFamily: "var(--sq-font-sans)" }}
-            labelStyle={{ color: "var(--sq-text-secondary)", fontFamily: "JetBrains Mono", fontSize: "10px" }}
+            labelStyle={{ color: "var(--sq-text-secondary)", fontFamily: "Geist Mono", fontSize: "10px" }}
           />
           <Legend
             verticalAlign="top"

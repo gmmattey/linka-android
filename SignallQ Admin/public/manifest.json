@@ -1,14 +1,14 @@
 {
-  "name": "N7b Console",
-  "short_name": "N7b Console",
-  "description": "Painel administrativo do SignallQ — métricas de produto, diagnósticos e custo de IA.",
+  "name": "7Agents Admin Console",
+  "short_name": "7Agents",
+  "description": "Console administrativo do SignallQ",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "lang": "pt-BR",
-  "background_color": "#16161A",
-  "theme_color": "#6C2BFF",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "/icon-192.png",

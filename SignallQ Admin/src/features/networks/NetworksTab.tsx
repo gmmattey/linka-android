@@ -132,7 +132,7 @@ export const NetworksTab: React.FC<NetworksTabProps> = ({
       </div>
 
       {/* Telemetry Breakdown Details */}
-      <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-6">
+      <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-[8px] p-6">
         <h4 className="text-sm font-bold font-sans text-[var(--text-primary)] tracking-wide">Quadro Clínico de Radiofrequência</h4>
         <p className="text-xs text-[var(--text-secondary)] mt-1 mb-5">
           Comportamento esperado da conectividade móvel vs canais residenciais deduzido a partir da telemetria de rede.

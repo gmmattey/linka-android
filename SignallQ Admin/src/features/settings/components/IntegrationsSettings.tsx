@@ -84,26 +84,27 @@ export const IntegrationsSettings: React.FC = () => {
 
   if (loading || !data) {
     return (
-      <div className="p-6 bg-zinc-900/30 border border-zinc-850 rounded-2xl flex items-center justify-center font-sans text-[var(--text-tertiary)] text-xs">
-        <RotateCw className="w-4 h-4 animate-spin mr-2 text-purple-400" />
+      <div className="p-6 bg-zinc-900/30 border border-zinc-850 rounded-[8px] flex items-center justify-center font-sans text-[var(--text-tertiary)] text-xs">
+        <RotateCw className="w-4 h-4 animate-spin mr-2 text-[var(--text-secondary)]" />
         <span>Consultando endpoints de integradores...</span>
       </div>
     );
   }
 
   const renderBadge = (status: string) => {
+    const neutral = "text-[10px] bg-[var(--bg-surface-muted)] text-[var(--text-secondary)] border border-[var(--border)] px-2 py-0.5 rounded-full font-bold select-none font-sans";
     switch (status) {
       case "connected":
-        return <span className="text-[10px] bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold select-none font-sans">CONECTADO</span>;
+        return <span className={neutral}>CONECTADO</span>;
       case "mock":
-        return <span className="text-[10px] bg-teal-950/40 text-teal-400 border border-teal-500/20 px-2 py-0.5 rounded-full font-bold select-none font-sans">MOCK DATA</span>;
+        return <span className={neutral}>MOCK DATA</span>;
       case "attention":
         return <span className="text-[10px] bg-amber-950/40 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold select-none font-sans">ATENÇÃO</span>;
       case "planned":
-        return <span className="text-[10px] bg-indigo-950/40 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full font-bold select-none font-sans">PLANEJADO</span>;
+        return <span className={neutral}>PLANEJADO</span>;
       case "disabled":
       default:
-        return <span className="text-[10px] bg-zinc-950 text-[var(--text-tertiary)] border border-zinc-850 px-2 py-0.5 rounded-full font-bold select-none font-sans">DESATIVADO</span>;
+        return <span className={neutral}>DESATIVADO</span>;
     }
   };
 
@@ -211,7 +212,7 @@ export const IntegrationsSettings: React.FC = () => {
 
             <div className="space-y-2">
               {syncFeedback.googlePlay && (
-                <div className="text-[9px] font-mono text-[var(--primary)] bg-purple-950/20 px-2 py-1 rounded border border-purple-900/40">
+                <div className="text-[9px] font-mono text-[var(--text-secondary)] bg-[var(--bg-surface-muted)] px-2 py-1 rounded border border-[var(--border)]">
                   {syncFeedback.googlePlay}
                 </div>
               )}
