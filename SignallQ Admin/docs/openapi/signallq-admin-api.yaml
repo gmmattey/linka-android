@@ -306,6 +306,50 @@ paths:
         '401':
           $ref: '#/components/responses/401Error'
 
+  /ingest/analytics:
+    post:
+      summary: Ingest analytics events (app-only)
+      operationId: ingestAnalytics
+      tags:
+        - ingest
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Array of event records or single event
+              properties:
+                event_name:
+                  type: string
+                  example: "feature_used"
+                timestamp:
+                  type: string
+                  format: date-time
+                properties:
+                  type: object
+                  description: Event-specific properties
+                user_id:
+                  type: string
+                session_id:
+                  type: string
+      responses:
+        '200':
+          description: Events ingested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  ingested:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/401Error'
+
   /admin/metrics/overview:
     get:
       summary: Retrieve standard consolidated dashboard counters
@@ -409,6 +453,137 @@ paths:
               schema:
                 $ref: '#/components/schemas/AiUsageMetricsResponse'
 
+  /admin/metrics/diagnostics/summary:
+    get:
+      summary: Diagnostic aggregations and summaries
+      operationId: getDiagnosticsSummary
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Environment'
+      responses:
+        '200':
+          description: Diagnostic summary metrics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/metrics/ai-costs:
+    get:
+      summary: AI costs by model and provider
+      operationId: getAiCosts
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Environment'
+      responses:
+        '200':
+          description: AI cost analytics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/metrics/ai-providers:
+    get:
+      summary: AI provider comparison and reliability
+      operationId: getAiProviders
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Provider statistics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/metrics/ai-usage/timeline:
+    get:
+      summary: AI usage timeline (by day)
+      operationId: getAiUsageTimeline
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Environment'
+      responses:
+        '200':
+          description: Daily AI usage data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/metrics/timeline:
+    get:
+      summary: Test timeline (by day)
+      operationId: getTestTimeline
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Environment'
+      responses:
+        '200':
+          description: Daily test statistics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/metrics/alerts:
+    get:
+      summary: Recent alerts and critical issues
+      operationId: getRecentAlerts
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: List of recent alerts
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/metrics/top-issues:
+    get:
+      summary: Top issues in period
+      operationId: getTopIssues
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Environment'
+      responses:
+        '200':
+          description: Top issues ranked by frequency
+          content:
+            application/json:
+              schema:
+                type: object
+
   /admin/metrics/errors:
     get:
       summary: Retrieves error logs from Cloudflare edge tunnels and local SDK exceptions
@@ -445,6 +620,118 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppVersionMetricsResponse'
 
+  /admin/diagnostics/intelligence:
+    get:
+      summary: AI-powered diagnostic insights and patterns
+      operationId: getDiagnosticsIntelligence
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Environment'
+      responses:
+        '200':
+          description: AI-derived insights from diagnostics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/analytics/product:
+    get:
+      summary: Product engagement and feature usage analytics
+      operationId: getProductAnalytics
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Product engagement metrics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/analytics/battery:
+    get:
+      summary: Battery drain and device analytics
+      operationId: getBatteryAnalytics
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Battery and device statistics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/alerts:
+    get:
+      summary: Get all alerts (paginated)
+      operationId: getAlerts
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated alert list
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/alerts/{alertId}/resolve:
+    post:
+      summary: Mark alert as resolved
+      operationId: resolveAlert
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Alert resolved
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/401Error'
+        '404':
+          description: Alert not found
+          content:
+            application/json:
+              schema:
+                type: object
+
   /admin/integrations/firebase:
     get:
       summary: Retrieves detailed Google Firebase telemetry connection status
@@ -459,6 +746,94 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IntegrationStatus'
+
+  /admin/integrations/firebase/analytics:
+    get:
+      summary: Firebase GA4 analytics data
+      operationId: getFirebaseAnalytics
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: GA4 analytics summary
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/integrations/firebase/crashlytics:
+    get:
+      summary: Firebase Crashlytics error summary
+      operationId: getFirebaseCrashlytics
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Crashlytics error logs
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/integrations/firebase/versions:
+    get:
+      summary: App version stats from Firebase GA4
+      operationId: getFirebaseVersions
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: App version distribution
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/integrations/firebase/crash-issues:
+    get:
+      summary: Crashlytics grouped issues
+      operationId: getFirebaseCrashIssues
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Grouped crash issues
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /admin/integrations/firebase/sync:
+    post:
+      summary: Manually trigger Firebase data sync
+      operationId: triggerFirebaseSync
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Sync triggered
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/401Error'
 
   /admin/integrations/google-play:
     get:
@@ -519,6 +894,113 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdminSettings'
+    put:
+      summary: Update configuration
+      operationId: updateSettings
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminSettings'
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSettings'
+        '401':
+          $ref: '#/components/responses/401Error'
+        '403':
+          $ref: '#/components/responses/403Error'
+
+  /admin/feature-flags:
+    get:
+      summary: List all feature flags
+      operationId: listFeatureFlags
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of all feature flags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flags:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          $ref: '#/components/responses/401Error'
+
+  /admin/feature-flags/{flagName}:
+    put:
+      summary: Update feature flag state
+      operationId: updateFeatureFlag
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: flagName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                rolloutPercent:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+      responses:
+        '200':
+          description: Flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/401Error'
+        '403':
+          $ref: '#/components/responses/403Error'
+
+  /health:
+    get:
+      summary: Worker health check
+      operationId: health
+      tags:
+        - health
+      security:
+        - adminSecretAuth: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/401Error'
 
 components:
   parameters:
@@ -654,6 +1136,16 @@ components:
         **Lifetime**: Indefinite (rotate manually if compromised)
 
         **Purpose**: Reduces blast radius if APK is reverse-engineered. INGEST_KEY can only POST measurements, cannot read admin data.
+
+    adminSecretAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Bearer token for /health endpoint (legacy, retrocompat only).
+
+        **Token**: ADMIN_SECRET (from wrangler.toml secrets)
+
+        **Status**: Deprecated (use session auth for /admin/*, Bearer INGEST_KEY for /ingest/*)
 
   schemas:
     ApiError:
