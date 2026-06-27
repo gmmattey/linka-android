@@ -9,10 +9,12 @@ Instructions here apply to this project and are shared with team members.
 - Package/applicationId/namespace: **`io.veloo.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). O veloo aqui e tecnico, nao marca.
 - Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
 - Versao atual: **0.21.0** (versionCode 52), em `android/gradle/libs.versions.toml`. minSdk 24, target/compileSdk 36, JVM 17.
-- Stack: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
+- **Android Stack**: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
+- **PWA Stack**: React, TypeScript, Vite, Tailwind CSS (design system SignallQ inspirado em Material 3, não Material Web).
 - 15 modulos Gradle: `app` + core(5): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
-- MVVM + StateFlow, Hilt DI (`AppModule.kt` + `DiagnosticoModule.kt`), Room v10 (`SignallQDatabase`), DataStore `linkaPreferencias`.
-- IA: Worker Cloudflare (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL`, modelo Qwen3 30B MoE FP8, persona SignallQ.
+- MVVM + StateFlow, Hilt DI (`AppModule.kt` + `DiagnosticoModule.kt`), Room v12 (`SignallQDatabase`), DataStore `linkaPreferencias`.
+- IA: Worker Cloudflare (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL`, modelo Qwen3 30B MoE FP8 (fallback Gemini Flash), persona SignallQ.
+- **Analytics**: Firebase Analytics (events) + Crashlytics (error logs). **NOT using**: Realtime DB.
 - Navegacao: `AppShell.kt` -- 5 abas (Inicio, Velocidade, Sinal, Historico, Ajustes). Diagnostico/IA, Dispositivos, Fibra sao overlays, nao abas.
 - Background: WorkManager `MonitoramentoWorker` (30 min).
 
