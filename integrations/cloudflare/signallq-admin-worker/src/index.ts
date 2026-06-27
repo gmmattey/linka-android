@@ -984,35 +984,97 @@ async function handleOperators(request: Request, env: Env): Promise<Response> {
   const envClause = envFilter ? " AND environment = ?" : "";
   const envBinds  = envFilter ? [envFilter]            : [];
 
+  // Gap 4/5 (SIG-164): packetLossAverage calculado do D1; type derivado do network_type
+  // mais frequente por operadora via subquery correlacionada.
   const rows = await env.DB.prepare(
     `SELECT
-       operator,
-       COUNT(*)                                                  AS total_diagnostics,
-       AVG(score)                                               AS avg_score,
-       AVG(download_mbps)                                       AS avg_download,
-       AVG(upload_mbps)                                         AS avg_upload,
-       AVG(latency_ms)                                          AS avg_latency,
-       SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END)   AS completed,
-       SUM(CASE WHEN resolved = 1         THEN 1 ELSE 0 END)   AS resolved
-     FROM diagnostic_sessions
-     WHERE created_at >= ?
-       AND operator IS NOT NULL AND operator != ''${envClause}
-     GROUP BY operator
+       s1.operator,
+       COUNT(*)                                                       AS total_diagnostics,
+       AVG(s1.score)                                                  AS avg_score,
+       AVG(s1.download_mbps)                                         AS avg_download,
+       AVG(s1.upload_mbps)                                           AS avg_upload,
+       AVG(s1.latency_ms)                                            AS avg_latency,
+       AVG(s1.packet_loss)                                           AS avg_packet_loss,
+       SUM(CASE WHEN s1.status = 'completed' THEN 1 ELSE 0 END)     AS completed,
+       SUM(CASE WHEN s1.resolved = 1         THEN 1 ELSE 0 END)     AS resolved,
+       (SELECT s2.network_type
+        FROM diagnostic_sessions s2
+        WHERE s2.operator = s1.operator
+          AND s2.created_at >= ?
+          AND s2.network_type IS NOT NULL AND s2.network_type != '' AND s2.network_type != 'unknown'
+        GROUP BY s2.network_type
+        ORDER BY COUNT(*) DESC
+        LIMIT 1)                                                      AS dominant_network_type
+     FROM diagnostic_sessions s1
+     WHERE s1.created_at >= ?
+       AND s1.operator IS NOT NULL AND s1.operator != ''${envClause}
+     GROUP BY s1.operator
      ORDER BY total_diagnostics DESC`
-  ).bind(since, ...envBinds).all();
+  ).bind(since, since, ...envBinds).all();
 
   const operators = (rows.results ?? []).map((r: any) => ({
-    operator:          r.operator,
-    total_diagnostics: r.total_diagnostics ?? 0,
-    avg_score:         r.avg_score         != null ? Math.round(r.avg_score) : null,
-    avg_download:      r.avg_download      ?? null,
-    avg_upload:        r.avg_upload        ?? null,
-    avg_latency:       r.avg_latency       != null ? Math.round(r.avg_latency) : null,
-    completed:         r.completed         ?? 0,
-    resolved:          r.resolved          ?? 0,
+    operator:            r.operator,
+    total_diagnostics:   r.total_diagnostics ?? 0,
+    avg_score:           r.avg_score         != null ? Math.round(r.avg_score) : null,
+    avg_download:        r.avg_download       ?? null,
+    avg_upload:          r.avg_upload         ?? null,
+    avg_latency:         r.avg_latency        != null ? Math.round(r.avg_latency) : null,
+    packetLossAverage:   r.avg_packet_loss    != null ? Math.round(r.avg_packet_loss * 100) / 100 : 0,
+    type:                r.dominant_network_type ?? 'mobile',
+    completed:           r.completed          ?? 0,
+    resolved:            r.resolved           ?? 0,
   }));
 
   return json({ source: "d1", period, environment: envFilter ?? "all", operators }, 200, env);
+}
+
+// Gap 6 (SIG-164): Diagnostic Intelligence Panel — agrega padrões por tipo de problema.
+// Retorna os tipos de issue mais comuns, frequência relativa e score médio por tipo.
+async function handleDiagnosticsIntelligence(request: Request, env: Env): Promise<Response> {
+  const url       = new URL(request.url);
+  const period    = url.searchParams.get("period") ?? "30d";
+  const since     = nowSec() - periodToSeconds(period);
+  const envFilter = getEnvironmentFilter(url);
+
+  const envClause = envFilter ? " AND environment = ?" : "";
+  const envBinds  = envFilter ? [envFilter]            : [];
+
+  const rows = await env.DB.prepare(
+    `SELECT issues, score FROM diagnostic_sessions
+     WHERE created_at >= ?${envClause} AND issues IS NOT NULL AND issues != '[]'`
+  ).bind(since, ...envBinds).all();
+
+  const issueMap = new Map<string, { count: number; totalScore: number; scoreCount: number }>();
+
+  for (const row of (rows.results ?? [])) {
+    let issues: string[] = [];
+    try { issues = JSON.parse((row as any).issues ?? "[]"); } catch { continue; }
+    const score = (row as any).score;
+    for (const label of issues) {
+      if (typeof label === "string" && label.trim()) {
+        const entry = issueMap.get(label) ?? { count: 0, totalScore: 0, scoreCount: 0 };
+        entry.count++;
+        if (score != null && !isNaN(Number(score))) {
+          entry.totalScore += Number(score);
+          entry.scoreCount++;
+        }
+        issueMap.set(label, entry);
+      }
+    }
+  }
+
+  const totalOccurrences = Array.from(issueMap.values()).reduce((s, e) => s + e.count, 0);
+
+  const patterns = Array.from(issueMap.entries())
+    .sort(([, a], [, b]) => b.count - a.count)
+    .map(([issue, entry]) => ({
+      issue,
+      count:     entry.count,
+      frequency: totalOccurrences > 0 ? Math.round((entry.count / totalOccurrences) * 1000) / 10 : 0,
+      avgScore:  entry.scoreCount > 0 ? Math.round(entry.totalScore / entry.scoreCount) : null,
+    }));
+
+  return json({ source: "d1", period, environment: envFilter ?? "all", patterns }, 200, env);
 }
 
 async function handleFirebaseAnalytics(request: Request, env: Env): Promise<Response> {
@@ -1341,6 +1403,11 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
   const versionCode = p.version_code ?? 0;
   const deviceId    = p.device_id    ?? '';
 
+  // Gap 3 (SIG-164): rssi, banda_wifi, padrao_wifi enviados ao AI Worker mas nunca persistidos.
+  const rssi       = p.rssi        ?? p.rssiDbm ?? null;
+  const bandaWifi  = p.banda_wifi  ?? p.bandaWifi  ?? null;
+  const padraoWifi = p.padrao_wifi ?? p.padraoWifi ?? null;
+
   try {
     await env.DB.prepare(
       `INSERT OR REPLACE INTO diagnostic_sessions
@@ -1348,8 +1415,9 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
           download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss,
           issues, resolved, operator,
           device_model, os_version, app_version, ai_summary_report,
-          environment, dist_channel, build_type, version_code, device_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          environment, dist_channel, build_type, version_code, device_id,
+          rssi, banda_wifi, padrao_wifi)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       p.id, p.created_at ?? nowSec(),
       p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
@@ -1359,6 +1427,7 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
       p.operator ?? null,
       deviceModel, osVersion, appVersion, aiSummaryReport,
       environment, distChannel, buildType, versionCode, deviceId,
+      rssi, bandaWifi, padraoWifi,
     ).run();
   } catch (e) {
     await logError(env, 'ingest', String(e), e instanceof Error ? e.stack ?? '' : '');
@@ -1392,23 +1461,36 @@ async function handleIngestAiUsage(request: Request, env: Env): Promise<Response
   const prompt     = p.prompt_tokens     ?? 0;
   const completion = p.completion_tokens ?? 0;
   const total      = p.total_tokens      ?? (prompt + completion);
-  const cost       = p.cost_usd          ?? costForModel(p.model, total);
+
+  // Gap 1 (SIG-164): cost_usd null em registros retroativos.
+  // Se o Android envia cost_usd=null mas total_tokens > 0, aplica tarifa aproximada
+  // do Qwen3 30B (0.30 USD / 1M tokens) para não perder rastreabilidade de custo.
+  const cost = p.cost_usd != null
+    ? p.cost_usd
+    : total > 0
+      ? (total / 1_000_000) * 0.30
+      : costForModel(p.model, total);
 
   // SIG-143: campos de contexto de ambiente.
   const environment = p.environment  ?? 'production';
   const versionCode = p.version_code ?? 0;
+
+  // Gap 2 (SIG-164): dist_channel, build_type, device_id antes descartados.
+  const distChannel = p.dist_channel ?? '';
+  const buildType   = p.build_type   ?? 'release';
+  const deviceId    = p.device_id    ?? '';
 
   try {
     await env.DB.prepare(
       `INSERT OR REPLACE INTO ai_usage
          (id, session_id, created_at, model,
           prompt_tokens, completion_tokens, total_tokens, cost_usd,
-          environment, version_code)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          environment, version_code, dist_channel, build_type, device_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       p.id, p.session_id ?? null, p.created_at ?? nowSec(), p.model,
       prompt, completion, total, cost,
-      environment, versionCode,
+      environment, versionCode, distChannel, buildType, deviceId,
     ).run();
   } catch (e) {
     await logError(env, 'ai-usage', String(e), e instanceof Error ? e.stack ?? '' : '');
@@ -1729,6 +1811,7 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-providers$/,                handler: withErrorLogging('metrics', handleAiProviders) },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage\/timeline$/,          handler: withErrorLogging('metrics', handleAiUsageTimeline) },
   { method: "GET",  pattern: /^\/admin\/metrics\/operators$/,                   handler: withErrorLogging('metrics', handleOperators) },
+  { method: "GET",  pattern: /^\/admin\/diagnostics\/intelligence$/,            handler: withErrorLogging('metrics', handleDiagnosticsIntelligence) },
   { method: "GET",  pattern: /^\/admin\/metrics\/errors$/,                      handler: handleErrors },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
