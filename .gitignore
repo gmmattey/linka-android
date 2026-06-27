@@ -58,3 +58,7 @@ packages/design-system/ds-bundle/
 packages/design-system/.design-sync/.cache/
 packages/design-system/.design-sync/learnings/
 packages/design-system/.design-sync/node_modules/
+packages/design-system/.ds-sync/
+packages/design-system/dist/
+packages/design-system/package-lock.json
+integrations/cloudflare/signallq-admin-worker/dist/
