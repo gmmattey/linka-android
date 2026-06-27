@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "io.veloo.app.feature.history"
-    compileSdk = 35 // PrintDocumentAdapter callbacks tornaram-se package-private no SDK 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
