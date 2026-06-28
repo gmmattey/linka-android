@@ -29,10 +29,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.veloo.app.R
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
@@ -122,12 +128,14 @@ private fun ThinkingCompletedSection(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val estimatedSeconds = (thinkingText.length / 100).coerceAtLeast(1)
+    val pensouDesc = if (expanded) stringResource(R.string.cd_pensamento_expandido) else stringResource(R.string.cd_pensamento_recolhido)
 
     Column {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .semantics { role = Role.Button; contentDescription = pensouDesc }
                     .clickable { expanded = !expanded },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),

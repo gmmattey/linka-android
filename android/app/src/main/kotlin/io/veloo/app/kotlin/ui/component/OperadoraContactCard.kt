@@ -35,6 +35,8 @@ import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkRadius
 import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
+import androidx.compose.ui.res.stringResource
+import io.veloo.app.R
 
 @Composable
 fun OperadoraContactCard(
@@ -55,14 +57,14 @@ fun OperadoraContactCard(
         if (operadora != null) {
             // Estado: operadora reconhecida
             Text(
-                text = "Falar com ${operadora.nome}",
+                text = stringResource(R.string.operadora_falar_com, operadora.nome),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.W600,
                 color = c.textPrimary,
             )
             Spacer(Modifier.height(LkSpacing.xs))
             Text(
-                text = "Mencione os dados deste diagnóstico ao ligar.",
+                text = stringResource(R.string.operadora_contact_mencione),
                 style = MaterialTheme.typography.bodySmall,
                 color = c.textSecondary,
             )
@@ -87,7 +89,7 @@ fun OperadoraContactCard(
                 )
                 Spacer(Modifier.width(LkSpacing.xs))
                 Text(
-                    text = "Ligar agora · ${operadora.sac}",
+                    text = stringResource(R.string.operadora_ligar_agora, operadora.sac),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W600,
                 )
@@ -114,7 +116,7 @@ fun OperadoraContactCard(
                     )
                     Spacer(Modifier.width(LkSpacing.xs))
                     Text(
-                        text = "WhatsApp",
+                        text = stringResource(R.string.operadora_contact_whatsapp),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.W600,
                         color = LkColors.success,
@@ -132,7 +134,7 @@ fun OperadoraContactCard(
                 )
                 Spacer(Modifier.width(LkSpacing.sm))
                 Text(
-                    text = "Sua operadora não está na nossa lista",
+                    text = stringResource(R.string.operadora_contact_nao_lista),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.W600,
                     color = c.textPrimary,
@@ -151,7 +153,7 @@ fun OperadoraContactCard(
                 shape = RoundedCornerShape(LkRadius.button),
             ) {
                 Text(
-                    text = "Buscar no site da Anatel",
+                    text = stringResource(R.string.operadora_contact_buscar_anatel),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W600,
                     color = LkColors.accent,

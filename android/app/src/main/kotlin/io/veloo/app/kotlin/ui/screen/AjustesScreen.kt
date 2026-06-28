@@ -100,8 +100,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import io.veloo.app.BuildConfig
+import io.veloo.app.R
 import io.veloo.app.core.network.EstadoConexao
 import io.veloo.app.monitoramento.OemKillInfo
 import io.veloo.app.ui.IspInfo
@@ -199,7 +201,7 @@ fun AjustesScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("Configurações", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.W600, color = c.textPrimary)
+                    Text(stringResource(R.string.ajustes_titulo), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.W600, color = c.textPrimary)
                 },
                 navigationIcon = {
                     ProfileAvatarButton(
@@ -240,7 +242,7 @@ fun AjustesScreen(
                             .padding(horizontal = LkSpacing.lg)
                             .padding(top = LkSpacing.xl, bottom = LkSpacing.lg)
                             .semantics {
-                                contentDescription = "Perfil. Toque para editar."
+                                contentDescription = stringResource(R.string.ajustes_cd_perfil)
                             }.clip(RoundedCornerShape(LkRadius.card))
                             .background(c.bgSecondary)
                             .clickable { showPerfilSheet = true }
@@ -276,7 +278,7 @@ fun AjustesScreen(
                     }
                     Icon(
                         imageVector = Icons.Outlined.Edit,
-                        contentDescription = "Editar perfil",
+                        contentDescription = stringResource(R.string.ajustes_cd_editar_perfil),
                         tint = c.textTertiary,
                         modifier =
                             Modifier
@@ -287,7 +289,7 @@ fun AjustesScreen(
             }
 
             // ── MINHA CONEXÃO ────────────────────────────────────────────────────────
-            item { SectionHeader("Minha conexão", c) }
+            item { SectionHeader(stringResource(R.string.ajustes_minha_conexao), c) }
 
             // Banner de confirmação de ISP auto-detectado
             if (!ispConfirmado && !ispDetectado.isNullOrBlank() && operadora.isBlank()) {
@@ -313,7 +315,7 @@ fun AjustesScreen(
                                 )
                                 Spacer(Modifier.width(LkSpacing.sm))
                                 Text(
-                                    text = "Operadora detectada: $ispDetectado",
+                                    text = stringResource(R.string.ajustes_operadora_detectada, ispDetectado),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.W600,
                                     color = c.textPrimary,
@@ -321,7 +323,7 @@ fun AjustesScreen(
                                 )
                             }
                             Text(
-                                text = "Deseja usar como operadora principal?",
+                                text = stringResource(R.string.ajustes_usar_operadora),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = c.textSecondary,
                             )
@@ -333,7 +335,7 @@ fun AjustesScreen(
                                         androidx.compose.foundation.layout
                                             .PaddingValues(horizontal = LkSpacing.md, vertical = LkSpacing.xs),
                                 ) {
-                                    Text("Confirmar", style = MaterialTheme.typography.labelMedium)
+                                    Text(stringResource(R.string.ajustes_btn_confirmar), style = MaterialTheme.typography.labelMedium)
                                 }
                                 TextButton(onClick = onDispensarBannerIsp) {
                                     Text("Ignorar", color = c.textTertiary, style = MaterialTheme.typography.labelMedium)

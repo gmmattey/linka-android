@@ -59,8 +59,10 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.veloo.app.R
 import io.veloo.app.core.network.EstadoConexao
 import io.veloo.app.core.network.SnapshotRede
 import io.veloo.app.core.telephony.MovelSnapshot
@@ -781,6 +783,7 @@ private fun CardRodadasTriplo(
     rodadas: List<ResultadoRodadaTriplo>,
 ) {
     var expandido by remember { mutableStateOf(false) }
+    val cdMedicoes = if (expandido) stringResource(R.string.cd_recolher_detalhes_medicoes) else stringResource(R.string.cd_expandir_detalhes_medicoes)
     Column(
         modifier =
             Modifier
@@ -788,6 +791,7 @@ private fun CardRodadasTriplo(
                 .clip(RoundedCornerShape(LkRadius.card))
                 .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
                 .background(c.bgCard)
+                .semantics { contentDescription = cdMedicoes }
                 .clickable { expandido = !expandido }
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
     ) {

@@ -27,8 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.veloo.app.R
 import io.veloo.app.feature.diagnostico.pulse.OpcaoResposta
 import io.veloo.app.feature.diagnostico.pulse.PulseState
 import io.veloo.app.ui.LkColors
@@ -163,7 +165,7 @@ private fun IdleContent(onIniciarPulse: () -> Unit) {
             colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
             shape = RoundedCornerShape(LkRadius.button),
         ) {
-            Text("Iniciar diagnóstico", fontWeight = FontWeight.W600)
+            Text(stringResource(R.string.pulse_btn_iniciar), fontWeight = FontWeight.W600)
         }
     }
 }
@@ -250,7 +252,7 @@ private fun ResultContent(
             colors = ButtonDefaults.outlinedButtonColors(contentColor = c.textSecondary),
             shape = RoundedCornerShape(LkRadius.button),
         ) {
-            Text("Novo diagnóstico", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Normal)
+            Text(stringResource(R.string.pulse_btn_novo), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Normal)
         }
     }
 }
@@ -270,7 +272,7 @@ private fun ErrorContent(
             onClick = onIniciarPulse,
             colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
         ) {
-            Text("Tentar novamente")
+            Text(stringResource(R.string.global_btn_tentar_novamente))
         }
     }
 }

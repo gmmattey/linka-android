@@ -43,8 +43,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.veloo.app.R
 import io.veloo.app.feature.diagnostico.DiagnosticStatus
 import io.veloo.app.feature.diagnostico.FibraDiagnosticInput
 import io.veloo.app.feature.diagnostico.FibraSignalQualityEngine
@@ -145,7 +147,7 @@ fun FibraModemScreen(
                         ) {
                             Icon(
                                 Icons.Outlined.ErrorOutline,
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.cd_fibra_erro_icone),
                                 tint = LkColors.warning,
                                 modifier = Modifier.size(36.dp),
                             )

@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.veloo.app.ui.LocalLkTokens
 import io.veloo.app.ui.SignallQTheme
+import androidx.compose.ui.res.stringResource
+import io.veloo.app.R
 
 @Composable
 fun OnDevicePill(
@@ -27,7 +29,7 @@ fun OnDevicePill(
 ) {
     val c = LocalLkTokens.current
     val color = if (dark) Color.White.copy(alpha = 0.55f) else c.textTertiary
-    val displayName = modelName?.takeIf { it.isNotBlank() } ?: "SignallQ IA"
+    val displayName = modelName?.takeIf { it.isNotBlank() } ?: stringResource(R.string.signallq_ia_nome)
 
     Row(
         modifier = modifier,
@@ -41,7 +43,7 @@ fun OnDevicePill(
         )
         Spacer(Modifier.width(4.dp))
         Text(
-            text = "Processado no aparelho · $displayName",
+            text = stringResource(R.string.on_device_processado, displayName),
             fontSize = 10.5.sp,
             fontWeight = FontWeight.Medium,
             color = color,

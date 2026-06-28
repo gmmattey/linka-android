@@ -60,9 +60,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.veloo.app.BuildConfig
+import io.veloo.app.R
 import io.veloo.app.FeatureFlags
 import io.veloo.app.core.database.MedicaoEntity
 import io.veloo.app.core.network.EstadoConexao
@@ -541,13 +543,13 @@ fun AppShell(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,
-                        contentDescription = "Concluído",
+                        contentDescription = stringResource(R.string.appshell_cd_concluido),
                         tint = LkColors.success,
                         modifier = Modifier.size(56.dp),
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Concluído",
+                        text = stringResource(R.string.appshell_concluido),
                         style = MaterialTheme.typography.titleLarge,
                         color = LkColors.success,
                         fontWeight = FontWeight.W600,
@@ -803,7 +805,7 @@ private fun ForaDoWifiDialog(
 ) {
     AlertDialog(
         onDismissRequest = onCancelar,
-        title = { Text("Sem Wi-Fi", fontWeight = FontWeight.W600) },
+        title = { Text(stringResource(R.string.appshell_sem_wifi), fontWeight = FontWeight.W600) },
         text = {
             Text(
                 "Você está usando dados móveis. Fazer um teste de velocidade pode consumir uma quantidade significativa do seu plano de dados.\n\nDeseja continuar mesmo assim?",
@@ -812,11 +814,11 @@ private fun ForaDoWifiDialog(
         },
         confirmButton = {
             TextButton(onClick = onContinuar) {
-                Text("Continuar mesmo assim", color = LkColors.warning)
+                Text(stringResource(R.string.appshell_continuar_mesmo_assim), color = LkColors.warning)
             }
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text("Cancelar") }
+            TextButton(onClick = onCancelar) { Text(stringResource(R.string.global_btn_cancelar)) }
         },
     )
 }

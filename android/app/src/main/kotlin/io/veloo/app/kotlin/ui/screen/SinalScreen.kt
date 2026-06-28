@@ -77,6 +77,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -1436,7 +1438,7 @@ private fun OtherNetworkGroupItem(
                 Spacer(Modifier.width(LkSpacing.sm))
                 Icon(
                     imageVector = if (rede.seguranca == SegurancaWifi.aberta) Icons.Filled.LockOpen else Icons.Filled.Lock,
-                    contentDescription = null,
+                    contentDescription = if (rede.seguranca == SegurancaWifi.aberta) stringResource(R.string.cd_rede_aberta) else stringResource(R.string.cd_rede_protegida),
                     tint = c.textTertiary,
                     modifier = Modifier.size(16.dp),
                 )
@@ -1455,6 +1457,11 @@ private fun OtherNetworkGroupItem(
                     Modifier
                         .fillMaxWidth()
                         .minimumInteractiveComponentSize()
+                        .semantics {
+                            val nomeGrupo = if (isOculta) "Redes ocultas" else grupo.ssid
+                            contentDescription =
+                                if (isExpanded) "Recolher redes do grupo $nomeGrupo" else "Expandir redes do grupo $nomeGrupo"
+                        }
                         .clickable { onToggleExpanded() }
                         .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -1629,7 +1636,7 @@ private fun NetworkListItem(
         Spacer(Modifier.width(LkSpacing.sm))
         Icon(
             imageVector = if (isOpen) Icons.Filled.LockOpen else Icons.Filled.Lock,
-            contentDescription = null,
+            contentDescription = if (isOpen) stringResource(R.string.cd_rede_aberta) else stringResource(R.string.cd_rede_protegida),
             tint = c.textTertiary,
             modifier = Modifier.size(16.dp),
         )

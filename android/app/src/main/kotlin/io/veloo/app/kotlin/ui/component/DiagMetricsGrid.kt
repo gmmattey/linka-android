@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LocalLkTokens
 import io.veloo.app.ui.SignallQTheme
+import androidx.compose.ui.res.stringResource
+import io.veloo.app.R
 
 enum class MetricStatus {
     OK,
@@ -67,7 +69,7 @@ fun DiagMetricsGrid(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "SINAIS ANALISADOS",
+                text = stringResource(R.string.diag_metrics_sinais),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 color = c.textTertiary,
@@ -75,7 +77,7 @@ fun DiagMetricsGrid(
                 modifier = Modifier.weight(1f),
             )
             Text(
-                text = if (expanded) "recolher ▾" else "expandir ▸",
+                text = if (expanded) stringResource(R.string.diag_metrics_recolher) else stringResource(R.string.diag_metrics_expandir),
                 fontSize = 11.sp,
                 color = c.textTertiary,
                 modifier = Modifier.clickable { onToggleExpand() },

@@ -73,6 +73,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
@@ -82,6 +83,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.veloo.app.R
 import io.veloo.app.feature.diagnostico.chat.ChatMensagem
 import io.veloo.app.feature.diagnostico.chat.PapelChatMensagem
 import io.veloo.app.feature.diagnostico.chat.SessaoChatDiagnostico
@@ -545,12 +547,14 @@ private fun ThinkingCompletedSection(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val estimatedSeconds = (thinkingText.length / 100).coerceAtLeast(1)
+    val cdRaciocinio = if (expanded) stringResource(R.string.cd_recolher_raciocinio) else stringResource(R.string.cd_expandir_raciocinio)
 
     Column {
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .semantics { contentDescription = cdRaciocinio }
                     .clickable { expanded = !expanded },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),

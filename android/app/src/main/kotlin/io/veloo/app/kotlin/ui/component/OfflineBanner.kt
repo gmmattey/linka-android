@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,6 +28,7 @@ fun OfflineBanner(modifier: Modifier = Modifier) {
     Row(
         modifier =
             modifier
+                .semantics(mergeDescendants = true) {}
                 .fillMaxWidth()
                 .background(LkColors.warning.copy(alpha = 0.12f))
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.sm),

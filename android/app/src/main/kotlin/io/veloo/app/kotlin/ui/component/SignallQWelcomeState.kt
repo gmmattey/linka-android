@@ -24,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkSpacing
@@ -83,6 +86,7 @@ private fun IntentRow(
             Modifier
                 .fillMaxWidth()
                 .minimumInteractiveComponentSize()
+                .semantics { role = Role.Button }
                 .clickable(onClick = onClick)
                 .padding(horizontal = LkSpacing.xl, vertical = LkSpacing.md),
         verticalAlignment = Alignment.CenterVertically,

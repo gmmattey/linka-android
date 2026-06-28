@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LocalLkTokens
 import io.veloo.app.ui.SignallQTheme
+import androidx.compose.ui.res.stringResource
+import io.veloo.app.R
 
 @Composable
 fun DiagRecommendationCard(
@@ -91,7 +93,7 @@ fun DiagRecommendationCard(
         if (onStepByStep != null) {
             Spacer(Modifier.height(7.dp))
             Text(
-                text = "Ver passo a passo ›",
+                text = stringResource(R.string.diag_rec_ver_passo),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = LkColors.accent,

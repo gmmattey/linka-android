@@ -34,8 +34,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.veloo.app.R
 import io.veloo.app.feature.diagnostico.DiagnosticStatus
 import io.veloo.app.feature.diagnostico.ai.AiAcaoRecomendada
 import io.veloo.app.feature.diagnostico.pulse.AiAnalysisEntry
@@ -215,10 +219,12 @@ fun SignallQAiMessageBubble(
 
                 // Detalhes técnicos colapsáveis — sem borda, sem card
                 if (!isProgressMessage && technicalDetails != null) {
+                    val detalhesDesc = if (showTechnical) stringResource(R.string.cd_detalhes_tecnicos_expandir) else stringResource(R.string.cd_detalhes_tecnicos_recolher)
                     Row(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
+                                .semantics { contentDescription = detalhesDesc }
                                 .clickable { showTechnical = !showTechnical }
                                 .padding(vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,

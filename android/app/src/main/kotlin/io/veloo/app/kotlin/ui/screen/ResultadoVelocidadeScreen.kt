@@ -463,7 +463,7 @@ fun ResultadoVelocidadeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Language,
-                            contentDescription = "Idioma",
+                            contentDescription = null,
                             tint = LkColors.accent,
                             modifier = Modifier.size(18.dp),
                         )
@@ -820,7 +820,7 @@ private fun RecomendacaoCard(
     ) {
         Icon(
             imageVector = Icons.Outlined.Info,
-            contentDescription = "Informações",
+            contentDescription = null,
             tint = LkColors.accent,
             modifier = Modifier.size(18.dp),
         )
