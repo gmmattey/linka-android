@@ -6,7 +6,7 @@ Instructions here apply to this project and are shared with team members.
 
 - App: **SignallQ** -- diagnostico de conectividade Android.
 - Estrutura: **monorepo** — `android/` (Kotlin), `pwa/` (React/TS), `ios/`, `integrations/` (Cloudflare), `scripts/`, `docs_ai/`.
-- Package/applicationId/namespace: **`io.veloo.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). O veloo aqui e tecnico, nao marca.
+- Package/applicationId/namespace: **`io.signallq.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). Renomeado de `io.veloo.app` em 2026-06-28 (antes de qualquer publicacao na Play Store).
 - Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
 - Versao atual: **0.21.0** (versionCode 52), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
 - **Android Stack**: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
@@ -18,7 +18,7 @@ Instructions here apply to this project and are shared with team members.
 - Navegacao: `AppShell.kt` -- 5 abas (Inicio, Velocidade, Sinal, Historico, Ajustes). Diagnostico/IA, Dispositivos, Fibra sao overlays, nao abas.
 - Background: WorkManager `MonitoramentoWorker` (30 min).
 
-**Identificadores tecnicos a preservar** (parecem marca, sao tecnicos): `io.veloo.app`, repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`, skill `linka-design`, banco `linkaKotlin.db`, canais `linka_*`, DataStore `linkaPreferencias`.
+**Identificadores tecnicos a preservar** (parecem marca, sao tecnicos): `io.signallq.app`, repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`, skill `linka-design`, banco `linkaKotlin.db`, canais `linka_*`, DataStore `linkaPreferencias`.
 
 ---
 
