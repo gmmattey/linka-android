@@ -193,6 +193,32 @@
     <string name="home_topbar_sem_conexao">Sem conexão ativa</string>
     <string name="sinal_sua_conexao">SUA CONEXÃO</string>
 
+    <!-- OnDevicePill -->
+    <string name="signallq_ia_nome">SignallQ IA</string>
+    <string name="on_device_processado">Processado por %1$s</string>
+
+    <!-- DiagRecommendationCard -->
+    <string name="diag_rec_ver_passo">Ver passo a passo</string>
+
+    <!-- DiagMetricsGrid -->
+    <string name="diag_metrics_sinais">SINAIS</string>
+    <string name="diag_metrics_expandir">Expandir</string>
+    <string name="diag_metrics_recolher">Recolher</string>
+
+    <!-- OperadoraContactCard -->
+    <string name="operadora_falar_com">Falar com %1$s</string>
+    <string name="operadora_contact_mencione">Mencione o diagnóstico do SignallQ ao atendente</string>
+    <string name="operadora_ligar_agora">Ligar para %1$s</string>
+    <string name="operadora_contact_whatsapp">Chamar no WhatsApp</string>
+    <string name="operadora_contact_nao_lista">Sua operadora não está na lista</string>
+    <string name="operadora_contact_buscar_anatel">Buscar operadora na Anatel</string>
+
+    <!-- SignallQInputArea -->
+    <string name="signallq_input_placeholder">Pergunte sobre sua conexão…</string>
+    <string name="signallq_input_limite_mensagens">Limite de mensagens atingido</string>
+    <string name="signallq_input_limite">Inicie um novo diagnóstico para continuar</string>
+    <string name="signallq_input_enviar">Enviar</string>
+
     <!-- Acessibilidade -->
     <string name="cd_toggle_ativado">Ativado</string>
     <string name="cd_toggle_desativado">Desativado</string>

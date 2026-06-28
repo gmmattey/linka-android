@@ -51,6 +51,7 @@ import io.veloo.app.ui.LkColors
 import io.veloo.app.ui.LkRadius
 import io.veloo.app.ui.LkSpacing
 import io.veloo.app.ui.LocalLkTokens
+import io.veloo.app.R
 
 private val corOperadora: Map<String, Color> =
     mapOf(

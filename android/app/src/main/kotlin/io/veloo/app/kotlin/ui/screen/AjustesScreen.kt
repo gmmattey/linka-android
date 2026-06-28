@@ -235,6 +235,7 @@ fun AjustesScreen(
                         subtituloBase
                     }
                 val subtituloIsRealData = isRealData || (!temNome && deviceName.isNotBlank())
+                val cdPerfil = stringResource(R.string.ajustes_cd_perfil)
                 Box(
                     modifier =
                         Modifier
@@ -242,7 +243,7 @@ fun AjustesScreen(
                             .padding(horizontal = LkSpacing.lg)
                             .padding(top = LkSpacing.xl, bottom = LkSpacing.lg)
                             .semantics {
-                                contentDescription = stringResource(R.string.ajustes_cd_perfil)
+                                contentDescription = cdPerfil
                             }.clip(RoundedCornerShape(LkRadius.card))
                             .background(c.bgSecondary)
                             .clickable { showPerfilSheet = true }
