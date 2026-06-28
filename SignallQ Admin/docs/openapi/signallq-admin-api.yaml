@@ -22,7 +22,7 @@ tags:
     description: Health check (legacy Bearer auth)
 
 x-path-structure: |
-  ## API Structure
+  ## API Structure (v2.0.0)
 
   ### Authentication Routes
   - /auth/* — User authentication and session management
@@ -31,13 +31,25 @@ x-path-structure: |
   - /ingest/* — App measurements and analytics (Bearer INGEST_KEY, write-only)
 
   ### Admin Dashboard Routes (Dashboard → Backend)
-  - /admin/metrics/* — Analytics and reporting (12+ endpoints)
-  - /admin/alerts/* — Alert management
-  - /admin/analytics/* — Product and device analytics
+
+  **Analytics & Reporting** (consolidated under /admin/metrics/ as of v2.0.0):
+  - /admin/metrics/* — 16+ endpoints
+    - /admin/metrics/overview, diagnostics, diagnostics/summary, ai-usage, timeline, network, alerts, errors, app-versions
+    - /admin/metrics/ai-costs, ai-providers, ai-usage/timeline, operators
+    - /admin/metrics/intelligence — AI insights (consolidated from /admin/diagnostics/intelligence)
+    - /admin/metrics/analytics/product — Product engagement (consolidated from /admin/analytics/product)
+    - /admin/metrics/analytics/battery — Battery analytics (consolidated from /admin/analytics/battery)
+
+  **Business Logic** (kept separate):
+  - /admin/alerts/* — Alert management (GET list, POST resolve)
   - /admin/integrations/* — External service status (Firebase, Google Play, App Store)
   - /admin/settings — Configuration management
   - /admin/feature-flags/* — Feature flag management
-  - /admin/diagnostics/* — AI-powered insights
+
+  **Deprecated** (use consolidated paths):
+  - /admin/diagnostics/intelligence — DEPRECATED, use /admin/metrics/intelligence
+  - /admin/analytics/product — DEPRECATED, use /admin/metrics/analytics/product
+  - /admin/analytics/battery — DEPRECATED, use /admin/metrics/analytics/battery
 
   ### Health Check
   - /health — Service health (legacy ADMIN_SECRET)
@@ -648,9 +660,71 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppVersionMetricsResponse'
 
-  /admin/diagnostics/intelligence:
+  /admin/metrics/intelligence:
     get:
-      summary: AI-powered diagnostic insights and patterns
+      summary: AI-powered diagnostic insights (consolidated from /admin/diagnostics/intelligence)
+      operationId: getMetricsIntelligence
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+        - $ref: '#/components/parameters/Environment'
+      responses:
+        '200':
+          description: AI-derived insights from diagnostics
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/401Error'
+
+  /admin/metrics/analytics/product:
+    get:
+      summary: Product engagement and feature usage (consolidated from /admin/analytics/product)
+      operationId: getMetricsAnalyticsProduct
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Product engagement metrics
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/401Error'
+
+  /admin/metrics/analytics/battery:
+    get:
+      summary: Battery drain and device analytics (consolidated from /admin/analytics/battery)
+      operationId: getMetricsAnalyticsBattery
+      tags:
+        - admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Period'
+      responses:
+        '200':
+          description: Battery and device statistics
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/401Error'
+
+  /admin/diagnostics/intelligence:
+    deprecated: true
+    get:
+      summary: (Deprecated v2.0.0) AI-powered diagnostic insights — use /admin/metrics/intelligence
       operationId: getDiagnosticsIntelligence
       tags:
         - admin
@@ -668,8 +742,9 @@ paths:
                 type: object
 
   /admin/analytics/product:
+    deprecated: true
     get:
-      summary: Product engagement and feature usage analytics
+      summary: (Deprecated v2.0.0) Product engagement analytics — use /admin/metrics/analytics/product
       operationId: getProductAnalytics
       tags:
         - admin
@@ -686,8 +761,9 @@ paths:
                 type: object
 
   /admin/analytics/battery:
+    deprecated: true
     get:
-      summary: Battery drain and device analytics
+      summary: (Deprecated v2.0.0) Battery analytics — use /admin/metrics/analytics/battery
       operationId: getBatteryAnalytics
       tags:
         - admin
@@ -1761,21 +1837,49 @@ components:
 x-changelog: |
   ## Version History
 
-  ### v2.0.0 (27.06.2026) — SIG-166, SIG-167
-  - **Added**: 22+ missing endpoints (Phase 1 complete)
+  ### v2.0.0 (27.06.2026) — SIG-166, SIG-167, SIG-168, SIG-169
+
+  #### Phase 1: Endpoint Documentation (SIG-166)
+  - **Added**: 22+ missing endpoints
     - All /auth/* endpoints (5): login, logout, me, create-user, change-password
     - All /ingest/* endpoints (3): diagnostic, ai-usage, analytics
     - All /admin/metrics/* endpoints (12+): ai-costs, ai-providers, ai-usage/timeline, timeline, alerts, top-issues, etc.
     - All /admin/analytics/* endpoints (2): product, battery
     - All /admin/integrations/firebase/* endpoints (6): analytics, crashlytics, versions, crash-issues, sync
     - /admin/diagnostics/intelligence, /admin/alerts/*, /admin/feature-flags/*, /health, PUT /admin/settings
-  - **Added**: Complete authentication documentation (SIG-167)
+
+  #### Phase 2: Authentication Documentation (SIG-167)
+  - **Added**: Complete auth documentation
     - securitySchemes: cookieAuth (session), bearerAuth (ingest), adminSecretAuth (legacy)
     - Password hashing: PBKDF2-SHA256 (100k iterations)
     - Rate limiting: 5 attempts / 15 minutes
+    - Firebase service account JWT flow
+
+  #### Phase 3: Firebase Integration (SIG-169)
+  - **Enhanced**: Firebase endpoints with complete schemas
+    - GET /admin/integrations/firebase/status — connection health
+    - GET /admin/integrations/firebase/analytics — GA4 metrics (7d)
+    - GET /admin/integrations/firebase/crashlytics — crash summary (7d)
+    - GET /admin/integrations/firebase/versions — version distribution (30d)
+    - GET /admin/integrations/firebase/crash-issues — grouped crashes (30d)
+    - POST /admin/integrations/firebase/sync — manual sync trigger
+  - **Documented**: BigQuery queries, service account auth, error responses
+
+  #### Phase 4: Path Consolidation (SIG-168)
+  - **Added**: Consolidated paths for analytics/reporting
+    - /admin/metrics/intelligence — consolidate from /admin/diagnostics/intelligence
+    - /admin/metrics/analytics/product — consolidate from /admin/analytics/product
+    - /admin/metrics/analytics/battery — consolidate from /admin/analytics/battery
+  - **Deprecated** (backward compatible until v3.0.0):
+    - /admin/diagnostics/intelligence (use /admin/metrics/intelligence)
+    - /admin/analytics/product (use /admin/metrics/analytics/product)
+    - /admin/analytics/battery (use /admin/metrics/analytics/battery)
+  - **Clarified**: API structure (analytics/reporting under /admin/metrics/*, business logic separate)
+
+  #### General Changes
   - **Changed**: version → 2.0.0
   - **Removed**: /v1 prefix (not in actual implementation; use /admin/*, /auth/*, /ingest/* directly)
-  - **Documented**: Path structure and security model
+  - **Documented**: Complete path structure and security model
 
   ### v1.0.0 (Initial)
   - 25 basic endpoints
