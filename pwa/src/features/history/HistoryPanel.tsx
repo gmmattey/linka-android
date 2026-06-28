@@ -1,4 +1,6 @@
-import type { HistoryEntry } from '@shared/contracts';
+import { useMemo, useState } from 'react';
+import { HistoryDetailPanel } from './components/HistoryDetailPanel';
+import { HistoryEntryCard } from './components/HistoryEntryCard';
 import type { HistoryState } from './historyTypes';
 
 interface HistoryPanelProps {
@@ -10,72 +12,13 @@ interface HistoryPanelProps {
   state: HistoryState;
 }
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value));
-}
-
-function formatMbps(value: number | null): string {
-  return value == null ? 'Não medido' : `${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} Mbps`;
-}
-
-function qualityLabel(value: HistoryEntry['diagnosis']['quality']): string {
-  switch (value) {
-    case 'good':
-      return 'Boa';
-    case 'attention':
-      return 'Atenção';
-    case 'bad':
-      return 'Ruim';
-    case 'unknown':
-      return 'Inconclusiva';
-  }
-}
-
-function renderEntry(
-  entry: HistoryEntry,
-  onCopyReportLink: (id: string) => void,
-  onOpenReport: (id: string) => void,
-  onRemove: (id: string) => void,
-) {
-  return (
-    <article className="history-entry" key={entry.id}>
-      <div>
-        <p className="overline">{formatDate(entry.createdAt)}</p>
-        <h4>{entry.diagnosis.summary}</h4>
-      </div>
-      <dl>
-        <div>
-          <dt>Download</dt>
-          <dd>{formatMbps(entry.speedTest.download.mbps)}</dd>
-        </div>
-        <div>
-          <dt>Upload</dt>
-          <dd>{formatMbps(entry.speedTest.upload.mbps)}</dd>
-        </div>
-        <div>
-          <dt>Qualidade</dt>
-          <dd>{qualityLabel(entry.diagnosis.quality)}</dd>
-        </div>
-      </dl>
-      <div className="history-entry__actions">
-        <button className="text-button" type="button" onClick={() => onOpenReport(entry.id)}>
-          Abrir laudo
-        </button>
-        <button className="text-button" type="button" onClick={() => onCopyReportLink(entry.id)}>
-          Copiar link
-        </button>
-        <button className="text-button text-button--danger" type="button" onClick={() => onRemove(entry.id)}>
-          Remover
-        </button>
-      </div>
-    </article>
-  );
-}
-
 export function HistoryPanel({ onClear, onCopyReportLink, onOpenReport, onRemove, onStartTest, state }: HistoryPanelProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedEntry = useMemo(
+    () => state.entries.find((entry) => entry.id === selectedId) ?? state.entries[0] ?? null,
+    [selectedId, state.entries],
+  );
+
   return (
     <section className="history-panel" aria-label="Histórico local">
       <div className="history-panel__header">
@@ -113,8 +56,21 @@ export function HistoryPanel({ onClear, onCopyReportLink, onOpenReport, onRemove
         </div>
       ) : null}
       {state.entries.length > 0 ? (
-        <div className="history-panel__list">
-          {state.entries.map((entry) => renderEntry(entry, onCopyReportLink, onOpenReport, onRemove))}
+        <div className="history-panel__content">
+          <div className="history-panel__list">
+            {state.entries.map((entry) => (
+              <HistoryEntryCard
+                entry={entry}
+                isSelected={entry.id === selectedEntry?.id}
+                key={entry.id}
+                onCopyReportLink={onCopyReportLink}
+                onOpenReport={onOpenReport}
+                onRemove={onRemove}
+                onSelect={setSelectedId}
+              />
+            ))}
+          </div>
+          <HistoryDetailPanel entry={selectedEntry} />
         </div>
       ) : null}
     </section>

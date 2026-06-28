@@ -1,88 +1,59 @@
 import type { HistoryEntry, HistoryRepository } from '@shared/contracts';
+import { createStorageError, openIndexedDb, runObjectStoreOperation } from './indexedDb';
 
-const DB_NAME = 'signallq-pwa';
-const DB_VERSION = 1;
+export const HISTORY_DB_NAME = 'signallq-pwa';
+export const HISTORY_DB_VERSION = 1;
 const STORE_NAME = 'history_entries';
 
-function createStorageError(message: string, cause?: unknown): Error {
-  const detail = cause instanceof Error ? ` ${cause.message}` : '';
-  return new Error(`${message}${detail}`);
-}
-
-function openHistoryDb(): Promise<IDBDatabase> {
-  if (typeof indexedDB === 'undefined') {
-    return Promise.reject(createStorageError('IndexedDB indisponível neste navegador.'));
-  }
-
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-        store.createIndex('createdAt', 'createdAt', { unique: false });
-        store.createIndex('quality', 'diagnosis.quality', { unique: false });
-        store.createIndex('speedStatus', 'diagnosis.speed', { unique: false });
-        store.createIndex('stabilityStatus', 'diagnosis.stability', { unique: false });
-      }
-    };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(createStorageError('Falha ao abrir histórico local.', request.error));
+export function openHistoryDb(): Promise<IDBDatabase> {
+  return openIndexedDb({
+    databaseName: HISTORY_DB_NAME,
+    version: HISTORY_DB_VERSION,
+    stores: [
+      {
+        keyPath: 'id',
+        name: STORE_NAME,
+        indexes: [
+          { keyPath: 'createdAt', name: 'createdAt' },
+          { keyPath: 'diagnosis.quality', name: 'quality' },
+          { keyPath: 'diagnosis.speed', name: 'speedStatus' },
+          { keyPath: 'diagnosis.stability', name: 'stabilityStatus' },
+        ],
+      },
+    ],
+  }).catch((error) => {
+    throw createStorageError('Falha ao abrir histórico local.', error);
   });
 }
 
-function runStoreOperation<T>(
-  mode: IDBTransactionMode,
-  operation: (store: IDBObjectStore) => IDBRequest<T> | void,
-): Promise<T | void> {
-  return openHistoryDb().then(
-    (db) =>
-      new Promise<T | void>((resolve, reject) => {
-        const transaction = db.transaction(STORE_NAME, mode);
-        const store = transaction.objectStore(STORE_NAME);
-        const request = operation(store);
-        let requestResult: T | void;
+export function createHistoryRepository(openDatabase: () => Promise<IDBDatabase> = openHistoryDb): HistoryRepository {
+  const runStoreOperation = <T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest<T> | void) =>
+    runObjectStoreOperation(openDatabase, STORE_NAME, mode, operation).catch((error) => {
+      throw createStorageError('Falha no histórico local.', error);
+    });
 
-        if (request) {
-          request.onsuccess = () => {
-            requestResult = request.result;
-          };
-          request.onerror = () => reject(createStorageError('Falha ao acessar histórico local.', request.error));
-        }
+  return {
+    async save(entry) {
+      await runStoreOperation('readwrite', (store) => store.put(entry));
+    },
 
-        transaction.oncomplete = () => {
-          db.close();
-          resolve(requestResult);
-        };
-        transaction.onerror = () => {
-          db.close();
-          reject(createStorageError('Falha na transação do histórico local.', transaction.error));
-        };
-      }),
-  );
+    async list() {
+      const entries = (await runStoreOperation<HistoryEntry[]>('readonly', (store) => store.getAll())) ?? [];
+      return entries.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    },
+
+    async getById(id) {
+      return (await runStoreOperation<HistoryEntry | undefined>('readonly', (store) => store.get(id))) ?? null;
+    },
+
+    async remove(id) {
+      await runStoreOperation('readwrite', (store) => store.delete(id));
+    },
+
+    async clear() {
+      await runStoreOperation('readwrite', (store) => store.clear());
+    },
+  };
 }
 
-export const historyRepository: HistoryRepository = {
-  async save(entry) {
-    await runStoreOperation('readwrite', (store) => store.put(entry));
-  },
-
-  async list() {
-    const entries = (await runStoreOperation<HistoryEntry[]>('readonly', (store) => store.getAll())) ?? [];
-    return entries.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-  },
-
-  async getById(id) {
-    return (await runStoreOperation<HistoryEntry | undefined>('readonly', (store) => store.get(id))) ?? null;
-  },
-
-  async remove(id) {
-    await runStoreOperation('readwrite', (store) => store.delete(id));
-  },
-
-  async clear() {
-    await runStoreOperation('readwrite', (store) => store.clear());
-  },
-};
+export const historyRepository: HistoryRepository = createHistoryRepository();

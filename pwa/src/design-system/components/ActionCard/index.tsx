@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { Card } from '../Card';
 
 export interface ActionCardProps {
+  action?: ReactNode;
   description: string;
   icon?: ReactNode;
   meta?: string;
@@ -10,7 +11,17 @@ export interface ActionCardProps {
   title: string;
 }
 
-export function ActionCard({ description, icon, meta, onClick, title }: ActionCardProps) {
+export function ActionCard({ action, description, icon, meta, onClick, title }: ActionCardProps) {
+  const trailingAction =
+    action ??
+    (onClick ? (
+      <button className="sq-action-card__button" type="button" onClick={onClick} aria-label={`Abrir ${title}`}>
+        <ArrowRight aria-hidden="true" size={20} />
+      </button>
+    ) : (
+      <ArrowRight aria-hidden="true" size={20} />
+    ));
+
   return (
     <Card className="sq-action-card" variant="outlined">
       <div className="sq-action-card__icon">{icon}</div>
@@ -19,13 +30,7 @@ export function ActionCard({ description, icon, meta, onClick, title }: ActionCa
         <h3>{title}</h3>
         <p>{description}</p>
       </div>
-      {onClick ? (
-        <button className="sq-action-card__button" type="button" onClick={onClick} aria-label={`Abrir ${title}`}>
-          <ArrowRight aria-hidden="true" size={20} />
-        </button>
-      ) : (
-        <ArrowRight aria-hidden="true" size={20} />
-      )}
+      {trailingAction}
     </Card>
   );
 }

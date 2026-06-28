@@ -1,6 +1,6 @@
 import { Activity, BrainCircuit, Clock3, Gauge, History, RotateCcw, Wifi, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { DiagnosisResult, HistoryEntry, SpeedTestResult } from '@shared/contracts';
+import type { DiagnosisResult, SpeedTestResult } from '@shared/contracts';
 import {
   ActionCard,
   AppShell,
@@ -21,6 +21,7 @@ import { DiagnosisResultPanel } from '@/features/diagnosis/components/DiagnosisR
 import { createLocalDiagnosis } from '@/features/diagnosis/localDiagnosis';
 import { HistoryPanel } from '@/features/history/HistoryPanel';
 import type { HistoryState } from '@/features/history/historyTypes';
+import { buildHistoryState, createHistoryEntry, historyErrorMessage } from '@/features/history/historyViewModel';
 import { useConnectionSnapshot } from '@/hooks/useConnectionSnapshot';
 import { historyRepository } from '@/shared/storage/historyRepository';
 import { ConnectionStatus, SpeedtestPhase } from '@/types/network';
@@ -31,6 +32,11 @@ import type { SpeedTestProgress, SpeedTestRunStatus } from './speedTestTypes';
 const navItems = ['Teste', 'Histórico', 'Limitações'];
 
 type DiagnosisStatus = 'idle' | 'local' | 'loading-ai' | 'ai' | 'fallback';
+
+interface SpeedTestPageProps {
+  onNavigateHistory: () => void;
+  onOpenReport: (id: string) => void;
+}
 
 const phaseLabels: Record<SpeedtestPhase, string> = {
   [SpeedtestPhase.Idle]: 'Aguardando',
@@ -83,24 +89,6 @@ function statusCaption(status: SpeedTestRunStatus, progress: SpeedTestProgress):
   return 'Pronto para medir sua conexão pelo navegador.';
 }
 
-function buildHistoryState(entries: HistoryEntry[], status: HistoryState['status'], error: string | null = null): HistoryState {
-  return {
-    entries,
-    error,
-    status: status === 'ready' && entries.length === 0 ? 'empty' : status,
-  };
-}
-
-function createHistoryEntry(speedTest: SpeedTestResult, diagnosis: DiagnosisResult): HistoryEntry {
-  return {
-    id: `hist_${Date.now().toString(36)}`,
-    createdAt: new Date().toISOString(),
-    diagnosis,
-    speedTest,
-    appVersion: '0.1.0',
-  };
-}
-
 function limitationText(code: string): string {
   const labels: Record<string, string> = {
     browser_measurement_may_vary: 'Medição sujeita a políticas do navegador, cache e servidor.',
@@ -114,7 +102,7 @@ function limitationText(code: string): string {
   return labels[code] ?? code;
 }
 
-export function SpeedTestPage() {
+export function SpeedTestPage({ onNavigateHistory, onOpenReport }: SpeedTestPageProps) {
   const connection = useConnectionSnapshot();
   const abortRef = useRef<AbortController | null>(null);
   const [progress, setProgress] = useState<SpeedTestProgress>({
@@ -137,8 +125,7 @@ export function SpeedTestPage() {
       const entries = await historyRepository.list();
       setHistory(buildHistoryState(entries, entries.length > 0 ? 'ready' : 'empty'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao ler histórico local.';
-      setHistory(buildHistoryState([], 'error', message));
+      setHistory(buildHistoryState([], 'error', historyErrorMessage(error, 'Falha ao ler histórico local.')));
     }
   }, []);
 
@@ -156,8 +143,7 @@ export function SpeedTestPage() {
         await historyRepository.save(createHistoryEntry(speedTest, nextDiagnosis));
         await loadHistory();
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Falha ao salvar histórico local.';
-        setHistory((current) => buildHistoryState(current.entries, 'error', message));
+        setHistory((current) => buildHistoryState(current.entries, 'error', historyErrorMessage(error, 'Falha ao salvar histórico local.')));
       }
     },
     [loadHistory],
@@ -222,8 +208,7 @@ export function SpeedTestPage() {
       await historyRepository.clear();
       setHistory(buildHistoryState([], 'empty'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao limpar histórico local.';
-      setHistory((current) => buildHistoryState(current.entries, 'error', message));
+      setHistory((current) => buildHistoryState(current.entries, 'error', historyErrorMessage(error, 'Falha ao limpar histórico local.')));
     }
   }, []);
 
@@ -233,8 +218,7 @@ export function SpeedTestPage() {
       const entries = await historyRepository.list();
       setHistory(buildHistoryState(entries, entries.length > 0 ? 'ready' : 'empty'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao remover item do histórico.';
-      setHistory((current) => buildHistoryState(current.entries, 'error', message));
+      setHistory((current) => buildHistoryState(current.entries, 'error', historyErrorMessage(error, 'Falha ao remover item do histórico.')));
     }
   }, []);
 
@@ -265,7 +249,11 @@ export function SpeedTestPage() {
       header={
         <TopAppBar
           actions={<Button variant="text" onClick={() => void loadHistory()}>Atualizar</Button>}
-          navItems={navItems}
+          navItems={[
+            { href: '/', label: navItems[0] ?? 'Teste' },
+            { href: '/historico', label: navItems[1] ?? 'Histórico' },
+            { href: '#limitacoes', label: navItems[2] ?? 'Limitações' },
+          ]}
           subtitle="M1 SpeedTest web"
           title="SignallQ"
         />
@@ -356,6 +344,7 @@ export function SpeedTestPage() {
               icon={<History size={22} />}
               meta="IndexedDB"
               title="Histórico local"
+              action={<Button variant="text" onClick={onNavigateHistory}>Abrir</Button>}
             />
             <ActionCard
               description={connection.status === ConnectionStatus.Online ? 'Navegador online para medir agora.' : 'Navegador offline. Resultados salvos continuam locais.'}
@@ -372,7 +361,10 @@ export function SpeedTestPage() {
               <HistoryPanel
                 onClear={clearHistory}
                 onCopyReportLink={(id) => void copyReportLink(id)}
-                onOpenReport={openHistoryEntry}
+                onOpenReport={(id) => {
+                  openHistoryEntry(id);
+                  onOpenReport(id);
+                }}
                 onRemove={(id) => void removeHistoryEntry(id)}
                 state={history}
               />
@@ -399,6 +391,7 @@ export function SpeedTestPage() {
                   .map(limitationText)
                   .join(' ')}
                 eyebrow="Limitações"
+                id="limitacoes"
                 title="Medição honesta no browser"
               />
             </div>

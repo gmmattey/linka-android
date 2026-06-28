@@ -1,22 +1,43 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { IDBFactory } from 'fake-indexeddb';
+import { indexedDB as fakeIndexedDb } from 'fake-indexeddb';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { HistoryEntry } from '../shared/contracts';
-import { historyRepository } from '../src/shared/storage/historyRepository';
+import {
+  HISTORY_DB_NAME,
+  createHistoryRepository,
+  historyRepository,
+  openHistoryDb,
+} from '../src/shared/storage/historyRepository';
+
+function deleteDatabase(name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = fakeIndexedDb.deleteDatabase(name);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error('IndexedDB delete blocked.'));
+  });
+}
 
 function createEntry(id: string, createdAt: string, quality: HistoryEntry['diagnosis']['quality']): HistoryEntry {
   return {
     createdAt,
     diagnosis: {
-      actions: [],
-      confidence: 'high',
+      actions: [
+        {
+          category: 'retry',
+          description: 'Repita o teste perto do roteador.',
+          priority: 1,
+          title: 'Testar novamente',
+        },
+      ],
+      confidence: 'medium',
       generatedAt: createdAt,
       id: `diag_${id}`,
-      limitations: [],
+      limitations: [{ code: 'http_latency_not_icmp_ping', message: 'Latência HTTP, não ICMP.' }],
       quality,
       source: 'local',
-      speed: 'fast',
+      speed: 'ok',
       stability: 'stable',
-      summary: `Diagnóstico ${id}`,
+      summary: `Resumo ${id}`,
     },
     id,
     speedTest: {
@@ -24,23 +45,28 @@ function createEntry(id: string, createdAt: string, quality: HistoryEntry['diagn
         failedRequests: 0,
         perceivedLossPercent: 0,
         status: 'inferred',
-        totalRequests: 17,
+        totalRequests: 10,
       },
       browser: {},
       connection: { source: 'unavailable' },
-      download: { bytes: 1_000_000, durationMs: 1000, mbps: 8, samples: 1, status: 'measured' },
+      download: { bytes: 1_000_000, durationMs: 1000, mbps: 20, samples: 1, status: 'measured' },
       id: `speed_${id}`,
-      jitter: { ms: 4, samples: 15, status: 'measured' },
-      latency: { method: 'http_timing', ms: 20, samples: 15, status: 'measured' },
+      jitter: { ms: 8, samples: 10, status: 'measured' },
+      latency: { method: 'http_timing', ms: 40, samples: 10, status: 'measured' },
       limitations: ['http_latency_not_icmp_ping'],
       measuredAt: createdAt,
-      upload: { bytes: 500_000, durationMs: 1000, mbps: 4, samples: 1, status: 'measured' },
+      upload: { bytes: 500_000, durationMs: 1000, mbps: 8, samples: 1, status: 'measured' },
     },
   };
 }
 
 describe('history repository', () => {
   const originalIndexedDb = globalThis.indexedDB;
+
+  beforeEach(async () => {
+    vi.stubGlobal('indexedDB', fakeIndexedDb);
+    await deleteDatabase(HISTORY_DB_NAME);
+  });
 
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -49,29 +75,38 @@ describe('history repository', () => {
     }
   });
 
-  it('saves, lists, reads, removes and clears local history entries in IndexedDB', async () => {
-    vi.stubGlobal('indexedDB', new IDBFactory());
-
-    const older = createEntry('older', '2026-06-29T10:00:00.000Z', 'attention');
-    const newer = createEntry('newer', '2026-06-29T11:00:00.000Z', 'good');
-
-    await historyRepository.save(older);
-    await historyRepository.save(newer);
-
-    await expect(historyRepository.list()).resolves.toMatchObject([{ id: 'newer' }, { id: 'older' }]);
-    await expect(historyRepository.getById('older')).resolves.toMatchObject({ diagnosis: { quality: 'attention' } });
-
-    await historyRepository.remove('older');
-    await expect(historyRepository.getById('older')).resolves.toBeNull();
-    await expect(historyRepository.list()).resolves.toMatchObject([{ id: 'newer' }]);
-
-    await historyRepository.clear();
-    await expect(historyRepository.list()).resolves.toEqual([]);
-  });
-
   it('reports a clear error when IndexedDB is unavailable', async () => {
     vi.stubGlobal('indexedDB', undefined);
-
     await expect(historyRepository.list()).rejects.toThrow('IndexedDB indisponível neste navegador.');
   });
-});
+
+  it('creates a versioned schema with the expected indexes', async () => {
+    const db = await openHistoryDb();
+    const transaction = db.transaction('history_entries', 'readonly');
+    const store = transaction.objectStore('history_entries');
+
+    expect(db.version).toBe(1);
+    expect(Array.from(store.indexNames).sort()).toEqual(['createdAt', 'quality', 'speedStatus', 'stabilityStatus']);
+
+    db.close();
+  });
+
+  it('saves, lists, reads, removes and clears local history entries', async () => {
+    const repository = createHistoryRepository(openHistoryDb);
+    const oldEntry = createEntry('hist_old', '2026-06-27T12:00:00.000Z', 'attention');
+    const newEntry = createEntry('hist_new', '2026-06-28T12:00:00.000Z', 'good');
+
+    await repository.save(oldEntry);
+    await repository.save(newEntry);
+
+    await expect(repository.list()).resolves.toEqual([newEntry, oldEntry]);
+    await expect(repository.getById('hist_old')).resolves.toEqual(oldEntry);
+
+    await repository.remove('hist_old');
+    await expect(repository.list()).resolves.toEqual([newEntry]);
+    await expect(repository.getById('hist_old')).resolves.toBeNull();
+
+    await repository.clear();
+    await expect(repository.list()).resolves.toEqual([]);
+  });
+}
