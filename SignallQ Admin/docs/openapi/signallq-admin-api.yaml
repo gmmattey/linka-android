@@ -781,58 +781,81 @@ paths:
 
   /admin/integrations/firebase:
     get:
-      summary: Retrieves detailed Google Firebase telemetry connection status
+      summary: Firebase connection status and credential configuration
+      operationId: getFirebaseStatus
       tags:
         - admin
       security:
         - cookieAuth: []
       responses:
         '200':
-          description: Current sync times and active credential configurations
+          description: Firebase status check
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IntegrationStatus'
+                $ref: '#/components/schemas/FirebaseStatus'
+              example:
+                source: "worker"
+                projectId: "signallq-analytics-prod"
+                status: "connected"
+                hasCredentials: true
+                ga4PropertyConfigured: true
+        '401':
+          $ref: '#/components/responses/401Error'
 
   /admin/integrations/firebase/analytics:
     get:
-      summary: Firebase GA4 analytics data
+      summary: Firebase GA4 analytics — active users, sessions, crash-affected users (7d)
       operationId: getFirebaseAnalytics
       tags:
         - admin
       security:
         - cookieAuth: []
-      parameters:
-        - $ref: '#/components/parameters/Period'
       responses:
         '200':
-          description: GA4 analytics summary
+          description: GA4 analytics data
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/FirebaseAnalyticsResponse'
+              example:
+                source: "firebase_analytics"
+                data:
+                  rows:
+                    - dimensions: ["2026-06-21"]
+                      metricValues:
+                        - value: "1234"
+                        - value: "5678"
+                        - value: "89"
+        '401':
+          $ref: '#/components/responses/401Error'
 
   /admin/integrations/firebase/crashlytics:
     get:
-      summary: Firebase Crashlytics error summary
+      summary: Firebase Crashlytics summary — crashes and affected users (7d)
       operationId: getFirebaseCrashlytics
       tags:
         - admin
       security:
         - cookieAuth: []
-      parameters:
-        - $ref: '#/components/parameters/Period'
       responses:
         '200':
-          description: Crashlytics error logs
+          description: Crashlytics error summary
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/FirebaseCrashlyticsResponse'
+              example:
+                source: "bigquery"
+                unresolvedCrashes: 42
+                affectedUsers: 12
+                crashFreeUsersPercentage: 98.5
+        '401':
+          $ref: '#/components/responses/401Error'
 
   /admin/integrations/firebase/versions:
     get:
-      summary: App version stats from Firebase GA4
+      summary: App version distribution — crashes per version (30d, top 10)
       operationId: getFirebaseVersions
       tags:
         - admin
@@ -840,33 +863,57 @@ paths:
         - cookieAuth: []
       responses:
         '200':
-          description: App version distribution
+          description: App version stats
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/FirebaseVersionsResponse'
+              example:
+                source: "bigquery"
+                versions:
+                  - version: "0.21.0"
+                    totalCrashes: 42
+                    affectedUsers: 8
+                  - version: "0.20.5"
+                    totalCrashes: 12
+                    affectedUsers: 3
+        '401':
+          $ref: '#/components/responses/401Error'
 
   /admin/integrations/firebase/crash-issues:
     get:
-      summary: Crashlytics grouped issues
+      summary: Crashlytics grouped issues — top crashes ranked by frequency (30d, top 20)
       operationId: getFirebaseCrashIssues
       tags:
         - admin
       security:
         - cookieAuth: []
-      parameters:
-        - $ref: '#/components/parameters/Period'
       responses:
         '200':
           description: Grouped crash issues
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/FirebaseCrashIssuesResponse'
+              example:
+                source: "bigquery"
+                issues:
+                  - id: "NullPointerException"
+                    title: "NullPointerException in DiagnosticViewModel"
+                    totalCrashes: 156
+                    affectedUsers: 42
+                    lastSeen: 1719457200
+                  - id: "ArrayIndexOutOfBoundsException"
+                    title: "ArrayIndexOutOfBoundsException in SpeedtestTask"
+                    totalCrashes: 89
+                    affectedUsers: 18
+                    lastSeen: 1719453600
+        '401':
+          $ref: '#/components/responses/401Error'
 
   /admin/integrations/firebase/sync:
     post:
-      summary: Manually trigger Firebase data sync
+      summary: Manually trigger Firebase data sync (fire-and-forget)
       operationId: triggerFirebaseSync
       tags:
         - admin
@@ -878,7 +925,12 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/FirebaseSyncResponse'
+              example:
+                ok: true
+                source: "bigquery"
+                sessionsYesterday: 5432
+                syncedAt: 1719457200
         '401':
           $ref: '#/components/responses/401Error'
 
@@ -1539,6 +1591,172 @@ components:
         resolved_at:
           type: string
           format: date-time
+
+    # Firebase Integration Schemas (SIG-169)
+    FirebaseStatus:
+      type: object
+      description: Firebase connection status and credential configuration
+      properties:
+        source:
+          type: string
+          example: "worker"
+          description: Response source (worker = local check, no external API call)
+        projectId:
+          type: string
+          example: "signallq-analytics-prod"
+          description: Firebase Project ID
+        status:
+          type: string
+          example: "connected"
+          enum: [connected, disconnected]
+        hasCredentials:
+          type: boolean
+          example: true
+          description: Whether service account credentials are configured
+        ga4PropertyConfigured:
+          type: boolean
+          example: true
+          description: Whether GA4 property ID is configured
+      required: [source, projectId, status, hasCredentials, ga4PropertyConfigured]
+
+    FirebaseAnalyticsResponse:
+      type: object
+      description: GA4 analytics metrics (7-day window)
+      properties:
+        source:
+          type: string
+          example: "firebase_analytics"
+          enum: [firebase_analytics, no_credentials, no_ga4_property_id, error]
+        data:
+          type: object
+          description: Raw Analytics Reporting API response (when source=firebase_analytics)
+          properties:
+            rows:
+              type: array
+              items:
+                type: object
+                properties:
+                  dimensions:
+                    type: array
+                    items:
+                      type: string
+                    example: ["2026-06-21"]
+                  metricValues:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        value:
+                          type: string
+                    example: [{"value": "1234"}, {"value": "5678"}, {"value": "89"}]
+
+    FirebaseCrashlyticsResponse:
+      type: object
+      description: Crashlytics crash summary (7-day window)
+      properties:
+        source:
+          type: string
+          enum: [bigquery, no_credentials, no_data_yet, error]
+          example: "bigquery"
+        unresolvedCrashes:
+          type: integer
+          example: 42
+          description: Count of distinct crashes in 7-day window
+        affectedUsers:
+          type: integer
+          example: 12
+          description: Count of unique devices affected by crashes
+        crashFreeUsersPercentage:
+          type: number
+          example: 98.5
+          description: Percentage of users not affected by crashes
+      required: [source, unresolvedCrashes, affectedUsers, crashFreeUsersPercentage]
+
+    FirebaseVersion:
+      type: object
+      description: App version with crash stats
+      properties:
+        version:
+          type: string
+          example: "0.21.0"
+        totalCrashes:
+          type: integer
+          example: 42
+        affectedUsers:
+          type: integer
+          example: 8
+
+    FirebaseVersionsResponse:
+      type: object
+      description: App version distribution (30-day window, top 10)
+      properties:
+        source:
+          type: string
+          enum: [bigquery, no_credentials, no_data_yet, error]
+          example: "bigquery"
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FirebaseVersion'
+      required: [source, versions]
+
+    FirebaseCrashIssue:
+      type: object
+      description: Grouped crash issue
+      properties:
+        id:
+          type: string
+          example: "NullPointerException"
+        title:
+          type: string
+          example: "NullPointerException in DiagnosticViewModel"
+        totalCrashes:
+          type: integer
+          example: 156
+        affectedUsers:
+          type: integer
+          example: 42
+        lastSeen:
+          type: integer
+          format: unix-timestamp
+          example: 1719457200
+          description: Last crash timestamp in seconds
+
+    FirebaseCrashIssuesResponse:
+      type: object
+      description: Grouped crash issues (30-day window, top 20)
+      properties:
+        source:
+          type: string
+          enum: [bigquery, no_credentials, no_data_yet, error]
+          example: "bigquery"
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/FirebaseCrashIssue'
+      required: [source, issues]
+
+    FirebaseSyncResponse:
+      type: object
+      description: Firebase sync result
+      properties:
+        ok:
+          type: boolean
+          example: true
+        source:
+          type: string
+          enum: [bigquery, no_credentials, no_data_yet, error]
+          example: "bigquery"
+        sessionsYesterday:
+          type: integer
+          example: 5432
+          description: Session count from yesterday (GA4)
+        syncedAt:
+          type: integer
+          format: unix-timestamp
+          example: 1719457200
+          description: Sync timestamp in seconds
+      required: [ok, source, syncedAt]
 
 x-changelog: |
   ## Version History
