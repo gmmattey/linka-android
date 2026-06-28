@@ -1,4 +1,4 @@
-package io.veloo.app.core.telephony
+﻿package io.signallq.app.core.telephony
 
 import android.Manifest
 import android.annotation.SuppressLint

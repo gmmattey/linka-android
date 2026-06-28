@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # Room
 # ============================================================
 -keep class * extends androidx.room.RoomDatabase
@@ -36,7 +36,7 @@
 # ============================================================
 # Kotlin data classes / serialization via reflection
 # ============================================================
--keepclassmembers class io.veloo.app.** {
+-keepclassmembers class io.signallq.app.** {
     public <init>(...);
 }
 

@@ -1,4 +1,4 @@
-package io.veloo.app.feature.speedtest
+﻿package io.signallq.app.feature.speedtest
 
 import timber.log.Timber
 import kotlinx.coroutines.Dispatchers

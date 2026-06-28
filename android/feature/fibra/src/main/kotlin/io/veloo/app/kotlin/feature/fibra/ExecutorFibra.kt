@@ -1,4 +1,4 @@
-package io.veloo.app.feature.fibra
+﻿package io.signallq.app.feature.fibra
 
 import timber.log.Timber
 import kotlinx.coroutines.Dispatchers

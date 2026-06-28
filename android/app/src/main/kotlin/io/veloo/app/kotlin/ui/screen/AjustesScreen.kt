@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -102,18 +102,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
-import io.veloo.app.BuildConfig
-import io.veloo.app.R
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.monitoramento.OemKillInfo
-import io.veloo.app.ui.IspInfo
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LkTokens
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.ConfirmacaoDialog
-import io.veloo.app.ui.component.ProfileAvatarButton
+import io.signallq.app.BuildConfig
+import io.signallq.app.R
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.monitoramento.OemKillInfo
+import io.signallq.app.ui.IspInfo
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.ConfirmacaoDialog
+import io.signallq.app.ui.component.ProfileAvatarButton
 
 @SuppressLint("InlinedApi")
 @OptIn(ExperimentalMaterial3Api::class)

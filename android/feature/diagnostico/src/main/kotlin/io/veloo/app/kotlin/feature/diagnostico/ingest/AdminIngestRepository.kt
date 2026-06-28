@@ -1,4 +1,4 @@
-package io.veloo.app.feature.diagnostico.ingest
+﻿package io.signallq.app.feature.diagnostico.ingest
 
 import timber.log.Timber
 import kotlinx.coroutines.Dispatchers

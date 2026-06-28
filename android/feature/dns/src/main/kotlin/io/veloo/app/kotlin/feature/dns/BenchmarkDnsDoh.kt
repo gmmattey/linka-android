@@ -1,4 +1,4 @@
-package io.veloo.app.feature.dns
+﻿package io.signallq.app.feature.dns
 
 import timber.log.Timber
 import kotlinx.coroutines.Dispatchers

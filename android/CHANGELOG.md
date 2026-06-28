@@ -1,11 +1,11 @@
-# Changelog — SignallQ Android
+﻿# Changelog — SignallQ Android
 
 Todas as mudanças notáveis do app Android serão documentadas aqui.
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
 > Histórico de marca: Linka (até 0.14.x) → Veloo (0.15.0) → **SignallQ** (0.16.0+).
-> Identificadores técnicos (`io.veloo.app`, repo `linka-android`) permanecem por compatibilidade.
+> Identificadores técnicos (`io.signallq.app`, repo `linka-android`) permanecem por compatibilidade.
 
 ---
 

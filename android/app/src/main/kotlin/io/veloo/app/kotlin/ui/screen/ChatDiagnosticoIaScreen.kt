@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -83,23 +83,23 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import io.veloo.app.R
-import io.veloo.app.feature.diagnostico.chat.ChatMensagem
-import io.veloo.app.feature.diagnostico.chat.PapelChatMensagem
-import io.veloo.app.feature.diagnostico.chat.SessaoChatDiagnostico
-import io.veloo.app.feature.diagnostico.chat.StatusChatMensagem
-import io.veloo.app.feature.diagnostico.chat.TipoDiagnostico
-import io.veloo.app.feature.diagnostico.pulse.OpcaoResposta
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.SignallQInputArea
-import io.veloo.app.ui.component.SignallQThinkingBubble
-import io.veloo.app.ui.component.SignallQUserMessageBubble
-import io.veloo.app.ui.component.TypewriterText
-import io.veloo.app.ui.viewmodel.ChatDiagUiState
-import io.veloo.app.ui.viewmodel.EstadoChatDiagnostico
+import io.signallq.app.R
+import io.signallq.app.feature.diagnostico.chat.ChatMensagem
+import io.signallq.app.feature.diagnostico.chat.PapelChatMensagem
+import io.signallq.app.feature.diagnostico.chat.SessaoChatDiagnostico
+import io.signallq.app.feature.diagnostico.chat.StatusChatMensagem
+import io.signallq.app.feature.diagnostico.chat.TipoDiagnostico
+import io.signallq.app.feature.diagnostico.pulse.OpcaoResposta
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.SignallQInputArea
+import io.signallq.app.ui.component.SignallQThinkingBubble
+import io.signallq.app.ui.component.SignallQUserMessageBubble
+import io.signallq.app.ui.component.TypewriterText
+import io.signallq.app.ui.viewmodel.ChatDiagUiState
+import io.signallq.app.ui.viewmodel.EstadoChatDiagnostico
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -389,7 +389,7 @@ private fun parseThinkingContent(text: String): Pair<String?, String> {
 private fun BubbleAssistente(
     mensagem: ChatMensagem,
     isLatest: Boolean,
-    tokens: io.veloo.app.ui.LkTokens,
+    tokens: io.signallq.app.ui.LkTokens,
     modeloDisplayName: String = "Qwen3 30B",
 ) {
     val timeStr =
@@ -506,7 +506,7 @@ private fun BubbleAssistente(
 }
 
 @Composable
-private fun ThinkingInProgressRow(tokens: io.veloo.app.ui.LkTokens) {
+private fun ThinkingInProgressRow(tokens: io.signallq.app.ui.LkTokens) {
     val infiniteTransition = rememberInfiniteTransition(label = "thinking-pulse")
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
@@ -543,7 +543,7 @@ private fun ThinkingInProgressRow(tokens: io.veloo.app.ui.LkTokens) {
 @Composable
 private fun ThinkingCompletedSection(
     thinkingText: String,
-    tokens: io.veloo.app.ui.LkTokens,
+    tokens: io.signallq.app.ui.LkTokens,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val estimatedSeconds = (thinkingText.length / 100).coerceAtLeast(1)

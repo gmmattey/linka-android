@@ -1,4 +1,4 @@
-package io.veloo.app.ui.component
+﻿package io.signallq.app.ui.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,11 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import io.veloo.app.feature.diagnostico.pulse.OpcaoResposta
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LocalLkTokens
+import io.signallq.app.feature.diagnostico.pulse.OpcaoResposta
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LocalLkTokens
 import androidx.compose.ui.res.stringResource
-import io.veloo.app.R
+import io.signallq.app.R
 
 private const val CHAR_LIMIT = 280
 private const val CHAR_COUNTER_THRESHOLD = 200

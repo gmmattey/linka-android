@@ -1,4 +1,4 @@
-package io.veloo.app.ui.component
+﻿package io.signallq.app.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -38,11 +38,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.R
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.SignallQTheme
+import io.signallq.app.R
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.SignallQTheme
 
 @Composable
 fun LLMAssistantMessage(
@@ -124,7 +124,7 @@ private fun parseThinkingContent(text: String): Pair<String?, String> {
 @Composable
 private fun ThinkingCompletedSection(
     thinkingText: String,
-    c: io.veloo.app.ui.LkTokens,
+    c: io.signallq.app.ui.LkTokens,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val estimatedSeconds = (thinkingText.length / 100).coerceAtLeast(1)

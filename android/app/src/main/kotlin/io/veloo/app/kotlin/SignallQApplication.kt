@@ -1,16 +1,16 @@
-package io.veloo.app
+﻿package io.signallq.app
 
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
-import io.veloo.app.core.datastore.PreferenciasAppRepository
-import io.veloo.app.core.network.AnalyticsTracker
-import io.veloo.app.featureflags.FeatureFlagManager
-import io.veloo.app.logging.ReleaseTree
-import io.veloo.app.monitoramento.AdminSyncScheduler
-import io.veloo.app.notificacao.SignallQNotificationHelper
-import io.veloo.app.speedtest.SpeedtestPersistenceCoordinator
+import io.signallq.app.core.datastore.PreferenciasAppRepository
+import io.signallq.app.core.network.AnalyticsTracker
+import io.signallq.app.featureflags.FeatureFlagManager
+import io.signallq.app.logging.ReleaseTree
+import io.signallq.app.monitoramento.AdminSyncScheduler
+import io.signallq.app.notificacao.SignallQNotificationHelper
+import io.signallq.app.speedtest.SpeedtestPersistenceCoordinator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -62,22 +62,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.R
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.core.network.SnapshotRede
-import io.veloo.app.core.telephony.MovelSnapshot
-import io.veloo.app.feature.speedtest.EstadoExecucaoSpeedtest
-import io.veloo.app.feature.speedtest.FaseSpeedtest
-import io.veloo.app.feature.speedtest.ModoSpeedtest
-import io.veloo.app.feature.speedtest.ResultadoRodadaTriplo
-import io.veloo.app.feature.speedtest.SnapshotExecucaoSpeedtest
-import io.veloo.app.ui.IspInfo
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LkTokens
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.ProfileAvatarButton
+import io.signallq.app.R
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.core.network.SnapshotRede
+import io.signallq.app.core.telephony.MovelSnapshot
+import io.signallq.app.feature.speedtest.EstadoExecucaoSpeedtest
+import io.signallq.app.feature.speedtest.FaseSpeedtest
+import io.signallq.app.feature.speedtest.ModoSpeedtest
+import io.signallq.app.feature.speedtest.ResultadoRodadaTriplo
+import io.signallq.app.feature.speedtest.SnapshotExecucaoSpeedtest
+import io.signallq.app.ui.IspInfo
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.ProfileAvatarButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

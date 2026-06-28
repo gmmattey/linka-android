@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -30,19 +30,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.R
-import io.veloo.app.feature.diagnostico.pulse.OpcaoResposta
-import io.veloo.app.feature.diagnostico.pulse.PulseState
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.AppBorderGlowEffect
-import io.veloo.app.ui.component.ContextualQuestionCard
-import io.veloo.app.ui.component.DiagnosisChipsRow
-import io.veloo.app.ui.component.PulseResultCard
-import io.veloo.app.ui.component.RotatingMessageText
-import io.veloo.app.ui.component.SignallQPulseSymbol
-import io.veloo.app.ui.component.SilentSpeedtestIndicator
+import io.signallq.app.R
+import io.signallq.app.feature.diagnostico.pulse.OpcaoResposta
+import io.signallq.app.feature.diagnostico.pulse.PulseState
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.AppBorderGlowEffect
+import io.signallq.app.ui.component.ContextualQuestionCard
+import io.signallq.app.ui.component.DiagnosisChipsRow
+import io.signallq.app.ui.component.PulseResultCard
+import io.signallq.app.ui.component.RotatingMessageText
+import io.signallq.app.ui.component.SignallQPulseSymbol
+import io.signallq.app.ui.component.SilentSpeedtestIndicator
 
 @Composable
 fun SignallQPulseScreen(
@@ -189,7 +189,7 @@ private fun LoadingContent(
 
 @Composable
 private fun ChipSelectionContent(
-    analysis: io.veloo.app.feature.diagnostico.pulse.AiAnalysisEntry,
+    analysis: io.signallq.app.feature.diagnostico.pulse.AiAnalysisEntry,
     chips: List<OpcaoResposta>,
     onSelecionarChip: (OpcaoResposta) -> Unit,
 ) {
