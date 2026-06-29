@@ -2,7 +2,7 @@
 compileSdk = "37"
 minSdk = "24"
 targetSdk = "36"
-versionCode = "53"
+versionCode = "54"
 versionName = "0.22.0"
 coreKtx = "1.19.0"
 activityKtx = "1.9.3"
