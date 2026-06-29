@@ -97,6 +97,15 @@ export interface DiagnosticPayload {
     downloadMbps: number | null;
     uploadMbps: number | null;
     latenciaMs: number | null;
+    jitterMs?: number | null;
+    perceivedLossPercent?: number | null;
+  };
+  speedTest?: SpeedTestResult;
+  browserContext?: {
+    connection: BrowserConnectionInfo;
+    browser: BrowserInfo;
+    limitations: string[];
+    unavailableNativeSignals: string[];
   };
 }
 

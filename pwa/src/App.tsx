@@ -15,8 +15,8 @@ import {
   ThemeProvider,
   TopAppBar,
 } from '@/design-system';
+import { createDiagnosisWithAiFallback } from '@/features/diagnosis/aiClient';
 import { DiagnosisResultPanel } from '@/features/diagnosis/components/DiagnosisResultPanel';
-import { createLocalDiagnosis } from '@/features/diagnosis/localDiagnosis';
 import { HistoryPanel } from '@/features/history/HistoryPanel';
 import type { HistoryState } from '@/features/history/historyTypes';
 import { runSpeedTestWeb } from '@/features/speedtest/speedTestRunner';
@@ -87,6 +87,7 @@ function phaseLabel(progress: SpeedTestProgress | null, status: SpeedTestRunStat
 export function App() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [diagnosisStatus, setDiagnosisStatus] = useState<'idle' | 'loading' | 'ready' | 'fallback' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [historyState, setHistoryState] = useState<HistoryState>({ entries: [], error: null, status: 'idle' });
   const [progress, setProgress] = useState<SpeedTestProgress | null>(null);
@@ -117,6 +118,7 @@ export function App() {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
     setDiagnosis(null);
+    setDiagnosisStatus('idle');
     setErrorMessage(null);
     setProgress(null);
     setResult(null);
@@ -134,12 +136,17 @@ export function App() {
       setResult(run.result);
       if (run.errorMessage) setErrorMessage('Não foi possível concluir todas as medições.');
 
-      const localDiagnosis = createLocalDiagnosis({ speedTest: run.result });
-      setDiagnosis(localDiagnosis);
+      setDiagnosisStatus('loading');
+      const diagnosisOutcome = await createDiagnosisWithAiFallback(run.result);
+      setDiagnosis(diagnosisOutcome.diagnosis);
+      setDiagnosisStatus(diagnosisOutcome.source === 'ai' ? 'ready' : 'fallback');
+      if (diagnosisOutcome.source === 'fallback') {
+        setErrorMessage(`Análise avançada indisponível: ${diagnosisOutcome.errorMessage}`);
+      }
 
       const entry: HistoryEntry = {
         createdAt: new Date().toISOString(),
-        diagnosis: localDiagnosis,
+        diagnosis: diagnosisOutcome.diagnosis,
         id: run.result.id,
         speedTest: run.result,
       };
@@ -147,6 +154,7 @@ export function App() {
       await refreshHistory();
     } catch (error) {
       setStatus('error');
+      setDiagnosisStatus('error');
       setErrorMessage(error instanceof Error ? error.message : 'Falha inesperada durante o teste.');
     } finally {
       if (abortControllerRef.current === abortController) {
@@ -185,6 +193,16 @@ export function App() {
   const latencyMs = result?.latency.ms ?? null;
   const jitterMs = result?.jitter.ms ?? null;
   const perceivedLoss = result?.availability.perceivedLossPercent ?? null;
+  const diagnosisActionDescription =
+    diagnosisStatus === 'loading'
+      ? 'Gerando análise avançada com fallback local preparado.'
+      : diagnosisStatus === 'ready'
+        ? 'Diagnóstico IA gerado a partir do payload web medido.'
+        : diagnosisStatus === 'fallback'
+          ? 'Diagnóstico local usado porque a análise avançada não respondeu.'
+          : diagnosis
+            ? 'Diagnóstico gerado a partir do resultado medido.'
+            : 'Resumo simples e acionável após o teste.';
 
   return (
     <ThemeProvider mode="light">
@@ -291,7 +309,7 @@ export function App() {
                 title="Resultados anteriores"
               />
               <ActionCard
-                description={diagnosis ? 'Diagnóstico local gerado a partir do resultado medido.' : 'Resumo simples e acionável após o teste.'}
+                description={diagnosisActionDescription}
                 icon={<BrainCircuit size={22} />}
                 meta="Diagnóstico"
                 title="Análise da conexão"
@@ -308,11 +326,13 @@ export function App() {
             <>
               <DiagnosisInsightCard
                 body={
-                  errorMessage ??
-                  'Quando uma métrica não puder ser medida no navegador, a interface deve mostrar essa limitação em vez de preencher valor falso.'
+                  diagnosisStatus === 'loading'
+                    ? 'A PWA está tentando a análise avançada. Se ela não responder, o diagnóstico local mantém o resultado utilizável.'
+                    : errorMessage ??
+                      'Quando uma métrica não puder ser medida no navegador, a interface deve mostrar essa limitação em vez de preencher valor falso.'
                 }
                 title="Sem métrica inventada"
-                tone={errorMessage ? 'warning' : 'info'}
+                tone={errorMessage || diagnosisStatus === 'fallback' ? 'warning' : 'info'}
               />
               <div className="sq-diagnosis-layout">
                 <DiagnosisResultPanel diagnosis={diagnosis} />
