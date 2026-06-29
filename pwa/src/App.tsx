@@ -19,11 +19,25 @@ import { createDiagnosisWithAiFallback } from '@/features/diagnosis/aiClient';
 import { DiagnosisResultPanel } from '@/features/diagnosis/components/DiagnosisResultPanel';
 import { HistoryPanel } from '@/features/history/HistoryPanel';
 import type { HistoryState } from '@/features/history/historyTypes';
+import { getLocalReport } from '@/features/report/reportRepository';
+import { ReportPage } from '@/features/report/ReportPage';
+import type { Report } from '@/features/report/reportTypes';
 import { runSpeedTestWeb } from '@/features/speedtest/speedTestRunner';
 import type { SpeedTestProgress, SpeedTestRunStatus } from '@/features/speedtest/speedTestTypes';
 import { historyRepository } from '@/shared/storage/historyRepository';
 
 const navItems = ['Visão geral', 'Resultados', 'Ajustes'];
+
+type AppRoute = { kind: 'home' } | { kind: 'report'; reportId: string };
+
+function readRoute(): AppRoute {
+  const hash = window.location.hash.replace(/^#/, '');
+  const reportMatch = hash.match(/^\/laudo\/([^/?#]+)$/);
+  if (reportMatch?.[1]) {
+    return { kind: 'report', reportId: decodeURIComponent(reportMatch[1]) };
+  }
+  return { kind: 'home' };
+}
 
 function formatMetric(value: number | null, maximumFractionDigits = 1): string {
   return value == null ? '--' : value.toLocaleString('pt-BR', { maximumFractionDigits });
@@ -91,6 +105,10 @@ export function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [historyState, setHistoryState] = useState<HistoryState>({ entries: [], error: null, status: 'idle' });
   const [progress, setProgress] = useState<SpeedTestProgress | null>(null);
+  const [report, setReport] = useState<Report | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [reportIsLoading, setReportIsLoading] = useState(false);
+  const [route, setRoute] = useState<AppRoute>(() => readRoute());
   const [result, setResult] = useState<SpeedTestResult | null>(null);
   const [status, setStatus] = useState<SpeedTestRunStatus>('idle');
 
@@ -112,6 +130,40 @@ export function App() {
     void refreshHistory();
     return () => abortControllerRef.current?.abort();
   }, [refreshHistory]);
+
+  useEffect(() => {
+    const handleHashChange = () => setRoute(readRoute());
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    if (route.kind !== 'report') {
+      setReport(null);
+      setReportError(null);
+      setReportIsLoading(false);
+      return;
+    }
+
+    let isCurrent = true;
+    setReport(null);
+    setReportError(null);
+    setReportIsLoading(true);
+    void getLocalReport(route.reportId)
+      .then((localReport) => {
+        if (isCurrent) setReport(localReport);
+      })
+      .catch((error) => {
+        if (isCurrent) setReportError(error instanceof Error ? error.message : 'Falha ao abrir laudo local.');
+      })
+      .finally(() => {
+        if (isCurrent) setReportIsLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [route]);
 
   const startTest = async () => {
     abortControllerRef.current?.abort();
@@ -182,8 +234,16 @@ export function App() {
     await navigator.clipboard?.writeText(link);
   };
 
+  const copyCurrentReportLink = async () => {
+    if (route.kind === 'report') await copyReportLink(route.reportId);
+  };
+
   const openReport = (id: string) => {
     window.location.hash = `/laudo/${id}`;
+  };
+
+  const goHome = () => {
+    window.location.hash = '/';
   };
 
   const isRunning = status === 'running';
@@ -203,6 +263,32 @@ export function App() {
           : diagnosis
             ? 'Diagnóstico gerado a partir do resultado medido.'
             : 'Resumo simples e acionável após o teste.';
+
+  if (route.kind === 'report') {
+    return (
+      <ThemeProvider mode="light">
+        <AppShell
+          header={
+            <TopAppBar
+              actions={<Button variant="text" onClick={goHome}>Voltar</Button>}
+              navItems={navItems}
+              subtitle="Laudo local"
+              title="SignallQ"
+            />
+          }
+        >
+          <ReportPage
+            error={reportError}
+            isLoading={reportIsLoading}
+            onBack={goHome}
+            onCopyLink={copyCurrentReportLink}
+            report={report}
+            reportId={route.reportId}
+          />
+        </AppShell>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider mode="light">

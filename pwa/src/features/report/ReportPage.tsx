@@ -3,6 +3,8 @@ import type { Report } from './reportTypes';
 interface ReportPageProps {
   error: string | null;
   isLoading: boolean;
+  onBack: () => void;
+  onCopyLink: () => void;
   report: Report | null;
   reportId: string;
 }
@@ -27,13 +29,21 @@ function statusLabel(status: Report['status']): string {
   }
 }
 
-export function ReportPage({ error, isLoading, report, reportId }: ReportPageProps) {
+export function ReportPage({ error, isLoading, onBack, onCopyLink, report, reportId }: ReportPageProps) {
   return (
     <main className="report-page">
       <section className="report-page__hero">
         <p className="overline">SignallQ PWA</p>
         <h1>Laudo de conexão</h1>
         <p>Este laudo fica salvo apenas neste navegador.</p>
+        <div className="report-page__actions">
+          <button className="text-button" type="button" onClick={onBack}>
+            Voltar
+          </button>
+          <button className="text-button" type="button" onClick={onCopyLink}>
+            Copiar link
+          </button>
+        </div>
       </section>
 
       {isLoading ? <p className="report-page__message">Carregando laudo local...</p> : null}
