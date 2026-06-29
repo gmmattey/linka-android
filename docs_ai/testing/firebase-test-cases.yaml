@@ -1,0 +1,232 @@
+tests:
+
+  # ── PRÉ-REQUISITO COMUM ───────────────────────────────────────────────────
+  - displayName: Setup — app instalado e permissões aceitas
+    id: setup
+    steps:
+      - goal: Abra o SignallQ, aceite o consentimento LGPD e todas as permissões
+              solicitadas (telefone, localização, notificações) até chegar na
+              tela inicial.
+        finalScreenAssertion: Tela inicial (Início) visível com card de status
+                              de conectividade.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DUAL-CHIP / DUAL-SIM
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: Dual-SIM — dados ativos no SIM 2, SIM 1 só voz
+    id: dual_sim_data_on_sim2
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Vá em Configurações do Android > Rede móvel e configure dados
+              móveis para usar o SIM 2, deixando o SIM 1 apenas para chamadas.
+              Desative o Wi-Fi. Volte ao SignallQ.
+        hint: O caminho pode variar por fabricante. Procure "SIM preferido para
+              dados" ou "Dados móveis > SIM 2".
+        finalScreenAssertion: SignallQ está na tela inicial com Wi-Fi desligado
+                              e conectado via dados do SIM 2.
+
+      - goal: Na aba Sinal, verifique qual operadora e SIM aparecem como ativos.
+        finalScreenAssertion: O app exibe informações do SIM 2 como portadora
+                              de dados ativa — operadora, tipo de rede (LTE/5G)
+                              e intensidade do sinal devem corresponder ao SIM 2.
+
+      - goal: Execute um teste de velocidade completo.
+        finalScreenAssertion: O teste concluiu com resultados numéricos de
+                              velocidade. Não exibe erro de operadora errada
+                              nem dados misturados de SIM 1 e SIM 2.
+
+  - displayName: Dual-SIM — trocar SIM de dados durante o teste de velocidade
+    id: dual_sim_switch_during_test
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Com dois SIMs ativos e Wi-Fi desligado, inicie um teste de
+              velocidade no SignallQ.
+        finalScreenAssertion: Teste em andamento com progresso visível.
+
+      - goal: Sem fechar o app, vá rapidamente em Configurações do Android e
+              troque o SIM de dados do SIM 1 para SIM 2 (ou vice-versa).
+              Volte ao SignallQ imediatamente.
+        hint: Use o painel de notificações rápidas se o fabricante expor o
+              seletor de SIM ali. Caso contrário, use Configurações > Rede móvel.
+        finalScreenAssertion: O app exibiu mensagem de erro, cancelou o teste
+                              ou concluiu sem travar — não ficou em estado
+                              de loading infinito.
+
+  - displayName: Dual-SIM — SIM 1 sem sinal, SIM 2 com sinal
+    id: dual_sim_one_no_signal
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Remova ou desative o SIM 1 (ou coloque-o em modo avião individual
+              se o dispositivo suportar). Deixe o SIM 2 ativo com dados.
+              Desative o Wi-Fi. Abra o SignallQ.
+        hint: Alguns dispositivos permitem desativar um SIM individualmente em
+              Configurações > SIM. Se não suportar, pule este teste.
+        finalScreenAssertion: Tela inicial exibe status de conectividade usando
+                              somente o SIM ativo — sem erros de null pointer
+                              ou crash por SIM ausente.
+
+      - goal: Acesse a aba Sinal e verifique as informações exibidas.
+        finalScreenAssertion: O app exibe corretamente apenas as informações
+                              do SIM 2 ativo. O slot do SIM 1 aparece como
+                              ausente, desativado ou sem sinal — não exibe
+                              valores inválidos ou trava.
+
+  - displayName: Dual-SIM — permissão de telefone negada
+    id: dual_sim_permission_denied
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Vá em Configurações do Android > Apps > SignallQ > Permissões e
+              revogue a permissão de Telefone. Volte ao SignallQ e abra a aba
+              Sinal.
+        finalScreenAssertion: O app exibe mensagem explicando que a permissão
+                              de telefone é necessária para informações de SIM,
+                              ou exibe a tela sem dados de SIM — sem crash.
+
+      - goal: Toque na mensagem de permissão negada ou no botão de solicitar
+              permissão novamente, se houver.
+        finalScreenAssertion: O sistema Android abriu o diálogo de permissão
+                              de Telefone para o SignallQ, ou o app redirecionou
+                              para as configurações do sistema.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # PERDA DE CONEXÃO DURANTE OPERAÇÃO
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: Perda de Wi-Fi durante teste de velocidade
+    id: wifi_loss_during_speedtest
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Conecte ao Wi-Fi e inicie um teste de velocidade no SignallQ.
+        finalScreenAssertion: Teste em andamento.
+
+      - goal: Desligue o Wi-Fi pelo painel de notificações rápidas enquanto o
+              teste está rodando.
+        finalScreenAssertion: O app exibiu mensagem de erro de conexão ou
+                              cancelou o teste — não ficou em loading infinito
+                              nem crashou.
+
+      - goal: Religue o Wi-Fi e tente iniciar um novo teste.
+        finalScreenAssertion: Um novo teste iniciou normalmente após a
+                              reconexão Wi-Fi.
+
+  - displayName: Modo avião ativado durante teste de velocidade
+    id: airplane_mode_during_speedtest
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Inicie um teste de velocidade no SignallQ.
+        finalScreenAssertion: Teste em andamento com progresso visível.
+
+      - goal: Ative o modo avião pelo painel de notificações rápidas.
+        finalScreenAssertion: O app detectou a perda de conectividade e exibiu
+                              erro ou cancelou o teste — sem travamento ou crash.
+
+      - goal: Desative o modo avião, aguarde reconexão e pressione Voltar ou
+              Cancelar na tela de erro.
+        finalScreenAssertion: A tela voltou ao estado inicial da aba Velocidade
+                              com botão de iniciar disponível — confirmando que
+                              o bug de navegação pós-falha está corrigido.
+
+  - displayName: Sinal móvel muito fraco — teste de velocidade degradado
+    id: weak_signal_speedtest
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Desative o Wi-Fi e use apenas dados móveis com sinal fraco
+              (1-2 barras). Execute o teste de velocidade.
+        hint: Se não houver sinal fraco disponível, vá para uma área com
+              cobertura limitada ou use dados 2G/EDGE se o dispositivo permitir
+              forçar rede 2G em Configurações > Rede móvel > Tipo de rede preferido.
+        finalScreenAssertion: O teste concluiu ou falhou com mensagem de erro
+                              adequada — veredito de qualidade deve ser
+                              "Fraco" ou "Regular", não "Excelente".
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # COMPORTAMENTO PÓS-FALHA (BUG #347)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: Voltar após falha no teste triplo — botão de navegação
+    id: speedtest_failure_back_button
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Inicie um teste de velocidade e force falha desligando o Wi-Fi
+              e os dados móveis simultaneamente (modo avião) durante a execução.
+              Após o erro aparecer, reative a conexão.
+        finalScreenAssertion: Tela de erro ou falha do teste está visível.
+
+      - goal: Pressione o botão Voltar do dispositivo (gesto de voltar ou
+              botão de navegação).
+        finalScreenAssertion: O app navegou para fora do estado de erro —
+                              tela inicial ou aba Velocidade no estado padrão
+                              está visível. A tela de erro não persiste.
+
+  - displayName: Cancelar após falha no teste triplo — botão na tela
+    id: speedtest_failure_cancel_button
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Repita a falha forçada — inicie o teste, ative modo avião
+              e aguarde o erro aparecer.
+        finalScreenAssertion: Estado de falha visível na tela.
+
+      - goal: Toque no botão "Cancelar" ou "Fechar" visível na tela de erro
+              (não em "Testar novamente").
+        finalScreenAssertion: O app saiu do estado de erro. A aba Velocidade
+                              exibe o estado inicial com o botão de iniciar
+                              disponível.
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # ESTADOS DE APP / CICLO DE VIDA
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - displayName: App em background durante teste — retorno ao primeiro plano
+    id: background_during_test
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Inicie um teste de velocidade no SignallQ.
+        finalScreenAssertion: Teste em andamento.
+
+      - goal: Pressione o botão Home para enviar o app ao background sem
+              cancelar. Aguarde 10 segundos. Volte ao SignallQ pelo
+              alternador de apps ou ícone.
+        finalScreenAssertion: O app retomou exibindo o resultado do teste
+                              ou ainda em progresso — sem tela em branco,
+                              crash ou reinício inesperado.
+
+  - displayName: Rotação de tela durante teste de velocidade
+    id: rotation_during_speedtest
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Ative a rotação automática de tela no Android. Inicie um
+              teste de velocidade no SignallQ.
+        finalScreenAssertion: Teste em andamento em modo retrato.
+
+      - goal: Gire o dispositivo para modo paisagem enquanto o teste executa.
+        finalScreenAssertion: O app se adaptou à orientação paisagem sem
+                              reiniciar o teste ou crashar — progresso ou
+                              resultado está visível.
+
+      - goal: Gire de volta para modo retrato.
+        finalScreenAssertion: O app voltou ao modo retrato com estado do
+                              teste preservado.
+
+  - displayName: Primeiro acesso sem nenhuma permissão concedida
+    id: cold_start_no_permissions
+    steps:
+      - goal: Desinstale e reinstale o SignallQ. Abra o app sem conceder
+              nenhuma permissão — negue todas as solicitações.
+        hint: Toque em "Negar" ou "Não permitir" em cada diálogo de permissão.
+        finalScreenAssertion: O app abriu sem crash mesmo com todas as
+                              permissões negadas — exibe estado degradado ou
+                              mensagem orientando sobre permissões necessárias.
+
+  - displayName: Abrir Diagnóstico IA sem conexão com internet
+    id: diagnostico_ia_offline
+    prerequisiteTestCaseId: setup
+    steps:
+      - goal: Ative o modo avião para remover toda conectividade. Abra o
+              overlay de Diagnóstico IA no SignallQ.
+        finalScreenAssertion: O overlay de Diagnóstico abriu sem crash.
+
+      - goal: Digite uma pergunta e tente enviar.
+        finalScreenAssertion: O app exibiu mensagem de erro de conectividade
+                              ou timeout — não ficou em loading infinito nem
+                              travou a interface.

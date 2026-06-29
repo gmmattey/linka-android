@@ -9,10 +9,22 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
 ---
 
-## [Unreleased]
+## [0.22.0] — 2026-06-29
 
 ### Adicionado
-- Preparação para v1.0.0 — beta fechado via Play Store
+- Item "Fale conosco" na tela de Ajustes
+
+### Alterado
+- Ícone do app atualizado para o símbolo SignallQ (barras de sinal roxo→azul)
+
+### Corrigido
+- Acessibilidade TalkBack e compatibilidade com dark theme
+- Baseline Profile atualizado para `io.signallq.app`
+
+### Melhorias de desempenho
+- Startup time reduzido
+- Consumo de bateria do worker de monitoramento otimizado
+- Tamanho do APK reduzido
 
 ---
 
