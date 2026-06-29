@@ -1,7 +1,8 @@
 # ADR-001: Usar Timber como biblioteca de logging
 
 **Data:** 2026-05-24  
-**Status:** Accepted
+**Status:** Accepted  
+**Atualizado em:** 2026-06-28 — Crashlytics integrado via ReleaseTree (SIG-227)
 
 ## Contexto
 
@@ -16,16 +17,31 @@ O projeto Android herdou uso inconsistente de `Log.*` (Android logging nativo) e
 Migrar todo logging do projeto para usar **Timber** (biblioteca mantida por Jake Wharton, depêndência padrão em arquitetura moderna Android).
 
 **Implementação:**
-- Adicionar `com.jakewharton.timber:timber` em `libs.versions.toml`
-- Inicializar em `LinkaApplication.onCreate()` com plant de debug
-- Remover todas as ocorrências de `Log.d()`, `Log.e()`, `Log.w()`, `Log.i()`, `Log.v()`
-- Usar `Timber.d()`, `Timber.e()`, etc. em lugar
+- `com.jakewharton.timber:timber` em `libs.versions.toml`
+- `SignallQApplication.onCreate()` planta `DebugTree` em debug e `ReleaseTree` em release
+- Todas as ocorrências de `Log.*` migradas para `Timber.*`
 
 **Benefícios:**
 - Logs automaticamente suprimidos em release (via BuildConfig.DEBUG)
 - Stack trace rastreável em relatório de crashes
 - Formatação consistente com tag automática (classe + linha)
-- Integração futura com Crashlytics sem mudança de código
+- Integração com Crashlytics via `ReleaseTree` sem mudança de código nos chamadores
+
+## Estado atual da integração com Crashlytics
+
+`ReleaseTree` (`app/src/main/kotlin/.../logging/ReleaseTree.kt`):
+- Filtra apenas `WARN` e `ERROR` (`priority < Log.WARN` ignorado)
+- Envia breadcrumb via `FirebaseCrashlytics.getInstance().log(...)`
+- Registra exceções via `FirebaseCrashlytics.getInstance().recordException(t)`
+- Para `ERROR`, registra evento `feature_crash` via `AnalyticsTracker`
+
+**Debug**: `FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)` chamado
+em `SignallQApplication.onCreate()` — coleta de crashes desabilitada para não poluir dados
+de produção no Firebase Console com crashes de desenvolvimento.
+
+**Release**: coleta habilitada por padrão (SDK default). `mappingFileUploadEnabled = true`
+configurado em `build.gradle.kts` — o mapping.txt do R8 é enviado automaticamente ao Firebase
+como dependência do task `assembleRelease`/`bundleRelease`.
 
 ## Consequências
 
@@ -38,4 +54,5 @@ Migrar todo logging do projeto para usar **Timber** (biblioteca mantida por Jake
 
 - PR #28: Refactor Log.* para Timber (70 ocorrências)
 - Issue #6: Logger
+- SIG-227: Validação Crashlytics em release build
 - Site: https://github.com/JakeWharton/timber
