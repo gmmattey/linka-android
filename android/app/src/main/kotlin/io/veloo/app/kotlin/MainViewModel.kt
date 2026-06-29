@@ -1219,6 +1219,7 @@ class MainViewModel
                         preferenciasAppRepository.salvarDispositivosConhecidos(identidadesConhecidas)
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     Timber.w("verificarDispositivosNovos falhou: ${e.message}")
                 }
             }
