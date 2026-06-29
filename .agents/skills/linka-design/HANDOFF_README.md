@@ -4,7 +4,7 @@
 
 Este pacote transforma o **SignallQ Design System** em uma **Claude Code Skill** pronta para
 ser instalada no seu repositório. O objetivo não é implementar telas novas (elas **já
-existem** no app Android `io.linka.app.kotlin`), e sim garantir que **todo trabalho futuro de
+existem** no app Android `io.signallq.app`), e sim garantir que **todo trabalho futuro de
 UI feito com o Claude Code siga o design system perfeitamente** — mesmos tokens, mesma voz,
 mesmos componentes.
 

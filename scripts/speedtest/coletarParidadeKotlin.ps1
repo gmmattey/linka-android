@@ -1,5 +1,5 @@
 param(
-    [string]$PackageName = "io.linka.app.kotlin",
+    [string]$PackageName = "io.signallq.app",
     [string]$FlutterJsonDir = "tmp_logs\sessao_v3.3.3+12_20260507_1224",
     [string]$FlutterSqlite = "",
     [ValidateSet("all", "fast", "complete")]
