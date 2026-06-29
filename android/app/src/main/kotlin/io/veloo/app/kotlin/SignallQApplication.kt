@@ -3,9 +3,10 @@
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
 import io.signallq.app.core.datastore.PreferenciasAppRepository
-import com.google.firebase.analytics.FirebaseAnalytics
 import io.signallq.app.core.network.AnalyticsTracker
 import io.signallq.app.featureflags.FeatureFlagManager
 import io.signallq.app.logging.ReleaseTree
@@ -53,6 +54,8 @@ class SignallQApplication :
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
+            // Desabilita coleta de crashes em debug para não poluir dados de produção no Firebase.
+            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)
         } else {
             Timber.plant(ReleaseTree(analyticsTracker))
         }
