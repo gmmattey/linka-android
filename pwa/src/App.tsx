@@ -22,6 +22,7 @@ import type { HistoryState } from '@/features/history/historyTypes';
 import { getLocalReport } from '@/features/report/reportRepository';
 import { ReportPage } from '@/features/report/ReportPage';
 import type { Report } from '@/features/report/reportTypes';
+import { SettingsPanel } from '@/features/settings/SettingsPanel';
 import { runSpeedTestWeb } from '@/features/speedtest/speedTestRunner';
 import type { SpeedTestProgress, SpeedTestRunStatus } from '@/features/speedtest/speedTestTypes';
 import { InstallPromptBanner } from '@/shared/components/InstallPromptBanner';
@@ -35,13 +36,18 @@ import {
 import { historyRepository } from '@/shared/storage/historyRepository';
 import { preferencesRepository } from '@/shared/storage/preferencesRepository';
 
-const navItems = ['Visão geral', 'Resultados', 'Ajustes'];
+const navItems = [
+  { href: '#/', label: 'Início' },
+  { href: '#/historico', label: 'Histórico' },
+  { href: '#/ajustes', label: 'Ajustes' },
+];
 
-type AppRoute = { kind: 'history' } | { kind: 'home' } | { kind: 'report'; reportId: string };
+type AppRoute = { kind: 'history' } | { kind: 'home' } | { kind: 'report'; reportId: string } | { kind: 'settings' };
 
 function readRoute(): AppRoute {
   const hash = window.location.hash.replace(/^#/, '');
   if (hash === '/historico') return { kind: 'history' };
+  if (hash === '/ajustes') return { kind: 'settings' };
   const reportMatch = hash.match(/^\/laudo\/([^/?#]+)$/);
   if (reportMatch?.[1]) {
     return { kind: 'report', reportId: decodeURIComponent(reportMatch[1]) };
@@ -78,6 +84,17 @@ function qualityLabel(quality: DiagnosisResult['quality'] | null): string {
       return 'Inconclusivo';
     default:
       return 'Aguardando teste';
+  }
+}
+
+function stabilityLabel(stability: DiagnosisResult['stability']): string {
+  switch (stability) {
+    case 'stable':
+      return 'estável';
+    case 'unstable':
+      return 'instável';
+    case 'unknown':
+      return 'não medida';
   }
 }
 
@@ -270,6 +287,10 @@ export function App() {
     window.location.hash = '/historico';
   };
 
+  const openSettings = () => {
+    window.location.hash = '/ajustes';
+  };
+
   const goHome = () => {
     window.location.hash = '/';
   };
@@ -325,6 +346,7 @@ export function App() {
         <AppShell
           header={
             <TopAppBar
+              activeHref="#/historico"
               actions={<Button variant="text" onClick={goHome}>Voltar</Button>}
               navItems={navItems}
               subtitle="Laudo local"
@@ -351,6 +373,7 @@ export function App() {
         <AppShell
           header={
             <TopAppBar
+              activeHref="#/historico"
               actions={<Button variant="text" onClick={goHome}>Voltar</Button>}
               navItems={navItems}
               subtitle="Histórico local"
@@ -363,8 +386,29 @@ export function App() {
             onCopyReportLink={copyReportLink}
             onOpenReport={openReport}
             onRemove={removeHistoryEntry}
+            onStartTest={goHome}
             state={historyState}
           />
+        </AppShell>
+      </ThemeProvider>
+    );
+  }
+
+  if (route.kind === 'settings') {
+    return (
+      <ThemeProvider mode="light">
+        <AppShell
+          header={
+            <TopAppBar
+              activeHref="#/ajustes"
+              actions={<Button variant="text" onClick={goHome}>Voltar</Button>}
+              navItems={navItems}
+              subtitle="Privacidade e limites"
+              title="SignallQ"
+            />
+          }
+        >
+          <SettingsPanel historyCount={historyState.entries.length} onClearHistory={clearHistory} onGoHome={goHome} />
         </AppShell>
       </ThemeProvider>
     );
@@ -375,7 +419,8 @@ export function App() {
       <AppShell
         header={
           <TopAppBar
-            actions={<Button variant="text">Ajuda</Button>}
+            activeHref="#/"
+            actions={<Button variant="text" onClick={openSettings}>Privacidade</Button>}
             navItems={navItems}
             subtitle="Piloto M1"
             title="SignallQ"
@@ -408,7 +453,7 @@ export function App() {
               caption={phaseLabel(progress, status)}
               downloadLabel={result ? 'Download medido via HTTP' : 'Download ainda não medido'}
               qualityLabel={qualityLabel(currentQuality)}
-              stabilityLabel={diagnosis ? `Estabilidade: ${diagnosis.stability}` : 'Estabilidade por latência e jitter HTTP'}
+              stabilityLabel={diagnosis ? `Estabilidade: ${stabilityLabel(diagnosis.stability)}` : 'Estabilidade por latência e jitter HTTP'}
               title="Meça velocidade e estabilidade sem inventar sinal nativo"
               value={formatMetric(downloadMbps)}
             />
@@ -493,6 +538,7 @@ export function App() {
                 description="Preferências web sem transformar a PWA em Android encapsulado."
                 icon={<Settings size={22} />}
                 meta="Ajustes"
+                onClick={openSettings}
                 title="Configuração da PWA"
               />
             </>
@@ -535,6 +581,7 @@ export function App() {
                 onCopyReportLink={copyReportLink}
                 onOpenReport={openReport}
                 onRemove={removeHistoryEntry}
+                onStartTest={goHome}
                 state={historyState}
               />
             </>

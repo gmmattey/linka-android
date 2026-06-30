@@ -46,8 +46,8 @@ export function ReportPage({ error, isLoading, onBack, onCopyLink, report, repor
         </div>
       </section>
 
-      {isLoading ? <p className="report-page__message">Carregando laudo local...</p> : null}
-      {error ? <p className="report-page__message">Erro ao abrir laudo: {error}</p> : null}
+      {isLoading ? <p aria-live="polite" className="report-page__message">Carregando laudo local...</p> : null}
+      {error ? <p className="report-page__message report-page__message--error" role="alert">Erro ao abrir laudo: {error}</p> : null}
       {!isLoading && !error && !report ? (
         <section className="report-page__empty">
           <h2>Laudo não encontrado neste navegador</h2>
