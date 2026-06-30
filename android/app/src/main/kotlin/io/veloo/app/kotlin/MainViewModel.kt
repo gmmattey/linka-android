@@ -914,6 +914,7 @@ class MainViewModel
                             )
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     // Fallback: stream falhou — tenta resposta completa via explainDiagnosis()
                     _diagChatHistorico.value = _diagChatHistorico.value.dropLast(1)
                     try {
@@ -943,7 +944,8 @@ class MainViewModel
                                 nomeModelo = nomeModelo,
                                 isErro = isErro,
                             )
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        if (e is kotlinx.coroutines.CancellationException) throw e
                         _diagChatHistorico.value = _diagChatHistorico.value +
                             DiagChatEntry(autor = DiagChatAutor.Ia, texto = "", isErro = true)
                     }
@@ -1369,6 +1371,7 @@ class MainViewModel
                             )
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     publicIp.value = UiState.Error("Falha ao obter IP publico")
                     ispInfo.value = UiState.Error("ISP indisponivel")
                     Timber.w("coletarIspInfo falhou: ${e.message}")
@@ -1422,7 +1425,8 @@ class MainViewModel
                             connectionType = m.connectionType,
                         )
                     }
-                } catch (_: Throwable) {
+                } catch (e: Throwable) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     emptyList()
                 }
 
@@ -1442,7 +1446,8 @@ class MainViewModel
                                 seguranca = rv.seguranca.name,
                             )
                         }
-                } catch (_: Throwable) {
+                } catch (e: Throwable) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     emptyList()
                 }
 
@@ -1553,6 +1558,7 @@ class MainViewModel
                         }
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     Timber.e(e, "analisarProblema falhou")
                     _analisadorState.value = AnalisadorState.Erro("Erro ao analisar. Tente novamente.")
                 }
@@ -1629,7 +1635,8 @@ class MainViewModel
                     val local = cidade ?: codigoPais?.let { nomePaisPtBr(it) }
                     // Se local e nulo (JSON sem city/country), exibe "Cloudflare" sem cidade
                     localizacaoServidor.value = UiState.Success(if (local != null) "Cloudflare · $local" else "Cloudflare")
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     // Falha de rede ou parse — expoe o estado de erro para a UI
                     localizacaoServidor.value = UiState.Error("Servidor indisponivel")
                 }
