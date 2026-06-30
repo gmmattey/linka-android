@@ -208,7 +208,10 @@ class ScannerDispositivosAndroid(
                                     try {
                                         val mac: String? = ARPInfo.getMACFromIPAddress(ip)
                                         if (!mac.isNullOrBlank() && mac != "00:00:00:00:00:00") mac else null
-                                    } catch (_: Throwable) { null }
+                                    } catch (e: Throwable) {
+                                        if (e is kotlinx.coroutines.CancellationException) throw e
+                                        null
+                                    }
                                 } else null
                             }
                             // Prioridade de fabricante: manufacturer UPnP(XML) > fabricante mDNS TXT > OUI(MAC)
@@ -474,6 +477,7 @@ class ScannerDispositivosAndroid(
                 try { jmdns.close() } catch (_: Throwable) {}
             }
         } catch (e: Throwable) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Timber.e("jmDNS: falha ao criar instância — ROM incompatível? ${e.message}")
             // não derruba o scan — retorna o que conseguiu
         } finally {
