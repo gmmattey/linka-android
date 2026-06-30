@@ -100,4 +100,29 @@ describe('diagnosis AI client', () => {
     expect(outcome.diagnosis.source).toBe('fallback');
     expect(outcome.diagnosis.limitations.some((limitation) => limitation.code === 'ai_unavailable')).toBe(true);
   });
+
+  it('falls back when the AI request times out', async () => {
+    const fetchFn = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {
+          once: true,
+        });
+      });
+    });
+
+    const outcome = await createDiagnosisWithAiFallback(speedTest, {
+      endpoint: '/mock-ai',
+      fetchFn,
+      timeoutMs: 1,
+    });
+
+    expect(outcome.source).toBe('fallback');
+    expect(outcome.diagnosis.limitations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ai_unavailable',
+        }),
+      ]),
+    );
+  });
 });
