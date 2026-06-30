@@ -24,7 +24,16 @@ import { ReportPage } from '@/features/report/ReportPage';
 import type { Report } from '@/features/report/reportTypes';
 import { runSpeedTestWeb } from '@/features/speedtest/speedTestRunner';
 import type { SpeedTestProgress, SpeedTestRunStatus } from '@/features/speedtest/speedTestTypes';
+import { InstallPromptBanner } from '@/shared/components/InstallPromptBanner';
+import {
+  type BeforeInstallPromptEvent,
+  canShowInstallPromptBanner,
+  getInstallEnvironment,
+  listenForBeforeInstallPrompt,
+  requestNativeInstallPrompt,
+} from '@/shared/pwa/installPrompt';
 import { historyRepository } from '@/shared/storage/historyRepository';
+import { preferencesRepository } from '@/shared/storage/preferencesRepository';
 
 const navItems = ['Visão geral', 'Resultados', 'Ajustes'];
 
@@ -101,10 +110,16 @@ function phaseLabel(progress: SpeedTestProgress | null, status: SpeedTestRunStat
 
 export function App() {
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
   const [diagnosisStatus, setDiagnosisStatus] = useState<'idle' | 'loading' | 'ready' | 'fallback' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [historyState, setHistoryState] = useState<HistoryState>({ entries: [], error: null, status: 'idle' });
+  const [installPromptDismissed, setInstallPromptDismissed] = useState(
+    () => preferencesRepository.getInstallPromptPreferences().dismissedAt != null,
+  );
+  const [installPromptIsEligible, setInstallPromptIsEligible] = useState(false);
+  const [installPromptIsPrompting, setInstallPromptIsPrompting] = useState(false);
   const [progress, setProgress] = useState<SpeedTestProgress | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -131,6 +146,13 @@ export function App() {
     void refreshHistory();
     return () => abortControllerRef.current?.abort();
   }, [refreshHistory]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setInstallPromptIsEligible(true), 45_000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => listenForBeforeInstallPrompt(setDeferredInstallPrompt), []);
 
   useEffect(() => {
     const handleHashChange = () => setRoute(readRoute());
@@ -205,6 +227,7 @@ export function App() {
       };
       await historyRepository.save(entry);
       await refreshHistory();
+      setInstallPromptIsEligible(true);
     } catch (error) {
       setStatus('error');
       setDiagnosisStatus('error');
@@ -251,7 +274,34 @@ export function App() {
     window.location.hash = '/';
   };
 
+  const dismissInstallPrompt = () => {
+    preferencesRepository.dismissInstallPrompt();
+    setInstallPromptDismissed(true);
+  };
+
+  const requestInstallPrompt = async () => {
+    if (!deferredInstallPrompt) return;
+
+    setInstallPromptIsPrompting(true);
+    try {
+      const outcome = await requestNativeInstallPrompt(deferredInstallPrompt);
+      setDeferredInstallPrompt(null);
+      if (outcome === 'accepted') dismissInstallPrompt();
+    } finally {
+      setInstallPromptIsPrompting(false);
+    }
+  };
+
   const isRunning = status === 'running';
+  const installEnvironment = getInstallEnvironment({ hasNativePrompt: deferredInstallPrompt != null });
+  const shouldShowInstallPrompt = canShowInstallPromptBanner({
+    dismissed: installPromptDismissed,
+    eligible: installPromptIsEligible,
+    isDiagnosisLoading: diagnosisStatus === 'loading',
+    isHomeRoute: route.kind === 'home',
+    isRunning,
+    isStandalone: installEnvironment.isStandalone,
+  });
   const currentQuality = diagnosis?.quality ?? null;
   const downloadMbps = result?.download.mbps ?? null;
   const uploadMbps = result?.upload.mbps ?? null;
@@ -332,6 +382,14 @@ export function App() {
           />
         }
       >
+        {shouldShowInstallPrompt ? (
+          <InstallPromptBanner
+            environment={installEnvironment}
+            isPrompting={installPromptIsPrompting}
+            onDismiss={dismissInstallPrompt}
+            onInstall={requestInstallPrompt}
+          />
+        ) : null}
         <HomeLayout
           hero={
             <SpeedHeroCard
