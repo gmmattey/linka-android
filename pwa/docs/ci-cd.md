@@ -2,31 +2,42 @@
 
 ## Objetivo
 
-Definir o caminho tecnico para validar, gerar preview e publicar o SignallQ PWA no Cloudflare Pages sem alterar arquivos globais do monorepo.
+Definir o contrato real de validacao, preview e deploy do SignallQ PWA sem misturar pipeline Android e sem prometer Cloudflare pronto quando a conta/projeto ainda nao batem.
 
-## Escopo atual
+## Estado atual em 2026-06-30
 
-Esta configuracao cobre apenas `pwa/`:
+Ja existe workflow em `.github/workflows/pwa-ci.yml` com gatilho restrito a `pwa/**` e ao proprio workflow.
 
-- build local com Vite;
-- validacao TypeScript e testes;
-- Cloudflare Pages Functions em `functions/`;
-- deploy manual via Wrangler;
-- documentacao das variaveis server-side.
+Esse workflow agora:
 
-A automacao GitHub Actions depende de arquivo fora de `pwa/` e deve ser feita somente com autorizacao explicita para alterar CI/CD global.
+- usa `working-directory: pwa`;
+- executa `npm ci`;
+- executa `npm run lint` apenas se o script existir;
+- executa `npm run verify`;
+- publica `pwa/dist/` como artifact;
+- tenta preview/deploy no Cloudflare Pages apenas quando `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` estiverem configurados.
+
+O workflow nao tenta rodar pipeline Android. A excecao fora de `pwa/` continua restrita a `.github/workflows/pwa-ci.yml`, autorizada para a entrega do PWA.
 
 ## Projeto Pages
 
-Configuracao local:
+Configuracao versionada:
 
 - arquivo: `pwa/wrangler.jsonc`;
-- projeto: `signallq-pwa`;
+- projeto esperado: `signallq-pwa`;
 - output: `dist`;
 - build command: `npm run build`;
 - compatibility date: `2026-06-25`.
 
-## Scripts
+Status real verificado com Wrangler em 2026-06-30:
+
+- autenticacao Cloudflare: OK;
+- conta autenticada: `Giammattey, Luiz F.` (`2f38f7354f204d7b3f7d6c750b3e43ff`);
+- permissao `pages:write`: OK;
+- projeto `signallq-pwa`: NAO encontrado nessa conta;
+- efeito pratico: `npm run pages:deploy` falha com `Project not found` e preview/producao nao podem ser marcados como validados.
+
+## Scripts operacionais
 
 ```bash
 npm run typecheck
@@ -37,7 +48,40 @@ npm run pages:dev
 npm run pages:deploy
 ```
 
-`npm run verify` executa typecheck, testes e build. O projeto ainda nao possui script `lint`; se um workflow global exigir lint, ele deve tratar a ausencia do script explicitamente ou o script deve ser criado em uma issue propria.
+Detalhes:
+
+- `npm run verify` executa `npm run typecheck`, `npm test` e `npm run build`;
+- `npm run pages:deploy` publica `dist` para o projeto `signallq-pwa`;
+- `npm run lint` continua ausente e deve ser tratado como pendencia de infraestrutura, nao como validacao concluida.
+
+## Workflow GitHub Actions
+
+Arquivo:
+
+```text
+.github/workflows/pwa-ci.yml
+```
+
+Gatilhos:
+
+- `pull_request` para `main` quando houver mudanca em `pwa/**` ou no proprio workflow;
+- `push` em `main` quando houver mudanca em `pwa/**` ou no proprio workflow.
+
+Job `Build & Test`:
+
+- `npm ci`;
+- `npm run lint`, somente se o script existir;
+- `npm run verify`;
+- upload de `pwa/dist` como artefato.
+
+Job `Cloudflare Pages Preview/Deploy`:
+
+- roda somente depois da validacao;
+- em PR, publica preview usando a branch do PR quando os secrets existem;
+- em push para `main`, publica o build da branch `main` quando os secrets existem;
+- se os secrets nao existirem, registra skip e nao quebra a validacao basica do PR.
+
+O workflow usa `working-directory: pwa`, nao aciona build Android e chama o script existente `npm run pages:deploy` para manter um unico contrato de deploy.
 
 ## Variaveis e secrets
 
@@ -47,58 +91,47 @@ Variaveis server-side esperadas no Cloudflare Pages:
 - `ADMIN_INGEST_URL` ou `ADMIN_WORKER_URL`
 - `ADMIN_INGEST_KEY`
 
+Secrets esperados no GitHub Actions para deploy:
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+
 Para desenvolvimento local com `wrangler pages dev`, use `.dev.vars`. Esse arquivo nao deve ser versionado.
 
 Variaveis com prefixo `VITE_` sao publicas por definicao e nao devem receber segredo, token, ingest key ou URL privada que dependa de autenticacao.
 
-## Deploy manual
+## Headers e seguranca
 
-1. Instalar dependencias:
+O deploy statico passa a carregar `pwa/public/_headers` com:
 
-```bash
-npm ci
-```
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy` restritiva
+- `Content-Security-Policy` para a app e override mais permissivo em `/docs/*` por causa do Swagger CDN
 
-2. Validar:
+HSTS continua pendente de validacao em dominio HTTPS final, portanto nao foi forcado neste momento.
 
-```bash
-npm run verify
-```
+## Fluxo recomendado
 
-3. Testar Pages Functions localmente:
+1. `npm ci`
+2. `npm run verify`
+3. `npm run pages:dev`
+4. abrir PR e deixar o workflow publicar preview se os secrets existirem
+5. publicar producao com `npm run pages:deploy` somente depois de existir o projeto Pages correto
 
-```bash
-npm run pages:dev
-```
+## Criterios de aceite desta rodada
 
-4. Publicar:
+- `npm run typecheck`: passou
+- `npm test`: passou
+- `npm run build`: passou
+- `npm run pages:dev`: passou
+- `npm run pages:deploy`: falhou por ausencia do projeto remoto `signallq-pwa`
+- `npm run lint`: inexistente
 
-```bash
-npm run pages:deploy
-```
+## Pendencias reais
 
-O deploy exige autenticacao Wrangler/Cloudflare no ambiente local ou token configurado no CI.
-
-## Workflow GitHub pendente
-
-Quando houver autorizacao para tocar CI/CD global, criar workflow em `.github/workflows/` com estes passos restritos ao path `pwa/**`:
-
-- checkout;
-- setup Node;
-- `cd pwa`;
-- `npm ci`;
-- `npm run typecheck`;
-- `npm test`;
-- `npm run build`;
-- deploy preview/production via Cloudflare Pages quando `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` existirem.
-
-O workflow nao deve injetar `ADMIN_INGEST_KEY` no bundle client e nao deve usar variaveis `VITE_*` para secrets.
-
-## Criterios de aceite locais
-
-- `npm run typecheck` passa;
-- `npm test` passa;
-- `npm run build` passa;
-- `npm run pages:dev` sobe as Pages Functions localmente quando necessario;
-- secrets documentados e fora do bundle;
-- nenhuma alteracao fora de `pwa/`.
+- confirmar se `signallq-pwa` deve existir nesta conta Cloudflare ou em outra conta/projeto;
+- criar ou vincular o projeto Pages correto antes de tentar preview/production de verdade;
+- validar dominio final, HTTPS e HSTS somente depois desse alinhamento;
+- opcionalmente criar uma issue propria para lint se isso passar a ser requisito de gate.

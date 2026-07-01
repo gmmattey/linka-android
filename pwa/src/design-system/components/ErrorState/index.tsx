@@ -5,10 +5,11 @@ import { Card } from '../Card';
 export interface ErrorStateProps {
   actionLabel?: string;
   description: string;
+  onAction?: () => void;
   title: string;
 }
 
-export function ErrorState({ actionLabel, description, title }: ErrorStateProps) {
+export function ErrorState({ actionLabel, description, onAction, title }: ErrorStateProps) {
   return (
     <Card className="sq-state-card sq-state-card--error" variant="outlined">
       <div className="sq-state-card__icon">
@@ -16,7 +17,7 @@ export function ErrorState({ actionLabel, description, title }: ErrorStateProps)
       </div>
       <h3>{title}</h3>
       <p>{description}</p>
-      {actionLabel ? <Button variant="tonal">{actionLabel}</Button> : null}
+      {actionLabel ? <Button variant="tonal" onClick={onAction}>{actionLabel}</Button> : null}
     </Card>
   );
 }
