@@ -177,7 +177,12 @@ fun DiagnosticoScreen(
         onAiStateChange(AiDiagnosisState.loading)
         val connectionType = snapshotDiagnostico.input?.connectionType ?: ConnectionType.desconhecido
         val ctx = DiagnosisAiContextFactory.from(relatorio, snapshotDiagnostico.input, connectionType)
-        onAiStateChange(aiRepository.explainDiagnosis(ctx) { AiFallbackFactory.fromLocal(relatorio) })
+        onAiStateChange(
+            aiRepository.explainDiagnosis(
+                ctx,
+                decisaoLocalStatus = relatorio.decisao.status.name,
+            ) { AiFallbackFactory.fromLocal(relatorio) },
+        )
     }
 
     Scaffold(
@@ -318,7 +323,12 @@ fun DiagnosticoScreen(
                                             onAiStateChange(AiDiagnosisState.loading)
                                             val connectionType = snapshotDiagnostico.input?.connectionType ?: ConnectionType.desconhecido
                                             val ctx = DiagnosisAiContextFactory.from(relatorio, snapshotDiagnostico.input, connectionType)
-                                            onAiStateChange(aiRepository.explainDiagnosis(ctx) { AiFallbackFactory.fromLocal(relatorio) })
+                                            onAiStateChange(
+                                                aiRepository.explainDiagnosis(
+                                                    ctx,
+                                                    decisaoLocalStatus = relatorio.decisao.status.name,
+                                                ) { AiFallbackFactory.fromLocal(relatorio) },
+                                            )
                                         }
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
@@ -1008,7 +1018,10 @@ private fun buildMetricItems(result: AiDiagnosisResult): List<MetricItem> {
         val label = ev.label.substringAfter(":").ifBlank { ev.label }
         val valor = ev.valor.ifBlank { return@mapNotNull null }
         val status = inferMetricStatus(ev.label, cl)
-        MetricItem(label = label, value = valor, status = status)
+        // Perda de pacotes hoje e sempre inferida por timeout HTTP, nunca medida
+        // por pacote real — nao apresentar como percentual definitivo.
+        val note = if ("perda" in label.lowercase()) "estimado" else null
+        MetricItem(label = label, value = valor, status = status, note = note)
     }
 }
 
