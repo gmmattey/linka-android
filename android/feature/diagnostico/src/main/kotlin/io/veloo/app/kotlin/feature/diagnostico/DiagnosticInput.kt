@@ -1,5 +1,8 @@
 ﻿package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.network.contracts.wifi.SegurancaWifi
+import io.signallq.app.feature.diagnostico.topology.model.NatStatus
+
 data class WifiDiagnosticInput(
     val rssiDbm: Int?,
     val linkSpeedMbps: Int?,
@@ -49,6 +52,12 @@ data class MobileDiagnosticInput(
     val signalQualityPercent: Int? = null,
     val band: String? = null,
     val publicIp: String? = null,
+    /** Reference Signal Received Power (4G LTE/5G NR), em dBm. Fonte: MovelSnapshot.rsrpDbm. */
+    val rsrpDbm: Int? = null,
+    /** Reference Signal Received Quality, em dB. Fonte: MovelSnapshot.rsrqDb. */
+    val rsrqDb: Int? = null,
+    /** Signal-to-Interference-plus-Noise Ratio, em dB. Fonte: MovelSnapshot.sinrDb. */
+    val sinrDb: Int? = null,
 )
 
 data class DnsDiagnosticInput(
@@ -59,6 +68,10 @@ data class DnsDiagnosticInput(
     val bestDnsLatencyMsFromComparison: Int? = null,
     val dnsGrade: String? = null,
     val dnsComparisonAvailable: Boolean = false,
+    /** Nivel de alerta calculado por AvaliadorCoerenciaDns.registrarCoerencia() ("none"|"attention"|"critical"). */
+    val coerenciaNivelAlerta: String? = null,
+    val coerenciaDivergenciasConsecutivas: Int? = null,
+    val coerenciaTaxaDivergenciaPercentual: Double? = null,
 )
 
 data class HistoricalDiagnosticInput(
@@ -90,6 +103,7 @@ data class RedeWifiVizinha(
     val frequenciaMhz: Int?,
     val ssid: String? = null,
     val bssid: String? = null,
+    val seguranca: SegurancaWifi? = null,
 )
 
 data class SpeedtestQualityInput(
@@ -121,4 +135,8 @@ data class DiagnosticInput(
     val dns: DnsDiagnosticInput? = null,
     val historico: HistoricalDiagnosticInput? = null,
     val wifiScan: WifiScanDiagnosticInput? = null,
+    /** Velocidade contratada do plano, em Mbps. Fonte: PreferenciasAppRepository.planoInternetFlow. */
+    val velocidadeContratadaMbps: Int? = null,
+    /** Classificacao de NAT/CGNAT da rede atual. Fonte: TopologyDiagnostic/NatClassifier. */
+    val natStatus: NatStatus? = null,
 )

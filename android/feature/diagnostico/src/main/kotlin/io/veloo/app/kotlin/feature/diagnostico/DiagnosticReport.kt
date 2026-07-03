@@ -8,6 +8,7 @@ data class DiagnosticReport(
     val dnsResultados: List<DiagnosticResult> = emptyList(),
     val historicoResultados: List<DiagnosticResult> = emptyList(),
     val wifiCanalResultados: List<DiagnosticResult> = emptyList(),
+    val redeResultados: List<DiagnosticResult> = emptyList(),
     val decisao: DiagnosticResult,
     val perfisUsoSpeedtest: SpeedtestQualityInput? = null,
     val geradoEmMs: Long,
@@ -21,6 +22,7 @@ data class DiagnosticReport(
                 dnsResultados +
                 historicoResultados +
                 wifiCanalResultados +
+                redeResultados +
                 listOf(decisao)
 
     val temCritico: Boolean get() = todos.any { it.status == DiagnosticStatus.critical }
