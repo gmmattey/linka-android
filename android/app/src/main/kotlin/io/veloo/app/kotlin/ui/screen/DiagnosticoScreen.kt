@@ -136,6 +136,9 @@ fun DiagnosticoScreen(
     onIniciarDiagnostico: () -> Unit,
     analiseSolicitada: Boolean,
     onAnaliseSolicitadaChange: (Boolean) -> Unit,
+    /** Toggle "Analise avancada" (SIG-282, Ajustes) — controla se a IA e chamada
+     *  automaticamente. Desligado, a tela usa direto o motor local (AiFallbackFactory). */
+    analiseAvancada: Boolean,
     aiState: AiDiagnosisState,
     onAiStateChange: (AiDiagnosisState) -> Unit,
     onVoltar: () -> Unit,
@@ -175,11 +178,18 @@ fun DiagnosticoScreen(
         }
     }
 
-    LaunchedEffect(snapshotDiagnostico.estado, analiseSolicitada) {
+    LaunchedEffect(snapshotDiagnostico.estado, analiseSolicitada, analiseAvancada) {
         if (!analiseSolicitada) return@LaunchedEffect
         if (aiState is AiDiagnosisState.loading || aiState is AiDiagnosisState.success) return@LaunchedEffect
         val relatorio = snapshotDiagnostico.relatorio ?: return@LaunchedEffect
         if (snapshotDiagnostico.estado != EstadoDiagnostico.concluido) return@LaunchedEffect
+
+        // SIG-282: "Analise avancada" desligada — usa o motor local (Fases 3a/3b)
+        // direto, sem chamar a IA. Nao e erro, entao vai como success normal.
+        if (!analiseAvancada) {
+            onAiStateChange(AiDiagnosisState.success(AiFallbackFactory.fromLocal(relatorio)))
+            return@LaunchedEffect
+        }
 
         onAiStateChange(AiDiagnosisState.loading)
         val connectionType = snapshotDiagnostico.input?.connectionType ?: ConnectionType.desconhecido
@@ -309,11 +319,19 @@ fun DiagnosticoScreen(
                         var mostrarDetalhes by remember { mutableStateOf(false) }
                         AlertDialog(
                             onDismissRequest = { onAiStateChange(AiDiagnosisState.idle) },
-                            title = { Text("IA temporariamente indisponível") },
+                            title = {
+                                Text(if (analiseAvancada) "IA temporariamente indisponível" else "IA desligada")
+                            },
                             text = {
                                 Column {
-                                    Text("A IA não respondeu agora. O diagnóstico local continua funcionando.")
-                                    if (mostrarDetalhes) {
+                                    Text(
+                                        if (analiseAvancada) {
+                                            "A IA não respondeu agora. O diagnóstico local continua funcionando."
+                                        } else {
+                                            "A Análise avançada (IA) está desligada nos Ajustes. O diagnóstico local continua funcionando normalmente."
+                                        },
+                                    )
+                                    if (mostrarDetalhes && analiseAvancada) {
                                         Spacer(Modifier.height(LkSpacing.sm))
                                         Text(
                                             "Código: $codigoAmigavel",
@@ -324,23 +342,33 @@ fun DiagnosticoScreen(
                                 }
                             },
                             confirmButton = {
-                                Button(
-                                    onClick = {
-                                        scope.launch {
-                                            val relatorio = snapshotDiagnostico.relatorio ?: return@launch
-                                            onAiStateChange(AiDiagnosisState.loading)
-                                            val connectionType = snapshotDiagnostico.input?.connectionType ?: ConnectionType.desconhecido
-                                            val ctx = DiagnosisAiContextFactory.from(relatorio, snapshotDiagnostico.input, connectionType)
-                                            onAiStateChange(
-                                                aiRepository.explainDiagnosis(
-                                                    ctx,
-                                                    decisaoLocalStatus = relatorio.decisao.status.name,
-                                                ) { AiFallbackFactory.fromLocal(relatorio) },
-                                            )
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                                ) { Text("Tentar novamente") }
+                                if (analiseAvancada) {
+                                    Button(
+                                        onClick = {
+                                            scope.launch {
+                                                val relatorio = snapshotDiagnostico.relatorio ?: return@launch
+                                                onAiStateChange(AiDiagnosisState.loading)
+                                                val connectionType = snapshotDiagnostico.input?.connectionType ?: ConnectionType.desconhecido
+                                                val ctx = DiagnosisAiContextFactory.from(relatorio, snapshotDiagnostico.input, connectionType)
+                                                onAiStateChange(
+                                                    aiRepository.explainDiagnosis(
+                                                        ctx,
+                                                        decisaoLocalStatus = relatorio.decisao.status.name,
+                                                    ) { AiFallbackFactory.fromLocal(relatorio) },
+                                                )
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                                    ) { Text("Tentar novamente") }
+                                } else {
+                                    Button(
+                                        onClick = {
+                                            val relatorio = snapshotDiagnostico.relatorio ?: return@Button
+                                            onAiStateChange(AiDiagnosisState.success(AiFallbackFactory.fromLocal(relatorio)))
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                                    ) { Text("OK") }
+                                }
                             },
                             dismissButton = {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -348,12 +376,14 @@ fun DiagnosticoScreen(
                                         onAnaliseSolicitadaChange(false)
                                         onAiStateChange(AiDiagnosisState.idle)
                                     }) { Text("Sair") }
-                                    TextButton(onClick = { mostrarDetalhes = !mostrarDetalhes }) {
-                                        Text(
-                                            if (mostrarDetalhes) "Ocultar detalhes" else "Ver detalhes",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = c.textTertiary,
-                                        )
+                                    if (analiseAvancada) {
+                                        TextButton(onClick = { mostrarDetalhes = !mostrarDetalhes }) {
+                                            Text(
+                                                if (mostrarDetalhes) "Ocultar detalhes" else "Ver detalhes",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = c.textTertiary,
+                                            )
+                                        }
                                     }
                                 }
                             },

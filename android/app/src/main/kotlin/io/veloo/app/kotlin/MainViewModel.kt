@@ -187,6 +187,8 @@ class MainViewModel
                 adminIngestRepository = adminIngestRepository,
                 deviceIdProvider = { preferenciasAppRepository.buscarOuGerarAnonDeviceId() },
                 distChannelProvider = { getDistributionChannel(getApplication()) },
+                // SIG-282: IA so dispara automaticamente com o toggle "Analise avancada" ligado.
+                analiseAvancadaProvider = { preferenciasAppRepository.analiseAvancadaFlow.first() },
             )
         }
         val signallQUiStateFlow by lazy {
