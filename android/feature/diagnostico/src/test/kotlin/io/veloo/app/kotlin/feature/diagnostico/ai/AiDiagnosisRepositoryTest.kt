@@ -684,6 +684,56 @@ class AiDiagnosisRepositoryTest {
         assertTrue(json.contains("\"latenciaMs\":101"))
     }
 
+    // -------------------------------------------------------------------------
+    // Fase 1 do bugfix — achadosLocais e rttGatewayMs precisam chegar no payload
+    // real enviado ao Worker. Antes desta correcao, DiagnosisAiContext.achadosLocais
+    // e AiMetricasAtuais.rttGatewayMs existiam no objeto Kotlin mas nunca eram
+    // serializados por contextToJson — a IA "decidia sozinha" sem a ancora do
+    // motor local.
+    // -------------------------------------------------------------------------
+    @Test
+    fun contextToJson_serializaAchadosLocaisERttGateway() {
+        val ctx = DiagnosisAiContext(
+            schemaVersion = "4",
+            generatedAtEpochMs = 1700000000000L,
+            connectionType = io.signallq.app.feature.diagnostico.ConnectionType.wifi,
+            metricasAtuais = AiMetricasAtuais(
+                downloadMbps = 294.0,
+                rttGatewayMs = 12,
+            ),
+            achadosLocais = AchadosDiagnosticoLocal(
+                decisaoId = "DECISAO-GW-01",
+                statusGeral = "attention",
+                score = 62,
+                confianca = 0.82,
+                resultadosRelevantes = listOf("WIFI-01", "INTERNET-03"),
+            ),
+        )
+        val json = repo.contextToJson(ctx).toString()
+
+        assertTrue("rttGatewayMs presente em metricasAtuais", json.contains("\"rttGatewayMs\":12"))
+
+        assertTrue("achadosLocais presente no payload", json.contains("\"achadosLocais\""))
+        assertTrue(json.contains("\"decisaoId\":\"DECISAO-GW-01\""))
+        assertTrue(json.contains("\"statusGeral\":\"attention\""))
+        assertTrue(json.contains("\"score\":62"))
+        assertTrue(json.contains("\"confianca\":0.82"))
+        assertTrue(json.contains("\"WIFI-01\""))
+        assertTrue(json.contains("\"INTERNET-03\""))
+    }
+
+    @Test
+    fun contextToJson_achadosLocaisNull_naoSerializaCampo() {
+        val ctx = DiagnosisAiContext(
+            schemaVersion = "4",
+            generatedAtEpochMs = 1700000000000L,
+            connectionType = io.signallq.app.feature.diagnostico.ConnectionType.wifi,
+            achadosLocais = null,
+        )
+        val json = repo.contextToJson(ctx).toString()
+        assertFalse("achadosLocais omitido quando null", json.contains("achadosLocais"))
+    }
+
     @Test
     fun parser_classificacaoTecnica_dimensoes_ausentes_ficam_null() {
         val json = """

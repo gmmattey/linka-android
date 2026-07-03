@@ -365,6 +365,7 @@ fun LaudoScreen(
                                     unidade = "%",
                                     c = c,
                                     modifier = Modifier.weight(1f),
+                                    nota = "estimado".takeIf { ultimaMedicao.packetLossSource == "estimated" },
                                 )
                                 LaudoMetrica(
                                     label = "Bufferbloat",
@@ -437,6 +438,7 @@ private fun LaudoMetrica(
     unidade: String,
     c: LkTokens,
     modifier: Modifier = Modifier,
+    nota: String? = null,
 ) {
     Column(modifier = modifier) {
         Text(
@@ -458,6 +460,13 @@ private fun LaudoMetrica(
                 fontSize = 11.sp,
                 color = c.textSecondary,
                 modifier = Modifier.padding(bottom = 2.dp),
+            )
+        }
+        if (nota != null) {
+            Text(
+                nota,
+                fontSize = 9.5.sp,
+                color = c.textTertiary,
             )
         }
     }
