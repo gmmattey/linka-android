@@ -21,6 +21,10 @@ data class DiagnosticReport(
     /** Fontes de dado ausentes que, se disponíveis, poderiam refinar o diagnóstico
      *  (ex.: "rttGateway", "fibra"). */
     val dadosAusentes: List<String> = emptyList(),
+    /** Recomendações práticas geradas pelo [RecommendationEngine] a partir dos
+     *  achados do [FindingEngine] — as 12 situações documentadas na skill
+     *  `motor-diagnostico`. Aditivo: pode ter zero, uma ou várias simultâneas. */
+    val recomendacoes: List<DiagnosticResult> = emptyList(),
     val perfisUsoSpeedtest: SpeedtestQualityInput? = null,
     val geradoEmMs: Long,
 ) {

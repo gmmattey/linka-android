@@ -512,6 +512,7 @@ class MainViewModel
                                 jitterMs = it.jitterMs,
                                 perdaPercentual = it.perdaPercentual,
                                 bufferbloatMs = it.bufferbloatMs,
+                                packetLossSource = it.packetLossSource,
                             )
                         }
                     val wifiInput =
@@ -1844,6 +1845,7 @@ class MainViewModel
                     jitterMs = resultado.jitterMs,
                     perdaPercentual = resultado.perdaPercentual,
                     bufferbloatMs = resultado.bufferbloatMs,
+                    packetLossSource = resultado.packetLossSource,
                 )
             }
             return bancoDados.medicaoDao().observarUltimas(1).first().firstOrNull()?.let {
@@ -1854,6 +1856,7 @@ class MainViewModel
                     jitterMs = it.jitterMs,
                     perdaPercentual = it.perdaPercentual,
                     bufferbloatMs = it.bufferbloatMs,
+                    packetLossSource = it.packetLossSource,
                 )
             }
         }

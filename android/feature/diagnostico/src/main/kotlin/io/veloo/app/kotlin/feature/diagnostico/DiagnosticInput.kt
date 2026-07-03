@@ -36,6 +36,11 @@ data class InternetDiagnosticInput(
     /** RTT TCP para o gateway local (porta 80/443/53). Null se não disponível
      *  (emulador, Doze Mode, gateway não responde TCP). */
     val rttGatewayMs: Int? = null,
+    /** Proveniência da medição de [perdaPercentual] — "estimated" (timeout HTTP,
+     *  indício não confiável), "naoMedido", "unknown" ou "modem" (medição direta).
+     *  Fonte: ResultadoSpeedtest.packetLossSource. Usado pelo RecommendationEngine
+     *  para não cravar perda de pacotes como certeza quando é apenas estimada. */
+    val packetLossSource: String? = null,
 )
 
 data class FibraDiagnosticInput(

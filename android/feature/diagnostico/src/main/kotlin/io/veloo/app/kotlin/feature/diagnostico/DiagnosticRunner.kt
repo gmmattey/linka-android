@@ -71,6 +71,8 @@ object DiagnosticRunner {
                 latenciaInternetMs = input.internet?.latencyMs,
             )
 
+        val recomendacoes = RecommendationEngine.recomendar(input = input, achados = achados)
+
         return DiagnosticReport(
             wifiResultados = wifiQuality.resultados,
             internetResultados = internetResultados,
@@ -84,6 +86,7 @@ object DiagnosticRunner {
             achadosSecundarios = achados.secundarios,
             hipotesesDescartadas = achados.hipotesesDescartadas,
             dadosAusentes = achados.dadosAusentes,
+            recomendacoes = recomendacoes,
             perfisUsoSpeedtest = input.internet?.qualidadeUso,
             geradoEmMs = System.currentTimeMillis(),
         )

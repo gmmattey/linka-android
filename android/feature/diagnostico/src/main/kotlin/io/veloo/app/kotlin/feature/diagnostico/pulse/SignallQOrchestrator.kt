@@ -187,6 +187,7 @@ class SignallQOrchestrator(
                 perdaPercentual = resultado.perdaPercentual,
                 bufferbloatMs = resultado.bufferbloatMs,
                 rttGatewayMs = rttGatewayMs,
+                packetLossSource = resultado.packetLossSource,
             )
 
         val wifiInput =
@@ -374,6 +375,7 @@ class SignallQOrchestrator(
                     perdaPercentual = it.perdaPercentual,
                     bufferbloatMs = it.bufferbloatMs,
                     rttGatewayMs = rttGatewayMs,
+                    packetLossSource = it.packetLossSource,
                 )
             } ?: run {
                 val ultimaMedicao = medicaoDao.observarUltimas(1).first().firstOrNull()
@@ -386,6 +388,7 @@ class SignallQOrchestrator(
                         perdaPercentual = it.perdaPercentual,
                         bufferbloatMs = it.bufferbloatMs,
                         rttGatewayMs = rttGatewayMs,
+                        packetLossSource = it.packetLossSource,
                     )
                 }
             }
