@@ -445,6 +445,18 @@ fun AjustesScreen(
                     )
                 }
             }
+            if (BuildConfig.FEATURE_FIBRA_SCREEN) {
+                item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+                item {
+                    SettingItem(
+                        c = c,
+                        icon = Icons.Outlined.Router,
+                        label = "Fibra óptica",
+                        subtitle = modemHost ?: "Não configurado",
+                        onClick = { showRoteadorSheet = true },
+                    )
+                }
+            }
             item { Spacer(Modifier.height(16.dp)) }
             // ── APARÊNCIA ────────────────────────────────────────────────────────────
             item { SectionHeader("Aparência", c) }
@@ -455,7 +467,10 @@ fun AjustesScreen(
                     c = c,
                 )
             }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+            item { Spacer(Modifier.height(16.dp)) }
+
+            // ── NOTIFICAÇÕES ─────────────────────────────────────────────────────────
+            item { SectionHeader("Notificações", c) }
             item {
                 SettingItem(
                     c = c,
@@ -504,6 +519,55 @@ fun AjustesScreen(
                 )
             }
             item { Spacer(Modifier.height(16.dp)) }
+
+            // ── DADOS MÓVEIS ──────────────────────────────────────────────────────────
+            item { SectionHeader("Dados móveis", c) }
+            item {
+                ToggleItem(
+                    c = c,
+                    icon = Icons.Outlined.SignalCellularAlt,
+                    label = "Sempre permitir testes pesados em dados móveis",
+                    subtitle = "Não mostrar aviso para modo Completo e Triplo na próxima vez",
+                    checked = speedtestPermiteHeavyMovel,
+                    onCheckedChange = onSetSpeedtestPermiteHeavyMovel,
+                )
+            }
+            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+            item {
+                val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "0 MB"
+                InfoRow(c, "Consumo em testes este mês", mbLabel)
+            }
+            item { Spacer(Modifier.height(16.dp)) }
+
+            // ── AVANÇADO (feature-flagged: monitoramento passivo / análise avançada) ──
+            if (BuildConfig.FEATURE_LINKPULSE_ATIVO) {
+                item { SectionHeader("Avançado", c) }
+                item {
+                    SettingItem(
+                        c = c,
+                        icon = Icons.Outlined.Sensors,
+                        label = "Monitoramento passivo",
+                        subtitle =
+                            when {
+                                !monitoramentoAtivo -> "Desativado"
+                                OemKillInfo.fabricanteRiscoAlto -> "Ativo · pode ser limitado pelo sistema"
+                                else -> "Ativo"
+                            },
+                        onClick = { showDiagnosticoSheet = true },
+                    )
+                }
+                item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+                item {
+                    SettingItem(
+                        c = c,
+                        icon = Icons.Outlined.Analytics,
+                        label = "Análise avançada",
+                        subtitle = if (analiseAvancada) "Ativa" else "Desativada",
+                        onClick = { showDiagnosticoSheet = true },
+                    )
+                }
+                item { Spacer(Modifier.height(16.dp)) }
+            }
 
             // ── INFORMAÇÕES ───────────────────────────────────────────────────────────
             item { SectionHeader("Informações", c) }
@@ -556,17 +620,6 @@ fun AjustesScreen(
             item {
                 SettingItem(
                     c = c,
-                    icon = Icons.Outlined.Delete,
-                    label = "Redefinir o app",
-                    subtitle = "Apaga todos os dados e restaura configurações iniciais",
-                    onClick = { showConfirmResetApp = true },
-                    tintError = true,
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                SettingItem(
-                    c = c,
                     icon = Icons.Outlined.Info,
                     label = "Sobre o SignallQ",
                     subtitle = "v$appVersion · Android · Kotlin",
@@ -575,70 +628,17 @@ fun AjustesScreen(
             }
             item { Spacer(Modifier.height(16.dp)) }
 
-            // ── DADOS MÓVEIS ──────────────────────────────────────────────────────────
-            item { SectionHeader("Dados móveis", c) }
+            // ── ZONA DE RISCO ─────────────────────────────────────────────────────────
+            item { SectionHeader("Zona de risco", c) }
             item {
-                ToggleItem(
+                SettingItem(
                     c = c,
-                    icon = Icons.Outlined.SignalCellularAlt,
-                    label = "Sempre permitir testes pesados em dados móveis",
-                    subtitle = "Não mostrar aviso para modo Completo e Triplo na próxima vez",
-                    checked = speedtestPermiteHeavyMovel,
-                    onCheckedChange = onSetSpeedtestPermiteHeavyMovel,
+                    icon = Icons.Outlined.Delete,
+                    label = "Redefinir o app",
+                    subtitle = "Apaga todos os dados e restaura configurações iniciais",
+                    onClick = { showConfirmResetApp = true },
+                    tintError = true,
                 )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "0 MB"
-                InfoRow(c, "Consumo em testes este mês", mbLabel)
-            }
-            item { Spacer(Modifier.height(16.dp)) }
-
-            // ── AVANÇADO (feature-flagged) ────────────────────────────────────────────
-            val showAvancado = BuildConfig.FEATURE_FIBRA_SCREEN || BuildConfig.FEATURE_DNS_SCREEN || BuildConfig.FEATURE_LINKPULSE_ATIVO
-            if (showAvancado) {
-                item { SectionHeader("Avançado", c) }
-                if (BuildConfig.FEATURE_FIBRA_SCREEN) {
-                    item {
-                        SettingItem(
-                            c = c,
-                            icon = Icons.Outlined.Router,
-                            label = "Fibra óptica",
-                            subtitle = modemHost ?: "Não configurado",
-                            onClick = { showRoteadorSheet = true },
-                        )
-                    }
-                }
-                if (BuildConfig.FEATURE_LINKPULSE_ATIVO) {
-                    if (BuildConfig.FEATURE_FIBRA_SCREEN) {
-                        item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-                    }
-                    item {
-                        SettingItem(
-                            c = c,
-                            icon = Icons.Outlined.Sensors,
-                            label = "Monitoramento passivo",
-                            subtitle =
-                                when {
-                                    !monitoramentoAtivo -> "Desativado"
-                                    OemKillInfo.fabricanteRiscoAlto -> "Ativo · pode ser limitado pelo sistema"
-                                    else -> "Ativo"
-                                },
-                            onClick = { showDiagnosticoSheet = true },
-                        )
-                    }
-                    item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-                    item {
-                        SettingItem(
-                            c = c,
-                            icon = Icons.Outlined.Analytics,
-                            label = "Análise avançada",
-                            subtitle = if (analiseAvancada) "Ativa" else "Desativada",
-                            onClick = { showDiagnosticoSheet = true },
-                        )
-                    }
-                }
-                item { Spacer(Modifier.height(16.dp)) }
             }
 
             item {
