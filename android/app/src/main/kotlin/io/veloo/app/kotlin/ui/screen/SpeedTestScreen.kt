@@ -366,6 +366,7 @@ private fun BlocoCirculoSpeedTest(
         progresso = snapshotSpeedtest.progressoPercentual,
         fase = snapshotSpeedtest.faseAtual,
         velocidadeMbps = if (snapshotSpeedtest.aguardandoProximaRodada) 0.0 else snapshotSpeedtest.velocidadeAtualMbps,
+        conectado = snapshotRede.conectado,
         onIniciarTeste = onIniciarTeste,
     )
 
@@ -499,6 +500,7 @@ private fun SpeedTestCircle(
     progresso: Int,
     fase: FaseSpeedtest,
     velocidadeMbps: Double,
+    conectado: Boolean,
     onIniciarTeste: () -> Unit,
 ) {
     Box(
@@ -507,7 +509,7 @@ private fun SpeedTestCircle(
     ) {
         when (estado) {
             EstadoExecucaoSpeedtest.idle -> {
-                IdleCircle(onIniciarTeste = onIniciarTeste)
+                IdleCircle(onIniciarTeste = onIniciarTeste, habilitado = conectado)
             }
             EstadoExecucaoSpeedtest.erro -> {
                 ErrorCircle(onTentarNovamente = onIniciarTeste)
@@ -527,7 +529,10 @@ private fun SpeedTestCircle(
 }
 
 @Composable
-private fun IdleCircle(onIniciarTeste: () -> Unit) {
+private fun IdleCircle(
+    onIniciarTeste: () -> Unit,
+    habilitado: Boolean = true,
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -550,22 +555,25 @@ private fun IdleCircle(onIniciarTeste: () -> Unit) {
         label = "glow",
     )
 
+    val corBotao = if (habilitado) LkColors.accent else LkColors.accent.copy(alpha = 0.4f)
+    val cdBotao = if (habilitado) "Iniciar teste de velocidade" else "Iniciar teste de velocidade, indisponível sem conexão"
+
     Box(contentAlignment = Alignment.Center) {
         Box(
             modifier =
                 Modifier
                     .size(220.dp)
-                    .background(LkColors.accent.copy(alpha = glowAlpha), CircleShape),
+                    .background(corBotao.copy(alpha = if (habilitado) glowAlpha else glowAlpha * 0.5f), CircleShape),
         )
         Box(
             modifier =
                 Modifier
                     .size(210.dp)
-                    .scale(scale)
+                    .scale(if (habilitado) scale else 1f)
                     .clip(CircleShape)
-                    .background(LkColors.accent)
-                    .semantics { contentDescription = "Iniciar teste de velocidade" }
-                    .clickable(onClick = onIniciarTeste),
+                    .background(corBotao)
+                    .semantics { contentDescription = cdBotao }
+                    .clickable(enabled = habilitado, onClick = onIniciarTeste),
             contentAlignment = Alignment.Center,
         ) {
             Text(
