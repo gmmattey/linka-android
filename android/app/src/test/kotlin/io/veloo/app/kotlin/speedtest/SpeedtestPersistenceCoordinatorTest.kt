@@ -266,44 +266,48 @@ class SpeedtestPersistenceCoordinatorTest {
 
     @Test
     fun `resolverOperadorPersistencia usa operadora movel quando conexao e movel`() {
-        val resultado = resolverOperadorPersistencia(
-            estadoConexao = EstadoConexao.movel,
-            operadoraMovelDetectada = "Claro",
-            ispWifiDetectado = "ISP QUE NAO DEVERIA SER USADO",
-        )
+        val resultado =
+            resolverOperadorPersistencia(
+                estadoConexao = EstadoConexao.movel,
+                operadoraMovelDetectada = "Claro",
+                ispWifiDetectado = "ISP QUE NAO DEVERIA SER USADO",
+            )
 
         assertEquals("Claro", resultado)
     }
 
     @Test
     fun `resolverOperadorPersistencia usa ISP catalogado quando conexao e wifi`() {
-        val resultado = resolverOperadorPersistencia(
-            estadoConexao = EstadoConexao.wifi,
-            operadoraMovelDetectada = null,
-            ispWifiDetectado = "TELEFONICA BRASIL S.A",
-        )
+        val resultado =
+            resolverOperadorPersistencia(
+                estadoConexao = EstadoConexao.wifi,
+                operadoraMovelDetectada = null,
+                ispWifiDetectado = "TELEFONICA BRASIL S.A",
+            )
 
         assertEquals("Vivo", resultado)
     }
 
     @Test
     fun `resolverOperadorPersistencia usa ISP cru quando nao reconhecido pelo catalogo`() {
-        val resultado = resolverOperadorPersistencia(
-            estadoConexao = EstadoConexao.wifi,
-            operadoraMovelDetectada = null,
-            ispWifiDetectado = "NC BRASIL TELECOM E SERVICOS LTDA- ME",
-        )
+        val resultado =
+            resolverOperadorPersistencia(
+                estadoConexao = EstadoConexao.wifi,
+                operadoraMovelDetectada = null,
+                ispWifiDetectado = "NC BRASIL TELECOM E SERVICOS LTDA- ME",
+            )
 
         assertEquals("NC BRASIL TELECOM E SERVICOS LTDA- ME", resultado)
     }
 
     @Test
     fun `resolverOperadorPersistencia retorna null quando wifi sem ISP detectado`() {
-        val resultado = resolverOperadorPersistencia(
-            estadoConexao = EstadoConexao.wifi,
-            operadoraMovelDetectada = null,
-            ispWifiDetectado = null,
-        )
+        val resultado =
+            resolverOperadorPersistencia(
+                estadoConexao = EstadoConexao.wifi,
+                operadoraMovelDetectada = null,
+                ispWifiDetectado = null,
+            )
 
         assertNull(resultado)
     }
