@@ -1,17 +1,20 @@
-import { AiProvider } from "./ai";
-
 export type AppEnvironment = "production" | "staging" | "all";
 
 export interface SystemErrorLog {
   id: string;
   timestamp: string;
   source: "worker" | "android_app" | "analytics_db" | "ai_gateway";
+  // GH#422: categoria por camada — opcional para não quebrar mocks antigos.
+  category?: "app" | "backend" | "ia" | "integration";
   message: string;
   stackTrace?: string;
   count: number;
   environment: AppEnvironment;
   resolved: boolean;
   affectedUserCount: number;
+  resolvedBy?: string;
+  resolvedAt?: string | null;
+  resolutionNote?: string;
 }
 
 export interface AppVersionDetail {
@@ -48,13 +51,21 @@ export interface OperatorRecord {
   customerSatisfactionPercentage: number; // 0 to 100 based on diagnostics feedback
 }
 
+/**
+ * Ajustes persistidos em `admin_settings` (chave 'admin') e efetivamente
+ * consumidos pelo signallq-admin-worker em GET /admin/metrics/alerts
+ * (ver GH#426 e docs_ai/technical/admin-api-schema.md).
+ *
+ * Todo campo deste contrato precisa ter consumidor real no worker ou no app.
+ * Campos sem consumidor comprovado (roteamento de IA, quotas de speedtest,
+ * webhooks de alerta, retenção, monetização) foram removidos daqui — ver
+ * GH#426 para o levantamento completo do que era decorativo.
+ */
 export interface AdminSettingsPayload {
-  selectedDefaultAiModel: AiProvider;
-  aiFallbackEnabled: boolean;
-  maxTokensPerDiagnostic: number;
-  speedtestIntervalSeconds: number;
-  androidLogsCollectionEnabled: boolean;
-  stagingAlertWebhookUrl: string;
-  productionAlertWebhookUrl: string;
-  cloudflareWorkerEndpoint: string;
+  /** Custo de IA (USD) acumulado nas últimas 24h acima do qual o alerta AI_BUDGET dispara. */
+  aiDailyBudgetUsd: number;
+  /** Erros na última hora acima do qual o alerta ERROR_SPIKE dispara. */
+  errorSpikeThreshold: number;
+  /** Score médio (0-100) nas últimas 24h abaixo do qual o alerta LOW_SCORE dispara. */
+  criticalScoreThreshold: number;
 }
