@@ -12,6 +12,7 @@ on:
       - 'SignallQ Admin/**'
       - 'deploy/pages/**'
       - '.github/workflows/pages-deploy.yml'
+  workflow_dispatch: {}
 
 permissions:
   contents: read
