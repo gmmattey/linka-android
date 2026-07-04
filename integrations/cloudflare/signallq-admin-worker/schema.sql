@@ -92,6 +92,17 @@ CREATE TABLE IF NOT EXISTS system_errors (
 );
 CREATE INDEX IF NOT EXISTS idx_system_errors_last_seen ON system_errors(last_seen);
 
+-- GH#422: fluxo operacional de erros — resolução real (responsável, data,
+-- observação) e diferenciação de origem (app | backend | ia | integration).
+-- Aplicar via: migrations/010_gh422.sql (npx wrangler d1 execute --file=... --remote)
+ALTER TABLE system_errors ADD COLUMN category       TEXT    NOT NULL DEFAULT 'backend';
+ALTER TABLE system_errors ADD COLUMN resolved       INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE system_errors ADD COLUMN resolved_by    TEXT    DEFAULT '';
+ALTER TABLE system_errors ADD COLUMN resolved_at    INTEGER DEFAULT 0;
+ALTER TABLE system_errors ADD COLUMN resolution_note TEXT   DEFAULT '';
+CREATE INDEX IF NOT EXISTS idx_system_errors_resolved ON system_errors(resolved);
+CREATE INDEX IF NOT EXISTS idx_system_errors_category ON system_errors(category);
+
 -- SIG-136: Auth própria via D1 — usuários admin, sessões httpOnly, rate limiting
 CREATE TABLE IF NOT EXISTS admin_users (
   id            TEXT    PRIMARY KEY,
