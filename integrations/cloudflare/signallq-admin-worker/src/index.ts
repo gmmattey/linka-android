@@ -1319,19 +1319,37 @@ function djb2(s: string): string {
   return h.toString(16).padStart(8, '0');
 }
 
+// GH#422: categoriza a origem do erro para diferenciar app / backend / IA /
+// integração no painel (antes só existia o campo `source` livre, sem semântica
+// de camada). Mapeamento fixo por `source` conhecido do próprio Worker —
+// `source` de erros vindos do app real (feature_crash) usa categoria 'app'
+// diretamente em handleErrors, não passa por aqui.
+const ERROR_CATEGORY_BY_SOURCE: Record<string, 'app' | 'backend' | 'ia' | 'integration'> = {
+  'firebase':               'integration',
+  'bigquery-crashlytics':   'integration',
+  'bigquery-versions':      'integration',
+  'bigquery-crash-issues':  'integration',
+  'ai-usage':               'ia',
+};
+
+function errorCategoryForSource(source: string): 'app' | 'backend' | 'ia' | 'integration' {
+  return ERROR_CATEGORY_BY_SOURCE[source] ?? 'backend';
+}
+
 // Fire-and-forget: nunca propaga exceção. Deduplica por (source + message) via hash djb2.
 async function logError(env: Env, source: string, message: string, stack = ''): Promise<void> {
   try {
     const id = djb2(`${source}:${message}`);
     const now = Date.now();
+    const category = errorCategoryForSource(source);
     await env.DB.prepare(`
-      INSERT INTO system_errors (id, source, message, stack_trace, count, first_seen, last_seen)
-      VALUES (?, ?, ?, ?, 1, ?, ?)
+      INSERT INTO system_errors (id, source, category, message, stack_trace, count, first_seen, last_seen)
+      VALUES (?, ?, ?, ?, ?, 1, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         count       = count + 1,
         last_seen   = excluded.last_seen,
         stack_trace = excluded.stack_trace
-    `).bind(id, source, message, stack, now, now).run();
+    `).bind(id, source, category, message, stack, now, now).run();
   } catch { /* fire-and-forget — nunca propaga */ }
 }
 
@@ -1348,9 +1366,13 @@ function withErrorLogging(source: string, handler: Handler): Handler {
   };
 }
 
+// GH#422: por padrão só devolve erros ativos (resolved=0) — é o que faz o
+// erro "deixar de aparecer como ativo" quando tratado (critério de aceite).
+// ?resolved=all devolve tudo (histórico); ?resolved=true devolve só resolvidos.
 async function handleErrors(request: Request, env: Env): Promise<Response> {
-  const url    = new URL(request.url);
-  const period = url.searchParams.get("period") ?? "30d";
+  const url        = new URL(request.url);
+  const period     = url.searchParams.get("period") ?? "30d";
+  const resolvedQ  = url.searchParams.get("resolved"); // null | "all" | "true" | "false"
   // Fase A: o parâmetro ?environment= enviado pelo frontend é IGNORADO aqui.
   // A tabela system_errors não possui coluna environment — os erros são do worker,
   // não do app. Filtro por environment entra na Fase B junto com SIG-143.
@@ -1358,29 +1380,136 @@ async function handleErrors(request: Request, env: Env): Promise<Response> {
   // Multiplicamos por 1000 para ficar na mesma escala.
   const sinceMs = (Date.now()) - periodToSeconds(period) * 1000;
 
+  const resolvedClause =
+    resolvedQ === "all"   ? ""                 :
+    resolvedQ === "true"  ? " AND resolved = 1" :
+    " AND resolved = 0"; // default: só erros ativos
+
   const rows = await env.DB.prepare(
-    `SELECT id, source, message, stack_trace, count, first_seen, last_seen
+    `SELECT id, source, category, message, stack_trace, count, first_seen, last_seen,
+            resolved, resolved_by, resolved_at, resolution_note
      FROM system_errors
-     WHERE last_seen >= ?
+     WHERE last_seen >= ?${resolvedClause}
      ORDER BY count DESC, last_seen DESC
      LIMIT 100`
   ).bind(sinceMs).all();
 
-  const errors = (rows.results ?? []).map((r: any) => ({
+  const workerErrors = (rows.results ?? []).map((r: any) => ({
     id:               r.id,
     source:           r.source,
+    category:         r.category ?? 'backend',
     message:          r.message,
     stackTrace:       r.stack_trace ?? '',
     count:            r.count       ?? 1,
-    first_seen:       r.first_seen,
-    last_seen:        r.last_seen,
     timestamp:        new Date(r.last_seen).toISOString(),
     // O backend não rastreia usuários únicos por erro — sem PII no D1.
     // Derivar por device_id (já presente em diagnostic_sessions) é Fase B.
     affectedUserCount: 0,
+    resolved:         r.resolved === 1,
+    resolvedBy:       r.resolved_by ?? '',
+    resolvedAt:       r.resolved_at ? new Date(r.resolved_at).toISOString() : null,
+    resolutionNote:   r.resolution_note ?? '',
   }));
 
+  // GH#422 gap 5: integra fonte real de erro do app — feature_crash já é
+  // aceito por /ingest/analytics (whitelist), mas nunca era lido aqui.
+  // Resolução desses eventos usa a mesma tabela system_errors (chave =
+  // "app:<id do evento>"), criada sob demanda em handleResolveSystemError.
+  const sinceSec = Math.floor(sinceMs / 1000);
+  const crashRows = await env.DB.prepare(
+    `SELECT id, event_name, error_type, session_id, created_at
+     FROM analytics_events
+     WHERE event_name = 'feature_crash' AND created_at >= ?
+     ORDER BY created_at DESC
+     LIMIT 100`
+  ).bind(sinceSec).all();
+
+  const appErrorIds = (crashRows.results ?? []).map((r: any) => `app:${r.id}`);
+  const resolutionByAppId = new Map<string, { resolved: boolean; resolvedBy: string; resolvedAt: number | null; resolutionNote: string }>();
+  if (appErrorIds.length > 0) {
+    const placeholders = appErrorIds.map(() => '?').join(',');
+    const resRows = await env.DB.prepare(
+      `SELECT id, resolved, resolved_by, resolved_at, resolution_note
+       FROM system_errors WHERE id IN (${placeholders})`
+    ).bind(...appErrorIds).all();
+    for (const r of (resRows.results ?? []) as any[]) {
+      resolutionByAppId.set(r.id, {
+        resolved:       r.resolved === 1,
+        resolvedBy:     r.resolved_by ?? '',
+        resolvedAt:     r.resolved_at || null,
+        resolutionNote: r.resolution_note ?? '',
+      });
+    }
+  }
+
+  const appErrors = (crashRows.results ?? [])
+    .map((r: any) => {
+      const id  = `app:${r.id}`;
+      const res = resolutionByAppId.get(id);
+      return {
+        id,
+        source:            'android_app',
+        category:          'app' as const,
+        message:           r.error_type || 'Crash reportado pelo app (sem error_type)',
+        stackTrace:        '',
+        count:             1,
+        timestamp:         new Date(r.created_at * 1000).toISOString(),
+        affectedUserCount: 0,
+        resolved:          res?.resolved ?? false,
+        resolvedBy:        res?.resolvedBy ?? '',
+        resolvedAt:        res?.resolvedAt ? new Date(res.resolvedAt).toISOString() : null,
+        resolutionNote:    res?.resolutionNote ?? '',
+      };
+    })
+    .filter((e: { resolved: boolean }) => {
+      if (resolvedQ === "all") return true;
+      if (resolvedQ === "true") return e.resolved;
+      return !e.resolved; // default e "false": só ativos
+    });
+
+  const errors = [...workerErrors, ...appErrors]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 100);
+
   return json({ source: "d1", period, errors }, 200, env);
+}
+
+// POST /admin/errors/:id/resolve — GH#422. Marca erro (do worker ou do app)
+// como resolvido, gravando responsável (da sessão autenticada), data (server)
+// e observação (body). UPSERT: erros "app:<id>" ainda não têm linha em
+// system_errors (só existem via analytics_events) — cria a linha sob demanda.
+async function handleResolveSystemError(request: Request, env: Env, session: { userId: string; role: string }): Promise<Response> {
+  const url   = new URL(request.url);
+  const match = url.pathname.match(/^\/admin\/errors\/([^/]+)\/resolve$/);
+  if (!match) return err('id inválido', 400, env);
+  const id = decodeURIComponent(match[1]);
+
+  let body: any = {};
+  try { body = await request.json(); } catch { /* body opcional */ }
+  const note = typeof body.note === 'string' ? body.note.slice(0, 2000) : '';
+
+  const userRow = await env.DB.prepare(
+    'SELECT email FROM admin_users WHERE id = ?'
+  ).bind(session.userId).first<{ email: string }>();
+  const resolvedBy = userRow?.email ?? 'admin';
+  const now = Date.now();
+
+  // A categoria abaixo só é gravada se a linha ainda não existir (ON CONFLICT
+  // não a atualiza) — para erros do worker que já existem em system_errors,
+  // a categoria original (gravada por logError) é preservada.
+  const isAppError = id.startsWith('app:');
+
+  await env.DB.prepare(`
+    INSERT INTO system_errors (id, source, category, message, stack_trace, count, first_seen, last_seen, resolved, resolved_by, resolved_at, resolution_note)
+    VALUES (?, ?, ?, '', '', 1, ?, ?, 1, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      resolved        = 1,
+      resolved_by     = excluded.resolved_by,
+      resolved_at     = excluded.resolved_at,
+      resolution_note = excluded.resolution_note
+  `).bind(id, isAppError ? 'android_app' : 'unknown', isAppError ? 'app' : 'backend', now, now, resolvedBy, now, note).run();
+
+  return json({ ok: true, id, resolvedBy, resolvedAt: new Date(now).toISOString() }, 200, env);
 }
 
 // --- handlers /ingest ---
@@ -1836,6 +1965,11 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/metrics\/analytics\/battery$/,          handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/analytics\/battery$/,                   handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/metrics\/errors$/,                      handler: handleErrors },
+  { method: "POST", pattern: /^\/admin\/errors\/[^/]+\/resolve$/,               handler: withErrorLogging('errors', async (req, env) => {
+      const session = await authenticateSession(req, env);
+      if (!session) return err('Unauthorized', 401, env);
+      return handleResolveSystemError(req, env, session);
+    }) },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crashlytics$/,  handler: handleFirebaseCrashlytics },
