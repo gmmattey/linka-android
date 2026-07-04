@@ -1,6 +1,6 @@
 # SignallQ Android AI Documentation
 
-**Versao:** v0.16.0 (versionCode 46, release 2026-06-21) | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
+**Versao:** v0.21.0 (versionCode 52, release 2026-06-22) | Docs atualizados: 2026-06-26 | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
 Recuperacao rapida, fatos operacionais, inferencia minima.
 
 > Ponto de entrada obrigatorio antes de carregar qualquer doc especifico.
@@ -60,6 +60,9 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [API Map (`technical/API_MAP.md`)](./technical/API_MAP.md)
 - [AI Flow (`technical/AI_FLOW.md`)](./technical/AI_FLOW.md)
 - [Cloudflare Integration (`technical/CLOUDFLARE.md`)](./technical/CLOUDFLARE.md) — worker `linka-ai-diagnosis-worker`, modelo padrao Qwen3 30B, fallback local
+- [Admin API Schema (`technical/admin-api-schema.md`)](./technical/admin-api-schema.md) — schema D1 e contratos do `signallq-admin`
+- [Analytics Events (`technical/analytics-events.md`)](./technical/analytics-events.md) — contrato de eventos Firebase Analytics
+- [Paridade Plataformas (`technical/paridade-plataformas.md`)](./technical/paridade-plataformas.md) — matriz Android x PWA e limites de browser
 - [Storage Details (`technical/STORAGE.md`)](./technical/STORAGE.md) — Room v10, DataStore
 - [Services Overview (`technical/SERVICES.md`)](./technical/SERVICES.md)
 - [Build System (`technical/BUILD_SYSTEM.md`)](./technical/BUILD_SYSTEM.md)
@@ -70,10 +73,14 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [Ping Executor Architecture (`technical/PING_EXECUTOR_ARCHITECTURE.md`)](./technical/PING_EXECUTOR_ARCHITECTURE.md)
 - [AI Flow / Otimização — Deep Dive (`technical/OPTIMIZATION_DEEP_DIVE.md`)](./technical/OPTIMIZATION_DEEP_DIVE.md)
 - [Execution Roadmap (`technical/EXECUTION_ROADMAP.md`)](./technical/EXECUTION_ROADMAP.md)
+- [Migração Arquitetura 2026 (`technical/architecture/MIGRACAO_ARQUITETURA_2026.md`)](./technical/architecture/MIGRACAO_ARQUITETURA_2026.md)
 
 ### Migrations
 
-- [Repositório IA como Singleton via Hilt (`migrations/repositorio-ia-hilt-singleton.md`)](./migrations/repositorio-ia-hilt-singleton.md) — unificação de AiDiagnosisRepository, centralização de URL, Hilt Singleton Component
+- [Cache IA com expiração 5min (`technical/migrations/cache-ia-com-expiracao-5min.md`)](./technical/migrations/cache-ia-com-expiracao-5min.md)
+- [Orquestrador para feature diagnóstico (`technical/migrations/orquestrador-para-feature-diagnostico.md`)](./technical/migrations/orquestrador-para-feature-diagnostico.md)
+- [Remover dependências cruzadas entre features (`technical/migrations/remover-dependencias-cruzadas-features.md`)](./technical/migrations/remover-dependencias-cruzadas-features.md)
+- [Repositório IA como Singleton via Hilt (`technical/migrations/repositorio-ia-hilt-singleton.md`)](./technical/migrations/repositorio-ia-hilt-singleton.md) — unificação de AiDiagnosisRepository, centralização de URL, Hilt Singleton Component
 
 ### Decisions (ADRs)
 
@@ -81,6 +88,8 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [ADR-002 — Ktlint + Detekt (`decisions/ADR-002-ktlint-detekt-quality.md`)](./decisions/ADR-002-ktlint-detekt-quality.md)
 - [ADR-003 — DispatcherProvider via DI (`decisions/ADR-003-dispatcher-provider-di.md`)](./decisions/ADR-003-dispatcher-provider-di.md)
 - [ADR-004 — Module Structure (`decisions/ADR-004-module-structure-android.md`)](./decisions/ADR-004-module-structure-android.md)
+- [ADR-005 — Custo IA Free Tier + Fallback (`decisions/ADR-005-custo-ia-free-tier-fallback.md`)](./decisions/ADR-005-custo-ia-free-tier-fallback.md)
+- [ADR-005 — iOS Scaffolding sem agente (`decisions/ADR-005-ios-scaffolding-sem-agente.md`)](./decisions/ADR-005-ios-scaffolding-sem-agente.md)
 
 ---
 
@@ -96,10 +105,30 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [Admin Auth (`operations/ADMIN_AUTH.md`)](./operations/ADMIN_AUTH.md) — autenticacao propria do painel via D1 (SIG-136)
 - [Admin Panel (`operations/ADMIN_PANEL.md`)](./operations/ADMIN_PANEL.md) — estado real do painel, telas, schema D1, endpoints, etapas manuais do Luiz (SIG-143/136/132/125/133)
 - [APK Output Policy (`operations/APK_OUTPUT_POLICY.md`)](./operations/APK_OUTPUT_POLICY.md) — convenção de nomes e destinos de APKs/AABs
+- [CI/CD (`operations/ci-cd.md`)](./operations/ci-cd.md)
 - [Guia Release Build (`operations/GuiaReleaseBuild.md`)](./operations/GuiaReleaseBuild.md) — passo a passo de build de release
 - [Maintenance Plan (`operations/MAINTENANCE_PLAN.md`)](./operations/MAINTENANCE_PLAN.md) — plano de manutenção contínua
 - [Pipeline Autônomo (`operations/PIPELINE_AUTONOMO.md`)](./operations/PIPELINE_AUTONOMO.md) — fluxo autônomo de agentes: intake → merge
 - [Workflow Board (`operations/WORKFLOW_BOARD.md`)](./operations/WORKFLOW_BOARD.md) — board de status e fluxo de trabalho
+- [Third Party Notices (`operations/THIRD_PARTY_NOTICES.md`)](./operations/THIRD_PARTY_NOTICES.md)
+- [Manifest Audit (`operations/MANIFEST_AUDIT.md`)](./operations/MANIFEST_AUDIT.md) — auditoria de segurança do AndroidManifest
+- [Infrastructure Costs (`operations/INFRASTRUCTURE_COSTS.md`)](./operations/INFRASTRUCTURE_COSTS.md) — custos estimados por fase
+- [Hotfix Procedure (`operations/HOTFIX_PROCEDURE.md`)](./operations/HOTFIX_PROCEDURE.md) — SLA e fluxo de hotfix
+- [Go/No-Go Checklist (`operations/GO_NOGO_CHECKLIST.md`)](./operations/GO_NOGO_CHECKLIST.md) — checklists por milestone
+- [Rollback Plan (`operations/ROLLBACK_PLAN.md`)](./operations/ROLLBACK_PLAN.md) — procedimento de rollback
+- [Rollout Transition (`operations/ROLLOUT_TRANSITION.md`)](./operations/ROLLOUT_TRANSITION.md) — closed beta → open beta → produção
+- [Hypercare Plan (`operations/HYPERCARE_PLAN.md`)](./operations/HYPERCARE_PLAN.md) — monitoramento 30 dias pós-launch
+- [Beta Criteria (`operations/BETA_CRITERIA.md`)](./operations/BETA_CRITERIA.md) — critérios de entrada/saída beta
+- [Device Test Matrix (`operations/DEVICE_TEST_MATRIX.md`)](./operations/DEVICE_TEST_MATRIX.md) — matriz de dispositivos para QA
+- [Runbook Launch (`operations/RUNBOOK_LAUNCH.md`)](./operations/RUNBOOK_LAUNCH.md) — runbook completo de go-live
+- [Play Store Listing (`operations/PLAY_STORE_LISTING.md`)](./operations/PLAY_STORE_LISTING.md) — descrição e copy para Play Store
+- [FAQ Users (`operations/FAQ_USERS.md`)](./operations/FAQ_USERS.md) — perguntas frequentes para usuários
+- [Dependency Audit (`technical/DEPENDENCY_AUDIT.md`)](./technical/DEPENDENCY_AUDIT.md) — auditoria de dependências e CVEs
+
+### Legal
+
+- [Terms of Use (`legal/TERMS_OF_USE.md`)](./legal/TERMS_OF_USE.md) — termos de uso do app
+- Privacy Policy (`legal/PRIVACY_POLICY.md`) — política de privacidade LGPD (em preparação)
 
 ---
 

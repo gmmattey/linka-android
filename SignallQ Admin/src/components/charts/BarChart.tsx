@@ -37,8 +37,16 @@ export const BarChart: React.FC<BarChartProps> = ({
 
   if (!isMounted) {
     return (
-      <div style={{ height }} className="w-full flex items-center justify-center bg-zinc-950/20 rounded-xl animate-pulse">
-        <span className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">Processando Grid...</span>
+      <div
+        style={{ height, backgroundColor: "color-mix(in srgb, var(--sq-bg-primary) 20%, transparent)" }}
+        className="w-full flex items-center justify-center rounded-xl animate-pulse"
+      >
+        <span
+          className="text-[10px] font-mono tracking-widest uppercase"
+          style={{ color: "var(--sq-text-tertiary)" }}
+        >
+          Processando Grid...
+        </span>
       </div>
     );
   }
@@ -50,35 +58,35 @@ export const BarChart: React.FC<BarChartProps> = ({
           data={data}
           margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#222225" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--sq-border-subtle)" />
           <XAxis
             dataKey={xAxisKey}
-            stroke="#6B7280"
-            fontSize={10}
-            fontFamily="JetBrains Mono"
+            stroke="var(--sq-text-tertiary)"
+            fontSize={11}
+            fontFamily="var(--sq-font-sans)"
             tickLine={false}
             axisLine={false}
             dy={8}
           />
           <YAxis
-            stroke="#6B7280"
-            fontSize={10}
-            fontFamily="JetBrains Mono"
+            stroke="var(--sq-text-tertiary)"
+            fontSize={11}
+            fontFamily="var(--sq-font-sans)"
             tickLine={false}
             axisLine={false}
             dx={-8}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#111111",
-              border: "1px solid #262626",
+              backgroundColor: "var(--sq-bg-card)",
+              border: "1px solid var(--sq-border)",
               borderRadius: "10px",
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "var(--sq-font-sans)",
               fontSize: "12px",
-              color: "#F3F4F6",
+              color: "var(--sq-text-primary)",
             }}
-            itemStyle={{ color: "#F3F4F6", fontFamily: "Inter" }}
-            labelStyle={{ color: "#9CA3AF", fontFamily: "JetBrains Mono", fontSize: "10px" }}
+            itemStyle={{ color: "var(--sq-text-primary)", fontFamily: "var(--sq-font-sans)" }}
+            labelStyle={{ color: "var(--sq-text-secondary)", fontFamily: "var(--sq-font-sans)", fontSize: "11px" }}
           />
           <Legend
             verticalAlign="top"
@@ -87,8 +95,8 @@ export const BarChart: React.FC<BarChartProps> = ({
             iconSize={8}
             wrapperStyle={{
               fontSize: "11px",
-              fontFamily: "Inter",
-              color: "#9CA3AF",
+              fontFamily: "var(--sq-font-sans)",
+              color: "var(--sq-text-secondary)",
             }}
           />
           {series.map((s) => (

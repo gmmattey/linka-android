@@ -19,6 +19,8 @@ key.properties
 *.keystore
 *.crt
 *.key
+play-service-account*.json
+play-publisher*.json
 .env
 .env.*
 !.env.example
@@ -34,9 +36,11 @@ __pycache__/
 *.apk
 *.aab
 
-# Segredos e certificados locais
-segredos/
-certificados/
+# Segredos e certificados locais (apenas o conteúdo — o diretório é rastreado)
+segredos/*
+!segredos/.gitkeep
+certificados/*
+!certificados/.gitkeep
 
 # Issues locais migradas (mantidas como histórico opcional — descomente para ignorar)
 # .issues/
@@ -52,3 +56,13 @@ tests/prints/TEMP.md
 
 # Índice de memória gerado pelo harness (grande, não versionável)
 memory-index.json
+
+# Design system — artefatos gerados pelo converter (nunca versionar)
+packages/design-system/ds-bundle/
+packages/design-system/.design-sync/.cache/
+packages/design-system/.design-sync/learnings/
+packages/design-system/.design-sync/node_modules/
+packages/design-system/.ds-sync/
+packages/design-system/dist/
+packages/design-system/package-lock.json
+integrations/cloudflare/signallq-admin-worker/dist/

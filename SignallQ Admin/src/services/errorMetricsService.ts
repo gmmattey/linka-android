@@ -72,14 +72,62 @@ export const errorMetricsService = {
   },
 
   async getErrorMetricSummary(filters: DashboardFilters = {}): Promise<ErrorMetricSummary | null> {
-    if (!apiClient.isMockEnabled()) return null;
+    if (!apiClient.isMockEnabled()) {
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return null;
+      try {
+        const period = filters.period === "today" ? "1d" : (filters.period ?? "30d");
+        const env = filters.environment ?? "production";
+        const raw = await apiClient.request<{ errors: Array<{
+          source: string;
+          count: number;
+          timestamp: string;
+        }> }>("GET", `/admin/metrics/errors?environment=${env}&period=${period}`);
+
+        const errors = raw.errors ?? [];
+        const activeErrors = errors.length;
+        const events24h = errors.reduce((sum, e) => sum + (e.count ?? 0), 0);
+        const sources = [...new Set(errors.map(e => e.source))];
+
+        return {
+          activeErrors: String(activeErrors),
+          events24h: String(events24h),
+          // affectedUserCount não é rastreado no D1 (sem PII) — exibe 0
+          impactedUsers: "0",
+          mainSources: sources.slice(0, 3).join(", ") || "—",
+        };
+      } catch {
+        return null;
+      }
+    }
     const { mockErrorMetricSummary } = await import("../mocks/errors.mock");
     const env = (filters.environment === "staging" ? "staging" : "production") as "production" | "staging";
     return apiClient.simulateFetch(mockErrorMetricSummary[env], filters);
   },
 
   async getErrorByEndpoint(filters: DashboardFilters = {}): Promise<ErrorByEndpointEntry[]> {
-    if (!apiClient.isMockEnabled()) return [];
+    if (!apiClient.isMockEnabled()) {
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return [];
+      try {
+        const period = filters.period === "today" ? "1d" : (filters.period ?? "30d");
+        const env = filters.environment ?? "production";
+        const raw = await apiClient.request<{ errors: Array<{
+          source: string;
+          count: number;
+        }> }>("GET", `/admin/metrics/errors?environment=${env}&period=${period}`);
+
+        // Agrupa contagens por source para gerar série de barras
+        const bySource: Record<string, number> = {};
+        for (const e of (raw.errors ?? [])) {
+          bySource[e.source] = (bySource[e.source] ?? 0) + (e.count ?? 1);
+        }
+
+        return Object.entries(bySource)
+          .sort(([, a], [, b]) => b - a)
+          .map(([name, erros]) => ({ name, erros }));
+      } catch {
+        return [];
+      }
+    }
     const { mockErrorByEndpoint } = await import("../mocks/errors.mock");
     const env = (filters.environment === "staging" ? "staging" : "production") as "production" | "staging";
     return apiClient.simulateFetch(mockErrorByEndpoint[env], filters);
@@ -92,7 +140,37 @@ export const errorMetricsService = {
   },
 
   async getAiAlerts(_filters: DashboardFilters = {}): Promise<{ alerts: AiAlert[]; aiCostCeiling: number }> {
-    if (!apiClient.isMockEnabled()) return { alerts: [], aiCostCeiling: 200 };
+    if (!apiClient.isMockEnabled()) {
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return { alerts: [], aiCostCeiling: 200 };
+      try {
+        const raw = await apiClient.request<{
+          items: Array<{
+            id: string;
+            type: string;
+            severity: string;
+            title: string;
+            message: string;
+            created_at: number;
+            timestamp: string;
+            resolved: boolean;
+          }>;
+        }>("GET", "/admin/alerts");
+
+        const alerts: AiAlert[] = (raw.items ?? [])
+          .filter((r) => !r.resolved)
+          .map((r) => ({
+            id:          r.id,
+            type:        (r.severity === "critical" ? "critical" : r.severity === "warning" ? "warning" : "info") as AiAlert["type"],
+            title:       r.title,
+            description: r.message,
+            timestamp:   r.timestamp,
+          }));
+
+        return { alerts, aiCostCeiling: 200 };
+      } catch {
+        return { alerts: [], aiCostCeiling: 200 };
+      }
+    }
     const { mockAiAlerts } = await import("../mocks/errors.mock");
     const alerts = await apiClient.simulateFetch(mockAiAlerts, _filters);
     return { alerts, aiCostCeiling: 200 };
@@ -111,5 +189,22 @@ export const errorMetricsService = {
       success: true,
       message: `Erro de ID ${errorId} marcado como resolvido com sucesso no banco principal.`
     };
+  },
+
+  /**
+   * Resolve um alerta ativo via POST /admin/alerts/:id/resolve.
+   * Disponível em produção (SIG-133).
+   */
+  async resolveAlert(alertId: string): Promise<{ success: boolean; message: string }> {
+    if (!apiClient.isMockEnabled()) {
+      if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return { success: false, message: "API não configurada" };
+      try {
+        await apiClient.request<{ ok: boolean }>("POST", `/admin/alerts/${alertId}/resolve`);
+        return { success: true, message: "Alerta resolvido." };
+      } catch {
+        return { success: false, message: "Erro ao resolver alerta." };
+      }
+    }
+    return { success: true, message: `Alerta ${alertId} resolvido (mock).` };
   }
 };

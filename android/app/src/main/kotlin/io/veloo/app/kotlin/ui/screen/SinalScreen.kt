@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+package io.signallq.app.ui.screen
 
 import android.content.Intent
 import android.net.Uri
@@ -32,10 +32,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.outlined.AirplanemodeActive
 import androidx.compose.material.icons.outlined.Cable
 import androidx.compose.material.icons.outlined.CellTower
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.DevicesOther
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Hub
@@ -48,8 +48,6 @@ import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material.icons.outlined.WifiFind
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -84,6 +82,8 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -91,37 +91,37 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.R
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.core.network.WifiLinkSnapshot
-import io.veloo.app.core.telephony.MovelSimSnapshot
-import io.veloo.app.core.telephony.MovelSnapshot
-import io.veloo.app.feature.devices.SnapshotScanDispositivos
-import io.veloo.app.feature.diagnostico.BandaWifi
-import io.veloo.app.feature.diagnostico.CanalStrings
-import io.veloo.app.feature.diagnostico.CanalTextGenerator
-import io.veloo.app.feature.diagnostico.DadoCanal
-import io.veloo.app.feature.diagnostico.NivelCongestionamento
-import io.veloo.app.feature.diagnostico.RedeWifiVizinha
-import io.veloo.app.feature.diagnostico.SnapshotEspectroCanal
-import io.veloo.app.feature.diagnostico.WifiChannelDiagnosticEngine
-import io.veloo.app.feature.wifi.ConfiancaTopologia
-import io.veloo.app.feature.wifi.EstadoScanWifi
-import io.veloo.app.feature.wifi.GrupoRedeWifi
-import io.veloo.app.feature.wifi.RedeClassificada
-import io.veloo.app.feature.wifi.RedeVizinha
-import io.veloo.app.feature.wifi.SegurancaWifi
-import io.veloo.app.feature.wifi.SnapshotScanWifi
-import io.veloo.app.feature.wifi.TipoTopologia
-import io.veloo.app.feature.wifi.TopologiaWifiEngine
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LkTokens
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.OfflineBanner
-import io.veloo.app.ui.component.ProfileAvatarButton
-import io.veloo.app.ui.component.WifiChannelGuide
+import io.signallq.app.R
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.core.network.WifiLinkSnapshot
+import io.signallq.app.core.telephony.MovelSimSnapshot
+import io.signallq.app.core.telephony.MovelSnapshot
+import io.signallq.app.feature.devices.SnapshotScanDispositivos
+import io.signallq.app.feature.diagnostico.BandaWifi
+import io.signallq.app.feature.diagnostico.CanalStrings
+import io.signallq.app.feature.diagnostico.CanalTextGenerator
+import io.signallq.app.feature.diagnostico.DadoCanal
+import io.signallq.app.feature.diagnostico.NivelCongestionamento
+import io.signallq.app.feature.diagnostico.RedeWifiVizinha
+import io.signallq.app.feature.diagnostico.SnapshotEspectroCanal
+import io.signallq.app.feature.diagnostico.WifiChannelDiagnosticEngine
+import io.signallq.app.feature.wifi.ConfiancaTopologia
+import io.signallq.app.feature.wifi.EstadoScanWifi
+import io.signallq.app.feature.wifi.GrupoRedeWifi
+import io.signallq.app.feature.wifi.RedeClassificada
+import io.signallq.app.feature.wifi.RedeVizinha
+import io.signallq.app.feature.wifi.SegurancaWifi
+import io.signallq.app.feature.wifi.SnapshotScanWifi
+import io.signallq.app.feature.wifi.TipoTopologia
+import io.signallq.app.feature.wifi.TopologiaWifiEngine
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.OfflineBanner
+import io.signallq.app.ui.component.ProfileAvatarButton
+import io.signallq.app.ui.component.WifiChannelGuide
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -136,7 +136,7 @@ private fun TipoTopologia.toIconData(): TopologiaIconData? =
         TipoTopologia.ROTEADOR_MESH -> TopologiaIconData(Icons.Outlined.Hub, LkColors.accent)
         TipoTopologia.NO_MESH -> TopologiaIconData(Icons.Outlined.Hub, LkColors.accent)
         TipoTopologia.REPETIDOR -> TopologiaIconData(Icons.Outlined.CellTower, LkColors.warning)
-        TipoTopologia.PONTO_DE_ACESSO -> TopologiaIconData(Icons.Outlined.Lan, Color(0xFF9CA3AF)) // cinza neutro
+        TipoTopologia.PONTO_DE_ACESSO -> TopologiaIconData(Icons.Outlined.Lan, LkColors.signallQTextSecondaryOnDark)
         TipoTopologia.DESCONHECIDO -> null
     }
 
@@ -464,16 +464,31 @@ private fun SinalTopTabRow(
                 onClick = { onTabSelected(index) },
                 text = {
                     if (index == 1 && canalCongestionado) {
-                        BadgedBox(badge = { Badge() }) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
                             Text(
                                 label,
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                softWrap = false,
                                 fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.W500,
                                 color = if (selectedTab == index) LkColors.accent else c.textSecondary,
+                            )
+                            Icon(
+                                imageVector = Icons.Outlined.Warning,
+                                contentDescription = "Canal congestionado",
+                                tint = LkColors.warning,
+                                modifier = Modifier.size(12.dp),
                             )
                         }
                     } else {
                         Text(
                             label,
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            softWrap = false,
                             fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.W500,
                             color = if (selectedTab == index) LkColors.accent else c.textSecondary,
                         )
@@ -669,14 +684,35 @@ private fun SimCard(
         )
 
         // Network type subtitle
-        Text(
-            "Rede ${sim.tecnologiaRede ?: "móvel"}",
-            style = MaterialTheme.typography.bodyMedium,
-            color = tokens.textSecondary,
-        )
+        if (!sim.radioDesligado) {
+            Text(
+                "Rede ${sim.tecnologiaRede ?: "móvel"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = tokens.textSecondary,
+            )
+        }
 
-        // Signal and Quality metrics
-        if (forcaSinal != null && corForca != null && qualidade != null && corQualidade != null) {
+        if (sim.radioDesligado) {
+            Spacer(Modifier.height(LkSpacing.xs))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
+            ) {
+                Icon(
+                    Icons.Outlined.AirplanemodeActive,
+                    contentDescription = null,
+                    tint = tokens.textTertiary,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    "Modo avião ativado · Rádio desligado",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.W600,
+                    color = tokens.textSecondary,
+                )
+            }
+        } else if (forcaSinal != null && corForca != null && qualidade != null && corQualidade != null) {
+            // Signal and Quality metrics
             Spacer(Modifier.height(LkSpacing.xs))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -716,7 +752,7 @@ private fun SimCard(
         }
 
         // Contextual description
-        if (descricao != null) {
+        if (!sim.radioDesligado && descricao != null) {
             Spacer(Modifier.height(LkSpacing.xs))
             Text(
                 descricao,
@@ -1044,7 +1080,6 @@ private fun RedesTab(
                     }
                 }
             }
-
         }
     }
 
@@ -1125,6 +1160,11 @@ private fun GrupoRedeTree(
     topologiaPorBssid: Map<String, TipoTopologia> = emptyMap(),
 ) {
     val c = LocalLkTokens.current
+    // Roteador dual-band único: mesmo OUI e cada banda aparecendo uma só vez
+    val ehDualBandUnico =
+        nos.size > 1 &&
+            nos.map { it.oui.uppercase() }.toSet().size <= 1 &&
+            nos.map { it.banda }.let { it.size == it.toSet().size }
     Column(
         modifier =
             modifier
@@ -1163,6 +1203,7 @@ private fun GrupoRedeTree(
                             color = c.textPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
                         )
                         Box(
                             modifier =
@@ -1176,6 +1217,8 @@ private fun GrupoRedeTree(
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.W600,
                                 color = LkColors.success,
+                                maxLines = 1,
+                                softWrap = false,
                             )
                         }
                     }
@@ -1191,7 +1234,11 @@ private fun GrupoRedeTree(
                 }
                 val count = nos.size
                 Text(
-                    "$count nó${if (count != 1) "s" else ""} detectado${if (count != 1) "s" else ""}",
+                    if (ehDualBandUnico) {
+                        "Roteador dual-band"
+                    } else {
+                        "$count nó${if (count != 1) "s" else ""} detectado${if (count != 1) "s" else ""}"
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = c.textTertiary,
                 )
@@ -1208,6 +1255,7 @@ private fun GrupoRedeTree(
                 label =
                     when {
                         isConnected -> "Conectado agora"
+                        ehDualBandUnico -> "Mesma rede · ${no.banda}"
                         index == 0 -> "Gateway"
                         else -> "Nó #$index"
                     },
@@ -1220,7 +1268,7 @@ private fun GrupoRedeTree(
         }
 
         // Aviso de estimativa quando há mais de um nó
-        if (nos.size > 1) {
+        if (nos.size > 1 && !ehDualBandUnico) {
             Spacer(Modifier.height(LkSpacing.sm))
             Text(
                 "* Gateway estimado pelo sinal mais forte",
@@ -1436,7 +1484,7 @@ private fun OtherNetworkGroupItem(
                 Spacer(Modifier.width(LkSpacing.sm))
                 Icon(
                     imageVector = if (rede.seguranca == SegurancaWifi.aberta) Icons.Filled.LockOpen else Icons.Filled.Lock,
-                    contentDescription = null,
+                    contentDescription = if (rede.seguranca == SegurancaWifi.aberta) stringResource(R.string.cd_rede_aberta) else stringResource(R.string.cd_rede_protegida),
                     tint = c.textTertiary,
                     modifier = Modifier.size(16.dp),
                 )
@@ -1455,7 +1503,11 @@ private fun OtherNetworkGroupItem(
                     Modifier
                         .fillMaxWidth()
                         .minimumInteractiveComponentSize()
-                        .clickable { onToggleExpanded() }
+                        .semantics {
+                            val nomeGrupo = if (isOculta) "Redes ocultas" else grupo.ssid
+                            contentDescription =
+                                if (isExpanded) "Recolher redes do grupo $nomeGrupo" else "Expandir redes do grupo $nomeGrupo"
+                        }.clickable { onToggleExpanded() }
                         .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -1629,7 +1681,7 @@ private fun NetworkListItem(
         Spacer(Modifier.width(LkSpacing.sm))
         Icon(
             imageVector = if (isOpen) Icons.Filled.LockOpen else Icons.Filled.Lock,
-            contentDescription = null,
+            contentDescription = if (isOpen) stringResource(R.string.cd_rede_aberta) else stringResource(R.string.cd_rede_protegida),
             tint = c.textTertiary,
             modifier = Modifier.size(16.dp),
         )
@@ -2813,6 +2865,7 @@ private fun ChannelDetailSheet(
     Column(
         Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.lg),
     ) {
         Box(

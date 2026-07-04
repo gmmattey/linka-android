@@ -14,7 +14,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   return (
     <div
       id={id || "loading-state"}
-      className="flex flex-col items-center justify-center py-12 px-4 rounded-[18px] border border-dashed border-zinc-800/80 bg-zinc-900/10"
+      className="flex flex-col items-center justify-center py-12 px-4 rounded-[8px] border border-dashed border-zinc-800/80 bg-zinc-900/10"
     >
       <div className="relative flex items-center justify-center w-12 h-12 mb-4">
         {/* Glowing orbit spinner */}

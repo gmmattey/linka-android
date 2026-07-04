@@ -1,7 +1,7 @@
-package io.veloo.app.feature.history
+﻿package io.signallq.app.feature.history
 
-import io.veloo.app.core.database.MedicaoDao
-import io.veloo.app.core.database.MedicaoEntity
+import io.signallq.app.core.database.MedicaoDao
+import io.signallq.app.core.database.MedicaoEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -47,6 +47,10 @@ private class FakeMedicaoDao(
     override suspend fun buscarTodas(): List<MedicaoEntity> = medicoes
 
     override suspend fun deletarTodos() = Unit
+
+    override suspend fun atualizarDiagnostico(id: String, texto: String?, origem: String?, problemas: String?) = Unit
+
+    override suspend fun atualizarScore(id: String, score: Double) = Unit
 }
 
 // ---------------------------------------------------------------------------

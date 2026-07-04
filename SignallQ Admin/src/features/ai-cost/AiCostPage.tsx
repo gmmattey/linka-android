@@ -101,10 +101,10 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
     {
       header: "Custo (USD)",
       accessor: (row: AiUsageRecord) => {
-        if (row.costUsd === 0) return <span className="text-emerald-400 text-[10px] font-mono leading-none">FREE</span>;
+        if (row.costUsd === 0) return <span className="text-[10px] font-mono leading-none" style={{ color: "var(--sq-success)" }}>FREE</span>;
         return (
-          <span className="font-mono text-indigo-400 font-semibold text-xs">
-            ${row.costUsd.toFixed(6)}
+          <span className="font-mono font-semibold text-xs" style={{ color: "var(--sq-accent)" }}>
+            ${row.costUsd.toFixed(2)}
           </span>
         );
       },
@@ -141,12 +141,25 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-red-500/20 bg-[#FF4D4F]/5 rounded-2xl">
-        <h4 className="text-sm font-semibold text-[#FF4D4F] uppercase tracking-wider font-mono">Erro de Telemetria</h4>
-        <p className="text-xs text-neutral-400 mt-2 font-sans">{error}</p>
+      <div
+        className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 rounded-[8px]"
+        style={{
+          border: "1px solid color-mix(in srgb, var(--sq-error) 20%, transparent)",
+          backgroundColor: "color-mix(in srgb, var(--sq-error) 5%, transparent)",
+        }}
+      >
+        <h4 className="text-sm font-semibold uppercase tracking-wider font-mono" style={{ color: "var(--sq-error)" }}>
+          Erro de Telemetria
+        </h4>
+        <p className="text-xs mt-2" style={{ color: "var(--sq-text-secondary)" }}>{error}</p>
         <button
           onClick={() => { setError(null); loadAiStats(); }}
-          className="mt-4 px-4 py-2 text-xs bg-[#FF4D4F]/10 border border-[#FF4D4F]/20 text-[#FF4D4F] hover:bg-[#FF4D4F]/20 transition-all rounded-xl font-mono"
+          className="mt-4 px-4 py-2 text-xs transition-all rounded-xl font-mono"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--sq-error) 10%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--sq-error) 20%, transparent)",
+            color: "var(--sq-error)",
+          }}
         >
           TENTAR NOVAMENTE
         </button>
@@ -156,9 +169,19 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
 
   if (modelInsights.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[#262626] bg-[#111111] rounded-2xl">
-        <h4 className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-widest font-mono">Sem dados</h4>
-        <p className="text-xs text-[#9CA3AF] mt-2 font-sans">Nenhuma inferência de IA registrada neste período.</p>
+      <div
+        className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 rounded-[8px]"
+        style={{
+          border: "1px solid var(--sq-border)",
+          backgroundColor: "var(--sq-bg-card)",
+        }}
+      >
+        <h4 className="text-xs font-semibold uppercase tracking-widest font-mono" style={{ color: "var(--sq-text-secondary)" }}>
+          Sem dados
+        </h4>
+        <p className="text-xs mt-2" style={{ color: "var(--sq-text-secondary)" }}>
+          Nenhuma inferência de IA registrada neste período.
+        </p>
       </div>
     );
   }
@@ -166,20 +189,38 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Metric card triggers row */}
-      <div className="flex justify-between items-center bg-[#111111] border border-[#262626] rounded-2xl p-4 select-none">
+      <div
+        className="flex justify-between items-center rounded-[8px] p-4 select-none"
+        style={{
+          backgroundColor: "var(--sq-bg-card)",
+          border: "1px solid var(--sq-border)",
+        }}
+      >
         <div className="flex items-center gap-3">
-          <Bot className="w-5 h-5 text-purple-400" />
+          <Bot className="w-5 h-5" style={{ color: "var(--sq-accent)" }} />
           <div>
-            <h4 className="text-xs font-semibold font-mono text-zinc-300 uppercase">Monitoramento síncrono de IA</h4>
-            <p className="text-[10px] text-zinc-500 font-sans mt-0.5">Visibilidade completa sobre o processamento e faturamento de pareceres técnicos.</p>
+            <h4 className="text-xs font-semibold font-mono uppercase" style={{ color: "var(--sq-text-primary)" }}>
+              Monitoramento síncrono de IA
+            </h4>
+            <p className="text-[10px] mt-0.5" style={{ color: "var(--sq-text-tertiary)" }}>
+              Visibilidade completa sobre o processamento e faturamento de pareceres técnicos.
+            </p>
           </div>
         </div>
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center gap-1.5 px-3.5 py-2 bg-[#18181B] border border-[#262626] hover:border-zinc-700 font-mono text-xs text-white rounded-xl active:bg-zinc-900 transition-all cursor-pointer select-none"
+          className="flex items-center gap-1.5 px-3.5 py-2 font-mono text-xs rounded-xl transition-all cursor-pointer select-none"
+          style={{
+            backgroundColor: "var(--sq-bg-overlay)",
+            border: "1px solid var(--sq-border)",
+            color: "var(--sq-text-primary)",
+          }}
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-purple-400" : ""}`} />
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+            style={isRefreshing ? { color: "var(--sq-accent)" } : undefined}
+          />
           <span>Sincronizar</span>
         </button>
       </div>

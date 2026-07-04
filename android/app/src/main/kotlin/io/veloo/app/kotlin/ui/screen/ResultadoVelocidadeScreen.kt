@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+package io.signallq.app.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -78,22 +78,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.feature.diagnostico.SnapshotDiagnostico
-import io.veloo.app.feature.speedtest.ResultadoSpeedtest
-import io.veloo.app.feature.speedtest.SeveridadeBufferbloat
-import io.veloo.app.feature.speedtest.VereditoUso
-import io.veloo.app.ui.BancoOperadoras
-import io.veloo.app.ui.IspInfo
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LkTokens
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.ResultadoBitmapGenerator
-import io.veloo.app.ui.component.OperadoraBottomSheet
-import io.veloo.app.ui.component.OperadoraContactCard
-import io.veloo.app.ui.component.rememberTopBarAlpha
-import io.veloo.app.ui.screen.AnalisadorState
+import io.signallq.app.feature.diagnostico.SnapshotDiagnostico
+import io.signallq.app.feature.speedtest.ResultadoSpeedtest
+import io.signallq.app.feature.speedtest.SeveridadeBufferbloat
+import io.signallq.app.feature.speedtest.VereditoUso
+import io.signallq.app.ui.BancoOperadoras
+import io.signallq.app.ui.IspInfo
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.ResultadoBitmapGenerator
+import io.signallq.app.ui.component.OperadoraBottomSheet
+import io.signallq.app.ui.component.OperadoraContactCard
+import io.signallq.app.ui.component.rememberTopBarAlpha
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -463,7 +462,7 @@ fun ResultadoVelocidadeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Language,
-                            contentDescription = "Idioma",
+                            contentDescription = null,
                             tint = LkColors.accent,
                             modifier = Modifier.size(18.dp),
                         )
@@ -782,7 +781,8 @@ private fun MetricCard(
             modifier
                 .clip(RoundedCornerShape(LkRadius.card))
                 .background(c.bgSecondary)
-                .padding(LkSpacing.lg),
+                .padding(LkSpacing.lg)
+                .semantics(mergeDescendants = true) { contentDescription = "$label: $value $unit" },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -820,7 +820,7 @@ private fun RecomendacaoCard(
     ) {
         Icon(
             imageVector = Icons.Outlined.Info,
-            contentDescription = "Informações",
+            contentDescription = null,
             tint = LkColors.accent,
             modifier = Modifier.size(18.dp),
         )
@@ -834,11 +834,12 @@ private fun RecomendacaoCard(
     }
 }
 
-private val problemasPredefinidos = listOf(
-    "Baixa velocidade",
-    "Quedas constantes",
-    "Travamentos em streaming ou jogos",
-)
+private val problemasPredefinidos =
+    listOf(
+        "Baixa velocidade",
+        "Quedas constantes",
+        "Travamentos em streaming ou jogos",
+    )
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

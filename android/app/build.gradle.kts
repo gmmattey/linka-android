@@ -1,4 +1,4 @@
-import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
+﻿import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import java.util.Properties
 
 plugins {
@@ -13,6 +13,7 @@ plugins {
     id("com.google.firebase.crashlytics")
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.play.publisher)
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
@@ -39,14 +40,29 @@ private val adminIngestKey: String =
         ?: System.getenv("ADMIN_INGEST_KEY")
         ?: ""
 
+// Publicacao na Play Console (gradle-play-publisher).
+// Service account JSON lida de key.properties (playServiceAccountFile) ou env
+// PLAY_SERVICE_ACCOUNT_JSON_FILE. NUNCA commitar o arquivo de credencial.
+// Trilha configuravel via -PplayTrack=... (default: alpha = teste fechado).
+play {
+    val serviceAccountPath =
+        (keyProperties["playServiceAccountFile"] as String?)
+            ?: System.getenv("PLAY_SERVICE_ACCOUNT_JSON_FILE")
+    if (serviceAccountPath != null) {
+        serviceAccountCredentials.set(rootProject.file(serviceAccountPath))
+    }
+    track.set(providers.gradleProperty("playTrack").orElse("alpha").get())
+    defaultToAppBundles.set(true)
+}
+
 android {
-    namespace = "io.veloo.app"
+    namespace = "io.signallq.app"
     compileSdk = libs.versions.compileSdk
         .get()
         .toInt()
 
     defaultConfig {
-        applicationId = "io.veloo.app"
+        applicationId = "io.signallq.app"
         minSdk = libs.versions.minSdk
             .get()
             .toInt()
@@ -59,6 +75,10 @@ android {
         versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Limita recursos a pt e pt-BR: elimina strings de todas as outras linguas
+        // que vem de dependencias (appcompat, material, etc.). Reducao estimada: 0.5-2 MB.
+        resourceConfigurations += listOf("pt", "pt-rBR")
 
         // URL base do signallq-admin-worker. Nao e segredo — apenas infraestrutura.
         buildConfigField(
@@ -90,7 +110,7 @@ android {
     buildTypes {
         debug {
             firebaseAppDistribution {
-                appId = "1:620840247394:android:0be190e89194bced37713b"
+                appId = "1:741421457740:android:a8658a91308fba058fefe9"
                 artifactType = "APK"
                 testers = "giammattey.luiz@gmail.com"
                 releaseNotes = "SignallQ ${libs.versions.versionName.get()} (build ${libs.versions.versionCode.get()}) — DEBUG"
@@ -133,12 +153,18 @@ android {
         }
         release {
             firebaseAppDistribution {
-                appId = "1:620840247394:android:0be190e89194bced37713b"
+                appId = "1:741421457740:android:a8658a91308fba058fefe9"
                 artifactType = "APK"
                 testers = "giammattey.luiz@gmail.com"
                 releaseNotes = "SignallQ ${libs.versions.versionName.get()} (build ${libs.versions.versionCode.get()})"
             }
+            // Upload automático do mapping.txt para Crashlytics acontece como dependência
+            // do bundleRelease/assembleRelease quando mappingFileUploadEnabled = true.
+            firebaseCrashlytics {
+                mappingFileUploadEnabled = true
+            }
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

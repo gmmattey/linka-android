@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -59,30 +59,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.BuildConfig
-import io.veloo.app.FeatureFlags
-import io.veloo.app.core.database.MedicaoEntity
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.core.network.SnapshotRede
-import io.veloo.app.core.telephony.MovelSimSnapshot
-import io.veloo.app.core.telephony.MovelSnapshot
-import io.veloo.app.feature.diagnostico.EstadoDiagnostico
-import io.veloo.app.feature.dns.SnapshotBenchmarkDns
-import io.veloo.app.feature.fibra.SnapshotFibra
-import io.veloo.app.feature.history.ResumoHistorico
-import io.veloo.app.feature.speedtest.EstadoExecucaoSpeedtest
-import io.veloo.app.feature.speedtest.ModoSpeedtest
-import io.veloo.app.ui.FiltroConexaoHistorico
-import io.veloo.app.ui.GatewayInfo
-import io.veloo.app.ui.HistoryPoint
-import io.veloo.app.ui.IspInfo
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkTokens
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.state.UiState
+import io.signallq.app.BuildConfig
+import io.signallq.app.FeatureFlags
+import io.signallq.app.R
+import io.signallq.app.core.database.MedicaoEntity
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.core.network.SnapshotRede
+import io.signallq.app.core.telephony.MovelSimSnapshot
+import io.signallq.app.core.telephony.MovelSnapshot
+import io.signallq.app.feature.diagnostico.EstadoDiagnostico
+import io.signallq.app.feature.dns.SnapshotBenchmarkDns
+import io.signallq.app.feature.fibra.SnapshotFibra
+import io.signallq.app.feature.history.ResumoHistorico
+import io.signallq.app.feature.speedtest.EstadoExecucaoSpeedtest
+import io.signallq.app.feature.speedtest.ModoSpeedtest
+import io.signallq.app.ui.FiltroConexaoHistorico
+import io.signallq.app.ui.GatewayInfo
+import io.signallq.app.ui.HistoryPoint
+import io.signallq.app.ui.IspInfo
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkTokens
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.state.UiState
 import kotlinx.coroutines.delay
 
 private enum class Overlay {
@@ -114,7 +116,7 @@ fun AppShell(
     deviceName: String,
     dnsResolverIp: String?,
     historico: List<MedicaoEntity>,
-    blocoUptime: List<io.veloo.app.feature.history.BlocoUptime> = emptyList(),
+    blocoUptime: List<io.signallq.app.feature.history.BlocoUptime> = emptyList(),
     narrativaUptime: String = "",
     resumoHistorico: ResumoHistorico? = null,
     snapshotFibra: SnapshotFibra,
@@ -187,6 +189,7 @@ fun AppShell(
     filtroOperadoraHistorico: String? = null,
     onFiltroOperadoraHistoricoChange: (String?) -> Unit = {},
     operadorasDisponiveisHistorico: List<String> = emptyList(),
+    onScreenView: (screenName: String) -> Unit = {},
 ) {
     // Desempacota os grupos de estado para variaveis locais — mantém compatibilidade com
     // o corpo interno sem precisar propagar o prefixo `speedtest.x` por toda a funcao.
@@ -225,7 +228,10 @@ fun AppShell(
     val publicIpStr: String? = (publicIp as? UiState.Success)?.data
     val ispInfoData: IspInfo? = (ispInfo as? UiState.Success)?.data
     val isIspInfoLoading = publicIp is UiState.Loading
-    var selectedTab by remember { mutableIntStateOf(0) }
+    // #381/#376: cold start sempre abre na aba Velocidade (indice 1), nunca em Home
+    // e nunca restaurando a ultima tela — decisao de produto que substitui o
+    // comportamento anterior (abria em Home, indice 0).
+    var selectedTab by remember { mutableIntStateOf(1) }
     var modoSelecionado by remember { mutableStateOf(ModoSpeedtest.complete) }
     val overlayStack = remember { mutableStateListOf<Overlay>() }
     var showDnsSheet by remember { mutableStateOf(false) }
@@ -234,9 +240,12 @@ fun AppShell(
     var testeAtivo by remember { mutableStateOf(false) }
     var mostrarConcluido by remember { mutableStateOf(false) }
     val primeiraHistoria = remember(historico) { historico.firstOrNull() }
+    val tabScreenNames = listOf("home", "speedtest", "sinal_wifi", "historico", "ajustes")
+
     // NAV-D: verifica IA ao entrar na tab Velocidade (índice 1)
     LaunchedEffect(selectedTab) {
         if (selectedTab == 1) onVerificarGemma()
+        tabScreenNames.getOrNull(selectedTab)?.let { onScreenView(it) }
     }
 
     LaunchedEffect(showDnsSheet) {
@@ -277,6 +286,12 @@ fun AppShell(
     // navegando pelo histórico — comportamento confuso reportado como "trava".
     BackHandler(enabled = overlayStack.isEmpty() && selectedTab == 3) {
         selectedTab = 0
+    }
+
+    // #374: tela de erro do speedtest (overlay VelocidadeScreen) não tinha BackHandler
+    // próprio — o back físico do sistema saía direto do app em vez de descartar o erro.
+    BackHandler(enabled = snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.erro) {
+        onCancelarTeste()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -327,11 +342,6 @@ fun AppShell(
                                 } else {
                                     modoSelecionado = modo
                                     onNovoTeste(modo)
-                                }
-                            },
-                            onAbrirUltimoResultado = {
-                                if (Overlay.ResultadoVelocidade !in overlayStack && snapshotSpeedtest.resultado != null) {
-                                    overlayStack.add(Overlay.ResultadoVelocidade)
                                 }
                             },
                             onAbrirHistorico = { selectedTab = 3 },
@@ -492,6 +502,10 @@ fun AppShell(
                             onAbrirPrivacidade = { if (Overlay.Privacidade !in overlayStack) overlayStack.add(Overlay.Privacidade) },
                             onAbrirNovidades = { if (Overlay.Novidades !in overlayStack) overlayStack.add(Overlay.Novidades) },
                             onAbrirMinhaConexao = { if (Overlay.MinhaConexao !in overlayStack) overlayStack.add(Overlay.MinhaConexao) },
+                            onAbrirFibra = {
+                                onReconectarFibra(modemHost ?: "", modemUsername, modemPassword)
+                                if (Overlay.Fibra !in overlayStack) overlayStack.add(Overlay.Fibra)
+                            },
                             dadosMoveis =
                                 AjustesDadosMoveisState(
                                     speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
@@ -537,13 +551,13 @@ fun AppShell(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,
-                        contentDescription = "Concluído",
+                        contentDescription = stringResource(R.string.appshell_cd_concluido),
                         tint = LkColors.success,
                         modifier = Modifier.size(56.dp),
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Concluído",
+                        text = stringResource(R.string.appshell_concluido),
                         style = MaterialTheme.typography.titleLarge,
                         color = LkColors.success,
                         fontWeight = FontWeight.W600,
@@ -594,6 +608,7 @@ fun AppShell(
                 ipPublico = publicIpStr,
                 onVoltar = { overlayStack.remove(Overlay.Laudo) },
                 velocidadeContratadaMbps = planoInternet.filter { it.isDigit() }.toIntOrNull(),
+                conectado = snapshotRede.conectado,
             )
         }
 
@@ -799,7 +814,7 @@ private fun ForaDoWifiDialog(
 ) {
     AlertDialog(
         onDismissRequest = onCancelar,
-        title = { Text("Sem Wi-Fi", fontWeight = FontWeight.W600) },
+        title = { Text(stringResource(R.string.appshell_sem_wifi), fontWeight = FontWeight.W600) },
         text = {
             Text(
                 "Você está usando dados móveis. Fazer um teste de velocidade pode consumir uma quantidade significativa do seu plano de dados.\n\nDeseja continuar mesmo assim?",
@@ -808,11 +823,11 @@ private fun ForaDoWifiDialog(
         },
         confirmButton = {
             TextButton(onClick = onContinuar) {
-                Text("Continuar mesmo assim", color = LkColors.warning)
+                Text(stringResource(R.string.appshell_continuar_mesmo_assim), color = LkColors.warning)
             }
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text("Cancelar") }
+            TextButton(onClick = onCancelar) { Text(stringResource(R.string.global_btn_cancelar)) }
         },
     )
 }

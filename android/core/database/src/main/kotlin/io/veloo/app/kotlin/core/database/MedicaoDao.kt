@@ -1,4 +1,4 @@
-package io.veloo.app.core.database
+﻿package io.signallq.app.core.database
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -75,4 +75,7 @@ interface MedicaoDao {
         origem: String?,
         problemas: String?,
     )
+
+    @Query("UPDATE medicao SET score = :score WHERE id = :id")
+    suspend fun atualizarScore(id: String, score: Double)
 }

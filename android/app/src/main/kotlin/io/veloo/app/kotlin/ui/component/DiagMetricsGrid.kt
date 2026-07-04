@@ -1,4 +1,4 @@
-package io.veloo.app.ui.component
+package io.signallq.app.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -23,13 +23,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.SignallQTheme
+import io.signallq.app.R
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.SignallQTheme
 
 enum class MetricStatus {
     OK,
@@ -67,7 +73,7 @@ fun DiagMetricsGrid(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "SINAIS ANALISADOS",
+                text = stringResource(R.string.diag_metrics_sinais),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 color = c.textTertiary,
@@ -75,10 +81,13 @@ fun DiagMetricsGrid(
                 modifier = Modifier.weight(1f),
             )
             Text(
-                text = if (expanded) "recolher ▾" else "expandir ▸",
+                text = if (expanded) stringResource(R.string.diag_metrics_recolher) else stringResource(R.string.diag_metrics_expandir),
                 fontSize = 11.sp,
                 color = c.textTertiary,
-                modifier = Modifier.clickable { onToggleExpand() },
+                modifier =
+                    Modifier
+                        .semantics { role = Role.Button }
+                        .clickable { onToggleExpand() },
             )
         }
 
@@ -121,12 +130,18 @@ private fun MetricCell(
     val c = LocalLkTokens.current
     val statusColor = metric.status.color()
 
+    val cellDesc =
+        buildString {
+            append("${metric.label}: ${metric.value}")
+            metric.note?.let { append(", $it") }
+        }
     Column(
         modifier =
             modifier
                 .clip(RoundedCornerShape(10.dp))
                 .background(c.bgSecondary)
-                .padding(horizontal = 11.dp, vertical = 9.dp),
+                .padding(horizontal = 11.dp, vertical = 9.dp)
+                .semantics(mergeDescendants = true) { contentDescription = cellDesc },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(

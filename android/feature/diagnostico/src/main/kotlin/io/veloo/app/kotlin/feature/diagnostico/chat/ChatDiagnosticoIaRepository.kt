@@ -1,6 +1,6 @@
-package io.veloo.app.feature.diagnostico.chat
+﻿package io.signallq.app.feature.diagnostico.chat
 
-import io.veloo.app.core.database.SignallQDatabase
+import io.signallq.app.core.database.SignallQDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -67,6 +67,21 @@ class ChatDiagnosticoIaRepository(
     /** Renomeia a sessão e atualiza [atualizadoEmEpochMs] para o momento atual. */
     suspend fun renomearSessao(id: String, novoTitulo: String) {
         dao.renomearSessao(id, novoTitulo, System.currentTimeMillis())
+    }
+
+    /** Vincula a sessão a um diagnóstico específico para correlação no ingest retroativo. */
+    suspend fun atualizarDiagnosisId(id: String, diagnosisId: String) {
+        dao.atualizarDiagnosisId(id, diagnosisId)
+    }
+
+    /** Persiste os tokens consumidos na chamada ao AI Worker. */
+    suspend fun atualizarTokens(
+        id: String,
+        promptTokens: Int,
+        completionTokens: Int,
+        totalTokens: Int,
+    ) {
+        dao.atualizarTokens(id, promptTokens, completionTokens, totalTokens)
     }
 
     // -------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-package io.veloo.app.core.database.chat
+﻿package io.signallq.app.core.database.chat
 
 import androidx.room.Entity
 import androidx.room.Index
@@ -29,4 +29,10 @@ data class ChatSessionEntity(
     val nomeModelo: String?,
     /** Snapshot JSON dos dados de diagnóstico usados, para reabrir sessão */
     val diagnosticoPayloadJson: String?,
+    /** UUID da MedicaoEntity correspondente, para correlação no ingest. Null quando sessão não está vinculada a um diagnóstico específico. */
+    val diagnosisId: String? = null,
+    /** Tokens consumidos na chamada ao AI Worker. Zero enquanto não disponível. */
+    val promptTokens: Int = 0,
+    val completionTokens: Int = 0,
+    val totalTokens: Int = 0,
 )

@@ -1,12 +1,12 @@
-package io.veloo.app.feature.diagnostico.ai
+﻿package io.signallq.app.feature.diagnostico.ai
 
-import io.veloo.app.feature.diagnostico.ConnectionType
-import io.veloo.app.feature.diagnostico.DiagnosticInput
-import io.veloo.app.feature.diagnostico.DiagnosticReport
-import io.veloo.app.feature.diagnostico.DiagnosticResult
-import io.veloo.app.feature.diagnostico.DiagnosticStatus
-import io.veloo.app.feature.diagnostico.InternetDiagnosticInput
-import io.veloo.app.feature.diagnostico.WifiDiagnosticInput
+import io.signallq.app.feature.diagnostico.ConnectionType
+import io.signallq.app.feature.diagnostico.DiagnosticInput
+import io.signallq.app.feature.diagnostico.DiagnosticReport
+import io.signallq.app.feature.diagnostico.DiagnosticResult
+import io.signallq.app.feature.diagnostico.DiagnosticStatus
+import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
+import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -62,7 +62,7 @@ class DiagnosisAiContextFactoryTest {
 
         val ctx = DiagnosisAiContextFactory.from(fakeReport(), input, ConnectionType.wifi)
 
-        assertEquals("4", ctx.schemaVersion)
+        assertEquals("5", ctx.schemaVersion)
         assertNotNull(ctx.metricasAtuais)
         assertEquals(294.0, ctx.metricasAtuais!!.downloadMbps!!, 0.01)
         assertEquals(411.0, ctx.metricasAtuais!!.uploadMbps!!, 0.01)
@@ -158,12 +158,12 @@ class DiagnosisAiContextFactoryTest {
         assertNull(ctx.metricasAtuais)
         assertNull(ctx.contextoRede)
         assertNull(ctx.historico)
-        assertEquals("4", ctx.schemaVersion)
+        assertEquals("5", ctx.schemaVersion)
     }
 
     @Test
-    fun aiPromptVersion_constante_atualizadaParaV4Guided() {
-        assertEquals("diagnostico_v4_guided", AI_PROMPT_VERSION)
+    fun aiPromptVersion_constante_atualizadaParaV5LocalPrimary() {
+        assertEquals("diagnostico_v5_local_primary", AI_PROMPT_VERSION)
         assertTrue(AI_PROMPT_VERSION.startsWith("diagnostico_"))
     }
 
@@ -212,7 +212,7 @@ class DiagnosisAiContextFactoryTest {
         assertEquals(false, ctx.movel?.roaming)
 
         // Serializacao para JSON inclui o bloco com TODOS os campos preenchidos
-        val repo = io.veloo.app.feature.diagnostico.ai.AiDiagnosisRepository(
+        val repo = io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository(
             baseUrl = "http://invalid.local", isAuthorized = { true },
         )
         val json = repo.contextToJson(ctx).toString()
@@ -249,7 +249,7 @@ class DiagnosisAiContextFactoryTest {
         )
 
         assertNull(ctx.movel)
-        val repo = io.veloo.app.feature.diagnostico.ai.AiDiagnosisRepository(
+        val repo = io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository(
             baseUrl = "http://invalid.local", isAuthorized = { true },
         )
         val json = repo.contextToJson(ctx).toString()
@@ -408,7 +408,7 @@ class DiagnosisAiContextFactoryTest {
             movel = null, // como deveria ser sempre em wifi
         )
         assertNull(ctx.movel)
-        val repo = io.veloo.app.feature.diagnostico.ai.AiDiagnosisRepository(
+        val repo = io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository(
             baseUrl = "http://invalid.local", isAuthorized = { true },
         )
         val json = repo.contextToJson(ctx).toString()

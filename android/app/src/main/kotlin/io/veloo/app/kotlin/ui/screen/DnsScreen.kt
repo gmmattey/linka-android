@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -56,13 +56,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.core.network.SnapshotRede
-import io.veloo.app.feature.dns.EstadoBenchmarkDns
-import io.veloo.app.feature.dns.ResultadoBenchmarkDns
-import io.veloo.app.feature.dns.SnapshotBenchmarkDns
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LkTokens
+import io.signallq.app.core.network.SnapshotRede
+import io.signallq.app.feature.dns.EstadoBenchmarkDns
+import io.signallq.app.feature.dns.ResultadoBenchmarkDns
+import io.signallq.app.feature.dns.SnapshotBenchmarkDns
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
 import kotlin.math.roundToInt
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
@@ -150,8 +150,14 @@ private fun DnsMainContent(
     // ── Bloco 2 — Benchmark ───────────────────────────────────────────────────
     when {
         snapshotDns.estado == EstadoBenchmarkDns.erro -> {
+            val mensagemErro =
+                if (!snapshotRede.conectado || snapshotDns.erroMensagem == "semRede") {
+                    "Sem conexão para comparar DNS."
+                } else {
+                    "Não consegui comparar DNS nesta conexão. Tente novamente quando a rede estabilizar."
+                }
             Text(
-                text = "Não consegui comparar DNS nesta conexão. Tente novamente quando a rede estabilizar.",
+                text = mensagemErro,
                 fontSize = 13.sp,
                 color = LkColors.error,
             )
@@ -224,8 +230,11 @@ private fun DnsBloco1Atual(
 ) {
     val dnsIp = snapshotRede.dnsServidores.firstOrNull()
 
-    // Loading quando ainda não há servidores DNS coletados pelo MonitorRede
-    val isLoading = snapshotRede.dnsServidores.isEmpty()
+    // Loading quando ainda não há servidores DNS coletados pelo MonitorRede.
+    // #378: offline nunca coleta dnsServidores — sem essa checagem o skeleton ficava
+    // girando para sempre em vez de refletir a ausência de conexão.
+    val isLoading = snapshotRede.dnsServidores.isEmpty() && snapshotRede.conectado
+    val semDadosOffline = snapshotRede.dnsServidores.isEmpty() && !snapshotRede.conectado
 
     Box(
         modifier =
@@ -235,7 +244,13 @@ private fun DnsBloco1Atual(
                 .background(c.bgPrimary)
                 .padding(12.dp),
     ) {
-        if (isLoading) {
+        if (semDadosOffline) {
+            Text(
+                "Sem conexão para comparar DNS.",
+                fontSize = 13.sp,
+                color = LkColors.error,
+            )
+        } else if (isLoading) {
             DnsSkeletonBloco1(c = c)
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

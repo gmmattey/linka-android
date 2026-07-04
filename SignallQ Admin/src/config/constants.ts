@@ -1,22 +1,10 @@
-export const APP_NAME = "SignallQ Admin";
+export const APP_NAME = "7Agents Admin Console";
 
 export const DEV_ENVIRONMENT_LABEL = "Staging";
 export const PROD_ENVIRONMENT_LABEL = "Produção";
 
-export const COLOR_PALETTE = {
-  background: "#08080A", // or #0A0A0D
-  surface: "#111111", // Card background
-  surfaceSecondary: "#18181B", // Sidebar/Secondary background
-  border: "#262626", // Border color hairline
-  textPrimary: "#F3F4F6",
-  textSecondary: "#9CA3AF",
-  textTertiary: "#6B7280",
-  primary: "#6C2BFF", // Accent primary main purple
-  success: "#22C55E",
-  attention: "#F5A623",
-  error: "#FF4D4F",
-  info: "#38BDF8",
-};
+// Tokens de cor via CSS custom properties em src/index.css (--sq-*).
+// Não usar valores hardcoded — referenciar var(--sq-accent), var(--sq-error), etc.
 
 export const REFRESH_INTERVALS = [
   { label: "Manual", value: 0 },

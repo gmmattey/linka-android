@@ -1,15 +1,15 @@
-package io.veloo.app.speedtest
+﻿package io.signallq.app.speedtest
 
-import io.veloo.app.core.database.MedicaoDao
-import io.veloo.app.core.database.MedicaoEntity
-import io.veloo.app.core.network.MonitorRede
-import io.veloo.app.core.telephony.MonitorTelephony
-import io.veloo.app.feature.diagnostico.DiagnosticOrchestrator
-import io.veloo.app.feature.diagnostico.DiagnosticReport
-import io.veloo.app.feature.diagnostico.DiagnosticStatus
-import io.veloo.app.feature.diagnostico.EstadoDiagnostico
-import io.veloo.app.feature.speedtest.EstadoExecucaoSpeedtest
-import io.veloo.app.feature.speedtest.ExecutorSpeedtest
+import io.signallq.app.core.database.MedicaoDao
+import io.signallq.app.core.database.MedicaoEntity
+import io.signallq.app.core.network.MonitorRede
+import io.signallq.app.core.telephony.MonitorTelephony
+import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
+import io.signallq.app.feature.diagnostico.DiagnosticReport
+import io.signallq.app.feature.diagnostico.DiagnosticStatus
+import io.signallq.app.feature.diagnostico.EstadoDiagnostico
+import io.signallq.app.feature.speedtest.EstadoExecucaoSpeedtest
+import io.signallq.app.feature.speedtest.ExecutorSpeedtest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -87,6 +87,7 @@ class SpeedtestPersistenceCoordinator
                                 vereditoVideoChamada = resultado.diagnosticoQualidade.vereditoVideoChamada.name,
                                 gargaloPrimario = resultado.diagnosticoQualidade.gargaloPrimario.name,
                                 operadoraMovel = monitorTelephony.snapshotFlow.value?.operadora,
+                                status = "completed",
                             ),
                         )
                         ultimaMedicaoId = novoId
@@ -111,7 +112,8 @@ class SpeedtestPersistenceCoordinator
                         val texto = relatorio.decisao.mensagemUsuario.ifBlank { null }
                         val problemas = extrairProblemasRelatorio(relatorio)
                         medicaoDao.atualizarDiagnostico(id, texto, "local", problemas)
-                        Timber.d("SpeedtestPersistenceCoordinator: diagnostico local salvo id=$id")
+                        medicaoDao.atualizarScore(id, relatorio.scoreConexao.toDouble())
+                        Timber.d("SpeedtestPersistenceCoordinator: diagnostico local salvo id=$id score=${relatorio.scoreConexao}")
                     } catch (e: Exception) {
                         Timber.e(e, "SpeedtestPersistenceCoordinator: falha ao salvar diagnostico local")
                     }
@@ -138,12 +140,13 @@ class SpeedtestPersistenceCoordinator
 
         private fun extrairProblemasRelatorio(relatorio: DiagnosticReport): String? {
             val problemas =
-                (relatorio.wifiResultados +
-                    relatorio.internetResultados +
-                    relatorio.mobileResultados +
-                    relatorio.fibraResultados +
-                    relatorio.dnsResultados)
-                    .filter { it.status == DiagnosticStatus.critical || it.status == DiagnosticStatus.attention }
+                (
+                    relatorio.wifiResultados +
+                        relatorio.internetResultados +
+                        relatorio.mobileResultados +
+                        relatorio.fibraResultados +
+                        relatorio.dnsResultados
+                ).filter { it.status == DiagnosticStatus.critical || it.status == DiagnosticStatus.attention }
                     .map { it.titulo }
                     .distinct()
                     .take(5)

@@ -25,7 +25,7 @@ export interface Env {
 function corsHeaders(env: Env): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Environment",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Max-Age": "86400",
@@ -269,6 +269,52 @@ async function getFirebaseAccessToken(env: Env): Promise<string> {
   return tokenData.access_token;
 }
 
+async function queryBigQuery<T = unknown>(
+  env: Env,
+  query: string
+): Promise<{ rows: T[]; error?: string }> {
+  let token: string;
+  try {
+    token = await getFirebaseAccessToken(env);
+  } catch (e) {
+    return { rows: [], error: `auth_failed: ${String(e)}` };
+  }
+
+  const resp = await fetch(
+    `https://bigquery.googleapis.com/bigquery/v2/projects/${env.FIREBASE_PROJECT_ID}/queries`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ query, useLegacySql: false, timeoutMs: 10000 }),
+    }
+  );
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    if (errText.includes("Not found") || errText.includes("notFound")) {
+      return { rows: [], error: "table_not_found" };
+    }
+    return { rows: [], error: `bq_error_${resp.status}: ${errText.slice(0, 200)}` };
+  }
+
+  const data = (await resp.json()) as {
+    rows?: Array<{ f: Array<{ v: string | null }> }>;
+    schema?: { fields: Array<{ name: string }> };
+    jobComplete?: boolean;
+  };
+
+  if (!data.jobComplete || !data.rows || !data.schema) return { rows: [] };
+
+  const fields = data.schema.fields.map((f) => f.name);
+  const rows = data.rows.map((row) => {
+    const obj: Record<string, string | null> = {};
+    row.f.forEach((cell, i) => { obj[fields[i]] = cell.v; });
+    return obj as unknown as T;
+  });
+
+  return { rows };
+}
+
 // --- handlers /admin ---
 
 async function handleOverview(request: Request, env: Env): Promise<Response> {
@@ -281,7 +327,7 @@ async function handleOverview(request: Request, env: Env): Promise<Response> {
   const envClause    = envFilter ? " AND environment = ?" : "";
   const envBinds     = envFilter ? [envFilter]            : [];
 
-  const [sessions, aiRows] = await Promise.all([
+  const [sessions, aiRows, successRows, networkRows, issueRows] = await Promise.all([
     env.DB.prepare(
       `SELECT COUNT(*) AS total,
               SUM(CASE WHEN resolved=0 THEN 1 ELSE 0 END) AS active,
@@ -292,17 +338,65 @@ async function handleOverview(request: Request, env: Env): Promise<Response> {
       `SELECT COUNT(*) AS calls, SUM(cost_usd) AS cost, SUM(total_tokens) AS tokens
        FROM ai_usage WHERE created_at >= ?${envClause}`
     ).bind(todaySince, ...envBinds).first<{ calls: number; cost: number; tokens: number }>(),
+    // successRate: % de sessões com status bom/regular (não ruim/critico/inconclusivo)
+    env.DB.prepare(
+      `SELECT COUNT(*) AS total,
+              SUM(CASE WHEN status IN ('bom','excelente','regular') THEN 1 ELSE 0 END) AS successful
+       FROM diagnostic_sessions WHERE created_at >= ?${envClause}`
+    ).bind(since, ...envBinds).first<{ total: number; successful: number }>(),
+    // mostTestType: tipo de rede predominante
+    env.DB.prepare(
+      `SELECT network_type, COUNT(*) AS cnt
+       FROM diagnostic_sessions WHERE created_at >= ?${envClause}
+         AND network_type IS NOT NULL AND network_type != '' AND network_type != 'unknown'
+       GROUP BY network_type ORDER BY cnt DESC LIMIT 1`
+    ).bind(since, ...envBinds).first<{ network_type: string; cnt: number }>(),
+    // topProblem: issue mais frequente no período
+    env.DB.prepare(
+      `SELECT issues FROM diagnostic_sessions WHERE created_at >= ?${envClause} AND issues != '[]'`
+    ).bind(since, ...envBinds).all(),
   ]);
+
+  // Calcula successRate
+  const total = successRows?.total ?? 0;
+  const successRate = total > 0
+    ? Math.round(((successRows?.successful ?? 0) / total) * 100)
+    : null;
+
+  // Determina topProblem a partir dos arrays JSON de issues
+  const countMap: Record<string, number> = {};
+  for (const row of (issueRows.results ?? [])) {
+    let issues: string[] = [];
+    try { issues = JSON.parse((row as any).issues ?? "[]"); } catch { /* ignora */ }
+    for (const label of issues) {
+      if (typeof label === "string" && label.trim()) {
+        countMap[label] = (countMap[label] ?? 0) + 1;
+      }
+    }
+  }
+  const topEntry = Object.entries(countMap).sort(([, a], [, b]) => b - a)[0];
+  const topProblem = topEntry ? topEntry[0] : null;
+
+  // mostTestType
+  const mostTestType = networkRows?.network_type ?? null;
+  const mostTestTypeCount = networkRows?.cnt ?? 0;
+  const mostTestTypePercentage = total > 0 && mostTestTypeCount > 0
+    ? Math.round((mostTestTypeCount / total) * 100)
+    : null;
 
   return json({
     source: "d1", period,
-    environment:      envFilter ?? "all",
-    totalDiagnostics: sessions?.total ?? 0,
-    activeSessions:   sessions?.active ?? 0,
-    avgNetworkScore:  sessions?.avg_score ? Math.round(sessions.avg_score) : 0,
-    aiCallsToday:     aiRows?.calls  ?? 0,
-    aiCostToday:      aiRows?.cost   ?? 0,
-    aiTokensToday:    aiRows?.tokens ?? 0,
+    environment:          envFilter ?? "all",
+    totalDiagnostics:     sessions?.total ?? 0,
+    activeSessions:       sessions?.active ?? 0,
+    avgNetworkScore:      sessions?.avg_score ? Math.round(sessions.avg_score) : 0,
+    aiCallsToday:         aiRows?.calls  ?? 0,
+    aiCostToday:          aiRows?.cost   ?? 0,
+    aiTokensToday:        aiRows?.tokens ?? 0,
+    successRate,
+    topProblem,
+    mostTestType,
+    mostTestTypePercentage,
   }, 200, env);
 }
 
@@ -363,21 +457,43 @@ async function handleAiCost(request: Request, env: Env): Promise<Response> {
   const envClause = envFilter ? " AND environment = ?" : "";
   const envBinds  = envFilter ? [envFilter]            : [];
 
+  // SIG-125: inclui contagem de chamadas com resposta real (completion_tokens > 0)
+  // para calcular reliabilityPercentage por modelo.
+  // A tabela ai_usage não possui coluna status — o proxy de sucesso adotado é
+  // completion_tokens > 0: a chamada gerou tokens de resposta, portanto foi bem-sucedida.
+  // Mesmo critério usado em handleAiCostMetrics. Com tabela vazia, o campo retorna null.
   const rows = await env.DB.prepare(
-    `SELECT model, COUNT(*) AS calls, SUM(total_tokens) AS tokens, SUM(cost_usd) AS cost_usd
+    `SELECT model,
+            COUNT(*) AS calls,
+            SUM(total_tokens) AS tokens,
+            SUM(cost_usd) AS cost_usd,
+            SUM(CASE WHEN completion_tokens > 0 THEN 1 ELSE 0 END) AS successful_calls
      FROM ai_usage WHERE created_at >= ?${envClause} GROUP BY model ORDER BY calls DESC`
   ).bind(since, ...envBinds).all();
 
-  const totals = (rows.results ?? []).reduce(
+  const byModel = (rows.results ?? []).map((r: any) => {
+    const calls     = r.calls ?? 0;
+    const successful = r.successful_calls ?? 0;
+    return {
+      model:                 r.model,
+      calls,
+      tokens:                r.tokens    ?? 0,
+      cost_usd:              r.cost_usd  ?? 0,
+      // null quando não há registros; valor calculado a 2 casas decimais caso contrário.
+      reliabilityPercentage: calls > 0 ? Math.round((successful / calls) * 10000) / 100 : null,
+    };
+  });
+
+  const totals = byModel.reduce(
     (acc: any, r: any) => ({
-      calls:  acc.calls  + (r.calls  ?? 0),
-      tokens: acc.tokens + (r.tokens ?? 0),
-      cost:   acc.cost   + (r.cost_usd ?? 0),
+      calls:  acc.calls  + r.calls,
+      tokens: acc.tokens + r.tokens,
+      cost:   acc.cost   + r.cost_usd,
     }),
     { calls: 0, tokens: 0, cost: 0 }
   );
 
-  return json({ source: "d1", period, environment: envFilter ?? "all", byModel: rows.results ?? [], totals }, 200, env);
+  return json({ source: "d1", period, environment: envFilter ?? "all", byModel, totals }, 200, env);
 }
 
 // --- handlers /admin/metrics (SIG-110) ---
@@ -499,25 +615,67 @@ async function handleTopIssues(request: Request, env: Env): Promise<Response> {
   return json({ source: "d1", period, environment: envFilter ?? "all", items }, 200, env);
 }
 
-// SIG-133: alertas reais baseados em threshold checking contra dados do D1.
-async function handleRecentAlerts(_request: Request, env: Env): Promise<Response> {
+// SIG-133: tipos e helpers para alertas persistidos.
+
+interface AlertRow {
+  id: string;
+  type: string;
+  severity: string;
+  title: string;
+  message: string;
+  created_at: number;
+  resolved: number;
+}
+
+interface AlertResponse {
+  id: string;
+  type: string;
+  severity: string;
+  title: string;
+  message: string;
+  created_at: number;
+  timestamp: string;
+  resolved: boolean;
+}
+
+function alertRowToResponse(r: AlertRow): AlertResponse {
+  return {
+    id:         r.id,
+    type:       r.type,
+    severity:   r.severity,
+    title:      r.title,
+    message:    r.message,
+    created_at: r.created_at,
+    timestamp:  new Date(r.created_at * 1000).toISOString(),
+    resolved:   r.resolved === 1,
+  };
+}
+
+/**
+ * Verifica thresholds e persiste alertas candidatos de forma idempotente.
+ * Regras:
+ * - Custo IA > budget diário → critical (requer budget configurado em admin_settings)
+ * - Taxa de erros > threshold/hora → warning (usa system_errors.last_seen)
+ * - Score médio < mínimo → warning
+ *
+ * Idempotência: INSERT OR IGNORE por id determinístico. Se o alerta já existe
+ * e não foi resolvido, não duplica. Se foi resolvido, não reabre
+ * (evita flood de alertas repetidos — operador resolve manualmente).
+ */
+async function generateAndPersistAlerts(env: Env): Promise<void> {
   const now        = nowSec();
   const oneDayAgo  = now - 86400;
   const oneHourAgo = now - 3600;
 
-  // Thresholds lidos de admin_settings, com defaults conservadores para não gerar falsos positivos.
   const settingsRow = await env.DB.prepare(
     "SELECT value FROM admin_settings WHERE key = 'admin'"
   ).first<{ value: string }>();
   const settings = settingsRow?.value ? JSON.parse(settingsRow.value) : {};
-  const AI_DAILY_BUDGET  = settings.aiDailyBudgetUsd       ?? 1.0;   // USD
-  const ERROR_THRESHOLD  = settings.errorSpikeThreshold    ?? 10;    // erros/hora
-  const MIN_SCORE        = settings.criticalScoreThreshold ?? 50;    // score médio mínimo
 
-  const alerts: Array<{
-    id: string; type: string; severity: string;
-    title: string; message: string; created_at: number; resolved: boolean;
-  }> = [];
+  // Budget: se não configurado, não gera alerta de custo (sem fabricar).
+  const AI_DAILY_BUDGET: number | null = settings.aiDailyBudgetUsd ?? null;
+  const ERROR_THRESHOLD  = settings.errorSpikeThreshold    ?? 10;
+  const MIN_SCORE        = settings.criticalScoreThreshold ?? 50;
 
   const [aiCost, recentErrors, scoreRow] = await Promise.all([
     env.DB.prepare(
@@ -526,7 +684,7 @@ async function handleRecentAlerts(_request: Request, env: Env): Promise<Response
 
     env.DB.prepare(
       "SELECT COUNT(*) AS count FROM system_errors WHERE last_seen >= ?"
-    ).bind(oneHourAgo * 1000).first<{ count: number }>(), // last_seen em ms
+    ).bind(oneHourAgo * 1000).first<{ count: number }>(),
 
     env.DB.prepare(
       `SELECT AVG(CAST(score AS REAL)) AS avg FROM diagnostic_sessions
@@ -534,43 +692,89 @@ async function handleRecentAlerts(_request: Request, env: Env): Promise<Response
     ).bind(oneDayAgo).first<{ avg: number | null }>(),
   ]);
 
-  if ((aiCost?.total ?? 0) > AI_DAILY_BUDGET) {
-    alerts.push({
-      id:         'ai_budget_exceeded',
-      type:       'AI_BUDGET',
-      severity:   'critical',
-      title:      'Orçamento diário de IA excedido',
-      message:    `Custo nas últimas 24h: $${(aiCost?.total ?? 0).toFixed(4)} USD (limite: $${AI_DAILY_BUDGET})`,
-      created_at: now,
-      resolved:   false,
+  const candidates: Array<{ id: string; type: string; severity: string; title: string; message: string }> = [];
+
+  // Alerta de custo: só dispara se budget estiver configurado e custo > 0.
+  if (AI_DAILY_BUDGET !== null && (aiCost?.total ?? 0) > AI_DAILY_BUDGET) {
+    candidates.push({
+      id:       'ai_budget_exceeded',
+      type:     'AI_BUDGET',
+      severity: 'critical',
+      title:    'Orçamento diário de IA excedido',
+      message:  `Custo nas últimas 24h: $${(aiCost?.total ?? 0).toFixed(4)} USD (limite: $${AI_DAILY_BUDGET})`,
     });
   }
 
   if ((recentErrors?.count ?? 0) > ERROR_THRESHOLD) {
-    alerts.push({
-      id:         'error_spike',
-      type:       'ERROR_SPIKE',
-      severity:   'warning',
-      title:      'Pico de erros detectado',
-      message:    `${recentErrors?.count} erros na última hora (limite: ${ERROR_THRESHOLD})`,
-      created_at: now,
-      resolved:   false,
+    candidates.push({
+      id:       'error_spike',
+      type:     'ERROR_SPIKE',
+      severity: 'warning',
+      title:    'Pico de erros detectado',
+      message:  `${recentErrors?.count} erros na última hora (limite: ${ERROR_THRESHOLD})`,
     });
   }
 
   if (scoreRow?.avg != null && scoreRow.avg < MIN_SCORE) {
-    alerts.push({
-      id:         'low_avg_score',
-      type:       'LOW_SCORE',
-      severity:   'warning',
-      title:      'Qualidade de rede baixa',
-      message:    `Score médio nas últimas 24h: ${Math.round(scoreRow.avg)} (mínimo: ${MIN_SCORE})`,
-      created_at: now,
-      resolved:   false,
+    candidates.push({
+      id:       'low_avg_score',
+      type:     'LOW_SCORE',
+      severity: 'warning',
+      title:    'Qualidade de rede baixa',
+      message:  `Score médio nas últimas 24h: ${Math.round(scoreRow.avg)} (mínimo: ${MIN_SCORE})`,
     });
   }
 
-  return json({ source: "d1", items: alerts }, 200, env);
+  // Persiste idempotente: INSERT OR IGNORE mantém o alerta original se já existir
+  // (ativo ou resolvido). Não reabre alerta resolvido automaticamente.
+  for (const c of candidates) {
+    await env.DB.prepare(
+      `INSERT OR IGNORE INTO alerts (id, type, severity, title, message, created_at, resolved)
+       VALUES (?, ?, ?, ?, ?, ?, 0)`
+    ).bind(c.id, c.type, c.severity, c.title, c.message, now).run();
+  }
+}
+
+// GET /admin/alerts — gera alertas + retorna ativos + histórico recente (24h).
+// Compat: também serve GET /admin/metrics/alerts para o adminMetricsService legado.
+async function handleAlerts(_request: Request, env: Env): Promise<Response> {
+  await generateAndPersistAlerts(env);
+
+  const since = nowSec() - 86400;
+  const rows = await env.DB.prepare(
+    `SELECT id, type, severity, title, message, created_at, resolved
+     FROM alerts
+     WHERE resolved = 0 OR created_at >= ?
+     ORDER BY created_at DESC
+     LIMIT 50`
+  ).bind(since).all<AlertRow>();
+
+  const items = (rows.results ?? []).map(alertRowToResponse);
+  return json({ source: "d1", items }, 200, env);
+}
+
+// POST /admin/alerts/:id/resolve — marca alerta como resolvido.
+async function handleResolveAlert(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  // Extrai o id do path: /admin/alerts/:id/resolve
+  const match = url.pathname.match(/^\/admin\/alerts\/([^/]+)\/resolve$/);
+  if (!match) return err('id inválido', 400, env);
+  const id = match[1];
+
+  const result = await env.DB.prepare(
+    'UPDATE alerts SET resolved = 1 WHERE id = ?'
+  ).bind(id).run();
+
+  if ((result.meta?.changes ?? 0) === 0) {
+    return err('alerta não encontrado', 404, env);
+  }
+
+  return json({ ok: true, id }, 200, env);
+}
+
+// /admin/metrics/alerts — mantido para compatibilidade; delega para handleAlerts.
+async function handleRecentAlerts(request: Request, env: Env): Promise<Response> {
+  return handleAlerts(request, env);
 }
 
 async function handleAiCostMetrics(request: Request, env: Env): Promise<Response> {
@@ -612,11 +816,11 @@ async function handleAiCostMetrics(request: Request, env: Env): Promise<Response
   const reliabilityRow = await env.DB.prepare(
     `SELECT COUNT(*) AS total,
             SUM(CASE WHEN completion_tokens > 0 THEN 1 ELSE 0 END) AS successful
-     FROM ai_usage WHERE created_at >= ?`
-  ).bind(since).first<{ total: number; successful: number }>();
+     FROM ai_usage WHERE created_at >= ?${envClause}`
+  ).bind(since, ...envBinds).first<{ total: number; successful: number }>();
   const reliabilityPercentage = (reliabilityRow?.total ?? 0) > 0
     ? Math.round(((reliabilityRow?.successful ?? 0) / reliabilityRow!.total) * 100)
-    : 100;
+    : null;
 
   return json({
     source: "d1",
@@ -642,6 +846,58 @@ function providerName(model: string): string {
   return model; // fallback: nome técnico do modelo
 }
 
+async function handleDiagnosticsSummary(request: Request, env: Env): Promise<Response> {
+  const url       = new URL(request.url);
+  const period    = url.searchParams.get("period") ?? "7d";
+  const since     = nowSec() - periodToSeconds(period);
+  const envFilter = getEnvironmentFilter(url);
+
+  const envClause = envFilter ? " AND environment = ?" : "";
+  const envBinds  = envFilter ? [envFilter]            : [];
+
+  const row = await env.DB.prepare(
+    `SELECT
+       COUNT(*) AS total,
+       AVG(latency_ms) AS avg_latency_ms,
+       AVG(jitter_ms) AS avg_jitter_ms,
+       AVG(packet_loss) AS avg_packet_loss,
+       AVG(download_mbps) AS avg_download_mbps,
+       AVG(upload_mbps) AS avg_upload_mbps,
+       AVG(CAST(score AS REAL)) AS avg_score,
+       SUM(CASE WHEN status IN ('ruim','critico') THEN 1 ELSE 0 END) AS critical_count,
+       SUM(CASE WHEN resolved = 0 THEN 1 ELSE 0 END) AS active_count
+     FROM diagnostic_sessions
+     WHERE created_at >= ?${envClause}`
+  ).bind(since, ...envBinds).first<{
+    total: number;
+    avg_latency_ms: number | null;
+    avg_jitter_ms: number | null;
+    avg_packet_loss: number | null;
+    avg_download_mbps: number | null;
+    avg_upload_mbps: number | null;
+    avg_score: number | null;
+    critical_count: number;
+    active_count: number;
+  }>();
+
+  const round1 = (v: number | null) => v != null ? Math.round(v * 10) / 10 : null;
+
+  return json({
+    source:                    "d1",
+    period,
+    environment:               envFilter ?? "all",
+    totalDiagnostics:          row?.total ?? 0,
+    criticalCount:             row?.critical_count ?? 0,
+    activeSessions:            row?.active_count ?? 0,
+    averageScore:              row?.avg_score != null ? Math.round(row.avg_score) : null,
+    averageLatencyMs:          round1(row?.avg_latency_ms ?? null),
+    averageJitterMs:           round1(row?.avg_jitter_ms ?? null),
+    averagePacketLossPercentage: round1(row?.avg_packet_loss ?? null),
+    averageDownloadMbps:       round1(row?.avg_download_mbps ?? null),
+    averageUploadMbps:         round1(row?.avg_upload_mbps ?? null),
+  }, 200, env);
+}
+
 async function handleAiProviders(request: Request, env: Env): Promise<Response> {
   const url       = new URL(request.url);
   const period    = url.searchParams.get("period") ?? "7d";
@@ -652,7 +908,11 @@ async function handleAiProviders(request: Request, env: Env): Promise<Response> 
   const envBinds  = envFilter ? [envFilter]            : [];
 
   const rows = await env.DB.prepare(
-    `SELECT model, SUM(total_tokens) AS tokensProcessed
+    `SELECT
+       model,
+       SUM(total_tokens) AS tokensProcessed,
+       COUNT(*) AS calls,
+       SUM(CASE WHEN completion_tokens > 0 THEN 1 ELSE 0 END) AS successful_calls
      FROM ai_usage
      WHERE created_at >= ?${envClause}
      GROUP BY model
@@ -662,11 +922,16 @@ async function handleAiProviders(request: Request, env: Env): Promise<Response> 
   const results = rows.results ?? [];
   const grandTotal = results.reduce((acc: number, r: any) => acc + (r.tokensProcessed ?? 0), 0);
 
-  const items = results.map((r: any) => ({
-    name:            providerName(r.model ?? ""),
-    tokensProcessed: r.tokensProcessed ?? 0,
-    percentage:      grandTotal > 0 ? Math.round(((r.tokensProcessed ?? 0) / grandTotal) * 100) : 0,
-  }));
+  const items = results.map((r: any) => {
+    const calls      = r.calls ?? 0;
+    const successful = r.successful_calls ?? 0;
+    return {
+      name:                  providerName(r.model ?? ""),
+      tokensProcessed:       r.tokensProcessed ?? 0,
+      percentage:            grandTotal > 0 ? Math.round(((r.tokensProcessed ?? 0) / grandTotal) * 100) : 0,
+      reliabilityPercentage: calls > 0 ? Math.round((successful / calls) * 10000) / 100 : null,
+    };
+  });
 
   return json({ source: "d1", period, environment: envFilter ?? "all", items }, 200, env);
 }
@@ -719,35 +984,97 @@ async function handleOperators(request: Request, env: Env): Promise<Response> {
   const envClause = envFilter ? " AND environment = ?" : "";
   const envBinds  = envFilter ? [envFilter]            : [];
 
+  // Gap 4/5 (SIG-164): packetLossAverage calculado do D1; type derivado do network_type
+  // mais frequente por operadora via subquery correlacionada.
   const rows = await env.DB.prepare(
     `SELECT
-       operator,
-       COUNT(*)                                                  AS total_diagnostics,
-       AVG(score)                                               AS avg_score,
-       AVG(download_mbps)                                       AS avg_download,
-       AVG(upload_mbps)                                         AS avg_upload,
-       AVG(latency_ms)                                          AS avg_latency,
-       SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END)   AS completed,
-       SUM(CASE WHEN resolved = 1         THEN 1 ELSE 0 END)   AS resolved
-     FROM diagnostic_sessions
-     WHERE created_at >= ?
-       AND operator IS NOT NULL AND operator != ''${envClause}
-     GROUP BY operator
+       s1.operator,
+       COUNT(*)                                                       AS total_diagnostics,
+       AVG(s1.score)                                                  AS avg_score,
+       AVG(s1.download_mbps)                                         AS avg_download,
+       AVG(s1.upload_mbps)                                           AS avg_upload,
+       AVG(s1.latency_ms)                                            AS avg_latency,
+       AVG(s1.packet_loss)                                           AS avg_packet_loss,
+       SUM(CASE WHEN s1.status = 'completed' THEN 1 ELSE 0 END)     AS completed,
+       SUM(CASE WHEN s1.resolved = 1         THEN 1 ELSE 0 END)     AS resolved,
+       (SELECT s2.network_type
+        FROM diagnostic_sessions s2
+        WHERE s2.operator = s1.operator
+          AND s2.created_at >= ?
+          AND s2.network_type IS NOT NULL AND s2.network_type != '' AND s2.network_type != 'unknown'
+        GROUP BY s2.network_type
+        ORDER BY COUNT(*) DESC
+        LIMIT 1)                                                      AS dominant_network_type
+     FROM diagnostic_sessions s1
+     WHERE s1.created_at >= ?
+       AND s1.operator IS NOT NULL AND s1.operator != ''${envClause}
+     GROUP BY s1.operator
      ORDER BY total_diagnostics DESC`
-  ).bind(since, ...envBinds).all();
+  ).bind(since, since, ...envBinds).all();
 
   const operators = (rows.results ?? []).map((r: any) => ({
-    operator:          r.operator,
-    total_diagnostics: r.total_diagnostics ?? 0,
-    avg_score:         r.avg_score         != null ? Math.round(r.avg_score) : null,
-    avg_download:      r.avg_download      ?? null,
-    avg_upload:        r.avg_upload        ?? null,
-    avg_latency:       r.avg_latency       != null ? Math.round(r.avg_latency) : null,
-    completed:         r.completed         ?? 0,
-    resolved:          r.resolved          ?? 0,
+    operator:            r.operator,
+    total_diagnostics:   r.total_diagnostics ?? 0,
+    avg_score:           r.avg_score         != null ? Math.round(r.avg_score) : null,
+    avg_download:        r.avg_download       ?? null,
+    avg_upload:          r.avg_upload         ?? null,
+    avg_latency:         r.avg_latency        != null ? Math.round(r.avg_latency) : null,
+    packetLossAverage:   r.avg_packet_loss    != null ? Math.round(r.avg_packet_loss * 100) / 100 : 0,
+    type:                r.dominant_network_type ?? 'mobile',
+    completed:           r.completed          ?? 0,
+    resolved:            r.resolved           ?? 0,
   }));
 
   return json({ source: "d1", period, environment: envFilter ?? "all", operators }, 200, env);
+}
+
+// Gap 6 (SIG-164): Diagnostic Intelligence Panel — agrega padrões por tipo de problema.
+// Retorna os tipos de issue mais comuns, frequência relativa e score médio por tipo.
+async function handleDiagnosticsIntelligence(request: Request, env: Env): Promise<Response> {
+  const url       = new URL(request.url);
+  const period    = url.searchParams.get("period") ?? "30d";
+  const since     = nowSec() - periodToSeconds(period);
+  const envFilter = getEnvironmentFilter(url);
+
+  const envClause = envFilter ? " AND environment = ?" : "";
+  const envBinds  = envFilter ? [envFilter]            : [];
+
+  const rows = await env.DB.prepare(
+    `SELECT issues, score FROM diagnostic_sessions
+     WHERE created_at >= ?${envClause} AND issues IS NOT NULL AND issues != '[]'`
+  ).bind(since, ...envBinds).all();
+
+  const issueMap = new Map<string, { count: number; totalScore: number; scoreCount: number }>();
+
+  for (const row of (rows.results ?? [])) {
+    let issues: string[] = [];
+    try { issues = JSON.parse((row as any).issues ?? "[]"); } catch { continue; }
+    const score = (row as any).score;
+    for (const label of issues) {
+      if (typeof label === "string" && label.trim()) {
+        const entry = issueMap.get(label) ?? { count: 0, totalScore: 0, scoreCount: 0 };
+        entry.count++;
+        if (score != null && !isNaN(Number(score))) {
+          entry.totalScore += Number(score);
+          entry.scoreCount++;
+        }
+        issueMap.set(label, entry);
+      }
+    }
+  }
+
+  const totalOccurrences = Array.from(issueMap.values()).reduce((s, e) => s + e.count, 0);
+
+  const patterns = Array.from(issueMap.entries())
+    .sort(([, a], [, b]) => b.count - a.count)
+    .map(([issue, entry]) => ({
+      issue,
+      count:     entry.count,
+      frequency: totalOccurrences > 0 ? Math.round((entry.count / totalOccurrences) * 1000) / 10 : 0,
+      avgScore:  entry.scoreCount > 0 ? Math.round(entry.totalScore / entry.scoreCount) : null,
+    }));
+
+  return json({ source: "d1", period, environment: envFilter ?? "all", patterns }, 200, env);
 }
 
 async function handleFirebaseAnalytics(request: Request, env: Env): Promise<Response> {
@@ -777,6 +1104,7 @@ async function handleFirebaseAnalytics(request: Request, env: Env): Promise<Resp
     const data = await resp.json();
     return json({ source: "firebase_analytics", data }, 200, env);
   } catch (e) {
+    await logError(env, 'firebase', String(e), e instanceof Error ? (e.stack ?? '') : '');
     return json({ source: "error", message: String(e) }, 500, env);
   }
 }
@@ -792,24 +1120,159 @@ async function handleFirebaseStatus(_req: Request, env: Env): Promise<Response> 
 }
 
 async function handleFirebaseCrashlytics(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ source: "no_credentials", unresolvedCrashes: 0, crashFreeUsersPercentage: 100 }, 200, env);
+  }
+
+  const { rows, error } = await queryBigQuery<{
+    total_crashes: string;
+    affected_users: string;
+    total_users: string;
+  }>(env, `
+    SELECT
+      COUNT(*)                                   AS total_crashes,
+      COUNT(DISTINCT installation_uuid)           AS affected_users,
+      (SELECT COUNT(DISTINCT installation_uuid)
+       FROM \`${env.FIREBASE_PROJECT_ID}.analytics_${env.FIREBASE_GA4_PROPERTY_ID}.events_*\`
+       WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))
+         AND event_name = 'session_start'
+      )                                          AS total_users
+    FROM \`${env.FIREBASE_PROJECT_ID}.firebase_crashlytics.android_crashes_*\`
+    WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))
+  `);
+
+  if (error === "table_not_found" || rows.length === 0) {
+    return json({
+      source: "no_data_yet",
+      message: "BigQuery export ativo; dados disponíveis em até 24h do primeiro crash.",
+      unresolvedCrashes: 0,
+      crashFreeUsersPercentage: 100,
+    }, 200, env);
+  }
+  if (error) {
+    await logError(env, 'bigquery-crashlytics', error, '');
+    return json({ source: "error", message: error, unresolvedCrashes: 0, crashFreeUsersPercentage: 100 }, 200, env);
+  }
+
+  const row = rows[0];
+  const totalCrashes  = parseInt(row.total_crashes  ?? "0", 10);
+  const affectedUsers = parseInt(row.affected_users ?? "0", 10);
+  const totalUsers    = parseInt(row.total_users    ?? "1", 10);
+  const crashFreeUsersPercentage = totalUsers > 0
+    ? Math.round(((totalUsers - affectedUsers) / totalUsers) * 10000) / 100
+    : 100;
+
   return json({
-    source: "stub",
-    message: "Crashlytics requer exportacao BigQuery.",
-    unresolvedCrashes: 0,
-    crashFreeUsersPercentage: 100,
+    source: "bigquery",
+    unresolvedCrashes: totalCrashes,
+    affectedUsers,
+    crashFreeUsersPercentage,
   }, 200, env);
 }
 
 async function handleFirebaseVersions(_req: Request, env: Env): Promise<Response> {
-  return json({ source: "stub", versions: [], message: "Requer BigQuery Crashlytics export." }, 200, env);
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ source: "no_credentials", versions: [] }, 200, env);
+  }
+
+  const { rows, error } = await queryBigQuery<{
+    app_version: string;
+    total_crashes: string;
+    affected_users: string;
+  }>(env, `
+    SELECT
+      app_version,
+      COUNT(*)                          AS total_crashes,
+      COUNT(DISTINCT installation_uuid) AS affected_users
+    FROM \`${env.FIREBASE_PROJECT_ID}.firebase_crashlytics.android_crashes_*\`
+    WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))
+    GROUP BY app_version
+    ORDER BY total_crashes DESC
+    LIMIT 10
+  `);
+
+  if (error === "table_not_found" || !rows.length) {
+    return json({ source: "no_data_yet", versions: [] }, 200, env);
+  }
+  if (error) {
+    await logError(env, 'bigquery-versions', error, '');
+    return json({ source: "error", versions: [] }, 200, env);
+  }
+
+  const versions = rows.map((r) => ({
+    version:       r.app_version ?? "unknown",
+    totalCrashes:  parseInt(r.total_crashes ?? "0", 10),
+    affectedUsers: parseInt(r.affected_users ?? "0", 10),
+  }));
+
+  return json({ source: "bigquery", versions }, 200, env);
 }
 
 async function handleFirebaseCrashIssues(_req: Request, env: Env): Promise<Response> {
-  return json({ source: "stub", issues: [], message: "Requer BigQuery Crashlytics export." }, 200, env);
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ source: "no_credentials", issues: [] }, 200, env);
+  }
+
+  const { rows, error } = await queryBigQuery<{
+    issue_id: string;
+    issue_title: string;
+    total_crashes: string;
+    affected_users: string;
+    last_seen: string;
+  }>(env, `
+    SELECT
+      issue_id,
+      issue_title,
+      COUNT(*)                              AS total_crashes,
+      COUNT(DISTINCT installation_uuid)     AS affected_users,
+      MAX(event_timestamp)                  AS last_seen
+    FROM \`${env.FIREBASE_PROJECT_ID}.firebase_crashlytics.android_crashes_*\`
+    WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY))
+    GROUP BY issue_id, issue_title
+    ORDER BY total_crashes DESC
+    LIMIT 20
+  `);
+
+  if (error === "table_not_found" || !rows.length) {
+    return json({ source: "no_data_yet", issues: [] }, 200, env);
+  }
+  if (error) {
+    await logError(env, 'bigquery-crash-issues', error, '');
+    return json({ source: "error", issues: [] }, 200, env);
+  }
+
+  const issues = rows.map((r) => ({
+    id:            r.issue_id ?? "",
+    title:         r.issue_title ?? "Unknown crash",
+    totalCrashes:  parseInt(r.total_crashes ?? "0", 10),
+    affectedUsers: parseInt(r.affected_users ?? "0", 10),
+    lastSeen:      r.last_seen ? parseInt(r.last_seen, 10) / 1000 : 0,
+  }));
+
+  return json({ source: "bigquery", issues }, 200, env);
 }
 
 async function handleFirebaseSync(_req: Request, env: Env): Promise<Response> {
-  return json({ jobId: `sync_${Date.now().toString(36)}`, status: "started" }, 200, env);
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ source: "no_credentials", ok: false }, 200, env);
+  }
+
+  const { rows, error } = await queryBigQuery<{ sessions: string }>(env, `
+    SELECT COUNT(*) AS sessions
+    FROM \`${env.FIREBASE_PROJECT_ID}.analytics_${env.FIREBASE_GA4_PROPERTY_ID}.events_*\`
+    WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
+      AND event_name = 'session_start'
+  `);
+
+  if (error === "table_not_found" || !rows.length) {
+    return json({ ok: false, source: "no_data_yet", sessionsYesterday: 0, syncedAt: nowSec() }, 200, env);
+  }
+  if (error) {
+    return json({ ok: false, source: "error", message: error }, 200, env);
+  }
+
+  const sessions = parseInt(rows[0]?.sessions ?? "0", 10);
+  return json({ ok: true, source: "bigquery", sessionsYesterday: sessions, syncedAt: nowSec() }, 200, env);
 }
 
 async function handleSettings(request: Request, env: Env): Promise<Response> {
@@ -844,27 +1307,53 @@ async function handleSettings(request: Request, env: Env): Promise<Response> {
   return err("método não suportado", 405, env);
 }
 
-// --- SIG-135 Fase A: pipeline de erros via D1 ---
+// --- SIG-129 / SIG-135 Fase A: pipeline de erros via D1 ---
 
-// Fire-and-forget: nunca propaga exceção. Deduplica por (source + message) via id determinístico.
+// djb2: hash determinístico simples, sem dependência externa, adequado para ids de deduplicação.
+function djb2(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) + h) ^ s.charCodeAt(i);
+    h = h >>> 0; // mantém uint32
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+// Fire-and-forget: nunca propaga exceção. Deduplica por (source + message) via hash djb2.
 async function logError(env: Env, source: string, message: string, stack = ''): Promise<void> {
   try {
-    const id = btoa(`${source}:${message}`).slice(0, 64);
+    const id = djb2(`${source}:${message}`);
     const now = Date.now();
     await env.DB.prepare(`
       INSERT INTO system_errors (id, source, message, stack_trace, count, first_seen, last_seen)
       VALUES (?, ?, ?, ?, 1, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
-        count      = count + 1,
-        last_seen  = excluded.last_seen,
+        count       = count + 1,
+        last_seen   = excluded.last_seen,
         stack_trace = excluded.stack_trace
     `).bind(id, source, message, stack, now, now).run();
   } catch { /* fire-and-forget — nunca propaga */ }
 }
 
+// Envolve um handler de métricas para capturar exceções sem alterar o comportamento.
+// O handler original mantém seu throw/fallback; o log é adicional.
+function withErrorLogging(source: string, handler: Handler): Handler {
+  return async (req: Request, env: Env): Promise<Response> => {
+    try {
+      return await handler(req, env);
+    } catch (e) {
+      await logError(env, source, String(e), e instanceof Error ? (e.stack ?? '') : '');
+      throw e;
+    }
+  };
+}
+
 async function handleErrors(request: Request, env: Env): Promise<Response> {
   const url    = new URL(request.url);
   const period = url.searchParams.get("period") ?? "30d";
+  // Fase A: o parâmetro ?environment= enviado pelo frontend é IGNORADO aqui.
+  // A tabela system_errors não possui coluna environment — os erros são do worker,
+  // não do app. Filtro por environment entra na Fase B junto com SIG-143.
   // last_seen é em milissegundos (Date.now()), mas periodToSeconds retorna segundos.
   // Multiplicamos por 1000 para ficar na mesma escala.
   const sinceMs = (Date.now()) - periodToSeconds(period) * 1000;
@@ -886,6 +1375,8 @@ async function handleErrors(request: Request, env: Env): Promise<Response> {
     first_seen:       r.first_seen,
     last_seen:        r.last_seen,
     timestamp:        new Date(r.last_seen).toISOString(),
+    // O backend não rastreia usuários únicos por erro — sem PII no D1.
+    // Derivar por device_id (já presente em diagnostic_sessions) é Fase B.
     affectedUserCount: 0,
   }));
 
@@ -912,6 +1403,11 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
   const versionCode = p.version_code ?? 0;
   const deviceId    = p.device_id    ?? '';
 
+  // Gap 3 (SIG-164): rssi, banda_wifi, padrao_wifi enviados ao AI Worker mas nunca persistidos.
+  const rssi       = p.rssi        ?? p.rssiDbm ?? null;
+  const bandaWifi  = p.banda_wifi  ?? p.bandaWifi  ?? null;
+  const padraoWifi = p.padrao_wifi ?? p.padraoWifi ?? null;
+
   try {
     await env.DB.prepare(
       `INSERT OR REPLACE INTO diagnostic_sessions
@@ -919,8 +1415,9 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
           download_mbps, upload_mbps, latency_ms, jitter_ms, packet_loss,
           issues, resolved, operator,
           device_model, os_version, app_version, ai_summary_report,
-          environment, dist_channel, build_type, version_code, device_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          environment, dist_channel, build_type, version_code, device_id,
+          rssi, banda_wifi, padrao_wifi)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       p.id, p.created_at ?? nowSec(),
       p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
@@ -930,6 +1427,7 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
       p.operator ?? null,
       deviceModel, osVersion, appVersion, aiSummaryReport,
       environment, distChannel, buildType, versionCode, deviceId,
+      rssi, bandaWifi, padraoWifi,
     ).run();
   } catch (e) {
     await logError(env, 'ingest', String(e), e instanceof Error ? e.stack ?? '' : '');
@@ -963,23 +1461,36 @@ async function handleIngestAiUsage(request: Request, env: Env): Promise<Response
   const prompt     = p.prompt_tokens     ?? 0;
   const completion = p.completion_tokens ?? 0;
   const total      = p.total_tokens      ?? (prompt + completion);
-  const cost       = p.cost_usd          ?? costForModel(p.model, total);
+
+  // Gap 1 (SIG-164): cost_usd null em registros retroativos.
+  // Se o Android envia cost_usd=null mas total_tokens > 0, aplica tarifa aproximada
+  // do Qwen3 30B (0.30 USD / 1M tokens) para não perder rastreabilidade de custo.
+  const cost = p.cost_usd != null
+    ? p.cost_usd
+    : total > 0
+      ? (total / 1_000_000) * 0.30
+      : costForModel(p.model, total);
 
   // SIG-143: campos de contexto de ambiente.
   const environment = p.environment  ?? 'production';
   const versionCode = p.version_code ?? 0;
+
+  // Gap 2 (SIG-164): dist_channel, build_type, device_id antes descartados.
+  const distChannel = p.dist_channel ?? '';
+  const buildType   = p.build_type   ?? 'release';
+  const deviceId    = p.device_id    ?? '';
 
   try {
     await env.DB.prepare(
       `INSERT OR REPLACE INTO ai_usage
          (id, session_id, created_at, model,
           prompt_tokens, completion_tokens, total_tokens, cost_usd,
-          environment, version_code)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          environment, version_code, dist_channel, build_type, device_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       p.id, p.session_id ?? null, p.created_at ?? nowSec(), p.model,
       prompt, completion, total, cost,
-      environment, versionCode,
+      environment, versionCode, distChannel, buildType, deviceId,
     ).run();
   } catch (e) {
     await logError(env, 'ai-usage', String(e), e instanceof Error ? e.stack ?? '' : '');
@@ -987,6 +1498,180 @@ async function handleIngestAiUsage(request: Request, env: Env): Promise<Response
   }
 
   return json({ ok: true, id: p.id }, 201, env);
+}
+
+// --- SIG-134: analytics de produto ---
+
+async function handleIngestAnalytics(request: Request, env: Env): Promise<Response> {
+  let body: any;
+  try { body = await request.json(); } catch { return err('body JSON inválido', 400, env); }
+
+  const events: any[] = Array.isArray(body.events) ? body.events : [];
+  if (events.length === 0) return json({ ok: true, inserted: 0 }, 200, env);
+  if (events.length > 500) return err('máximo 500 eventos por batch', 400, env);
+
+  const VALID_EVENTS = new Set(['feature_used', 'screen_view', 'session_start', 'feature_crash', 'battery_snapshot']);
+  const now = nowSec();
+
+  const stmts = events
+    .filter((e) => e && VALID_EVENTS.has(e.name))
+    .map((e) =>
+      env.DB.prepare(
+        `INSERT OR IGNORE INTO analytics_events
+           (id, event_name, session_id, created_at, app_version, feature_id, screen_name, error_type, battery_level, battery_charging, environment)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        crypto.randomUUID(),
+        e.name,
+        e.session_id ?? '',
+        typeof e.timestamp === 'number' ? e.timestamp : now,
+        e.app_version ?? '',
+        e.feature_id  ?? '',
+        e.screen_name ?? '',
+        e.error_type  ?? '',
+        typeof e.battery_level    === 'number' ? e.battery_level    : null,
+        typeof e.battery_charging === 'boolean' ? (e.battery_charging ? 1 : 0) : null,
+        e.environment ?? 'production',
+      )
+    );
+
+  if (stmts.length > 0) await env.DB.batch(stmts);
+
+  return json({ ok: true, inserted: stmts.length }, 201, env);
+}
+
+async function handleProductAnalytics(request: Request, env: Env): Promise<Response> {
+  const url       = new URL(request.url);
+  const period    = url.searchParams.get('period') ?? '7d';
+  const since     = nowSec() - periodToSeconds(period);
+  const envFilter = getEnvironmentFilter(url);
+
+  const envClause = envFilter ? ' AND environment = ?' : '';
+  const envBinds  = envFilter ? [envFilter]            : [];
+
+  const [featureRows, screenRows, crashRows, totalRows] = await Promise.all([
+    // Uso por feature: contagem total e sessões únicas
+    env.DB.prepare(
+      `SELECT feature_id, COUNT(*) AS usage_count, COUNT(DISTINCT session_id) AS unique_sessions
+       FROM analytics_events
+       WHERE event_name = 'feature_used' AND created_at >= ?${envClause}
+         AND feature_id != ''
+       GROUP BY feature_id ORDER BY usage_count DESC`
+    ).bind(since, ...envBinds).all(),
+
+    // Navegação por tela
+    env.DB.prepare(
+      `SELECT screen_name, COUNT(*) AS views, COUNT(DISTINCT session_id) AS unique_sessions
+       FROM analytics_events
+       WHERE event_name = 'screen_view' AND created_at >= ?${envClause}
+         AND screen_name != ''
+       GROUP BY screen_name ORDER BY views DESC`
+    ).bind(since, ...envBinds).all(),
+
+    // Crashes por feature
+    env.DB.prepare(
+      `SELECT feature_id,
+              COUNT(*) AS crashes,
+              GROUP_CONCAT(DISTINCT app_version) AS affected_versions
+       FROM analytics_events
+       WHERE event_name = 'feature_crash' AND created_at >= ?${envClause}
+         AND feature_id != ''
+       GROUP BY feature_id ORDER BY crashes DESC`
+    ).bind(since, ...envBinds).all(),
+
+    // Total de feature_used para calcular crash rate
+    env.DB.prepare(
+      `SELECT feature_id, COUNT(*) AS total
+       FROM analytics_events
+       WHERE event_name = 'feature_used' AND created_at >= ?${envClause}
+         AND feature_id != ''
+       GROUP BY feature_id`
+    ).bind(since, ...envBinds).all(),
+  ]);
+
+  const usageByFeature = new Map<string, number>(
+    (totalRows.results ?? []).map((r: any) => [r.feature_id, r.total])
+  );
+
+  const feature_usage = (featureRows.results ?? []).map((r: any) => ({
+    feature:        r.feature_id,
+    label:          r.feature_id,
+    usageCount:     r.usage_count   ?? 0,
+    uniqueUsers:    r.unique_sessions ?? 0,
+    completionRate: 0,
+    failureRate:    0,
+    avgDurationMs:  0,
+    trendPercent:   0,
+  }));
+
+  const screen_navigation = (screenRows.results ?? []).map((r: any) => ({
+    screen:              r.screen_name,
+    label:               r.screen_name,
+    views:               r.views           ?? 0,
+    uniqueUsers:         r.unique_sessions  ?? 0,
+    avgTimeOnScreenSec:  0,
+    exitRate:            0,
+    nextMostCommonScreen: null,
+  }));
+
+  const feature_crashes = (crashRows.results ?? []).map((r: any) => {
+    const total   = usageByFeature.get(r.feature_id) ?? 0;
+    const crashes = r.crashes ?? 0;
+    const rate    = total > 0 ? crashes / total : 0;
+    const versions = r.affected_versions
+      ? String(r.affected_versions).split(',').filter(Boolean)
+      : [];
+    return {
+      feature:         r.feature_id,
+      label:           r.feature_id,
+      crashes,
+      nonFatalErrors:  0,
+      anrs:            0,
+      crashRate:       Math.round(rate * 1000) / 10,
+      affectedVersions: versions,
+      severity:        crashes === 0 ? 'ok' : rate > 0.05 ? 'critical' : 'attention',
+    };
+  });
+
+  return json({
+    source: 'd1',
+    period,
+    environment: envFilter ?? 'all',
+    no_data_yet: feature_usage.length === 0 && screen_navigation.length === 0,
+    feature_usage,
+    screen_navigation,
+    feature_crashes,
+  }, 200, env);
+}
+
+async function handleBatteryAnalytics(request: Request, env: Env): Promise<Response> {
+  const url    = new URL(request.url);
+  const period = url.searchParams.get('period') ?? '7d';
+  const since  = nowSec() - periodToSeconds(period);
+
+  const rows = await env.DB.prepare(
+    `SELECT
+       AVG(CAST(battery_level AS REAL)) AS avg_level,
+       SUM(battery_charging) AS charging_count,
+       COUNT(*) AS total
+     FROM analytics_events
+     WHERE event_name = 'battery_snapshot' AND created_at >= ?
+       AND battery_level IS NOT NULL`
+  ).bind(since).first<{ avg_level: number | null; charging_count: number; total: number }>();
+
+  const total = rows?.total ?? 0;
+
+  return json({
+    source:     'd1',
+    period,
+    no_data_yet: total === 0,
+    summary: total === 0 ? null : {
+      avg_battery_level:       rows?.avg_level != null ? Math.round(rows.avg_level) : null,
+      charging_sessions_pct:   rows && total > 0 ? Math.round((rows.charging_count / total) * 100) : 0,
+      total_snapshots:         total,
+    },
+    items: [],
+  }, 200, env);
 }
 
 // --- SIG-13: feature flags ---
@@ -1036,22 +1721,102 @@ async function handlePublicFeatureFlags(_request: Request, env: Env): Promise<Re
   return json({ flags: publicFlags }, 200, env);
 }
 
+// --- SIG-13: feature flags via tabela dedicada (substitui JSON blob em admin_settings) ---
+
+// GET /admin/feature-flags — lista todas as flags da tabela feature_flags.
+async function handleFeatureFlags(_request: Request, env: Env): Promise<Response> {
+  const rows = await env.DB.prepare(
+    'SELECT key, enabled, description, updated_at, updated_by FROM feature_flags ORDER BY key'
+  ).all();
+
+  const flags = (rows.results ?? []).map((r: any) => ({
+    key:         r.key,
+    enabled:     r.enabled === 1,
+    description: r.description ?? '',
+    updatedAt:   r.updated_at  ?? 0,
+    updatedBy:   r.updated_by  ?? '',
+  }));
+
+  return json({ flags }, 200, env);
+}
+
+// PUT /admin/feature-flags/:key — atualiza enabled de uma flag e grava audit log.
+async function handleUpdateFeatureFlag(request: Request, env: Env, session: { userId: string; role: string }): Promise<Response> {
+  const url = new URL(request.url);
+  const match = url.pathname.match(/^\/admin\/feature-flags\/([^/]+)$/);
+  if (!match) return err('key inválida', 400, env);
+  const key = match[1];
+
+  let body: { enabled?: boolean };
+  try { body = await request.json(); } catch { return err('body JSON inválido', 400, env); }
+  if (typeof body.enabled !== 'boolean') return err('enabled (boolean) obrigatório', 400, env);
+
+  // Busca estado atual para registrar old_enabled no audit.
+  const current = await env.DB.prepare(
+    'SELECT enabled FROM feature_flags WHERE key = ?'
+  ).bind(key).first<{ enabled: number }>();
+  if (!current) return err('flag não encontrada', 404, env);
+
+  const now       = Math.floor(Date.now() / 1000);
+  const newEnabled = body.enabled ? 1 : 0;
+
+  // Obtém email do usuário da sessão para o audit log.
+  const userRow = await env.DB.prepare(
+    'SELECT email FROM admin_users WHERE id = ?'
+  ).bind(session.userId).first<{ email: string }>();
+  const changedBy = userRow?.email ?? 'admin';
+
+  await env.DB.batch([
+    env.DB.prepare(
+      'UPDATE feature_flags SET enabled = ?, updated_at = ?, updated_by = ? WHERE key = ?'
+    ).bind(newEnabled, now, changedBy, key),
+    env.DB.prepare(
+      'INSERT INTO feature_flag_audit (id, flag_key, old_enabled, new_enabled, changed_at, changed_by) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(crypto.randomUUID(), key, current.enabled, newEnabled, now, changedBy),
+  ]);
+
+  return json({ ok: true, key, enabled: body.enabled }, 200, env);
+}
+
+// GET /flags — público, sem auth. Retorna key + enabled para consumo do Android.
+async function handlePublicFlags(_request: Request, env: Env): Promise<Response> {
+  const rows = await env.DB.prepare(
+    'SELECT key, enabled FROM feature_flags ORDER BY key'
+  ).all();
+
+  const flags = (rows.results ?? []).map((r: any) => ({
+    key:     r.key,
+    enabled: r.enabled === 1,
+  }));
+
+  return json({ flags }, 200, env);
+}
+
 // --- router ---
 
 type Handler = (req: Request, env: Env) => Promise<Response>;
 
 const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
-  { method: "GET",  pattern: /^\/admin\/metrics\/overview$/,                    handler: handleOverview },
-  { method: "GET",  pattern: /^\/admin\/metrics\/diagnostics$/,                 handler: handleDiagnostics },
-  { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage$/,                    handler: handleAiCost },
-  { method: "GET",  pattern: /^\/admin\/metrics\/timeline$/,                    handler: handleTimeline },
-  { method: "GET",  pattern: /^\/admin\/metrics\/network$/,                     handler: handleNetworkInsights },
-  { method: "GET",  pattern: /^\/admin\/metrics\/top-issues$/,                  handler: handleTopIssues },
-  { method: "GET",  pattern: /^\/admin\/metrics\/alerts$/,                      handler: handleRecentAlerts },
-  { method: "GET",  pattern: /^\/admin\/metrics\/ai-costs$/,                    handler: handleAiCostMetrics },
-  { method: "GET",  pattern: /^\/admin\/metrics\/ai-providers$/,                handler: handleAiProviders },
-  { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage\/timeline$/,          handler: handleAiUsageTimeline },
-  { method: "GET",  pattern: /^\/admin\/metrics\/operators$/,                   handler: handleOperators },
+  { method: "GET",  pattern: /^\/admin\/metrics\/overview$/,                    handler: withErrorLogging('metrics', handleOverview) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/diagnostics\/summary$/,        handler: withErrorLogging('metrics', handleDiagnosticsSummary) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/diagnostics$/,                 handler: withErrorLogging('metrics', handleDiagnostics) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage$/,                    handler: withErrorLogging('metrics', handleAiCost) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/timeline$/,                    handler: withErrorLogging('metrics', handleTimeline) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/network$/,                     handler: withErrorLogging('metrics', handleNetworkInsights) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/top-issues$/,                  handler: withErrorLogging('metrics', handleTopIssues) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/alerts$/,                      handler: withErrorLogging('metrics', handleRecentAlerts) },
+  { method: "GET",  pattern: /^\/admin\/alerts$/,                               handler: withErrorLogging('alerts', handleAlerts) },
+  { method: "POST", pattern: /^\/admin\/alerts\/[^/]+\/resolve$/,               handler: withErrorLogging('alerts', handleResolveAlert) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/ai-costs$/,                    handler: withErrorLogging('metrics', handleAiCostMetrics) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/ai-providers$/,                handler: withErrorLogging('metrics', handleAiProviders) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage\/timeline$/,          handler: withErrorLogging('metrics', handleAiUsageTimeline) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/operators$/,                   handler: withErrorLogging('metrics', handleOperators) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/intelligence$/,                handler: withErrorLogging('metrics', handleDiagnosticsIntelligence) },
+  { method: "GET",  pattern: /^\/admin\/diagnostics\/intelligence$/,            handler: withErrorLogging('metrics', handleDiagnosticsIntelligence) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/analytics\/product$/,          handler: withErrorLogging('analytics', handleProductAnalytics) },
+  { method: "GET",  pattern: /^\/admin\/analytics\/product$/,                   handler: withErrorLogging('analytics', handleProductAnalytics) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/analytics\/battery$/,          handler: withErrorLogging('analytics', handleBatteryAnalytics) },
+  { method: "GET",  pattern: /^\/admin\/analytics\/battery$/,                   handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/metrics\/errors$/,                      handler: handleErrors },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
@@ -1059,15 +1824,23 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/versions$/,     handler: handleFirebaseVersions },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crash-issues$/, handler: handleFirebaseCrashIssues },
   { method: "POST", pattern: /^\/admin\/integrations\/firebase\/sync$/,         handler: handleFirebaseSync },
+  { method: "GET",  pattern: /^\/admin\/analytics\/product$/,                   handler: withErrorLogging('analytics', handleProductAnalytics) },
+  { method: "GET",  pattern: /^\/admin\/analytics\/battery$/,                   handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/settings$/,                             handler: handleSettings },
   { method: "POST", pattern: /^\/admin\/settings$/,                             handler: handleSettings },
-  { method: "GET",  pattern: /^\/admin\/feature-flags$/,                        handler: handleGetFeatureFlags },
+  { method: "GET",  pattern: /^\/admin\/feature-flags$/,                        handler: withErrorLogging('feature-flags', handleFeatureFlags) },
   { method: "POST", pattern: /^\/admin\/feature-flags$/,                        handler: handleSetFeatureFlags },
+  { method: "PUT",  pattern: /^\/admin\/feature-flags\/[^/]+$/,                 handler: withErrorLogging('feature-flags', async (req, env) => {
+      const session = await authenticateSession(req, env);
+      if (!session) return err('Unauthorized', 401, env);
+      return handleUpdateFeatureFlag(req, env, session);
+    }) },
 ];
 
 const INGEST_ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "POST", pattern: /^\/ingest\/diagnostic$/, handler: handleIngestDiagnostic },
   { method: "POST", pattern: /^\/ingest\/ai-usage$/,   handler: handleIngestAiUsage },
+  { method: "POST", pattern: /^\/ingest\/analytics$/,  handler: withErrorLogging('analytics', handleIngestAnalytics) },
 ];
 
 export default {
@@ -1084,12 +1857,16 @@ export default {
 
     if (url.pathname === "/health") {
       if (!authenticate(request, env)) return err("Unauthorized", 401, env);
-      return json({ status: "ok", worker: "signallq-admin-worker" }, 200, env);
+      return json({ status: "ok", worker: "signallq-admin-worker", timestamp: new Date().toISOString() }, 200, env);
     }
 
-    // /feature-flags — público, sem auth. O app Android consome este endpoint sem credenciais.
+    // Endpoints públicos sem auth — o app Android consome sem credenciais.
     if (url.pathname === '/feature-flags' && request.method === 'GET') {
       return handlePublicFeatureFlags(request, env);
+    }
+    // SIG-13: /flags — endpoint público da nova tabela feature_flags.
+    if (url.pathname === '/flags' && request.method === 'GET') {
+      return withErrorLogging('flags', handlePublicFlags)(request, env);
     }
 
     // Rotas /ingest/* — autenticam com INGEST_KEY (scope limitado, vai no APK).

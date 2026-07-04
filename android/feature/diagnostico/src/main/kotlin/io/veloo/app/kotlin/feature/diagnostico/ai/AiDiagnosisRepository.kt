@@ -1,6 +1,6 @@
-package io.veloo.app.feature.diagnostico.ai
+﻿package io.signallq.app.feature.diagnostico.ai
 
-import android.util.Log
+import timber.log.Timber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
@@ -56,22 +56,21 @@ class AiDiagnosisRepository(
     internal val clock: () -> Long = System::currentTimeMillis,
 ) {
     companion object {
-        private const val TAG = "AiDiagnosisRepository"
         private const val CACHE_TTL_MS = 5 * 60 * 1000L // 5 minutos
-    }
-
-    init {
-        // LOG TEMPORARIO — validar que existe apenas UMA instancia (Hilt @Singleton).
-        // Se aparecer mais de um hashCode diferente no logcat, a injecao nao esta funcionando.
-        // Remover apos validacao em device.
-        // runCatching: android.util.Log nao esta disponivel em testes JVM — nao queremos
-        // que este log de validacao quebre os testes unitarios do repositorio.
-        runCatching { Log.d("SignallQ", "AiDiagnosisRepository criado: hashCode=${hashCode()}") }
     }
 
     // Pair: (resultado, timestamp de insercao em ms).
     // internal para permitir injecao direta em testes unitarios do mesmo modulo.
     internal val cache = ConcurrentHashMap<String, Pair<AiDiagnosisResult, Long>>()
+
+    /**
+     * Tokens do último streaming concluído. Atualizado ao processar evento SSE de usage.
+     * Lido pelo ViewModel após o collect do Flow para persistir em ChatSessionEntity.
+     * Thread-safe via @Volatile — escrita única por stream, leitura após collect.
+     */
+    @Volatile
+    var lastStreamUsage: AiStreamUsage? = null
+        private set
 
     /**
      * Verifica se o worker de IA está acessível.
@@ -137,17 +136,17 @@ class AiDiagnosisRepository(
                     client.newCall(req).execute().use { resp ->
                         if (!resp.isSuccessful) {
                             val errorBody = resp.body?.string()?.take(300) ?: "(vazio)"
-                            Log.w(TAG, "Worker HTTP ${resp.code} — body: $errorBody — ativando fallback local")
+                            Timber.w("Worker HTTP ${resp.code} — body: $errorBody — ativando fallback local")
                             return@use AiDiagnosisState.fallback(localFallback())
                         }
                         val txt = resp.body?.string()
                         if (txt.isNullOrBlank()) {
-                            Log.w(TAG, "Worker retornou body vazio — ativando fallback local")
+                            Timber.w("Worker retornou body vazio — ativando fallback local")
                             return@use AiDiagnosisState.fallback(localFallback())
                         }
                         val parsed = parseResult(txt)
                         if (parsed == null) {
-                            Log.w(TAG, "Falha ao parsear JSON do Worker — ativando fallback local. Body: ${txt.take(200)}")
+                            Timber.w("Falha ao parsear JSON do Worker — ativando fallback local. Body: ${txt.take(200)}")
                             return@use AiDiagnosisState.fallback(localFallback())
                         }
                         val normalized = parsed.copy(
@@ -158,12 +157,11 @@ class AiDiagnosisRepository(
                                 hasSpeedtestData = context.metricasAtuais?.downloadMbps != null,
                             ),
                         )
-                        Log.d(TAG, "IA respondeu com sucesso: status=${normalized.status} modelo=${normalized.modeloIa.nomeExibicao}")
                         cache[key] = Pair(normalized, clock())
                         AiDiagnosisState.success(normalized)
                     }
                 } catch (t: Throwable) {
-                    Log.e(TAG, "explainDiagnosis falhou: ${t::class.simpleName} — ${t.message}")
+                    Timber.e("explainDiagnosis falhou: ${t::class.simpleName} — ${t.message}")
                     AiDiagnosisState.fallback(localFallback())
                 }
             }
@@ -178,6 +176,8 @@ class AiDiagnosisRepository(
     // --------------------------------------------------------------------------
     fun explainDiagnosisStream(context: DiagnosisAiContext): Flow<String> = flow {
         if (!isAuthorized()) return@flow
+
+        lastStreamUsage = null
 
         val url = baseUrl.trimEnd('/') + "/api/ai/diagnostico-conexao?stream=true"
         val json = contextToJson(context).toString()
@@ -197,12 +197,22 @@ class AiDiagnosisRepository(
                 if (line.startsWith("data: ")) {
                     val data = line.removePrefix("data: ").trim()
                     if (data == "[DONE]") break
-                    val token = try {
-                        JSONObject(data).optString("response", "")
-                    } catch (_: Exception) {
-                        ""
-                    }
-                    if (token.isNotEmpty()) emit(token)
+                    try {
+                        val obj = JSONObject(data)
+                        val token = obj.optString("response", "")
+                        if (token.isNotEmpty()) emit(token)
+                        // Captura uso de tokens quando o worker envia o bloco de usage
+                        // (tipicamente no último evento SSE antes de [DONE]).
+                        val usageObj = obj.optJSONObject("usage")
+                        if (usageObj != null) {
+                            val prompt = usageObj.optInt("prompt_tokens", 0)
+                            val completion = usageObj.optInt("completion_tokens", 0)
+                            val total = usageObj.optInt("total_tokens", prompt + completion)
+                            if (total > 0) {
+                                lastStreamUsage = AiStreamUsage(prompt, completion, total)
+                            }
+                        }
+                    } catch (_: Exception) { /* evento malformado — ignorar */ }
                 }
             }
         } finally {
@@ -439,6 +449,7 @@ class AiDiagnosisRepository(
             mo.putOrNull("latencyDownloadMs", m.latencyDownloadMs)
             mo.putOrNull("latencyUploadMs", m.latencyUploadMs)
             m.packetLossSource?.let { mo.put("packetLossSource", it) }
+            m.rttGatewayMs?.let { mo.put("rttGatewayMs", it) }
             o.put("metricasAtuais", mo)
         }
 
@@ -552,6 +563,20 @@ class AiDiagnosisRepository(
         ctx.feedbackUsuario?.let { o.put("feedbackUsuario", it.take(500)) }
 
         ctx.instrucaoTom?.let { o.put("instrucaoTom", it) }
+
+        ctx.achadosLocais?.let { a ->
+            val ao = JSONObject()
+            ao.put("decisaoId", a.decisaoId)
+            ao.put("statusGeral", a.statusGeral)
+            ao.put("score", a.score)
+            ao.put("confianca", a.confianca)
+            if (a.resultadosRelevantes.isNotEmpty()) {
+                val arr = JSONArray()
+                a.resultadosRelevantes.forEach { arr.put(it) }
+                ao.put("resultadosRelevantes", arr)
+            }
+            o.put("achadosLocais", ao)
+        }
 
         return o
     }

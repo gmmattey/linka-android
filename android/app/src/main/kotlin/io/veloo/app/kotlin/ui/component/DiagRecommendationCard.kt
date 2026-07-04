@@ -1,4 +1,4 @@
-package io.veloo.app.ui.component
+﻿package io.signallq.app.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,13 +20,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.SignallQTheme
+import io.signallq.app.R
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.SignallQTheme
 
 @Composable
 fun DiagRecommendationCard(
@@ -91,7 +93,7 @@ fun DiagRecommendationCard(
         if (onStepByStep != null) {
             Spacer(Modifier.height(7.dp))
             Text(
-                text = "Ver passo a passo ›",
+                text = stringResource(R.string.diag_rec_ver_passo),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = LkColors.accent,

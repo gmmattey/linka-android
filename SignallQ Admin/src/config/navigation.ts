@@ -1,7 +1,7 @@
 export interface NavigationItem {
   name: string;
   path: string;
-  iconName: "LayoutDashboard" | "LineChart" | "Activity" | "Wifi" | "Globe" | "BrainCircuit" | "AlertTriangle" | "GitBranch" | "Settings";
+  iconName: "LayoutDashboard" | "LineChart" | "Activity" | "Wifi" | "Globe" | "BrainCircuit" | "AlertTriangle" | "GitBranch" | "ToggleRight" | "Settings" | "HeartPulse";
   badge?: string;
   badgeType?: "info" | "error" | "warning";
 }
@@ -13,7 +13,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     iconName: "LayoutDashboard",
   },
   {
-    name: "Produto & uso",
+    name: "Produto & Uso",
     path: "/product-analytics",
     iconName: "LineChart",
   },
@@ -25,7 +25,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     badgeType: "info",
   },
   {
-    name: "Análise de Redes",
+    name: "Redes & RF",
     path: "/networks",
     iconName: "Wifi",
   },
@@ -40,16 +40,26 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     iconName: "BrainCircuit",
   },
   {
-    name: "Logs de Erros",
+    name: "Erros",
     path: "/errors",
     iconName: "AlertTriangle",
     badge: "12",
     badgeType: "error",
   },
   {
-    name: "Versões do App",
+    name: "Versões Android",
     path: "/app-versions",
     iconName: "GitBranch",
+  },
+  {
+    name: "Feature Flags",
+    path: "/feature-flags",
+    iconName: "ToggleRight",
+  },
+  {
+    name: "Saúde do Sistema",
+    path: "/system-health",
+    iconName: "HeartPulse",
   },
   {
     name: "Configurações",

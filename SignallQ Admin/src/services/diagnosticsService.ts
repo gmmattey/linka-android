@@ -10,25 +10,26 @@ export const diagnosticsService = {
       const env = filters.environment ?? "production";
       const raw = await apiClient.request<{
         totalDiagnostics: number;
+        criticalCount: number;
         activeSessions: number;
-        avgNetworkScore: number;
-        aiCallsToday: number;
-        aiCostToday: number;
-        aiTokensToday: number;
-      }>("GET", `/admin/metrics/overview?environment=${env}&period=${period}`);
+        averageScore: number | null;
+        averageLatencyMs: number | null;
+        averageJitterMs: number | null;
+        averagePacketLossPercentage: number | null;
+        averageDownloadMbps: number | null;
+        averageUploadMbps: number | null;
+      }>("GET", `/admin/metrics/diagnostics/summary?environment=${env}&period=${period}`);
 
       return {
-        totalTests: raw.totalDiagnostics ?? 0,
-        criticalIssuesCount: 0,
-        attentionIssuesCount: raw.activeSessions ?? 0,
-        averageScore: raw.avgNetworkScore ?? 0,
-        // O worker /admin/metrics/overview não serve médias de velocidade por sessão.
-        // Esses campos não têm fonte real — retornar null em vez de zero.
-        averageDownloadMbps: null,
-        averageUploadMbps: null,
-        averageLatencyMs: null,
-        averageJitterMs: null,
-        averagePacketLossPercentage: null,
+        totalTests:                  raw.totalDiagnostics ?? 0,
+        criticalIssuesCount:         raw.criticalCount ?? 0,
+        attentionIssuesCount:        raw.activeSessions ?? 0,
+        averageScore:                raw.averageScore ?? 0,
+        averageDownloadMbps:         raw.averageDownloadMbps ?? null,
+        averageUploadMbps:           raw.averageUploadMbps ?? null,
+        averageLatencyMs:            raw.averageLatencyMs ?? null,
+        averageJitterMs:             raw.averageJitterMs ?? null,
+        averagePacketLossPercentage: raw.averagePacketLossPercentage ?? null,
         issueDistribution: {} as Record<import("../types/diagnostics").DiagnosisIssue, number>,
       };
     }

@@ -1,6 +1,6 @@
 # SignallQ — Design System
 
-> **SignallQ** (app store name "SignallQ app", package `io.linka.app.kotlin`) is a native **Android** smart internet-diagnostics app, built in **Kotlin / Jetpack Compose / Material Design 3**. It analyzes a home connection in real time — speed, latency, Wi-Fi signal & channels, DNS, fiber (GPON) modem, 4G/5G mobile signal — and uses on-device AI to explain *why* the internet is slow, unstable, or down, in clear, non-technical **Brazilian Portuguese**. All processing happens on-device; no personal data leaves the phone.
+> **SignallQ** (app store name "SignallQ app", package `io.signallq.app`) is a native **Android** smart internet-diagnostics app, built in **Kotlin / Jetpack Compose / Material Design 3**. It analyzes a home connection in real time — speed, latency, Wi-Fi signal & channels, DNS, fiber (GPON) modem, 4G/5G mobile signal — and uses on-device AI to explain *why* the internet is slow, unstable, or down, in clear, non-technical **Brazilian Portuguese**. All processing happens on-device; no personal data leaves the phone.
 >
 > The product is sometimes referred to commercially as **"Pulse — Speedtest Inteligente"**; inside the codebase the brand is **SignallQ**, with two named sub-systems: **SignallQ** (the conversational AI assistant) and **SignallQ Pulse** (passive background monitoring).
 

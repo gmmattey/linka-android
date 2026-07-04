@@ -1,6 +1,6 @@
-package io.veloo.app.featureflags
+﻿package io.signallq.app.featureflags
 
-import io.veloo.app.core.network.FeatureFlagProvider
+import io.signallq.app.core.network.FeatureFlagProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -17,7 +17,7 @@ class FeatureFlagManagerTest {
         if (flagsSalvas.isNotEmpty()) {
             kotlinx.coroutines.runBlocking { prefs.salvarFeatureFlags(flagsSalvas) }
         }
-        val repo = FeatureFlagRepository("https://worker.dev", prefs)
+        val repo = FeatureFlagRepository(adminWorkerBaseUrl = "https://worker.dev", prefs = prefs)
         return FeatureFlagManager(repo)
     }
 

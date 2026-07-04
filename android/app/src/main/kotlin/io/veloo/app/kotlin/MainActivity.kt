@@ -1,7 +1,10 @@
-package io.veloo.app
+﻿package io.signallq.app
 
 import android.Manifest
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -19,17 +22,23 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.feature.devices.DevicesViewModel
-import io.veloo.app.feature.speedtest.SpeedtestViewModel
-import io.veloo.app.ui.SignallQTheme
-import io.veloo.app.ui.screen.AppShell
-import io.veloo.app.ui.screen.OnboardingScreen
-import io.veloo.app.ui.viewmodel.ChatDiagnosticoIaViewModel
+import io.signallq.app.core.network.AnalyticsTracker
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.feature.devices.DevicesViewModel
+import io.signallq.app.feature.speedtest.SpeedtestViewModel
+import io.signallq.app.ui.SignallQTheme
+import io.signallq.app.ui.component.LgpdConsentDialog
+import io.signallq.app.ui.screen.AppShell
+import io.signallq.app.ui.screen.OnboardingScreen
+import io.signallq.app.ui.viewmodel.ChatDiagnosticoIaViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var analyticsTracker: AnalyticsTracker
+
     private val viewModel: MainViewModel by viewModels()
     private val chatDiagViewModel: ChatDiagnosticoIaViewModel by viewModels()
 
@@ -43,8 +52,10 @@ class MainActivity : ComponentActivity() {
     private val speedtestViewModel: SpeedtestViewModel by viewModels()
 
     private val solicitacaoPermissoes =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            verificarEPedirPermissoes()
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { resultados ->
+            aguardandoRespostaPermissoes = false
+            val todasConcedidas = resultados.values.all { it }
+            if (todasConcedidas) viewModel.iniciarRotinasNaoSpeedtest()
         }
 
     /**
@@ -72,6 +83,7 @@ class MainActivity : ComponentActivity() {
         }
 
     private var jaSolicitouTelefoniaNestaSessao = false
+    private var aguardandoRespostaPermissoes = false
 
     private var temPermissaoTelefonia by mutableStateOf(false)
     private var temPermissaoLocalizacao by mutableStateOf(false)
@@ -82,10 +94,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        analyticsTracker.registrarSessionStart()
+        registrarBatterySnapshotInicial()
+
         // Conecta o SpeedtestViewModel ao MainViewModel: apos cada speedtest, dispara
         // as rotinas nao-speedtest (scan de dispositivos, diagnostico, etc.).
         speedtestViewModel.onSpeedtestConcluido = {
             viewModel.iniciarRotinasNaoSpeedtest()
+            analyticsTracker.registrarFeatureUsada("speedtest")
         }
 
         // Assina o SharedFlow de dispositivos novos do DevicesViewModel e exibe notificacao.
@@ -93,7 +109,7 @@ class MainActivity : ComponentActivity() {
         // a lei de dependencias: featureDevices nao pode depender de :app.
         lifecycleScope.launch {
             devicesViewModel.dispositivosNovos.collect { identificador ->
-                io.veloo.app.notificacao.SignallQNotificationHelper.notificarDispositivoNovo(
+                io.signallq.app.notificacao.SignallQNotificationHelper.notificarDispositivoNovo(
                     this@MainActivity,
                     identificador,
                 )
@@ -196,6 +212,7 @@ class MainActivity : ComponentActivity() {
             val simsAtivos = viewModel.simsAtivos.collectAsStateWithLifecycle().value
             val gemmaAvailable = viewModel.gemmaAvailable.collectAsStateWithLifecycle().value
             val onboardingConcluido = viewModel.onboardingConcluido.collectAsStateWithLifecycle().value
+            val consentimentoLgpd = viewModel.consentimentoLgpd.collectAsStateWithLifecycle().value
             val diagChatHistorico by viewModel.diagChatHistorico.collectAsStateWithLifecycle()
             val diagChatCarregando by viewModel.diagChatCarregando.collectAsStateWithLifecycle()
             val analisadorState by viewModel.analisadorState.collectAsStateWithLifecycle()
@@ -242,11 +259,16 @@ class MainActivity : ComponentActivity() {
                         onSolicitarPermissaoLocalizacao = { solicitarPermissaoLocalizacaoContextual() },
                         onSolicitarPermissaoDispositivosProximos = { solicitarPermissaoDispositivosProximosContextual() },
                     )
+                } else if (consentimentoLgpd == null) {
+                    LgpdConsentDialog(
+                        onAceitar = { viewModel.definirConsentimentoLgpd(true) },
+                        onRecusar = { viewModel.definirConsentimentoLgpd(false) },
+                    )
                 } else {
                     AppShell(
                         snapshotRede = snapshotRede,
                         speedtest =
-                            io.veloo.app.ui.screen.AppShellSpeedtestState(
+                            io.signallq.app.ui.screen.AppShellSpeedtestState(
                                 snapshotSpeedtest = snapshotSpeedtest,
                                 speedtestPendenteModoMovel = speedtestPendenteModoMovel,
                                 speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
@@ -258,7 +280,7 @@ class MainActivity : ComponentActivity() {
                                 onSetSpeedtestPermiteHeavyMovel = { valor -> viewModel.setSpeedtestPermiteHeavyMovel(valor) },
                             ),
                         wifi =
-                            io.veloo.app.ui.screen.AppShellWifiState(
+                            io.signallq.app.ui.screen.AppShellWifiState(
                                 snapshotWifi = snapshotWifi,
                                 connectedNetwork = connectedNetwork,
                                 snapshotDevices = snapshotDevices,
@@ -268,11 +290,12 @@ class MainActivity : ComponentActivity() {
                                 onSalvarApelido = { mac, apelido -> viewModel.salvarApelido(mac, apelido) },
                             ),
                         diagnostico =
-                            io.veloo.app.ui.screen.AppShellDiagnosticoState(
+                            io.signallq.app.ui.screen.AppShellDiagnosticoState(
                                 snapshotDiagnostico = snapshotDiagnostico,
                                 onIniciarDiagnostico = {
                                     solicitarPermissaoTelefoniaSeNecessario()
                                     viewModel.iniciarDiagnostico()
+                                    analyticsTracker.registrarFeatureUsada("diagnostico")
                                 },
                                 diagChatHistorico = diagChatHistorico,
                                 diagChatCarregando = diagChatCarregando,
@@ -283,7 +306,7 @@ class MainActivity : ComponentActivity() {
                                 onResetarAnalisador = { viewModel.resetarAnalisador() },
                             ),
                         signallQ =
-                            io.veloo.app.ui.screen.AppShellSignallQState(
+                            io.signallq.app.ui.screen.AppShellSignallQState(
                                 signallQUiState = signallQUiState,
                                 gemmaAvailable = gemmaAvailable,
                                 operadoraMovel =
@@ -304,7 +327,7 @@ class MainActivity : ComponentActivity() {
                                 },
                             ),
                         chatDiag =
-                            io.veloo.app.ui.screen.AppShellChatDiagState(
+                            io.signallq.app.ui.screen.AppShellChatDiagState(
                                 chatDiagUiState = chatDiagUiState,
                                 onEnviarMensagem = chatDiagViewModel::onEnviarMensagem,
                                 onAtualizarDraft = chatDiagViewModel::onAtualizarDraft,
@@ -403,6 +426,7 @@ class MainActivity : ComponentActivity() {
                         filtroOperadoraHistorico = filtroOperadoraHistorico,
                         onFiltroOperadoraHistoricoChange = { viewModel.setFiltroOperadoraHistorico(it) },
                         operadorasDisponiveisHistorico = operadorasDisponiveisHistorico,
+                        onScreenView = { screenName -> analyticsTracker.registrarScreenView(screenName) },
                     )
                 } // else onboardingConcluido
             }
@@ -440,16 +464,28 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        // Quebra a referencia ciclica: SpeedtestViewModel (escopo de app) retinha
-        // a lambda que capturava o MainViewModel destruido apos rotacao de tela.
-        // Sem esse null, cada rotacao acumulava uma referencia morta ao MainViewModel anterior.
         speedtestViewModel.onSpeedtestConcluido = null
         super.onDestroy()
     }
 
+    private fun registrarBatterySnapshotInicial() {
+        val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return
+        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+        if (level < 0 || scale <= 0) return
+        val levelPercent = (level * 100 / scale)
+        val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val charging =
+            status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
+        analyticsTracker.registrarBatterySnapshot(levelPercent, charging)
+    }
+
     private fun verificarEPedirPermissoes() {
+        if (aguardandoRespostaPermissoes) return
         val pendentes = viewModel.gerenciadorPermissoes.listarPermissoesPendentes()
         if (pendentes.isNotEmpty()) {
+            aguardandoRespostaPermissoes = true
             solicitacaoPermissoes.launch(pendentes.toTypedArray())
         } else {
             viewModel.iniciarRotinasNaoSpeedtest()

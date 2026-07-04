@@ -3,9 +3,10 @@ import { ChartCard } from "../../../components/ui/ChartCard";
 import { BarChart } from "../../../components/charts/BarChart";
 import { errorMetricsService } from "../../../services/errorMetricsService";
 import { ErrorByEndpointEntry } from "../../../mocks/errors.mock";
+import { AppEnvironment } from "../../../types/admin";
 
 interface ErrorByEndpointChartProps {
-  environment: "production" | "staging";
+  environment: AppEnvironment;
 }
 
 export const ErrorByEndpointChart: React.FC<ErrorByEndpointChartProps> = ({ environment }) => {
@@ -28,7 +29,7 @@ export const ErrorByEndpointChart: React.FC<ErrorByEndpointChartProps> = ({ envi
       <BarChart
         data={chartData}
         xAxisKey="name"
-        series={[{ key: "erros", name: "Dumps Técnico Detectados", color: "#FF4D4F" }]}
+        series={[{ key: "erros", name: "Dumps Técnico Detectados", color: "var(--error)" }]}
         height={240}
       />
     </ChartCard>

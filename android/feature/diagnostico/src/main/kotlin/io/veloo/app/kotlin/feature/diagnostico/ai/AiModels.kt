@@ -1,14 +1,14 @@
-package io.veloo.app.feature.diagnostico.ai
+﻿package io.signallq.app.feature.diagnostico.ai
 
-import io.veloo.app.feature.diagnostico.BandaWifi
-import io.veloo.app.feature.diagnostico.ConnectionType
-import io.veloo.app.feature.diagnostico.DiagnosticInput
-import io.veloo.app.feature.diagnostico.DiagnosticReport
-import io.veloo.app.feature.diagnostico.DiagnosticStatus
-import io.veloo.app.feature.diagnostico.HistoricalDiagnosticInput
-import io.veloo.app.feature.diagnostico.InternetDiagnosticInput
-import io.veloo.app.feature.diagnostico.SpeedtestQualityInput
-import io.veloo.app.feature.diagnostico.WifiDiagnosticInput
+import io.signallq.app.feature.diagnostico.BandaWifi
+import io.signallq.app.feature.diagnostico.ConnectionType
+import io.signallq.app.feature.diagnostico.DiagnosticInput
+import io.signallq.app.feature.diagnostico.DiagnosticReport
+import io.signallq.app.feature.diagnostico.DiagnosticStatus
+import io.signallq.app.feature.diagnostico.HistoricalDiagnosticInput
+import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
+import io.signallq.app.feature.diagnostico.SpeedtestQualityInput
+import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
 
 // =============================================================================
 // Schema v2 do payload enviado para o Worker
@@ -37,8 +37,15 @@ import io.veloo.app.feature.diagnostico.WifiDiagnosticInput
  *                                 do engine determinístico local (id, status, score,
  *                                 confiança, findings relevantes). A IA valida e
  *                                 explica — não precisa mais decidir do zero.
+ *   - "diagnostico_v5_local_primary" — achadosLocais chega de fato em produção
+ *                                 (Fase 1 do payload real, SIG-279) com
+ *                                 rttGatewayMs. Confiança >= 0.75 faz o motor
+ *                                 local ser a decisão primária de fato — a IA
+ *                                 valida/explica em vez de decidir do zero.
+ *                                 Espelha AI_PROMPT_VERSION no Worker
+ *                                 (SIG-282).
  */
-const val AI_PROMPT_VERSION = "diagnostico_v4_guided"
+const val AI_PROMPT_VERSION = "diagnostico_v5_local_primary"
 
 // =============================================================================
 // Schema v3 — APENAS DADOS BRUTOS
@@ -58,8 +65,9 @@ const val AI_PROMPT_VERSION = "diagnostico_v4_guided"
 //  - evidencias agora sao raw (label, valor) sem campo interpretacao
 
 data class DiagnosisAiContext(
-    /** "3" para o schema raw atual. Worker tolera "2" e "1" tambem (retrocompat). */
-    val schemaVersion: String = "3",
+    /** "5" para o schema raw atual (achadosLocais como decisao primaria,
+     *  SIG-282). Worker tolera "4", "3", "2" e "1" tambem (retrocompat). */
+    val schemaVersion: String = "5",
     val generatedAtEpochMs: Long,
     val connectionType: ConnectionType,
     /** Metricas brutas do speedtest mais recente. */
@@ -543,7 +551,7 @@ object DiagnosisAiContextFactory {
         )
 
         return DiagnosisAiContext(
-            schemaVersion = "4",
+            schemaVersion = "5",
             generatedAtEpochMs = report.geradoEmMs,
             connectionType = connectionType,
             metricasAtuais = metricas,
@@ -668,6 +676,21 @@ data class SpeedtestExtras(
     val latencyDownloadMs: Double? = null,
     val latencyUploadMs: Double? = null,
     val packetLossSource: String? = null,
+)
+
+// =============================================================================
+// Uso de tokens no streaming
+// =============================================================================
+
+/**
+ * Tokens capturados do evento SSE de usage enviado pelo Cloudflare Workers AI
+ * ao fim do streaming. Populado em [AiDiagnosisRepository.lastStreamUsage]
+ * e lido pelo ViewModel para persistir em [ChatSessionEntity].
+ */
+data class AiStreamUsage(
+    val promptTokens: Int,
+    val completionTokens: Int,
+    val totalTokens: Int,
 )
 
 // =============================================================================

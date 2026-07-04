@@ -1,11 +1,11 @@
-plugins {
+﻿plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
 }
 
 android {
-    namespace = "io.veloo.app.feature.history"
-    compileSdk = 35 // PrintDocumentAdapter callbacks tornaram-se package-private no SDK 36
+    namespace = "io.signallq.app.feature.history"
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()

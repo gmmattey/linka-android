@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -40,6 +40,7 @@ import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
@@ -90,6 +91,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -101,17 +103,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import io.veloo.app.BuildConfig
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.monitoramento.OemKillInfo
-import io.veloo.app.ui.IspInfo
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LkTokens
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.ConfirmacaoDialog
-import io.veloo.app.ui.component.ProfileAvatarButton
+import io.signallq.app.BuildConfig
+import io.signallq.app.R
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.monitoramento.OemKillInfo
+import io.signallq.app.ui.IspInfo
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.ConfirmacaoDialog
+import io.signallq.app.ui.component.ProfileAvatarButton
 
 @SuppressLint("InlinedApi")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,6 +137,7 @@ fun AjustesScreen(
     onAbrirPrivacidade: () -> Unit = {},
     onAbrirNovidades: () -> Unit = {},
     onAbrirMinhaConexao: () -> Unit = {},
+    onAbrirFibra: () -> Unit = {},
     dadosMoveis: AjustesDadosMoveisState =
         AjustesDadosMoveisState(
             speedtestPermiteHeavyMovel = false,
@@ -199,7 +203,21 @@ fun AjustesScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("Configurações", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.W600, color = c.textPrimary)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = null,
+                            tint = c.textPrimary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(LkSpacing.xs))
+                        Text(
+                            stringResource(R.string.ajustes_titulo),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.W600,
+                            color = c.textPrimary,
+                        )
+                    }
                 },
                 navigationIcon = {
                     ProfileAvatarButton(
@@ -233,6 +251,7 @@ fun AjustesScreen(
                         subtituloBase
                     }
                 val subtituloIsRealData = isRealData || (!temNome && deviceName.isNotBlank())
+                val cdPerfil = stringResource(R.string.ajustes_cd_perfil)
                 Box(
                     modifier =
                         Modifier
@@ -240,7 +259,7 @@ fun AjustesScreen(
                             .padding(horizontal = LkSpacing.lg)
                             .padding(top = LkSpacing.xl, bottom = LkSpacing.lg)
                             .semantics {
-                                contentDescription = "Perfil. Toque para editar."
+                                contentDescription = cdPerfil
                             }.clip(RoundedCornerShape(LkRadius.card))
                             .background(c.bgSecondary)
                             .clickable { showPerfilSheet = true }
@@ -276,7 +295,7 @@ fun AjustesScreen(
                     }
                     Icon(
                         imageVector = Icons.Outlined.Edit,
-                        contentDescription = "Editar perfil",
+                        contentDescription = stringResource(R.string.ajustes_cd_editar_perfil),
                         tint = c.textTertiary,
                         modifier =
                             Modifier
@@ -287,7 +306,7 @@ fun AjustesScreen(
             }
 
             // ── MINHA CONEXÃO ────────────────────────────────────────────────────────
-            item { SectionHeader("Minha conexão", c) }
+            item { SectionHeader(stringResource(R.string.ajustes_minha_conexao), c) }
 
             // Banner de confirmação de ISP auto-detectado
             if (!ispConfirmado && !ispDetectado.isNullOrBlank() && operadora.isBlank()) {
@@ -313,7 +332,7 @@ fun AjustesScreen(
                                 )
                                 Spacer(Modifier.width(LkSpacing.sm))
                                 Text(
-                                    text = "Operadora detectada: $ispDetectado",
+                                    text = stringResource(R.string.ajustes_operadora_detectada, ispDetectado),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.W600,
                                     color = c.textPrimary,
@@ -321,7 +340,7 @@ fun AjustesScreen(
                                 )
                             }
                             Text(
-                                text = "Deseja usar como operadora principal?",
+                                text = stringResource(R.string.ajustes_usar_operadora),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = c.textSecondary,
                             )
@@ -333,7 +352,7 @@ fun AjustesScreen(
                                         androidx.compose.foundation.layout
                                             .PaddingValues(horizontal = LkSpacing.md, vertical = LkSpacing.xs),
                                 ) {
-                                    Text("Confirmar", style = MaterialTheme.typography.labelMedium)
+                                    Text(stringResource(R.string.ajustes_btn_confirmar), style = MaterialTheme.typography.labelMedium)
                                 }
                                 TextButton(onClick = onDispensarBannerIsp) {
                                     Text("Ignorar", color = c.textTertiary, style = MaterialTheme.typography.labelMedium)
@@ -427,6 +446,24 @@ fun AjustesScreen(
                     )
                 }
             }
+            if (BuildConfig.FEATURE_FIBRA_SCREEN) {
+                item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+                item {
+                    SettingItem(
+                        c = c,
+                        icon = Icons.Outlined.Router,
+                        label = "Fibra óptica",
+                        subtitle = modemHost ?: "Não configurado",
+                        onClick = {
+                            if (modemHost.isNullOrBlank()) {
+                                showRoteadorSheet = true
+                            } else {
+                                onAbrirFibra()
+                            }
+                        },
+                    )
+                }
+            }
             item { Spacer(Modifier.height(16.dp)) }
             // ── APARÊNCIA ────────────────────────────────────────────────────────────
             item { SectionHeader("Aparência", c) }
@@ -437,7 +474,10 @@ fun AjustesScreen(
                     c = c,
                 )
             }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+            item { Spacer(Modifier.height(16.dp)) }
+
+            // ── NOTIFICAÇÕES ─────────────────────────────────────────────────────────
+            item { SectionHeader("Notificações", c) }
             item {
                 SettingItem(
                     c = c,
@@ -487,6 +527,55 @@ fun AjustesScreen(
             }
             item { Spacer(Modifier.height(16.dp)) }
 
+            // ── DADOS MÓVEIS ──────────────────────────────────────────────────────────
+            item { SectionHeader("Dados móveis", c) }
+            item {
+                ToggleItem(
+                    c = c,
+                    icon = Icons.Outlined.SignalCellularAlt,
+                    label = "Sempre permitir testes pesados em dados móveis",
+                    subtitle = "Não mostrar aviso para modo Completo e Triplo na próxima vez",
+                    checked = speedtestPermiteHeavyMovel,
+                    onCheckedChange = onSetSpeedtestPermiteHeavyMovel,
+                )
+            }
+            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+            item {
+                val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "0 MB"
+                InfoRow(c, "Consumo em testes este mês", mbLabel)
+            }
+            item { Spacer(Modifier.height(16.dp)) }
+
+            // ── AVANÇADO (feature-flagged: monitoramento passivo / análise avançada) ──
+            if (BuildConfig.FEATURE_LINKPULSE_ATIVO) {
+                item { SectionHeader("Avançado", c) }
+                item {
+                    SettingItem(
+                        c = c,
+                        icon = Icons.Outlined.Sensors,
+                        label = "Monitoramento passivo",
+                        subtitle =
+                            when {
+                                !monitoramentoAtivo -> "Desativado"
+                                OemKillInfo.fabricanteRiscoAlto -> "Ativo · pode ser limitado pelo sistema"
+                                else -> "Ativo"
+                            },
+                        onClick = { showDiagnosticoSheet = true },
+                    )
+                }
+                item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+                item {
+                    SettingItem(
+                        c = c,
+                        icon = Icons.Outlined.Analytics,
+                        label = "Análise avançada",
+                        subtitle = if (analiseAvancada) "Ativa" else "Desativada",
+                        onClick = { showDiagnosticoSheet = true },
+                    )
+                }
+                item { Spacer(Modifier.height(16.dp)) }
+            }
+
             // ── INFORMAÇÕES ───────────────────────────────────────────────────────────
             item { SectionHeader("Informações", c) }
             item {
@@ -512,21 +601,26 @@ fun AjustesScreen(
             item {
                 SettingItem(
                     c = c,
-                    icon = Icons.Outlined.VerifiedUser,
-                    label = "Diagnóstico do app",
-                    subtitle = "Integridade, binários e assinatura",
-                    onClick = { showDiagnosticoAppSheet = true },
+                    icon = Icons.Outlined.Email,
+                    label = "Fale conosco",
+                    subtitle = "Envie uma mensagem para o suporte",
+                    onClick = {
+                        val intent =
+                            Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:hello7agents@icloud.com")
+                            }
+                        context.startActivity(intent)
+                    },
                 )
             }
             item { HorizontalDivider(color = c.border, thickness = 1.dp) }
             item {
                 SettingItem(
                     c = c,
-                    icon = Icons.Outlined.Delete,
-                    label = "Redefinir o app",
-                    subtitle = "Apaga todos os dados e restaura configurações iniciais",
-                    onClick = { showConfirmResetApp = true },
-                    tintError = true,
+                    icon = Icons.Outlined.VerifiedUser,
+                    label = "Diagnóstico do app",
+                    subtitle = "Integridade, binários e assinatura",
+                    onClick = { showDiagnosticoAppSheet = true },
                 )
             }
             item { HorizontalDivider(color = c.border, thickness = 1.dp) }
@@ -541,70 +635,17 @@ fun AjustesScreen(
             }
             item { Spacer(Modifier.height(16.dp)) }
 
-            // ── DADOS MÓVEIS ──────────────────────────────────────────────────────────
-            item { SectionHeader("Dados móveis", c) }
+            // ── ZONA DE RISCO ─────────────────────────────────────────────────────────
+            item { SectionHeader("Zona de risco", c) }
             item {
-                ToggleItem(
+                SettingItem(
                     c = c,
-                    icon = Icons.Outlined.SignalCellularAlt,
-                    label = "Sempre permitir testes pesados em dados móveis",
-                    subtitle = "Não mostrar aviso para modo Completo e Triplo na próxima vez",
-                    checked = speedtestPermiteHeavyMovel,
-                    onCheckedChange = onSetSpeedtestPermiteHeavyMovel,
+                    icon = Icons.Outlined.Delete,
+                    label = "Redefinir o app",
+                    subtitle = "Apaga todos os dados e restaura configurações iniciais",
+                    onClick = { showConfirmResetApp = true },
+                    tintError = true,
                 )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "0 MB"
-                InfoRow(c, "Consumo em testes este mês", mbLabel)
-            }
-            item { Spacer(Modifier.height(16.dp)) }
-
-            // ── AVANÇADO (feature-flagged) ────────────────────────────────────────────
-            val showAvancado = BuildConfig.FEATURE_FIBRA_SCREEN || BuildConfig.FEATURE_DNS_SCREEN || BuildConfig.FEATURE_LINKPULSE_ATIVO
-            if (showAvancado) {
-                item { SectionHeader("Avançado", c) }
-                if (BuildConfig.FEATURE_FIBRA_SCREEN) {
-                    item {
-                        SettingItem(
-                            c = c,
-                            icon = Icons.Outlined.Router,
-                            label = "Fibra óptica",
-                            subtitle = modemHost ?: "Não configurado",
-                            onClick = { showRoteadorSheet = true },
-                        )
-                    }
-                }
-                if (BuildConfig.FEATURE_LINKPULSE_ATIVO) {
-                    if (BuildConfig.FEATURE_FIBRA_SCREEN) {
-                        item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-                    }
-                    item {
-                        SettingItem(
-                            c = c,
-                            icon = Icons.Outlined.Sensors,
-                            label = "Monitoramento passivo",
-                            subtitle =
-                                when {
-                                    !monitoramentoAtivo -> "Desativado"
-                                    OemKillInfo.fabricanteRiscoAlto -> "Ativo · pode ser limitado pelo sistema"
-                                    else -> "Ativo"
-                                },
-                            onClick = { showDiagnosticoSheet = true },
-                        )
-                    }
-                    item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-                    item {
-                        SettingItem(
-                            c = c,
-                            icon = Icons.Outlined.Analytics,
-                            label = "Análise avançada",
-                            subtitle = if (analiseAvancada) "Ativa" else "Desativada",
-                            onClick = { showDiagnosticoSheet = true },
-                        )
-                    }
-                }
-                item { Spacer(Modifier.height(16.dp)) }
             }
 
             item {
@@ -665,11 +706,7 @@ fun AjustesScreen(
             HorizontalDivider(color = c.border, thickness = 1.dp)
             InfoRow(c, "Plataforma", "Android · Kotlin + Compose")
             HorizontalDivider(color = c.border, thickness = 1.dp)
-            InfoRow(c, "Central de medição", "Cloudflare speed.cf.com")
-            HorizontalDivider(color = c.border, thickness = 1.dp)
             InfoRow(c, "Desenvolvido por", "Equipe SignallQ")
-            HorizontalDivider(color = c.border, thickness = 1.dp)
-            InfoRow(c, "Código", "Kotlin · Jetpack Compose")
             HorizontalDivider(color = c.border, thickness = 1.dp)
             InfoRow(c, "Suporte", "suporte@signallq.app")
         }

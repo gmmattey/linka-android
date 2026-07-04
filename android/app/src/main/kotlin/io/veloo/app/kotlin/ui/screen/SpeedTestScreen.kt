@@ -1,4 +1,4 @@
-package io.veloo.app.ui.screen
+﻿package io.signallq.app.ui.screen
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,6 +54,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -61,21 +64,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.core.network.SnapshotRede
-import io.veloo.app.core.telephony.MovelSnapshot
-import io.veloo.app.feature.speedtest.EstadoExecucaoSpeedtest
-import io.veloo.app.feature.speedtest.FaseSpeedtest
-import io.veloo.app.feature.speedtest.ModoSpeedtest
-import io.veloo.app.feature.speedtest.ResultadoRodadaTriplo
-import io.veloo.app.feature.speedtest.SnapshotExecucaoSpeedtest
-import io.veloo.app.ui.IspInfo
-import io.veloo.app.ui.LkColors
-import io.veloo.app.ui.LkRadius
-import io.veloo.app.ui.LkSpacing
-import io.veloo.app.ui.LkTokens
-import io.veloo.app.ui.LocalLkTokens
-import io.veloo.app.ui.component.ProfileAvatarButton
+import io.signallq.app.R
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.core.network.SnapshotRede
+import io.signallq.app.core.telephony.MovelSnapshot
+import io.signallq.app.feature.speedtest.EstadoExecucaoSpeedtest
+import io.signallq.app.feature.speedtest.FaseSpeedtest
+import io.signallq.app.feature.speedtest.ModoSpeedtest
+import io.signallq.app.feature.speedtest.ResultadoRodadaTriplo
+import io.signallq.app.feature.speedtest.SnapshotExecucaoSpeedtest
+import io.signallq.app.ui.IspInfo
+import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
+import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
+import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.ProfileAvatarButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -176,11 +180,12 @@ fun SpeedTestScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Outlined.ExpandMore,
-                                contentDescription = null,
+                                imageVector = Icons.Outlined.Speed,
+                                contentDescription = "Velocidade",
                                 tint = c.textPrimary,
                                 modifier = Modifier.size(18.dp),
                             )
+                            Spacer(Modifier.width(LkSpacing.xs))
                             Text(
                                 text = "Velocidade",
                                 style = MaterialTheme.typography.titleLarge,
@@ -361,6 +366,7 @@ private fun BlocoCirculoSpeedTest(
         progresso = snapshotSpeedtest.progressoPercentual,
         fase = snapshotSpeedtest.faseAtual,
         velocidadeMbps = if (snapshotSpeedtest.aguardandoProximaRodada) 0.0 else snapshotSpeedtest.velocidadeAtualMbps,
+        conectado = snapshotRede.conectado,
         onIniciarTeste = onIniciarTeste,
     )
 
@@ -427,6 +433,15 @@ private fun BlocoCirculoSpeedTest(
 
     ModeSelector(modoSelecionado = modoSelecionado, onSelect = onModoSelecionado)
 
+    Spacer(Modifier.height(LkSpacing.xs))
+    Text(
+        text = descricaoModo(modoSelecionado),
+        style = MaterialTheme.typography.labelSmall,
+        color = c.textTertiary,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(horizontal = LkSpacing.lg),
+    )
+
     val erroMsg = snapshotSpeedtest.erroMensagem
     if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.erro && erroMsg != null) {
         Spacer(Modifier.height(LkSpacing.md))
@@ -485,6 +500,7 @@ private fun SpeedTestCircle(
     progresso: Int,
     fase: FaseSpeedtest,
     velocidadeMbps: Double,
+    conectado: Boolean,
     onIniciarTeste: () -> Unit,
 ) {
     Box(
@@ -493,7 +509,7 @@ private fun SpeedTestCircle(
     ) {
         when (estado) {
             EstadoExecucaoSpeedtest.idle -> {
-                IdleCircle(onIniciarTeste = onIniciarTeste)
+                IdleCircle(onIniciarTeste = onIniciarTeste, habilitado = conectado)
             }
             EstadoExecucaoSpeedtest.erro -> {
                 ErrorCircle(onTentarNovamente = onIniciarTeste)
@@ -513,7 +529,10 @@ private fun SpeedTestCircle(
 }
 
 @Composable
-private fun IdleCircle(onIniciarTeste: () -> Unit) {
+private fun IdleCircle(
+    onIniciarTeste: () -> Unit,
+    habilitado: Boolean = true,
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -536,22 +555,25 @@ private fun IdleCircle(onIniciarTeste: () -> Unit) {
         label = "glow",
     )
 
+    val corBotao = if (habilitado) LkColors.accent else LkColors.accent.copy(alpha = 0.4f)
+    val cdBotao = if (habilitado) "Iniciar teste de velocidade" else "Iniciar teste de velocidade, indisponível sem conexão"
+
     Box(contentAlignment = Alignment.Center) {
         Box(
             modifier =
                 Modifier
                     .size(220.dp)
-                    .background(LkColors.accent.copy(alpha = glowAlpha), CircleShape),
+                    .background(corBotao.copy(alpha = if (habilitado) glowAlpha else glowAlpha * 0.5f), CircleShape),
         )
         Box(
             modifier =
                 Modifier
                     .size(210.dp)
-                    .scale(scale)
+                    .scale(if (habilitado) scale else 1f)
                     .clip(CircleShape)
-                    .background(LkColors.accent)
-                    .semantics { contentDescription = "Iniciar teste de velocidade" }
-                    .clickable(onClick = onIniciarTeste),
+                    .background(corBotao)
+                    .semantics { contentDescription = cdBotao }
+                    .clickable(enabled = habilitado, onClick = onIniciarTeste),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -698,6 +720,13 @@ private val modoOpcoes =
         "Triplo" to ModoSpeedtest.triplo,
     )
 
+private fun descricaoModo(modo: ModoSpeedtest): String =
+    when (modo) {
+        ModoSpeedtest.fast -> "Mede download e upload rapidamente"
+        ModoSpeedtest.complete -> "Mede download, upload e latência com mais precisão"
+        ModoSpeedtest.triplo -> "Repete o teste completo 3 vezes para maior confiabilidade"
+    }
+
 @Composable
 private fun ModeSelector(
     modoSelecionado: ModoSpeedtest,
@@ -781,6 +810,7 @@ private fun CardRodadasTriplo(
     rodadas: List<ResultadoRodadaTriplo>,
 ) {
     var expandido by remember { mutableStateOf(false) }
+    val cdMedicoes = if (expandido) stringResource(R.string.cd_recolher_detalhes_medicoes) else stringResource(R.string.cd_expandir_detalhes_medicoes)
     Column(
         modifier =
             Modifier
@@ -788,6 +818,7 @@ private fun CardRodadasTriplo(
                 .clip(RoundedCornerShape(LkRadius.card))
                 .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
                 .background(c.bgCard)
+                .semantics { contentDescription = cdMedicoes }
                 .clickable { expandido = !expandido }
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
     ) {

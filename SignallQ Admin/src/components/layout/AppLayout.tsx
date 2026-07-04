@@ -13,6 +13,8 @@ interface AppLayoutProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   onLogout?: () => void;
+  theme?: "dark" | "light";
+  onToggleTheme?: () => void;
   children: React.ReactNode;
   id?: string;
 }
@@ -27,6 +29,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onRefresh,
   isRefreshing,
   onLogout,
+  theme,
+  onToggleTheme,
   children,
   id,
 }) => {
@@ -38,15 +42,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       case "/overview":
         return "Visão Geral";
       case "/product-analytics":
-        return "Engajamento & Uso";
+        return "Produto & Uso";
       case "/diagnostics":
         return "Diagnósticos";
       case "/networks":
-        return "Frequências & RF";
+        return "Redes & RF";
       case "/operators":
-        return "Benchmarks";
+        return "Operadoras";
       case "/ai-cost":
-        return "Custos IA";
+        return "IA & Custo";
       case "/errors":
         return "Erros";
       case "/app-versions":
@@ -54,7 +58,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       case "/settings":
         return "Configurações";
       default:
-        return "SignallQ Admin";
+        return "7Agents Admin Console";
     }
   }, [currentPath]);
 
@@ -66,7 +70,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   return (
     <div
       id={id || "app-layout-root"}
-      className="flex w-full h-screen bg-[#08080A] text-[#F3F4F6] overflow-hidden select-none font-sans"
+      className="flex w-full h-screen overflow-hidden select-none font-sans"
+      style={{ backgroundColor: "var(--bg-base)", color: "var(--text-primary)" }}
     >
       {/* Mobile sidebar overlay */}
       {isMobileSidebarOpen && (
@@ -84,6 +89,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         environment={environment}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
+        theme={theme}
       />
 
       {/* 2. Main content container */}
@@ -99,6 +105,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           isRefreshing={isRefreshing}
           onLogout={onLogout}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
         />
 
         {/* Staging warning banner */}
@@ -109,7 +117,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         )}
 
         {/* 3. Main scrollable panel */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8 bg-[#08080A]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8" style={{ backgroundColor: "var(--bg-base)" }}>
           {children}
         </main>
       </div>

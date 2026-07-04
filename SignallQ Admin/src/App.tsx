@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTheme } from "./hooks/useTheme";
 import { AppLayout } from "./components/layout/AppLayout";
 import { PageHeader } from "./components/layout/PageHeader";
 import { AppEnvironment } from "./types/admin";
 import { LoginPage } from "./auth/LoginPage";
 import { apiClient } from "./services/apiClient";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 
 // Tab/Feature Components
 import { OverviewTab } from "./features/overview/OverviewTab";
@@ -15,11 +17,14 @@ import { AiCostTab } from "./features/ai-cost/AiCostTab";
 import { ErrorsTab } from "./features/errors/ErrorsTab";
 import { VersionsTab } from "./features/app-versions/VersionsTab";
 import { SettingsTab } from "./features/settings/SettingsTab";
+import { FeatureFlagsTab } from "./features/feature-flags/FeatureFlagsTab";
+import { SystemHealthTab } from "./features/system-health/SystemHealthTab";
 
 // Lucide accessories
-import { Sparkles, Activity, AlertTriangle } from "lucide-react";
+import { Sparkles, Activity, AlertTriangle, HeartPulse } from "lucide-react";
 
 export default function App() {
+  const { theme, toggle: onToggleTheme } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [currentPath, setCurrentPath] = useState<string>("/overview");
@@ -42,9 +47,12 @@ export default function App() {
   // sobrescreva um isAuthenticated=true definido por um login explícito.
   useEffect(() => {
     let cancelled = false;
-    const controller = new AbortController();
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
 
-    fetch(`${baseUrl}/admin/auth/me`, { credentials: "include", signal: controller.signal })
+    fetch(`${baseUrl}/admin/auth/me`, {
+      credentials: "include",
+      ...(controller ? { signal: controller.signal } : {}),
+    })
       .then((r) => {
         if (!cancelled) setIsAuthenticated((prev) => r.ok || prev);
       })
@@ -57,7 +65,7 @@ export default function App() {
 
     return () => {
       cancelled = true;
-      controller.abort();
+      if (controller) controller.abort();
     };
   }, [baseUrl]);
 
@@ -87,6 +95,8 @@ export default function App() {
         "/ai-cost",
         "/errors",
         "/app-versions",
+        "/feature-flags",
+        "/system-health",
         "/settings",
       ];
       if (hash && validPaths.includes(hash)) {
@@ -148,7 +158,14 @@ export default function App() {
           title: "Visão Geral",
           description: "Acompanhe uso, diagnósticos, qualidade da rede e custo de IA em tempo real.",
           badge: (
-            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-950/40 border border-indigo-500/20 text-[#6C2BFF] text-[10px] font-mono rounded-lg">
+            <span
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono rounded-lg"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--sq-accent) 10%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--sq-accent) 20%, transparent)",
+                color: "var(--sq-accent)",
+              }}
+            >
               <Sparkles className="w-3.5 h-3.5" /> Live Engine
             </span>
           ),
@@ -158,7 +175,14 @@ export default function App() {
           title: "Produto & Uso",
           description: "Monitore o engajamento de features, navegação, retenção, métricas de performance e monetização futura.",
           badge: (
-            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-purple-950/40 border border-purple-500/20 text-[#A855F7] text-[10px] font-mono rounded-lg">
+            <span
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono rounded-lg"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--sq-accent) 10%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--sq-accent) 20%, transparent)",
+                color: "var(--sq-accent)",
+              }}
+            >
               <Sparkles className="w-3.5 h-3.5" /> Product Insights
             </span>
           ),
@@ -168,7 +192,14 @@ export default function App() {
           title: "Sessões de Diagnósticos",
           description: "Pesquise por logs brutos, meça o bufferbloat local e emita diagnósticos preditivos baseados em IA.",
           badge: (
-            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono rounded-lg">
+            <span
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono rounded-lg"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--sq-success) 10%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--sq-success) 20%, transparent)",
+                color: "var(--sq-success)",
+              }}
+            >
               <Activity className="w-3.5 h-3.5 animate-pulse" /> Telemetria de Rádio
             </span>
           ),
@@ -196,7 +227,14 @@ export default function App() {
           title: "Logs de Erros",
           description: "Erros do Cloudflare Worker, dumps de depuração do app Android e problemas nas conexões com tabelas de banco Analytics DB.",
           badge: (
-            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-950/40 border border-red-500/20 text-red-500 text-[10px] font-mono rounded-lg uppercase">
+            <span
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono rounded-lg uppercase"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--sq-error) 10%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--sq-error) 20%, transparent)",
+                color: "var(--sq-error)",
+              }}
+            >
               <AlertTriangle className="w-3.5 h-3.5" /> Auditoria de Erros
             </span>
           ),
@@ -207,6 +245,29 @@ export default function App() {
           description: "Lista de builds Android transmitindo métricas e status de distribuição de novas atualizações via Play Store.",
           badge: null,
         };
+      case "/feature-flags":
+        return {
+          title: "Feature Flags",
+          description: "Ative ou desative telas e funcionalidades do app remotamente, sem necessidade de novo build.",
+          badge: null,
+        };
+      case "/system-health":
+        return {
+          title: "Saúde do Sistema",
+          description: "Status dos Workers Cloudflare, D1 Database e alertas de threshold para crash rate e custo de IA.",
+          badge: (
+            <span
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono rounded-lg"
+              style={{
+                backgroundColor: "color-mix(in srgb, var(--sq-success) 10%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--sq-success) 20%, transparent)",
+                color: "var(--sq-success)",
+              }}
+            >
+              <HeartPulse className="w-3.5 h-3.5" /> System Monitor
+            </span>
+          ),
+        };
       case "/settings":
         return {
           title: "Configurações Técnicas",
@@ -215,7 +276,7 @@ export default function App() {
         };
       default:
         return {
-          title: "SignallQ Admin",
+          title: "7Agents Admin Console",
           description: "Plataforma administrativa móvel",
           badge: null,
         };
@@ -225,8 +286,14 @@ export default function App() {
   // Aguarda verificação inicial para não piscar a tela de login desnecessariamente.
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-[#0D0D1A] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[#6C2BFF] border-t-transparent rounded-full animate-spin" />
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "var(--sq-bg-primary)" }}
+      >
+        <div
+          className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: "var(--sq-accent)", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -246,6 +313,8 @@ export default function App() {
       onRefresh={handleRefresh}
       isRefreshing={isRefreshing}
       onLogout={handleLogout}
+      theme={theme}
+      onToggleTheme={onToggleTheme}
     >
       {/* Dynamic Sub-header */}
       <PageHeader
@@ -254,7 +323,9 @@ export default function App() {
         badge={pageHeaderDetail.badge}
       />
 
-      {/* Structured Switch Rendering the Active tab dynamically */}
+      {/* Structured Switch Rendering the Active tab dynamically.
+          ErrorBoundary com key={currentPath} isola crashes por aba e reseta ao navegar. */}
+      <ErrorBoundary key={currentPath}>
       {currentPath === "/overview" && (
         <OverviewTab
           environment={environment}
@@ -316,12 +387,16 @@ export default function App() {
           triggerRefreshCounter={refreshCounter}
         />
       )}
-      {currentPath === "/settings" && (
-        <SettingsTab
+      {currentPath === "/feature-flags" && <FeatureFlagsTab />}
+      {currentPath === "/system-health" && (
+        <SystemHealthTab
+          environment={environment}
+          period={period}
           triggerRefreshCounter={refreshCounter}
-          onRefreshTrigger={handleRefresh}
         />
       )}
+      {currentPath === "/settings" && <SettingsTab />}
+      </ErrorBoundary>
     </AppLayout>
   );
 }

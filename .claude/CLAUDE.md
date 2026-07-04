@@ -10,17 +10,19 @@ Na conversa principal, responda sempre como **Claudete** (PM & Tech Lead do Sign
 
 - App: **SignallQ** -- diagnostico de conectividade Android.
 - Estrutura: **monorepo** — `android/` (Kotlin), `pwa/` (React/TS), `ios/`, `integrations/` (Cloudflare), `scripts/`, `docs_ai/`.
-- Package/applicationId/namespace: **`io.veloo.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). O veloo aqui e tecnico, nao marca.
+- Package/applicationId/namespace: **`io.signallq.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). Renomeado de `io.veloo.app` em 2026-06-28 (antes de qualquer publicacao na Play Store).
 - Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
-- Versao atual: **0.21.0** (versionCode 52), em `android/gradle/libs.versions.toml`. minSdk 24, target/compileSdk 36, JVM 17.
-- Stack: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
+- Versao atual: **0.21.0** (versionCode 52), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
+- **Android Stack**: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
+- **PWA Stack**: React, TypeScript, Vite, Tailwind CSS (design system SignallQ inspirado em Material 3, não Material Web).
 - 15 modulos Gradle: `app` + core(5): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
-- MVVM + StateFlow, Hilt DI (`AppModule.kt` + `DiagnosticoModule.kt`), Room v10 (`SignallQDatabase`), DataStore `linkaPreferencias`.
-- IA: Worker Cloudflare (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL`, modelo Qwen3 30B MoE FP8, persona SignallQ.
+- MVVM + StateFlow, Hilt DI (`AppModule.kt` + `DiagnosticoModule.kt`), Room v12 (`SignallQDatabase`), DataStore `linkaPreferencias`.
+- IA: Worker Cloudflare (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL`, modelo Qwen3 30B MoE FP8 (fallback Gemini Flash), persona SignallQ.
+- **Analytics**: Firebase Analytics (events) + Crashlytics (error logs). **NOT using**: Realtime DB.
 - Navegacao: `AppShell.kt` -- 5 abas (Inicio, Velocidade, Sinal, Historico, Ajustes). Diagnostico/IA, Dispositivos, Fibra sao overlays, nao abas.
 - Background: WorkManager `MonitoramentoWorker` (30 min).
 
-**Identificadores tecnicos a preservar** (parecem marca, sao tecnicos): `io.veloo.app`, repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`, skill `linka-design`, banco `linkaKotlin.db`, canais `linka_*`, DataStore `linkaPreferencias`.
+**Identificadores tecnicos a preservar** (parecem marca, sao tecnicos): `io.signallq.app`, repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`, skill `linka-design`, banco `linkaKotlin.db`, canais `linka_*`, DataStore `linkaPreferencias`.
 
 ---
 
@@ -40,6 +42,22 @@ Na conversa principal, responda sempre como **Claudete** (PM & Tech Lead do Sign
 **Regra Slack:** o Linear notifica o Slack diretamente. Decisao que surgir no Slack vira issue no Linear ou pagina no Notion. Slack e saida, nao fonte da verdade.
 
 ---
+## Infraestrutura e Contas Legadas
+
+**Firebase — Projeto Novo:**
+- Projeto: `signallq-app` (conta 7Agents)
+- App Android: `io.signallq.app`
+- Analytics: habilitado com LGPD consent gate
+
+**Firebase — Projeto Legado (ABANDONADO):**
+- Projeto: `device-streaming-ef179de4` (conta pessoal do Luiz)
+- App Android: `io.linka.app.kotlin` (package antigo, deprecated)
+- Status: **NÃO É MAIS USADO**
+- Limpeza manual requerida: Luiz deve ir em Firebase Console → projeto `device-streaming-ef179de4` e remover o app Android `io.linka.app.kotlin`, ou arquivar o projeto inteiro se não tiver outros apps.
+- Rastreamento: SIG-220
+
+---
+
 
 ## Milestones
 
@@ -106,7 +124,7 @@ Worker Cloudflare: quando houver mudancas em `integrations/cloudflare/ai-diagnos
 - Exclusao destrutiva
 - Publicacao em loja
 - Uso de conta pessoal/sensivel
-- Mudanca de package (`io.veloo.app` -- nunca)
+- Mudanca de package (`io.signallq.app` -- nunca)
 - Mudanca de marca
 - Alteracao de cronograma principal
 - Cancelamento de entrega relevante

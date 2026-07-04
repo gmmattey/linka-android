@@ -1,4 +1,4 @@
-package io.veloo.app
+﻿package io.signallq.app
 
 import android.app.Application
 import android.content.Context
@@ -7,65 +7,76 @@ import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.veloo.app.core.database.ApelidoDispositivoEntity
-import io.veloo.app.core.database.MedicaoEntity
-import io.veloo.app.core.database.SignallQDatabase
-import io.veloo.app.core.datastore.PreferenciasAppRepository
-import io.veloo.app.core.network.DispatcherProvider
-import io.veloo.app.core.network.EstadoConexao
-import io.veloo.app.core.network.MonitorRede
-import io.veloo.app.core.network.NetworkCapabilitiesProvider
-import io.veloo.app.core.permissions.GerenciadorPermissoesRede
-import io.veloo.app.core.telephony.MonitorTelephony
-import io.veloo.app.core.telephony.MovelSimSnapshot
-import io.veloo.app.core.telephony.MovelSnapshot
-import io.veloo.app.feature.devices.ScannerDispositivos
-import io.veloo.app.feature.devices.SnapshotScanDispositivos
-import io.veloo.app.feature.diagnostico.DiagnosticOrchestrator
-import io.veloo.app.feature.diagnostico.FibraDiagnosticInput
-import io.veloo.app.feature.diagnostico.InternetDiagnosticInput
-import io.veloo.app.feature.diagnostico.WifiDiagnosticInput
-import io.veloo.app.feature.diagnostico.ai.AdditionalAiContext
-import io.veloo.app.feature.diagnostico.ai.AiDiagnosisRepository
-import io.veloo.app.feature.diagnostico.ai.AiDiagnosisState
-import io.veloo.app.feature.diagnostico.ai.AiDispositivosInfo
-import io.veloo.app.feature.diagnostico.ai.AiFallbackFactory
-import io.veloo.app.feature.diagnostico.ai.AiMovelInfo
-import io.veloo.app.feature.diagnostico.ai.AiRedeVizinha
-import io.veloo.app.feature.diagnostico.ai.AiTesteHistorico
-import io.veloo.app.feature.diagnostico.ai.DiagChatAutor
-import io.veloo.app.feature.diagnostico.ai.DiagChatEntry
-import io.veloo.app.feature.diagnostico.ai.DiagnosisAiContext
-import io.veloo.app.feature.diagnostico.ai.DiagnosisAiContextFactory
-import io.veloo.app.feature.diagnostico.ingest.AdminIngestRepository
-import io.veloo.app.feature.diagnostico.pulse.OpcaoResposta
-import io.veloo.app.feature.diagnostico.pulse.SignallQOrchestrator
-import io.veloo.app.feature.dns.AvaliadorCoerenciaDns
-import io.veloo.app.feature.dns.BenchmarkDns
-import io.veloo.app.feature.dns.EstadoBenchmarkDns
-import io.veloo.app.feature.dns.OrientadorConfiguracaoDns
-import io.veloo.app.feature.fibra.EstadoFibra
-import io.veloo.app.feature.fibra.ExecutorFibra
-import io.veloo.app.feature.history.BlocoUptime
-import io.veloo.app.feature.history.ObservadorHistoricoRoom
-import io.veloo.app.feature.history.ResumoHistorico
-import io.veloo.app.feature.history.UptimeChartUseCase
-import io.veloo.app.feature.history.UptimeNarrativaEngine
-import io.veloo.app.feature.speedtest.ExecutorSpeedtest
-import io.veloo.app.feature.speedtest.ModoSpeedtest
-import io.veloo.app.feature.wifi.ScannerRedesWifi
-import io.veloo.app.monitoramento.MonitoramentoScheduler
-import io.veloo.app.notificacao.SignallQNotificationHelper
-import io.veloo.app.pulse.SignallQUiStateMapper
-import io.veloo.app.ui.ConnectionNodeType
-import io.veloo.app.ui.FiltroConexaoHistorico
-import io.veloo.app.ui.GatewayInfo
-import io.veloo.app.ui.HistoryPoint
-import io.veloo.app.ui.IspInfo
-import io.veloo.app.speedtest.SpeedtestPersistenceCoordinator
-import io.veloo.app.ui.screen.AnalisadorState
-import io.veloo.app.ui.screen.SignallQUiState
-import io.veloo.app.ui.state.UiState
+import io.signallq.app.core.database.ApelidoDispositivoEntity
+import io.signallq.app.core.database.MedicaoEntity
+import io.signallq.app.core.database.SignallQDatabase
+import io.signallq.app.core.datastore.PreferenciasAppRepository
+import io.signallq.app.core.network.DispatcherProvider
+import io.signallq.app.core.network.EstadoConexao
+import io.signallq.app.core.network.MonitorRede
+import io.signallq.app.core.network.NetworkCapabilitiesProvider
+import io.signallq.app.core.network.contracts.wifi.channel.freqToChannel
+import io.signallq.app.core.permissions.GerenciadorPermissoesRede
+import io.signallq.app.core.telephony.MonitorTelephony
+import io.signallq.app.core.telephony.MovelSimSnapshot
+import io.signallq.app.core.telephony.MovelSnapshot
+import io.signallq.app.feature.devices.ScannerDispositivos
+import io.signallq.app.feature.devices.SnapshotScanDispositivos
+import io.signallq.app.feature.diagnostico.ConnectionType
+import io.signallq.app.feature.diagnostico.DiagnosticInput
+import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
+import io.signallq.app.feature.diagnostico.DnsDiagnosticInput
+import io.signallq.app.feature.diagnostico.FibraDiagnosticInput
+import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
+import io.signallq.app.feature.diagnostico.MobileDiagnosticInput
+import io.signallq.app.feature.diagnostico.RedeWifiVizinha
+import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
+import io.signallq.app.feature.diagnostico.WifiScanDiagnosticInput
+import io.signallq.app.feature.diagnostico.ai.AdditionalAiContext
+import io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository
+import io.signallq.app.feature.diagnostico.ai.AiDiagnosisState
+import io.signallq.app.feature.diagnostico.ai.AiDispositivosInfo
+import io.signallq.app.feature.diagnostico.ai.AiFallbackFactory
+import io.signallq.app.feature.diagnostico.ai.AiMovelInfo
+import io.signallq.app.feature.diagnostico.ai.AiRedeVizinha
+import io.signallq.app.feature.diagnostico.ai.AiTesteHistorico
+import io.signallq.app.feature.diagnostico.ai.DiagChatAutor
+import io.signallq.app.feature.diagnostico.ai.DiagChatEntry
+import io.signallq.app.feature.diagnostico.ai.DiagnosisAiContext
+import io.signallq.app.feature.diagnostico.ai.DiagnosisAiContextFactory
+import io.signallq.app.feature.diagnostico.banda
+import io.signallq.app.feature.diagnostico.ingest.AdminIngestRepository
+import io.signallq.app.feature.diagnostico.pulse.OpcaoResposta
+import io.signallq.app.feature.diagnostico.pulse.SignallQOrchestrator
+import io.signallq.app.feature.diagnostico.topology.TopologyDiagnostic
+import io.signallq.app.feature.diagnostico.topology.model.NatStatus
+import io.signallq.app.feature.dns.AvaliadorCoerenciaDns
+import io.signallq.app.feature.dns.BenchmarkDns
+import io.signallq.app.feature.dns.DiagnosticoCoerenciaDns
+import io.signallq.app.feature.dns.EstadoBenchmarkDns
+import io.signallq.app.feature.dns.OrientadorConfiguracaoDns
+import io.signallq.app.feature.fibra.EstadoFibra
+import io.signallq.app.feature.fibra.ExecutorFibra
+import io.signallq.app.feature.history.BlocoUptime
+import io.signallq.app.feature.history.ObservadorHistoricoRoom
+import io.signallq.app.feature.history.ResumoHistorico
+import io.signallq.app.feature.history.UptimeChartUseCase
+import io.signallq.app.feature.history.UptimeNarrativaEngine
+import io.signallq.app.feature.speedtest.ExecutorSpeedtest
+import io.signallq.app.feature.speedtest.ModoSpeedtest
+import io.signallq.app.feature.wifi.ScannerRedesWifi
+import io.signallq.app.monitoramento.MonitoramentoScheduler
+import io.signallq.app.notificacao.SignallQNotificationHelper
+import io.signallq.app.pulse.SignallQUiStateMapper
+import io.signallq.app.speedtest.SpeedtestPersistenceCoordinator
+import io.signallq.app.ui.ConnectionNodeType
+import io.signallq.app.ui.FiltroConexaoHistorico
+import io.signallq.app.ui.GatewayInfo
+import io.signallq.app.ui.HistoryPoint
+import io.signallq.app.ui.IspInfo
+import io.signallq.app.ui.screen.AnalisadorState
+import io.signallq.app.ui.screen.SignallQUiState
+import io.signallq.app.ui.state.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -114,6 +125,10 @@ class MainViewModel
         /** Repositorio de telemetria para o painel admin SignallQ. */
         private val adminIngestRepository: AdminIngestRepository,
         private val speedtestPersistenceCoordinator: SpeedtestPersistenceCoordinator,
+        /** TopologyDiagnostic injetado pelo Hilt como @Singleton (DiagnosticoModule).
+         *  Usado para classificar NAT/CGNAT (SIG-279) — disparado uma unica vez por
+         *  sessao dentro de [iniciarRotinasNaoSpeedtest], mesmo padrao de coletarIspInfo. */
+        private val topologyDiagnostic: TopologyDiagnostic,
     ) : AndroidViewModel(application) {
         private companion object {
             const val LOG_TAG = "SignallQSpeedtestSuite"
@@ -172,6 +187,8 @@ class MainViewModel
                 adminIngestRepository = adminIngestRepository,
                 deviceIdProvider = { preferenciasAppRepository.buscarOuGerarAnonDeviceId() },
                 distChannelProvider = { getDistributionChannel(getApplication()) },
+                // SIG-282: IA so dispara automaticamente com o toggle "Analise avancada" ligado.
+                analiseAvancadaProvider = { preferenciasAppRepository.analiseAvancadaFlow.first() },
             )
         }
         val signallQUiStateFlow by lazy {
@@ -183,6 +200,11 @@ class MainViewModel
         val onboardingConcluido: StateFlow<Boolean> by lazy {
             preferenciasAppRepository.onboardingConcluidoFlow
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        }
+
+        val consentimentoLgpd: StateFlow<Boolean?> by lazy {
+            preferenciasAppRepository.consentimentoLgpdFlow
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
         }
 
         // #82 — Banner Anatel dismissível
@@ -202,6 +224,10 @@ class MainViewModel
 
         fun concluirOnboarding() {
             viewModelScope.launch { preferenciasAppRepository.definirOnboardingConcluido(true) }
+        }
+
+        fun definirConsentimentoLgpd(aceito: Boolean) {
+            viewModelScope.launch { preferenciasAppRepository.definirConsentimentoLgpd(aceito) }
         }
 
         val gemmaAvailable = MutableStateFlow(false)
@@ -441,9 +467,18 @@ class MainViewModel
         private var infoLocalRedeColetada = false
         private var ispInfoColetada = false
         private var localizacaoServidorColetada = false
+        private var topologiaColetada = false
         private var ultimoBenchmarkDnsEpochMs: Long? = null
         private var ssidAoDispararDns: String? = null
         private var estadoConexaoAoDispararDns: EstadoConexao? = null
+
+        // SIG-279 — cache do NAT status (1 chamada de rede por sessao, reusado nas 3
+        // montagens de DiagnosticInput). Populado por coletarTopologiaRede().
+        private var natStatusAtual: NatStatus? = null
+
+        // SIG-279 — ultima coerencia de DNS calculada por avaliadorCoerenciaDns, para
+        // repassar ao DiagnosticInput.dns nas proximas montagens.
+        private var ultimaCoerenciaDns: DiagnosticoCoerenciaDns? = null
 
         init {
             iniciarObservadores()
@@ -479,6 +514,7 @@ class MainViewModel
                                 jitterMs = it.jitterMs,
                                 perdaPercentual = it.perdaPercentual,
                                 bufferbloatMs = it.bufferbloatMs,
+                                packetLossSource = it.packetLossSource,
                             )
                         }
                     val wifiInput =
@@ -493,7 +529,21 @@ class MainViewModel
                                         .takeIf { it > 0 },
                             )
                         }
-                    diagnosticOrchestrator.executar(internetInput, wifiInput, fibraInput)
+                    diagnosticOrchestrator.executar(
+                        DiagnosticInput(
+                            connectionType =
+                                monitorRede.snapshotFlow.value.estadoConexao
+                                    .paraConnectionType(),
+                            internet = internetInput,
+                            wifi = wifiInput,
+                            fibra = fibraInput,
+                            mobile = montarMobileInput(),
+                            dns = montarDnsInput(),
+                            wifiScan = montarWifiScanInput(),
+                            velocidadeContratadaMbps = montarVelocidadeContratadaMbps(),
+                            natStatus = natStatusAtual,
+                        ),
+                    )
                 }
             }
 
@@ -508,7 +558,9 @@ class MainViewModel
                     val rede = monitorRede.snapshotFlow.value
                     val provedorAtivo = inferirProvedorAtivoDns(rede.privateDnsHostname, rede.dnsServidores)
                     val coerencia = classificarCoerenciaDns(melhor.nomeProvedor, provedorAtivo)
-                    avaliadorCoerenciaDns.registrarCoerencia(coerencia)
+                    // SIG-279 — resultado repassado ao motor de diagnostico via
+                    // DiagnosticInput.dns na proxima montagem (ver montarDnsInput()).
+                    ultimaCoerenciaDns = avaliadorCoerenciaDns.registrarCoerencia(coerencia)
                 }
             }
 
@@ -738,7 +790,20 @@ class MainViewModel
                                         .takeIf { size -> size > 0 },
                             )
                         }
-                    diagnosticOrchestrator.executar(internetInput, wifiInput)
+                    diagnosticOrchestrator.executar(
+                        DiagnosticInput(
+                            connectionType =
+                                monitorRede.snapshotFlow.value.estadoConexao
+                                    .paraConnectionType(),
+                            internet = internetInput,
+                            wifi = wifiInput,
+                            mobile = montarMobileInput(),
+                            dns = montarDnsInput(),
+                            wifiScan = montarWifiScanInput(),
+                            velocidadeContratadaMbps = montarVelocidadeContratadaMbps(),
+                            natStatus = natStatusAtual,
+                        ),
+                    )
                 }
             }
             if (!fibraDisparada) {
@@ -778,7 +843,88 @@ class MainViewModel
                 localizacaoServidorColetada = true
                 viewModelScope.launch { buscarLocalizacaoServidor() }
             }
+            if (!topologiaColetada) {
+                topologiaColetada = true
+                viewModelScope.launch { coletarTopologiaRede() }
+            }
         }
+
+        /** SIG-279 — classifica NAT/CGNAT via TopologyDiagnostic (UPnP + IP publico).
+         *  Best-effort: falha de rede/timeout mantem natStatusAtual como null (omitido
+         *  do DiagnosticInput, sem gerar resultado de diagnostico). */
+        private suspend fun coletarTopologiaRede() {
+            try {
+                natStatusAtual = topologyDiagnostic.diagnose().nat
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Timber.w("coletarTopologiaRede falhou: ${e.message}")
+            }
+        }
+
+        /** SIG-279 — monta o scan de redes vizinhas (feature/wifi) para o motor local
+         *  (WifiChannelDiagnosticEngine), incluindo o canal conectado atual calculado
+         *  a partir da frequencia do link Wi-Fi. */
+        private fun montarWifiScanInput(): WifiScanDiagnosticInput? {
+            val redesScan = scannerRedesWifi.snapshotFlow.value.redes
+            if (redesScan.isEmpty()) return null
+            val wifiSnapshot = monitorRede.snapshotFlow.value.wifiLinkSnapshot
+            val conectadoCanal = wifiSnapshot?.frequenciaMhz?.let { freqToChannel(it)?.second }
+            return WifiScanDiagnosticInput(
+                redes =
+                    redesScan.map { rv ->
+                        RedeWifiVizinha(
+                            canal = rv.canal,
+                            rssiDbm = rv.rssiDbm,
+                            frequenciaMhz = rv.frequenciaMhz,
+                            ssid = rv.ssid,
+                            bssid = rv.bssid,
+                            seguranca = rv.seguranca,
+                        )
+                    },
+                conectadoCanal = conectadoCanal,
+                conectadoBanda =
+                    wifiSnapshot?.frequenciaMhz?.let { freq ->
+                        WifiDiagnosticInput(rssiDbm = null, linkSpeedMbps = null, frequenciaMhz = freq).banda()
+                    },
+            )
+        }
+
+        /** SIG-279 — monta o input de sinal movel (RSRP/RSRQ/SINR) para
+         *  MobileSignalDiagnosticEngine, a partir do snapshot bruto do TelephonyManager. */
+        private fun montarMobileInput(): MobileDiagnosticInput? {
+            if (monitorRede.snapshotFlow.value.estadoConexao != EstadoConexao.movel) return null
+            val snap = monitorTelephony.snapshotFlow.value ?: return null
+            return MobileDiagnosticInput(
+                carrierName = snap.operadora,
+                mobileTechnology = snap.tecnologia,
+                signalStrengthDbm = snap.rsrpDbm,
+                signalQualityPercent = null,
+                band = snap.bandaMovel,
+                publicIp = (publicIp.value as? UiState.Success)?.data,
+                rsrpDbm = snap.rsrpDbm,
+                rsrqDb = snap.rsrqDb,
+                sinrDb = snap.sinrDb,
+            )
+        }
+
+        /** SIG-279 — monta o input de DNS combinando o resultado do ultimo benchmark
+         *  (ja existente) com a coerencia calculada por AvaliadorCoerenciaDns. */
+        private fun montarDnsInput(): DnsDiagnosticInput? {
+            val coerencia = ultimaCoerenciaDns ?: return null
+            return DnsDiagnosticInput(
+                coerenciaNivelAlerta = coerencia.nivelAlerta.name,
+                coerenciaDivergenciasConsecutivas = coerencia.divergenciasConsecutivas,
+                coerenciaTaxaDivergenciaPercentual = coerencia.taxaDivergenciaPercentual,
+            )
+        }
+
+        /** SIG-279 — velocidade contratada, mesma fonte usada por LaudoScreen/AppShell
+         *  (PreferenciasAppRepository.planoInternetFlow, string tipo "300" -> 300). */
+        private suspend fun montarVelocidadeContratadaMbps(): Int? =
+            preferenciasAppRepository.planoInternetFlow
+                .first()
+                .filter { it.isDigit() }
+                .toIntOrNull()
 
         fun dispararBenchmarkDns() {
             val agora = System.currentTimeMillis()
@@ -819,7 +965,7 @@ class MainViewModel
                             }
                         val connectionType =
                             snap.input?.connectionType
-                                ?: io.veloo.app.feature.diagnostico.ConnectionType.desconhecido
+                                ?: io.signallq.app.feature.diagnostico.ConnectionType.desconhecido
                         DiagnosisAiContextFactory
                             .from(relatorio, snap.input, connectionType)
                             .also { diagAiContext = it }
@@ -905,6 +1051,7 @@ class MainViewModel
                             )
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     // Fallback: stream falhou — tenta resposta completa via explainDiagnosis()
                     _diagChatHistorico.value = _diagChatHistorico.value.dropLast(1)
                     try {
@@ -934,7 +1081,8 @@ class MainViewModel
                                 nomeModelo = nomeModelo,
                                 isErro = isErro,
                             )
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        if (e is kotlinx.coroutines.CancellationException) throw e
                         _diagChatHistorico.value = _diagChatHistorico.value +
                             DiagChatEntry(autor = DiagChatAutor.Ia, texto = "", isErro = true)
                     }
@@ -953,6 +1101,12 @@ class MainViewModel
         fun iniciarDiagnostico() {
             limparDiagChat()
             viewModelScope.launch {
+                // Acao explicita do usuario ("Analisar problema") — vale coletar a
+                // topologia agora se ainda nao rodou nesta sessao (SIG-279).
+                if (!topologiaColetada) {
+                    topologiaColetada = true
+                    coletarTopologiaRede()
+                }
                 val internetInput = speedtestResultToInternetInput()
                 val wifiSnapshot = monitorRede.snapshotFlow.value.wifiLinkSnapshot
                 val wifiInput =
@@ -967,7 +1121,20 @@ class MainViewModel
                                     .takeIf { it > 0 },
                         )
                     }
-                diagnosticOrchestrator.executar(internetInput, wifiInput)
+                diagnosticOrchestrator.executar(
+                    DiagnosticInput(
+                        connectionType =
+                            monitorRede.snapshotFlow.value.estadoConexao
+                                .paraConnectionType(),
+                        internet = internetInput,
+                        wifi = wifiInput,
+                        mobile = montarMobileInput(),
+                        dns = montarDnsInput(),
+                        wifiScan = montarWifiScanInput(),
+                        velocidadeContratadaMbps = montarVelocidadeContratadaMbps(),
+                        natStatus = natStatusAtual,
+                    ),
+                )
             }
         }
 
@@ -1210,6 +1377,7 @@ class MainViewModel
                         preferenciasAppRepository.salvarDispositivosConhecidos(identidadesConhecidas)
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     Timber.w("verificarDispositivosNovos falhou: ${e.message}")
                 }
             }
@@ -1222,7 +1390,7 @@ class MainViewModel
          * - Sem MAC: retorna "ipnome:<IP>:<nome normalizado>" como fallback.
          *   LIMITAÇÃO: pode gerar falso-novo se IP mudar por DHCP ou nome mudar por reboot.
          */
-        internal fun identidadeEstavelDispositivo(dispositivo: io.veloo.app.feature.devices.DispositivoRede): String? {
+        internal fun identidadeEstavelDispositivo(dispositivo: io.signallq.app.feature.devices.DispositivoRede): String? {
             if (dispositivo.mac != null) return null // MAC presente → fluxo Room, não precisa de identidade DataStore
             val ip = dispositivo.ip ?: return null
             val nome = dispositivo.nomeExibicao.trim().lowercase()
@@ -1241,7 +1409,7 @@ class MainViewModel
         }
 
         fun iniciarSignallQComResultado(
-            resultado: io.veloo.app.feature.speedtest.ResultadoSpeedtest,
+            resultado: io.signallq.app.feature.speedtest.ResultadoSpeedtest,
             foco: String? = null,
         ) {
             viewModelScope.launch { signallQOrchestrator.iniciarDiagnosticoComResultado(resultado, foco) }
@@ -1359,6 +1527,7 @@ class MainViewModel
                             )
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     publicIp.value = UiState.Error("Falha ao obter IP publico")
                     ispInfo.value = UiState.Error("ISP indisponivel")
                     Timber.w("coletarIspInfo falhou: ${e.message}")
@@ -1412,7 +1581,8 @@ class MainViewModel
                             connectionType = m.connectionType,
                         )
                     }
-                } catch (_: Throwable) {
+                } catch (e: Throwable) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     emptyList()
                 }
 
@@ -1432,7 +1602,8 @@ class MainViewModel
                                 seguranca = rv.seguranca.name,
                             )
                         }
-                } catch (_: Throwable) {
+                } catch (e: Throwable) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     emptyList()
                 }
 
@@ -1488,16 +1659,17 @@ class MainViewModel
 
         fun analisarProblema(problema: String) {
             val snap = diagnosticOrchestrator.snapshotFlow.value
-            val relatorio = snap.relatorio ?: run {
-                _analisadorState.value = AnalisadorState.Erro("Faça um diagnóstico de rede antes de analisar.")
-                return
-            }
+            val relatorio =
+                snap.relatorio ?: run {
+                    _analisadorState.value = AnalisadorState.Erro("Faça um diagnóstico de rede antes de analisar.")
+                    return
+                }
             _analisadorState.value = AnalisadorState.Analisando
             viewModelScope.launch {
                 try {
                     val connectionType =
                         snap.input?.connectionType
-                            ?: io.veloo.app.feature.diagnostico.ConnectionType.desconhecido
+                            ?: io.signallq.app.feature.diagnostico.ConnectionType.desconhecido
                     val extra = coletarContextoAdicionalIa()
                     val ctx =
                         DiagnosisAiContextFactory.fromRaw(
@@ -1542,6 +1714,7 @@ class MainViewModel
                         }
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     Timber.e(e, "analisarProblema falhou")
                     _analisadorState.value = AnalisadorState.Erro("Erro ao analisar. Tente novamente.")
                 }
@@ -1618,7 +1791,8 @@ class MainViewModel
                     val local = cidade ?: codigoPais?.let { nomePaisPtBr(it) }
                     // Se local e nulo (JSON sem city/country), exibe "Cloudflare" sem cidade
                     localizacaoServidor.value = UiState.Success(if (local != null) "Cloudflare · $local" else "Cloudflare")
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     // Falha de rede ou parse — expoe o estado de erro para a UI
                     localizacaoServidor.value = UiState.Error("Servidor indisponivel")
                 }
@@ -1647,7 +1821,13 @@ class MainViewModel
             super.onCleared()
             observadorHistorico.cancel()
             monitorRede.encerrar()
-            bancoDados.close()
+            // bancoDados e injetado como @Singleton (Hilt) — compartilhado com
+            // SpeedtestPersistenceCoordinator e outros ViewModels, e vive por todo
+            // o processo do app. Fecha-lo aqui derrubava o Room pra sempre assim que
+            // este ViewModel era destruido (ex.: recriacao de Activity), causando
+            // falha silenciosa de persistencia em qualquer insert/query subsequente
+            // (issues #388/#389/#390 — Historico vazio, grafico da Home preso no
+            // placeholder e diagnostico "Inconclusivo" mesmo com teste completo).
         }
 
         // -------------------------------------------------------------------------
@@ -1673,6 +1853,7 @@ class MainViewModel
                     jitterMs = resultado.jitterMs,
                     perdaPercentual = resultado.perdaPercentual,
                     bufferbloatMs = resultado.bufferbloatMs,
+                    packetLossSource = resultado.packetLossSource,
                 )
             }
             return bancoDados.medicaoDao().observarUltimas(1).first().firstOrNull()?.let {
@@ -1683,6 +1864,7 @@ class MainViewModel
                     jitterMs = it.jitterMs,
                     perdaPercentual = it.perdaPercentual,
                     bufferbloatMs = it.bufferbloatMs,
+                    packetLossSource = it.packetLossSource,
                 )
             }
         }
@@ -1730,4 +1912,15 @@ class MainViewModel
             val permiteHeavy: Boolean = false,
             val mbConsumidosMes: Long = 0L,
         )
+    }
+
+// SIG-279 — enums identicos por nome (wifi/movel/ethernet/desconectado/desconhecido),
+// mapeamento explicito para nao acoplar core/network a feature/diagnostico.
+private fun EstadoConexao.paraConnectionType(): ConnectionType =
+    when (this) {
+        EstadoConexao.wifi -> ConnectionType.wifi
+        EstadoConexao.movel -> ConnectionType.mobile
+        EstadoConexao.ethernet -> ConnectionType.ethernet
+        EstadoConexao.desconectado -> ConnectionType.desconectado
+        EstadoConexao.desconhecido -> ConnectionType.desconhecido
     }

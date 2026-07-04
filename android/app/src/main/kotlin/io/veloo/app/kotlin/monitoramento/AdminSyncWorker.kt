@@ -1,4 +1,4 @@
-package io.veloo.app.monitoramento
+﻿package io.signallq.app.monitoramento
 
 import android.content.Context
 import android.os.Build
@@ -8,12 +8,12 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import io.veloo.app.BuildConfig
-import io.veloo.app.core.database.MedicaoDao
-import io.veloo.app.core.database.chat.ChatSessionDao
-import io.veloo.app.core.datastore.PreferenciasAppRepository
-import io.veloo.app.feature.diagnostico.ingest.AdminIngestRepository
-import io.veloo.app.feature.diagnostico.ingest.toIngestPayload
+import io.signallq.app.BuildConfig
+import io.signallq.app.core.database.MedicaoDao
+import io.signallq.app.core.database.chat.ChatSessionDao
+import io.signallq.app.core.datastore.PreferenciasAppRepository
+import io.signallq.app.feature.diagnostico.ingest.AdminIngestRepository
+import io.signallq.app.feature.diagnostico.ingest.toIngestPayload
 
 /**
  * Worker de sync retroativo de medicoes e sessoes de IA para o signallq-admin-worker.
@@ -47,15 +47,20 @@ internal class AdminSyncWorker
         override suspend fun doWork(): Result {
             Log.d(TAG, "Iniciando sync retroativo (tentativa ${runAttemptCount + 1})")
             return try {
-                val environment = if (BuildConfig.DEBUG) "staging" else "production"
                 val distChannel = getDistributionChannel(applicationContext)
+                // "production" apenas quando instalado via Play Store.
+                // Firebase App Distribution chega como "sideload" → homologação.
+                val environment = if (distChannel == "play_store") "production" else "staging"
                 val buildType = BuildConfig.BUILD_TYPE
                 val versionCode = BuildConfig.VERSION_CODE
                 val deviceId =
                     runCatching {
                         preferenciasAppRepository.buscarOuGerarAnonDeviceId()
                     }.getOrDefault("unknown")
-                syncMedicoes(environment, distChannel, buildType, versionCode, deviceId)
+                val deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}"
+                val osVersion = "Android ${Build.VERSION.RELEASE}"
+                val appVersion = BuildConfig.VERSION_NAME
+                syncMedicoes(environment, distChannel, buildType, versionCode, deviceId, deviceModel, osVersion, appVersion)
                 syncChatSessions(environment, distChannel, buildType, versionCode, deviceId)
                 Log.d(TAG, "Sync retroativo concluido com sucesso")
                 Result.success()
@@ -96,6 +101,9 @@ internal class AdminSyncWorker
             buildType: String,
             versionCode: Int,
             deviceId: String,
+            deviceModel: String,
+            osVersion: String,
+            appVersion: String,
         ) {
             val lastEpoch = preferenciasAppRepository.buscarAdminSyncMedicaoLastEpochMs()
             Log.d(TAG, "syncMedicoes: checkpoint=$lastEpoch")
@@ -122,6 +130,9 @@ internal class AdminSyncWorker
                             buildType = buildType,
                             versionCode = versionCode,
                             deviceId = deviceId,
+                            deviceModel = deviceModel,
+                            osVersion = osVersion,
+                            appVersion = appVersion,
                         ),
                     )
                 }

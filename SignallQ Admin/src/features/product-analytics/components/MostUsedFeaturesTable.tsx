@@ -31,7 +31,7 @@ export const MostUsedFeaturesTable: React.FC<MostUsedFeaturesTableProps> = ({ me
               <tr key={item.feature} className="hover:bg-zinc-950/20 transition-colors">
                 <td className="py-3.5 px-4">
                   <div className="font-bold text-white flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-tertiary)]" />
                     {item.label}
                   </div>
                   <span className="text-[10px] font-mono text-zinc-500 block uppercase mt-0.5">{item.feature}</span>

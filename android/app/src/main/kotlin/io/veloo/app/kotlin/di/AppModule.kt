@@ -1,42 +1,45 @@
-package io.veloo.app.di
+﻿package io.signallq.app.di
 
 import android.content.Context
+import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.veloo.app.BuildConfig
-import io.veloo.app.core.database.CoreDatabaseModulo
-import io.veloo.app.core.database.MedicaoDao
-import io.veloo.app.core.database.SignallQDatabase
-import io.veloo.app.core.database.chat.ChatSessionDao
-import io.veloo.app.core.datastore.FeatureFlagStore
-import io.veloo.app.core.datastore.PreferenciasAppRepository
-import io.veloo.app.core.network.CoreNetworkModulo
-import io.veloo.app.core.network.DefaultDispatcherProvider
-import io.veloo.app.core.network.DispatcherProvider
-import io.veloo.app.core.network.FeatureFlagProvider
-import io.veloo.app.core.network.MonitorRede
-import io.veloo.app.core.network.NetworkCapabilitiesProvider
-import io.veloo.app.core.permissions.CorePermissionsModulo
-import io.veloo.app.core.permissions.GerenciadorPermissoesRede
-import io.veloo.app.core.telephony.CoreTelephonyModulo
-import io.veloo.app.core.telephony.MonitorTelephony
-import io.veloo.app.feature.devices.FeatureDevicesModulo
-import io.veloo.app.feature.devices.ScannerDispositivos
-import io.veloo.app.feature.dns.BenchmarkDns
-import io.veloo.app.feature.dns.FeatureDnsModulo
-import io.veloo.app.feature.fibra.ExecutorFibra
-import io.veloo.app.feature.fibra.FeatureFibraModulo
-import io.veloo.app.feature.speedtest.ExecutorSpeedtest
-import io.veloo.app.feature.speedtest.FeatureSpeedtestModulo
-import io.veloo.app.feature.wifi.FeatureWifiModulo
-import io.veloo.app.feature.wifi.ScannerRedesWifi
-import io.veloo.app.featureflags.FeatureFlagManager
-import io.veloo.app.featureflags.FeatureFlagRepository
-import io.veloo.app.feature.diagnostico.DiagnosticOrchestrator
-import io.veloo.app.speedtest.SpeedtestPersistenceCoordinator
+import io.signallq.app.BuildConfig
+import io.signallq.app.analytics.FirebaseAnalyticsTracker
+import io.signallq.app.core.database.CoreDatabaseModulo
+import io.signallq.app.core.database.MedicaoDao
+import io.signallq.app.core.database.SignallQDatabase
+import io.signallq.app.core.database.chat.ChatSessionDao
+import io.signallq.app.core.datastore.FeatureFlagStore
+import io.signallq.app.core.datastore.PreferenciasAppRepository
+import io.signallq.app.core.network.AnalyticsTracker
+import io.signallq.app.core.network.CoreNetworkModulo
+import io.signallq.app.core.network.DefaultDispatcherProvider
+import io.signallq.app.core.network.DispatcherProvider
+import io.signallq.app.core.network.FeatureFlagProvider
+import io.signallq.app.core.network.MonitorRede
+import io.signallq.app.core.network.NetworkCapabilitiesProvider
+import io.signallq.app.core.permissions.CorePermissionsModulo
+import io.signallq.app.core.permissions.GerenciadorPermissoesRede
+import io.signallq.app.core.telephony.CoreTelephonyModulo
+import io.signallq.app.core.telephony.MonitorTelephony
+import io.signallq.app.feature.devices.FeatureDevicesModulo
+import io.signallq.app.feature.devices.ScannerDispositivos
+import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
+import io.signallq.app.feature.dns.BenchmarkDns
+import io.signallq.app.feature.dns.FeatureDnsModulo
+import io.signallq.app.feature.fibra.ExecutorFibra
+import io.signallq.app.feature.fibra.FeatureFibraModulo
+import io.signallq.app.feature.speedtest.ExecutorSpeedtest
+import io.signallq.app.feature.speedtest.FeatureSpeedtestModulo
+import io.signallq.app.feature.wifi.FeatureWifiModulo
+import io.signallq.app.feature.wifi.ScannerRedesWifi
+import io.signallq.app.featureflags.FeatureFlagManager
+import io.signallq.app.featureflags.FeatureFlagRepository
+import io.signallq.app.speedtest.SpeedtestPersistenceCoordinator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -183,13 +186,16 @@ object AppModule {
 
     /**
      * Repository para busca e persistencia de feature flags remotas.
-     * URL derivada do AI_WORKER_URL — remove path /ai-diagnosis se presente.
+     * Usa ADMIN_INGEST_URL como base — o Admin Worker expoe /flags (SIG-13) e /feature-flags (legado).
      */
     @Provides
     @Singleton
-    fun provideFeatureFlagRepository(store: FeatureFlagStore): FeatureFlagRepository =
+    fun provideFeatureFlagRepository(
+        store: FeatureFlagStore,
+        @Named("adminIngestUrl") adminIngestUrl: String,
+    ): FeatureFlagRepository =
         FeatureFlagRepository(
-            workerBaseUrl = io.veloo.app.feature.diagnostico.BuildConfig.AI_WORKER_URL,
+            adminWorkerBaseUrl = adminIngestUrl,
             prefs = store,
         )
 
@@ -208,6 +214,16 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFeatureFlagProvider(manager: FeatureFlagManager): FeatureFlagProvider = manager
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAnalytics(
+        @ApplicationContext ctx: Context,
+    ): FirebaseAnalytics = FirebaseAnalytics.getInstance(ctx)
+
+    @Provides
+    @Singleton
+    fun provideAnalyticsTracker(tracker: FirebaseAnalyticsTracker): AnalyticsTracker = tracker
 
     @Provides
     @Singleton

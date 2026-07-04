@@ -46,7 +46,7 @@ export const FeatureTokenUsagePanel: React.FC<FeatureTokenUsagePanelProps> = ({ 
             </div>
             <div className="p-4 bg-zinc-950/40 border border-zinc-900 rounded-xl">
               <span className="block text-[8px] font-mono text-zinc-500 uppercase">Provedor Principal</span>
-              <div className="text-sm font-bold text-purple-400 font-sans mt-1">{summary.mainProvider}</div>
+              <div className="text-sm font-bold text-[var(--text-primary)] font-sans mt-1">{summary.mainProvider}</div>
             </div>
             <div className="p-4 bg-zinc-950/40 border border-zinc-900 rounded-xl">
               <span className="block text-[8px] font-mono text-zinc-500 uppercase">Falhas / JSON Inválido</span>
@@ -71,12 +71,12 @@ export const FeatureTokenUsagePanel: React.FC<FeatureTokenUsagePanelProps> = ({ 
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-bold text-white font-sans">{item.label}</span>
-                      <Cpu className="w-3.5 h-3.5 text-purple-400" />
+                      <Cpu className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                     </div>
 
                     <div className="h-1 bg-zinc-900 w-full rounded overflow-hidden mb-3">
                       <div
-                        className="bg-purple-500 h-full rounded"
+                        className="bg-[var(--text-primary)] h-full rounded"
                         style={{ width: `${Math.min(100, (item.totalTokens / 15000000) * 100)}%` }}
                       />
                     </div>

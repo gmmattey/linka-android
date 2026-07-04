@@ -1,4 +1,4 @@
-package io.veloo.app.feature.devices
+﻿package io.signallq.app.feature.devices
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -6,7 +6,8 @@ import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
 import android.net.wifi.WifiManager
-import android.util.Log
+import android.os.Build
+import timber.log.Timber
 import com.stealthcopter.networktools.ARPInfo
 import com.stealthcopter.networktools.SubnetDevices
 import kotlinx.coroutines.Dispatchers
@@ -60,10 +61,15 @@ import kotlin.math.min
  *     Limitado por Semaphore(50) para não estourar file descriptors.
  *
  * Pipeline de naming (melhor → pior):
- *   friendlyName SSDP(XML) > nome amigável mDNS TXT/instância(jmDNS) > reverse DNS > "Host ativo"
+ *   friendlyName SSDP(XML) > nome amigável mDNS TXT/instância(jmDNS) > reverse DNS
+ *   > "Dispositivo <Fabricante>" via OUI (último recurso) > "Dispositivo"
  *
  * Pipeline de fabricante (melhor → pior):
  *   manufacturer UPnP(XML) > fabricante mDNS TXT > OUI(MAC) > null
+ *
+ * "Este aparelho" (o próprio device, [DispositivoRede.esteDispositivo]) é caso especial:
+ * não passa pelo pipeline de descoberta de rede acima — usa [Build.MANUFACTURER]/[Build.MODEL]
+ * diretamente, pois o app já conhece o próprio hardware sem depender de mDNS/SSDP/reverse DNS.
  *
  * Guarda Wi-Fi: o scan só roda em Wi-Fi (EstadoConexao.wifi). Em rede móvel,
  * emite erro semântico "naoWifi" imediatamente.
@@ -72,6 +78,18 @@ class ScannerDispositivosAndroid(
     private val context: Context,
     private val okHttpClient: OkHttpClient,
 ) : ScannerDispositivos {
+
+    companion object {
+        /** Janela de coleta mDNS (ver [coletarViaMdnsJmDns] para justificativa do valor). */
+        private const val JANELA_MDNS_MS = 7000L
+
+        /**
+         * Concorrência do reverse DNS no enriquecimento final (ver [iniciarScan]).
+         * Aumentado de 20 para 45 (SIG-394): redes domésticas reais com 8+ dispositivos
+         * ainda genéricos saturavam o limite anterior, serializando boa parte da resolução.
+         */
+        private const val CONCORRENCIA_REVERSE_DNS = 45
+    }
 
     private val scanEmAndamento = AtomicBoolean(false)
 
@@ -90,7 +108,6 @@ class ScannerDispositivosAndroid(
     override suspend fun iniciarScan(profundo: Boolean) {
         withContext(Dispatchers.IO) {
             if (!scanEmAndamento.compareAndSet(false, true)) {
-                Log.d("SignallQDevices", "scan ja em andamento, ignorando")
                 return@withContext
             }
             try {
@@ -108,10 +125,8 @@ class ScannerDispositivosAndroid(
                 atualizarEstado(EstadoScanDispositivos.varrendo, 5, null)
                 val dispositivos = linkedMapOf<String, DispositivoRede>()
                 val localIp = detectarIpLocal()
-                Log.d("SignallQDevices", "ipLocal=$localIp")
 
                 val gatewayIp = detectarGatewayIp()
-                Log.d("SignallQDevices", "gateway=$gatewayIp")
                 if (!gatewayIp.isNullOrBlank()) {
                     adicionarDispositivo(
                         dispositivos,
@@ -133,10 +148,9 @@ class ScannerDispositivosAndroid(
                  * Merge thread-safe: adiciona lista de dispositivos ao mapa compartilhado e publica
                  * o snapshot parcial imediatamente. Chamado de dentro de cada fase concorrente.
                  */
-                suspend fun mergeEPublicar(lista: List<DispositivoRede>, progresso: Int, tag: String) {
+                suspend fun mergeEPublicar(lista: List<DispositivoRede>, progresso: Int) {
                     mapMutex.withLock {
                         lista.forEach { adicionarDispositivo(dispositivos, it) }
-                        Log.d("SignallQDevices", "$tag: ${lista.size} dispositivos — total ${dispositivos.size}")
                         publicar(dispositivos.values.toList(), progresso)
                     }
                 }
@@ -149,31 +163,31 @@ class ScannerDispositivosAndroid(
                         // Fase 1 — SubnetDevices (ping nativo): ~2–4s
                         launch {
                             val hosts = descobrirViaSubnetDevices()
-                            mergeEPublicar(hosts, 40, "subnetDevices")
+                            mergeEPublicar(hosts, 40)
                         }
 
                         // Fase 2 — ARP legado (/proc/net/arp): barato, instantâneo
                         launch {
                             val arp = coletarViaArpLegado()
-                            mergeEPublicar(arp, 45, "arp")
+                            mergeEPublicar(arp, 45)
                         }
 
                         // Fase 3 — mDNS via jmDNS: janela fixa ~4,5s
                         launch {
                             val mdns = coletarViaMdnsJmDns()
-                            mergeEPublicar(mdns, 65, "mdnsJmDns")
+                            mergeEPublicar(mdns, 65)
                         }
 
                         // Fase 4 — SSDP/UPnP + fetch XML: ~1–2s
                         launch {
                             val ssdp = coletarViaSsdp()
-                            mergeEPublicar(ssdp, 75, "ssdp")
+                            mergeEPublicar(ssdp, 75)
                         }
 
                         // Fase 5 — TCP probe (hosts que bloqueiam ICMP): ~3–5s, Semaphore(50) interno
                         launch {
                             val tcp = coletarViaTcpProbe(gatewayIp, localIp)
-                            mergeEPublicar(tcp, 85, "tcpProbe")
+                            mergeEPublicar(tcp, 85)
                         }
                     }
                     // coroutineScope só retorna quando TODAS as fases terminarem.
@@ -183,24 +197,24 @@ class ScannerDispositivosAndroid(
                     coroutineScope {
                         launch {
                             val hosts = descobrirViaSubnetDevices()
-                            mergeEPublicar(hosts, 50, "subnetDevices")
+                            mergeEPublicar(hosts, 50)
                         }
                         launch {
                             val arp = coletarViaArpLegado()
-                            mergeEPublicar(arp, 55, "arp")
+                            mergeEPublicar(arp, 55)
                         }
                     }
                     mapMutex.withLock { publicar(dispositivos.values.toList(), 65) }
                 }
 
                 // Enriquecimento final: MAC via ARPInfo, OUI lookup, classificação, hostname reverso.
-                // Reverse DNS é lento — roda em paralelo limitado por Semaphore(20),
+                // Reverse DNS é lento — roda em paralelo limitado por Semaphore(CONCORRENCIA_REVERSE_DNS),
                 // somente para hosts ainda com nome genérico.
                 val genericosParaResolver = setOf(
                     "Dispositivo não identificado", "Host ativo",
                     "Serviço mDNS", "Dispositivo SSDP",
                 )
-                val semReverseDns = Semaphore(20)
+                val semReverseDns = Semaphore(CONCORRENCIA_REVERSE_DNS)
                 val dispositivosEnriquecidos = coroutineScope {
                     dispositivos.values.map { d ->
                         async {
@@ -212,38 +226,64 @@ class ScannerDispositivosAndroid(
                                     try {
                                         val mac: String? = ARPInfo.getMACFromIPAddress(ip)
                                         if (!mac.isNullOrBlank() && mac != "00:00:00:00:00:00") mac else null
-                                    } catch (_: Throwable) { null }
+                                    } catch (e: Throwable) {
+                                        if (e is kotlinx.coroutines.CancellationException) throw e
+                                        null
+                                    }
                                 } else null
                             }
+                            val ehEsteDispositivo = localIp != null && d.ip == localIp && d.fonteNome != "gateway"
+
+                            // "Este aparelho": o app já sabe quem é (Build.MODEL/MANUFACTURER) —
+                            // não depende da descoberta de rede (mDNS/SSDP/reverse DNS) para se
+                            // auto-nomear (SIG-394). Some fabricante/modelo direto do runtime.
+                            if (ehEsteDispositivo) {
+                                val fabricanteDevice = NamingPrioridade.capitalizarFabricante(Build.MANUFACTURER)
+                                val nomeDevice = NamingPrioridade.nomeAmigavelDoDevice(Build.MODEL, fabricanteDevice)
+                                val tipo = ClassificadorDispositivoRede.classificar(
+                                    d.copy(nomeExibicao = nomeDevice),
+                                    fabricanteDevice,
+                                )
+                                return@async d.copy(
+                                    mac = macResolvido,
+                                    fabricante = fabricanteDevice,
+                                    modeloDispositivo = Build.MODEL,
+                                    tipoDispositivo = tipo,
+                                    nomeExibicao = nomeDevice,
+                                    esteDispositivo = true,
+                                )
+                            }
+
                             // Prioridade de fabricante: manufacturer UPnP(XML) > fabricante mDNS TXT > OUI(MAC)
                             val fabricanteOui = OuiDatabase.lookupFabricante(macResolvido)
                             val fabricanteResolvido = d.fabricante ?: fabricanteOui
                             val tipo = ClassificadorDispositivoRede.classificar(d, fabricanteResolvido)
-                            // Reverse DNS: só para genéricos, concorrência limitada a 20
+                            // Reverse DNS: só para genéricos, concorrência limitada a CONCORRENCIA_REVERSE_DNS
                             val hostname = if (d.ip != null && d.fonteNome != "gateway" && d.nomeExibicao in genericosParaResolver) {
                                 semReverseDns.acquire()
                                 try { resolverHostname(d.ip) } finally { semReverseDns.release() }
                             } else null
                             // Prioridade de nome: fonteNome com alta prioridade já vem enriquecido (ssdpXml/mdnsJmDns)
-                            // Só cai para hostname/fabricante se ainda é genérico
+                            // Só cai para hostname/fabricante se ainda é genérico.
+                            // Sem hostname resolvido, fallback fica em "Dispositivo <Fabricante>" via OUI,
+                            // como último recurso — mDNS/SSDP/reverse-DNS já tiveram chance de resolver
+                            // o nome real antes deste ponto (NetBIOS fica fora, ver NamingPrioridade).
                             val nomeResolvido = when {
                                 d.fonteNome == "gateway" -> d.nomeExibicao
                                 d.nomeExibicao !in genericosParaResolver -> d.nomeExibicao
                                 hostname != null -> hostname
-                                fabricanteResolvido != null -> fabricanteResolvido
-                                else -> d.ip ?: d.nomeExibicao
+                                else -> NamingPrioridade.rotuloFallbackGenerico(fabricanteResolvido)
                             }
                             d.copy(
                                 mac = macResolvido,
                                 fabricante = fabricanteResolvido,
                                 tipoDispositivo = tipo,
                                 nomeExibicao = nomeResolvido,
-                                esteDispositivo = localIp != null && d.ip == localIp,
+                                esteDispositivo = false,
                             )
                         }
                     }.awaitAll()
                 }
-                Log.d("SignallQDevices", "scan concluido: ${dispositivosEnriquecidos.size} dispositivos")
                 mutableSnapshotFlow.value =
                     mutableSnapshotFlow.value.copy(
                         estado = EstadoScanDispositivos.concluido,
@@ -252,7 +292,8 @@ class ScannerDispositivosAndroid(
                         erroMensagem = null,
                     )
             } catch (t: Throwable) {
-                Log.e("SignallQDevices", "scan falhou", t)
+                if (t is kotlinx.coroutines.CancellationException) throw t
+                Timber.e(t, "scan falhou")
                 val erroSemantico = when {
                     t is SecurityException -> "semPermissaoLocalizacao"
                     t is SocketException -> "erroRede"
@@ -342,7 +383,6 @@ class ScannerDispositivosAndroid(
                 )
             }
         } catch (_: Throwable) {
-            Log.d("SignallQDevices", "arp: acesso negado a /proc/net/arp (Android 10+, esperado)")
             emptyList()
         }
     }
@@ -384,8 +424,16 @@ class ScannerDispositivosAndroid(
      * Descoberta mDNS/Bonjour usando jmDNS (Apache-2.0) — coleta CONCORRENTE.
      *
      * Padrão correto de jmDNS: registra [ServiceListener] para TODOS os tipos de serviço
-     * de uma vez, aguarda uma ÚNICA janela de tempo (~4,5s) e coleta o acumulado.
-     * Tempo total da fase: ~4–5s independente do número de tipos (antes: até 36s sequencial).
+     * de uma vez, aguarda uma ÚNICA janela de tempo (~7s) e coleta o acumulado.
+     * Tempo total da fase: ~7s independente do número de tipos (antes: até 36s sequencial).
+     *
+     * Janela aumentada de 4,5s para 7s (SIG-394): em redes domésticas reais com muitos
+     * dispositivos (8+), 4,5s não era suficiente para a maioria dos hosts responder ao
+     * mDNS antes do fechamento da janela — resultado: quase todos caíam no nome genérico
+     * mesmo tendo serviço mDNS ativo. As demais fases do scan (SubnetDevices, ARP, SSDP,
+     * TCP probe) já rodam em paralelo dentro do mesmo coroutineScope, então aumentar esta
+     * janela não paraleliza pior — só dá mais chance real de resposta à fonte mais rica
+     * em dados (mDNS TXT records).
      *
      * Fluxo:
      * 1. MulticastLock adquirida antes de criar JmDNS, liberada em finally.
@@ -393,7 +441,7 @@ class ScannerDispositivosAndroid(
      * 3. Um único [ServiceListener] registrado para todos os 18 tipos simultaneamente.
      * 4. [serviceAdded] → chama [JmDNS.requestServiceInfo] para forçar resolução do TXT.
      * 5. [serviceResolved] → acumula em [ConcurrentHashMap] (thread-safe).
-     * 6. [delay(4500)] — janela única fixa.
+     * 6. [delay(JANELA_MDNS_MS)] — janela única fixa.
      * 7. Remove listeners, coleta mapa, fecha JmDNS.
      *
      * TXT records extraídos de cada [ServiceInfo]:
@@ -462,13 +510,11 @@ class ScannerDispositivosAndroid(
                 for (tipo in tiposServico) {
                     try {
                         jmdns.addServiceListener(tipo, listener)
-                    } catch (e: Throwable) {
-                        Log.d("SignallQDevices", "jmDNS: falha ao registrar listener para $tipo: ${e.message}")
-                    }
+                    } catch (_: Throwable) {}
                 }
 
                 // Janela única de coleta — todos os tipos respondem em paralelo
-                delay(4500L)
+                delay(JANELA_MDNS_MS)
 
                 // Remove listeners antes de fechar
                 for (tipo in tiposServico) {
@@ -477,12 +523,12 @@ class ScannerDispositivosAndroid(
                     } catch (_: Throwable) {}
                 }
 
-                Log.d("SignallQDevices", "jmDNS: janela concluída, ${acumulado.size} dispositivos resolvidos")
             } finally {
                 try { jmdns.close() } catch (_: Throwable) {}
             }
         } catch (e: Throwable) {
-            Log.e("SignallQDevices", "jmDNS: falha ao criar instância — ROM incompatível? ${e.message}")
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Timber.e("jmDNS: falha ao criar instância — ROM incompatível? ${e.message}")
             // não derruba o scan — retorna o que conseguiu
         } finally {
             if (multicastLock.isHeld) multicastLock.release()

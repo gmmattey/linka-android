@@ -1,6 +1,6 @@
-package io.veloo.app.feature.diagnostico.ingest
+﻿package io.signallq.app.feature.diagnostico.ingest
 
-import android.util.Log
+import timber.log.Timber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -10,12 +10,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 
-private const val TAG = "AdminIngestRepository"
-
 /**
  * Envia telemetria de diagnostico e uso de IA para o signallq-admin-worker.
  *
- * Fire-and-forget: todas as falhas sao logadas com [Log.w] e ignoradas.
+ * Fire-and-forget: todas as falhas sao logadas com [Timber.w] e ignoradas.
  * Nenhuma excecao propaga para o chamador — ingest nunca bloqueia o fluxo principal.
  *
  * Autenticacao: Bearer [ingestKey] (INGEST_KEY — chave com scope limitado a /ingest/,
@@ -30,6 +28,8 @@ class AdminIngestRepository(
     private val baseUrl: String,
     private val ingestKey: String,
     private val client: OkHttpClient,
+    // null-safe: default false garante que sem consentimento nada e enviado
+    private val consentimentoProvider: suspend () -> Boolean = { false },
 ) {
     private val mediaTypeJson = "application/json; charset=utf-8".toMediaType()
 
@@ -38,8 +38,9 @@ class AdminIngestRepository(
      * Nao lanca excecao em nenhum cenario.
      */
     suspend fun sendDiagnostic(payload: DiagnosticIngestPayload) {
+        if (!consentimentoProvider()) return
         if (baseUrl.isBlank() || ingestKey.isBlank()) {
-            Log.w(TAG, "sendDiagnostic ignorado: baseUrl ou ingestKey nao configurados")
+            Timber.w("sendDiagnostic ignorado: baseUrl ou ingestKey nao configurados")
             return
         }
         runCatching {
@@ -53,14 +54,12 @@ class AdminIngestRepository(
                     .build()
                 client.newCall(req).execute().use { resp ->
                     if (!resp.isSuccessful) {
-                        Log.w(TAG, "sendDiagnostic HTTP ${resp.code} — id=${payload.id}")
-                    } else {
-                        Log.d(TAG, "sendDiagnostic ok — id=${payload.id}")
+                        Timber.w("sendDiagnostic HTTP ${resp.code} — id=${payload.id}")
                     }
                 }
             }
         }.onFailure { t ->
-            Log.w(TAG, "sendDiagnostic falhou (ignorando): ${t.message}")
+            Timber.w("sendDiagnostic falhou (ignorando): ${t.message}")
         }
     }
 
@@ -69,8 +68,9 @@ class AdminIngestRepository(
      * Nao lanca excecao em nenhum cenario.
      */
     suspend fun sendAiUsage(payload: AiUsageIngestPayload) {
+        if (!consentimentoProvider()) return
         if (baseUrl.isBlank() || ingestKey.isBlank()) {
-            Log.w(TAG, "sendAiUsage ignorado: baseUrl ou ingestKey nao configurados")
+            Timber.w("sendAiUsage ignorado: baseUrl ou ingestKey nao configurados")
             return
         }
         runCatching {
@@ -84,14 +84,12 @@ class AdminIngestRepository(
                     .build()
                 client.newCall(req).execute().use { resp ->
                     if (!resp.isSuccessful) {
-                        Log.w(TAG, "sendAiUsage HTTP ${resp.code} — id=${payload.id}")
-                    } else {
-                        Log.d(TAG, "sendAiUsage ok — id=${payload.id} model=${payload.model}")
+                        Timber.w("sendAiUsage HTTP ${resp.code} — id=${payload.id}")
                     }
                 }
             }
         }.onFailure { t ->
-            Log.w(TAG, "sendAiUsage falhou (ignorando): ${t.message}")
+            Timber.w("sendAiUsage falhou (ignorando): ${t.message}")
         }
     }
 

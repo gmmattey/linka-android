@@ -1,7 +1,7 @@
-package io.veloo.app.feature.diagnostico.ingest
+﻿package io.signallq.app.feature.diagnostico.ingest
 
-import io.veloo.app.core.database.MedicaoEntity
-import io.veloo.app.core.database.chat.ChatSessionEntity
+import io.signallq.app.core.database.MedicaoEntity
+import io.signallq.app.core.database.chat.ChatSessionEntity
 
 // ---------------------------------------------------------------------------
 // Utilitarios de serialização — usados por SignallQOrchestrator ao montar payloads.
@@ -138,12 +138,15 @@ fun MedicaoEntity.toIngestPayload(
     buildType: String? = null,
     versionCode: Int? = null,
     deviceId: String? = null,
+    deviceModel: String? = null,
+    osVersion: String? = null,
+    appVersion: String? = null,
 ) = DiagnosticIngestPayload(
     id = id,
     createdAt = timestampEpochMs / 1000,
     networkType = connectionType,
-    status = "completed",
-    score = null,
+    status = status,
+    score = score?.toInt(),
     downloadMbps = downloadMbps?.toFloat(),
     uploadMbps = uploadMbps?.toFloat(),
     latencyMs = latencyMs?.toInt(),
@@ -152,6 +155,10 @@ fun MedicaoEntity.toIngestPayload(
     issues = gargaloPrimario?.takeIf { it.isNotBlank() }
         ?.let { listOf(idParaIssueLabel(it)) } ?: emptyList(),
     operator = operadoraMovel?.takeIf { it.isNotBlank() },
+    deviceModel = deviceModel,
+    osVersion = osVersion,
+    appVersion = appVersion,
+    aiSummaryReport = diagnosticoTexto.orEmpty(),
     environment = environment,
     distChannel = distChannel,
     buildType = buildType,
@@ -174,11 +181,11 @@ fun ChatSessionEntity.toIngestPayload(
 ) = AiUsageIngestPayload(
     id = id,
     model = nomeModelo ?: "unknown",
-    sessionId = null,
+    sessionId = diagnosisId,
     createdAt = criadoEmEpochMs / 1000,
-    promptTokens = 0,
-    completionTokens = 0,
-    totalTokens = 0,
+    promptTokens = promptTokens,
+    completionTokens = completionTokens,
+    totalTokens = totalTokens,
     costUsd = null,
     environment = environment,
     distChannel = distChannel,

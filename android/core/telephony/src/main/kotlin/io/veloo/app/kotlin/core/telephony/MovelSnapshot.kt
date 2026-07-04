@@ -1,4 +1,4 @@
-package io.veloo.app.core.telephony
+﻿package io.signallq.app.core.telephony
 
 /**
  * Snapshot bruto da rede movel coletado via TelephonyManager.
@@ -28,6 +28,10 @@ package io.veloo.app.core.telephony
  * @property mnc            Mobile Network Code (ex: "06" Vivo).
  * @property tac            Tracking Area Code (LTE) ou TAC (NR).
  * @property roaming        true se em roaming.
+ * @property radioDesligado  true quando o radio celular esta desligado (modo aviao).
+ *                          Detectado via ServiceState.STATE_POWER_OFF. Quando true, as
+ *                          demais metricas (rsrp/rsrq/sinr) nao representam uma medicao
+ *                          real e nao devem ser exibidas como qualidade de sinal.
  * @property timestampMs    Quando o snapshot foi capturado.
  */
 data class MovelSnapshot(
@@ -43,5 +47,6 @@ data class MovelSnapshot(
     val mnc: String?,
     val tac: Int?,
     val roaming: Boolean?,
+    val radioDesligado: Boolean = false,
     val timestampMs: Long,
 )

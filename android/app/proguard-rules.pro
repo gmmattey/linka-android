@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # Room
 # ============================================================
 -keep class * extends androidx.room.RoomDatabase
@@ -19,10 +19,11 @@
 # ============================================================
 # OkHttp
 # ============================================================
+# OkHttp e Okio incluem consumer proguard rules nos proprios JARs.
+# -keep class okhttp3.** e -keep interface okhttp3.** eram redundantes
+# e mantinham todas as classes desnecessariamente, aumentando o APK.
 -dontwarn okhttp3.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
 -keepattributes Signature
 -keepattributes *Annotation*
 
@@ -36,14 +37,16 @@
 # ============================================================
 # Kotlin data classes / serialization via reflection
 # ============================================================
--keepclassmembers class io.linka.app.kotlin.** {
+-keepclassmembers class io.signallq.app.** {
     public <init>(...);
 }
 
 # ============================================================
-# Compose — tooling only, stripped from release
+# Compose
 # ============================================================
--keep class androidx.compose.runtime.** { *; }
+# O Compose Compiler e Runtime incluem consumer proguard rules nos proprios JARs.
+# -keep class androidx.compose.runtime.** era redundante e mantinha todo o runtime
+# sem necessidade, impedindo o R8 de otimizar. Removido.
 
 # ============================================================
 # General Android rules

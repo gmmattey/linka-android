@@ -1,33 +1,33 @@
-package io.veloo.app.feature.diagnostico.pulse
+﻿package io.signallq.app.feature.diagnostico.pulse
 
 import android.os.Build
-import io.veloo.app.feature.diagnostico.BuildConfig
-import io.veloo.app.core.database.MedicaoDao
-import io.veloo.app.core.network.GatewayLatencyMeasurer
-import io.veloo.app.core.network.MonitorRede
-import io.veloo.app.core.network.NetworkCapabilitiesProvider
-import io.veloo.app.feature.diagnostico.ConnectionType
-import io.veloo.app.feature.diagnostico.DiagnosticInput
-import io.veloo.app.feature.diagnostico.DiagnosticOrchestrator
-import io.veloo.app.feature.diagnostico.EstadoDiagnostico
-import io.veloo.app.feature.diagnostico.InternetDiagnosticInput
-import io.veloo.app.feature.diagnostico.WifiDiagnosticInput
-import io.veloo.app.feature.diagnostico.ai.AdditionalAiContext
-import io.veloo.app.feature.diagnostico.ai.AiDiagnosisRepository
-import io.veloo.app.feature.diagnostico.ai.AiDiagnosisState
-import io.veloo.app.feature.diagnostico.ai.AiFallbackFactory
-import io.veloo.app.feature.diagnostico.ai.DiagnosisAiContextFactory
-import io.veloo.app.feature.diagnostico.ingest.AdminIngestRepository
-import io.veloo.app.feature.diagnostico.ingest.AiUsageIngestPayload
-import io.veloo.app.feature.diagnostico.ingest.DiagnosticIngestPayload
-import io.veloo.app.feature.diagnostico.ingest.frequenciaMhzParaBanda
-import io.veloo.app.feature.diagnostico.ingest.idParaIssueLabel
-import io.veloo.app.feature.speedtest.DiagnosticoFasesSpeedtest
-import io.veloo.app.feature.speedtest.EstadoExecucaoSpeedtest
-import io.veloo.app.feature.speedtest.ExecutorSpeedtest
-import io.veloo.app.feature.speedtest.ModoSpeedtest
-import io.veloo.app.feature.speedtest.ResultadoSpeedtest
-import io.veloo.app.feature.speedtest.SpeedtestQualityClassifier
+import io.signallq.app.feature.diagnostico.BuildConfig
+import io.signallq.app.core.database.MedicaoDao
+import io.signallq.app.core.network.GatewayLatencyMeasurer
+import io.signallq.app.core.network.MonitorRede
+import io.signallq.app.core.network.NetworkCapabilitiesProvider
+import io.signallq.app.feature.diagnostico.ConnectionType
+import io.signallq.app.feature.diagnostico.DiagnosticInput
+import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
+import io.signallq.app.feature.diagnostico.EstadoDiagnostico
+import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
+import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
+import io.signallq.app.feature.diagnostico.ai.AdditionalAiContext
+import io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository
+import io.signallq.app.feature.diagnostico.ai.AiDiagnosisState
+import io.signallq.app.feature.diagnostico.ai.AiFallbackFactory
+import io.signallq.app.feature.diagnostico.ai.DiagnosisAiContextFactory
+import io.signallq.app.feature.diagnostico.ingest.AdminIngestRepository
+import io.signallq.app.feature.diagnostico.ingest.AiUsageIngestPayload
+import io.signallq.app.feature.diagnostico.ingest.DiagnosticIngestPayload
+import io.signallq.app.feature.diagnostico.ingest.frequenciaMhzParaBanda
+import io.signallq.app.feature.diagnostico.ingest.idParaIssueLabel
+import io.signallq.app.feature.speedtest.DiagnosticoFasesSpeedtest
+import io.signallq.app.feature.speedtest.EstadoExecucaoSpeedtest
+import io.signallq.app.feature.speedtest.ExecutorSpeedtest
+import io.signallq.app.feature.speedtest.ModoSpeedtest
+import io.signallq.app.feature.speedtest.ResultadoSpeedtest
+import io.signallq.app.feature.speedtest.SpeedtestQualityClassifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -122,6 +122,11 @@ class SignallQOrchestrator(
     private val deviceIdProvider: suspend () -> String = { "unknown" },
     /** Lambda que retorna o canal de distribuicao ("play_store", "sideload", "unknown"). */
     private val distChannelProvider: () -> String = { "unknown" },
+    /** Lambda que le o toggle "Analise avancada" (SIG-282) no momento da chamada.
+     *  Default true preserva o comportamento anterior em quem nao passa o provider
+     *  (ex.: testes existentes que nao testam o toggle). Quando false, [callAi]
+     *  pula a chamada de rede e devolve o resultado do motor local direto. */
+    private val analiseAvancadaProvider: suspend () -> Boolean = { true },
 ) {
 
     private val mutableSnapshotFlow = MutableStateFlow(SignallQSnapshot())
@@ -177,7 +182,6 @@ class SignallQOrchestrator(
                     null
                 }
             }
-        Timber.d("RTT gateway=${rttGatewayMs}ms (gatewayIp=${extraContext.gatewayIp})")
 
         val internetInput =
             InternetDiagnosticInput(
@@ -188,6 +192,7 @@ class SignallQOrchestrator(
                 perdaPercentual = resultado.perdaPercentual,
                 bufferbloatMs = resultado.bufferbloatMs,
                 rttGatewayMs = rttGatewayMs,
+                packetLossSource = resultado.packetLossSource,
             )
 
         val wifiInput =
@@ -364,7 +369,6 @@ class SignallQOrchestrator(
                     null
                 }
             }
-        Timber.d("RTT gateway=${rttGatewayMs}ms (gatewayIp=${extraContext.gatewayIp})")
 
         val internetInput =
             speedtestResult?.let {
@@ -376,6 +380,7 @@ class SignallQOrchestrator(
                     perdaPercentual = it.perdaPercentual,
                     bufferbloatMs = it.bufferbloatMs,
                     rttGatewayMs = rttGatewayMs,
+                    packetLossSource = it.packetLossSource,
                 )
             } ?: run {
                 val ultimaMedicao = medicaoDao.observarUltimas(1).first().firstOrNull()
@@ -388,6 +393,7 @@ class SignallQOrchestrator(
                         perdaPercentual = it.perdaPercentual,
                         bufferbloatMs = it.bufferbloatMs,
                         rttGatewayMs = rttGatewayMs,
+                        packetLossSource = it.packetLossSource,
                     )
                 }
             }
@@ -702,7 +708,7 @@ class SignallQOrchestrator(
             null
         }
 
-    private fun io.veloo.app.core.database.MedicaoEntity.toReusableSpeedtestResult(): ResultadoSpeedtest? {
+    private fun io.signallq.app.core.database.MedicaoEntity.toReusableSpeedtestResult(): ResultadoSpeedtest? {
         val now = System.currentTimeMillis()
         val isRecent = timestampEpochMs >= now - SPEEDTEST_REUSE_WINDOW_MS
         if (!isRecent || contaminado) return null
@@ -810,7 +816,7 @@ class SignallQOrchestrator(
 
     private suspend fun callAi(
         trigger: String,
-        report: io.veloo.app.feature.diagnostico.DiagnosticReport?,
+        report: io.signallq.app.feature.diagnostico.DiagnosticReport?,
         connectionType: ConnectionType,
         additionalContext: String?,
         input: DiagnosticInput? = null,
@@ -819,7 +825,7 @@ class SignallQOrchestrator(
         /** Session ID para correlacao no ingest de AI usage. Null = nao faz ingest. */
         ingestSessionId: String? = null,
     ): AiAnalysisEntry {
-        val fallbackEntry = { isFallback: Boolean, text: String, full: io.veloo.app.feature.diagnostico.ai.AiDiagnosisResult? ->
+        val fallbackEntry = { isFallback: Boolean, text: String, full: io.signallq.app.feature.diagnostico.ai.AiDiagnosisResult? ->
             AiAnalysisEntry(
                 trigger = trigger,
                 content = text,
@@ -832,6 +838,25 @@ class SignallQOrchestrator(
 
         if (report == null) {
             return fallbackEntry(true, "Não foi possível coletar dados de rede suficientes para análise.", null)
+        }
+
+        // SIG-282: "Analise avancada" (IA) e opcional — desligada, o motor local
+        // (Fases 3a/3b) ja resolveu tudo em [report]. Nao e erro, entao nao usa
+        // ResponseSource.LOCAL (reservado a fallback de falha) — usa INSIGHT, o
+        // mesmo canal do card tecnico local que ja aparece antes da IA responder.
+        if (!analiseAvancadaProvider()) {
+            val local = AiFallbackFactory.fromLocal(report)
+            return AiAnalysisEntry(
+                trigger = trigger,
+                content = local.resumo.ifBlank { local.textoLaudo },
+                // isFallback=true so pra sinalizacao de origem ("local" no card) e para
+                // o ingest de telemetria nao contar isto como resumo gerado por IA —
+                // NAO e erro, e escolha do usuario (ver checagem acima).
+                isFallback = true,
+                timestamp = System.currentTimeMillis(),
+                fullResult = local,
+                source = ResponseSource.INSIGHT,
+            )
         }
 
         // Coleta contexto bruto adicional do host (ISP, IP, DNS, dispositivo, etc.).
@@ -1008,8 +1033,8 @@ class SignallQOrchestrator(
     private fun dispararIngestDiagnostico(
         sessionId: String,
         connectionType: ConnectionType,
-        relatorio: io.veloo.app.feature.diagnostico.DiagnosticReport?,
-        speedtestResult: io.veloo.app.feature.speedtest.ResultadoSpeedtest?,
+        relatorio: io.signallq.app.feature.diagnostico.DiagnosticReport?,
+        speedtestResult: io.signallq.app.feature.speedtest.ResultadoSpeedtest?,
         /** Frequencia Wi-Fi em MHz — null se movel ou indisponivel (Samsung One UI apos reconexao). */
         wifiFrequenciaMhz: Int? = null,
         /** Tecnologia movel ja como string — ex: "5G", "5G NSA", "4G". Null se Wi-Fi ou Xiaomi sem permissao. */
@@ -1041,8 +1066,8 @@ class SignallQOrchestrator(
                     rep.fibraResultados + rep.dnsResultados + rep.historicoResultados +
                     rep.wifiCanalResultados)
                     .filter {
-                        it.status == io.veloo.app.feature.diagnostico.DiagnosticStatus.critical ||
-                            it.status == io.veloo.app.feature.diagnostico.DiagnosticStatus.attention
+                        it.status == io.signallq.app.feature.diagnostico.DiagnosticStatus.critical ||
+                            it.status == io.signallq.app.feature.diagnostico.DiagnosticStatus.attention
                     }
                     .map { idParaIssueLabel(it.id) }
             } ?: emptyList()
@@ -1064,7 +1089,7 @@ class SignallQOrchestrator(
                     osVersion = "Android ${Build.VERSION.RELEASE}",
                     appVersion = BuildConfig.APP_VERSION,
                     aiSummaryReport = aiSummaryReport,
-                    environment = if (BuildConfig.DEBUG) "staging" else "production",
+                    environment = if (distChannel == "play_store") "production" else "staging",
                     distChannel = distChannel,
                     buildType = BuildConfig.BUILD_TYPE,
                     versionCode = BuildConfig.VERSION_CODE,
@@ -1100,7 +1125,7 @@ class SignallQOrchestrator(
                     promptTokens = result.promptTokens,
                     completionTokens = result.completionTokens,
                     totalTokens = result.totalTokens,
-                    environment = if (BuildConfig.DEBUG) "staging" else "production",
+                    environment = if (distChannel == "play_store") "production" else "staging",
                     distChannel = distChannel,
                     buildType = BuildConfig.BUILD_TYPE,
                     versionCode = BuildConfig.VERSION_CODE,
@@ -1110,7 +1135,7 @@ class SignallQOrchestrator(
         }
     }
 
-    private fun mapSignallQState(report: io.veloo.app.feature.diagnostico.DiagnosticReport?): SignallQState {
+    private fun mapSignallQState(report: io.signallq.app.feature.diagnostico.DiagnosticReport?): SignallQState {
         if (report == null) return SignallQState.AwaitingInput
         return when {
             report.temCritico -> SignallQState.Critical

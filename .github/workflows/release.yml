@@ -1,0 +1,108 @@
+name: Release Build
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Decodificar google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 -d > android/app/google-services.json
+
+      - name: Decodificar keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/segredos/signallq.jks
+
+      - name: Criar key.properties
+        run: |
+          cat > android/key.properties <<PROPS
+          storePassword=${{ secrets.STORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=segredos/signallq.jks
+          PROPS
+
+      - name: Permissao gradlew
+        run: chmod +x android/gradlew
+
+      - name: Extrair versao
+        id: versao
+        run: |
+          NAME=$(grep 'versionName' android/gradle/libs.versions.toml | head -1 | sed 's/.*= *"\(.*\)"/\1/')
+          CODE=$(grep 'versionCode' android/gradle/libs.versions.toml | head -1 | sed 's/.*= *"\(.*\)"/\1/')
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Clean build
+        run: cd android && ./gradlew clean --no-build-cache --no-daemon
+
+      - name: Build APK release
+        run: cd android && ./gradlew assembleRelease --no-build-cache --no-daemon
+        env:
+          ADMIN_INGEST_KEY: ${{ secrets.ADMIN_INGEST_KEY }}
+
+      - name: Build AAB release
+        run: cd android && ./gradlew bundleRelease --no-build-cache --no-daemon
+        env:
+          ADMIN_INGEST_KEY: ${{ secrets.ADMIN_INGEST_KEY }}
+
+      - name: Renomear artefatos
+        run: |
+          cp android/app/build/outputs/bundle/release/app-release.aab \
+             android/app/build/outputs/bundle/release/signallq-${{ steps.versao.outputs.name }}.aab
+          cp android/app/build/outputs/apk/release/app-release.apk \
+             android/app/build/outputs/apk/release/signallq-${{ steps.versao.outputs.name }}.apk
+
+      - name: Upload mapping.txt para Crashlytics
+        run: cd android && ./gradlew uploadCrashlyticsMappingFileRelease --no-daemon
+        env:
+          ADMIN_INGEST_KEY: ${{ secrets.ADMIN_INGEST_KEY }}
+
+      - name: Ler release notes públicas
+        id: notas
+        run: |
+          NOTAS_FILE="android/app/src/main/play/release-notes/pt-BR/default.txt"
+          if [ -f "$NOTAS_FILE" ]; then
+            {
+              echo "corpo<<NOTASEOF"
+              cat "$NOTAS_FILE"
+              echo "NOTASEOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "corpo=Ver CHANGELOG interno." >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "SignallQ v${{ steps.versao.outputs.name }} (build ${{ steps.versao.outputs.code }})"
+          body: ${{ steps.notas.outputs.corpo }}
+          draft: true
+          files: |
+            android/app/build/outputs/bundle/release/signallq-*.aab
+            android/app/build/outputs/apk/release/signallq-*.apk
+
+      # Publica o AAB assinado na Play Console. Trilha via PLAY_TRACK (default: alpha/teste fechado).
+      # Requer o app criado na Play e um primeiro upload manual na trilha (a API nao cria o app do zero).
+      # Roda por ultimo: uma falha aqui nao invalida o GitHub Release nem os artefatos ja gerados.
+      - name: Publicar na Play Console
+        run: cd android && ./gradlew publishReleaseBundle --no-daemon -PplayTrack=${{ vars.PLAY_TRACK || 'alpha' }}
+        env:
+          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          ADMIN_INGEST_KEY: ${{ secrets.ADMIN_INGEST_KEY }}

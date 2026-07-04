@@ -17,11 +17,14 @@ import {
   NetworkDistItem,
 } from "../mocks/overview.mock";
 import { mockOperatorsList } from "../mocks/errors.mock";
-import { OperatorRecord } from "../types/admin";
+import { AppEnvironment, OperatorRecord } from "../types/admin";
+import { SQ_TOKENS } from "../config/designTokens";
 
 export interface DashboardFilters {
-  environment?: "production" | "staging" | "all";
-  period?: "today" | "7d" | "30d" | "custom";
+  environment?: AppEnvironment;
+  // period é string: o seletor global do App usa string e os services tratam
+  // os valores conhecidos ("today"/"7d"/"30d"/"1d") por comparação.
+  period?: string;
 }
 
 export const adminMetricsService = {
@@ -42,10 +45,26 @@ export const adminMetricsService = {
           aiCallsToday: number;
           aiCostToday: number;
           aiTokensToday: number;
+          successRate?: number | null;
+          topProblem?: string | null;
+          mostTestType?: string | null;
+          mostTestTypePercentage?: number | null;
         }>("GET", `/admin/metrics/overview?environment=${env}&period=${apiPeriod}`);
 
         const score = raw.avgNetworkScore ?? 0;
         const verdict = score >= 80 ? "Excelente" : score >= 60 ? "Bom" : score >= 40 ? "Regular" : "Fraco";
+
+        const successRateValue = raw.successRate != null
+          ? { label: "Taxa de Sucesso", value: `${raw.successRate.toFixed(1)}%`, trend: { value: raw.successRate, changePercentage: 0, type: "neutral" as const, intervalLabel: "sessões com status bom/excelente/regular" } }
+          : null;
+
+        const topProblemValue = raw.topProblem != null
+          ? { label: "Principal Problema", value: raw.topProblem, trend: { value: 0, changePercentage: 0, type: "neutral" as const, intervalLabel: "issue mais frequente no período" } }
+          : null;
+
+        const mostTestTypeValue = raw.mostTestType != null
+          ? { label: "Tipo de Rede Predominante", value: raw.mostTestTypePercentage != null ? `${raw.mostTestType} · ${raw.mostTestTypePercentage.toFixed(0)}%` : raw.mostTestType, trend: { value: raw.mostTestTypePercentage ?? 0, changePercentage: 0, type: "neutral" as const, intervalLabel: "rede predominante" } }
+          : null;
 
         return {
           diagnosticsCount: {
@@ -60,12 +79,12 @@ export const adminMetricsService = {
           },
           aiCost: {
             label: "Custo IA",
-            value: `$${(raw.aiCostToday ?? 0).toFixed(6)}`,
+            value: `$${(raw.aiCostToday ?? 0).toFixed(2)}`,
             trend: { value: raw.aiCallsToday, changePercentage: 0, type: "neutral" as const, intervalLabel: `${raw.aiCallsToday} chamadas hoje · ${raw.aiTokensToday} tokens` },
           },
-          successRate: null,
-          topProblem: null,
-          mostTestType: null,
+          successRate: successRateValue,
+          topProblem: topProblemValue,
+          mostTestType: mostTestTypeValue,
           downloadsToday: null,
           activeInstalls: null,
           crashFreeUsers: null,
@@ -157,27 +176,30 @@ export const adminMetricsService = {
       const envNetwork = filters.environment ?? "production";
       // Paleta fixa por nome de tipo de rede — cor não vem do worker (SIG-110).
       const colorMap: Record<string, string> = {
-        wifi:     "#6C2BFF",
-        mobile:   "#22C55E",
-        cellular: "#22C55E",
-        fiber:    "#38BDF8",
-        ethernet: "#F5A623",
+        wifi:     SQ_TOKENS.networkWifi,
+        mobile:   SQ_TOKENS.networkMobile,
+        cellular: SQ_TOKENS.networkMobile,
+        fiber:    SQ_TOKENS.networkFiber,
+        ethernet: SQ_TOKENS.networkEthernet,
       };
       function colorFor(name: string): string {
         const key = (name ?? "").toLowerCase();
         for (const [k, c] of Object.entries(colorMap)) {
           if (key.includes(k)) return c;
         }
-        return "#6B7280"; // cinza neutro para tipos desconhecidos
+        return SQ_TOKENS.networkUnknown;
       }
       try {
-        const raw = await apiClient.request<{ items: Array<{ name: string; value: number }> }>(
+        const raw = await apiClient.request<{ items: Array<{ name: string; count: number; percentage: number }> }>(
           "GET",
           `/admin/metrics/network?environment=${envNetwork}&period=${apiPeriod}`
         );
+        // O worker retorna `count` (nº de sessões) por tipo de rede; o donut calcula
+        // o percentual a partir do total. Antes mapeava `item.value` (inexistente no
+        // payload), gerando value=undefined e quebrando o render do DonutChart.
         return (raw.items ?? []).map((item) => ({
           name:  item.name,
-          value: item.value,
+          value: item.count ?? 0,
           color: colorFor(item.name),
         }));
       } catch {
@@ -190,10 +212,10 @@ export const adminMetricsService = {
 
     if (environment === "staging") {
       return [
-        { name: "Wi-Fi", value: 35, color: "#6C2BFF" },
-        { name: "Rede móvel", value: 51, color: "#22C55E" },
-        { name: "Fibra", value: 11, color: "#38BDF8" },
-        { name: "Ethernet", value: 3, color: "#F5A623" },
+        { name: "Wi-Fi", value: 35, color: SQ_TOKENS.networkWifi },
+        { name: "Rede móvel", value: 51, color: SQ_TOKENS.networkMobile },
+        { name: "Fibra", value: 11, color: SQ_TOKENS.networkFiber },
+        { name: "Ethernet", value: 3, color: SQ_TOKENS.networkEthernet },
       ];
     }
     return response;
@@ -278,7 +300,6 @@ export const adminMetricsService = {
     if (!apiClient.isMockEnabled()) {
       if (!import.meta.env.VITE_ADMIN_API_BASE_URL) return [];
       try {
-        const envAlerts = filters.environment ?? "production";
         const raw = await apiClient.request<{
           items: Array<{
             id: string;
@@ -290,7 +311,7 @@ export const adminMetricsService = {
             resolved?: boolean;
             count?: number;
           }>;
-        }>("GET", `/admin/metrics/alerts?environment=${envAlerts}`);
+        }>("GET", `/admin/alerts`);
         return (raw.items ?? []).map((r) => ({
           id:        r.id,
           source:    r.title ?? r.type ?? "Sistema",
@@ -327,23 +348,24 @@ export const adminMetricsService = {
       const envAiProviders = filters.environment ?? "production";
       // Paleta de cores por provedor — não vem do worker (SIG-110).
       const providerColors: Record<string, string> = {
-        "Gemini":              "#6C2BFF",
-        "Qwen / Workers AI":   "#38BDF8",
-        "OpenAI GPT":          "#22C55E",
-        "Anthropic Claude":    "#F5A623",
+        "Gemini":              SQ_TOKENS.aiGemini,
+        "Qwen / Workers AI":   SQ_TOKENS.aiQwen,
+        "OpenAI GPT":          SQ_TOKENS.aiOpenAI,
+        "Anthropic Claude":    SQ_TOKENS.aiAnthropic,
       };
       function colorFor(name: string): string {
-        return providerColors[name] ?? "#6B7280";
+        return providerColors[name] ?? SQ_TOKENS.aiFallback;
       }
       try {
         const raw = await apiClient.request<{
-          items: Array<{ name: string; percentage: number; tokensProcessed: number }>;
+          items: Array<{ name: string; percentage: number; tokensProcessed: number; reliabilityPercentage?: number | null }>;
         }>("GET", `/admin/metrics/ai-providers?environment=${envAiProviders}&period=${apiPeriod}`);
         return (raw.items ?? []).map((item) => ({
-          name:            item.name,
-          percentage:      item.percentage,
-          tokensProcessed: item.tokensProcessed,
-          color:           colorFor(item.name),
+          name:                  item.name,
+          percentage:            item.percentage,
+          tokensProcessed:       item.tokensProcessed,
+          color:                 colorFor(item.name),
+          reliabilityPercentage: item.reliabilityPercentage ?? null,
         }));
       } catch {
         return [];
@@ -354,9 +376,9 @@ export const adminMetricsService = {
 
     if (filters.environment === "staging") {
       return [
-        { name: "Gemini Flash", percentage: 70, tokensProcessed: 245000, color: "#6C2BFF" },
-        { name: "Cloudflare Qwen", percentage: 25, tokensProcessed: 87500, color: "#38BDF8" },
-        { name: "Fallback local", percentage: 5, tokensProcessed: 17500, color: "#6B7280" },
+        { name: "Gemini Flash", percentage: 70, tokensProcessed: 245000, color: SQ_TOKENS.aiGemini },
+        { name: "Cloudflare Qwen", percentage: 25, tokensProcessed: 87500, color: SQ_TOKENS.aiQwen },
+        { name: "Fallback local", percentage: 5, tokensProcessed: 17500, color: SQ_TOKENS.aiFallback },
       ];
     }
 
