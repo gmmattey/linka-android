@@ -288,6 +288,12 @@ fun AppShell(
         selectedTab = 0
     }
 
+    // #374: tela de erro do speedtest (overlay VelocidadeScreen) não tinha BackHandler
+    // próprio — o back físico do sistema saía direto do app em vez de descartar o erro.
+    BackHandler(enabled = snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.erro) {
+        onCancelarTeste()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = c.bgPrimary,
@@ -336,11 +342,6 @@ fun AppShell(
                                 } else {
                                     modoSelecionado = modo
                                     onNovoTeste(modo)
-                                }
-                            },
-                            onAbrirUltimoResultado = {
-                                if (Overlay.ResultadoVelocidade !in overlayStack && snapshotSpeedtest.resultado != null) {
-                                    overlayStack.add(Overlay.ResultadoVelocidade)
                                 }
                             },
                             onAbrirHistorico = { selectedTab = 3 },
@@ -501,6 +502,10 @@ fun AppShell(
                             onAbrirPrivacidade = { if (Overlay.Privacidade !in overlayStack) overlayStack.add(Overlay.Privacidade) },
                             onAbrirNovidades = { if (Overlay.Novidades !in overlayStack) overlayStack.add(Overlay.Novidades) },
                             onAbrirMinhaConexao = { if (Overlay.MinhaConexao !in overlayStack) overlayStack.add(Overlay.MinhaConexao) },
+                            onAbrirFibra = {
+                                onReconectarFibra(modemHost ?: "", modemUsername, modemPassword)
+                                if (Overlay.Fibra !in overlayStack) overlayStack.add(Overlay.Fibra)
+                            },
                             dadosMoveis =
                                 AjustesDadosMoveisState(
                                     speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
