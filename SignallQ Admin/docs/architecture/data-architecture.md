@@ -94,11 +94,23 @@ lógica de `getDistributionChannel`.
 | `feature_flags` / `feature_flag_audit` | `PUT /admin/feature-flags/:key` (painel) | Feature Flags (painel) + `GET /flags` (Android) |
 | `admin_users` / `admin_sessions` / `auth_rate_limit` | Auth do painel (SIG-136) | Login do painel |
 
-## Contrato de ingest (GH#417) — schema dos eventos enviados pelo Android
+## Contrato de ingest (GH#417) — schema dos eventos enviados pelo Android e pelo PWA
 
 Autenticação: `Authorization: Bearer <INGEST_KEY>` (chave separada do
 `ADMIN_SECRET` — escopo limitado a `POST /ingest/*`, vai embarcada no APK via
-`BuildConfig`/`local.properties`).
+`BuildConfig`/`local.properties` e, no PWA, injetada só no lado do servidor via
+`ADMIN_INGEST_KEY` da Cloudflare Pages Function `pwa/functions/api/admin/ingest.ts`
+— nunca chega ao bundle do navegador).
+
+**GH#442 — campo `platform` (origem do dado):** todas as três tabelas de ingest
+(`diagnostic_sessions`, `ai_usage`, `analytics_events`) têm a coluna `platform`
+(`android` | `web`, migration `011_gh442.sql`). O Android ainda não envia esse
+campo — o Worker aplica default `'android'` para preservar a semântica de todo
+o dado histórico. O PWA envia `platform: 'web'` explicitamente em todo payload
+de `/ingest/diagnostic` (ver `pwa/src/features/diagnosis/adminIngestPayload.ts`).
+Os endpoints `/admin/metrics/overview`, `/admin/metrics/diagnostics` e
+`/admin/metrics/diagnostics/summary` aceitam `?platform=android|web` (mesmo
+padrão de `?environment=`) para segmentar por origem no painel.
 
 ### `POST /ingest/diagnostic` → `diagnostic_sessions`
 
@@ -123,6 +135,14 @@ sessão). Reenviar o mesmo `id` sobrescreve, não duplica — seguro para retry.
 | `version_code` | int | não | versionCode do app |
 | `device_id` | string | não | UUID anônimo persistente do dispositivo (sem PII) |
 | `rssi`, `banda_wifi`/`bandaWifi`, `padrao_wifi`/`padraoWifi` | number/string | não | Sinal Wi-Fi (Gap 3 do SIG-164) |
+| `platform` | string | não (default `android`) | `android` \| `web` — origem do dado (GH#442) |
+
+**Campos que o PWA nunca envia (limitação real de navegador, não gap a corrigir):**
+`operator`, `device_model`, `os_version`, `rssi`/`banda_wifi`/`padrao_wifi` — o
+navegador não expõe operadora móvel, modelo de hardware nem rádio Wi-Fi. O PWA
+também sempre envia `network_type: 'unknown'`: a Network Information API expõe
+apenas uma estimativa de velocidade (`effectiveType`), não o meio físico
+(wifi vs. celular vs. ethernet).
 
 ### `POST /ingest/ai-usage` → `ai_usage`
 
@@ -138,6 +158,7 @@ Idempotente: `INSERT OR REPLACE` por `id`.
 | `cost_usd` | number \| null | não | Se omitido, Worker calcula fallback (`costForModel`, hoje 100% free-tier → 0, ou tarifa aproximada Qwen3 quando `total_tokens > 0` e custo ausente) |
 | `environment`, `dist_channel`, `build_type`, `version_code`, `device_id` | — | não | Mesmo contrato de contexto do diagnóstico |
 | `status` | string | não (GH#421) | `success` \| `error`, default `success`. Requer migration `009_gh421.sql` |
+| `platform` | string | não (default `android`) | `android` \| `web` — mesmo critério do diagnóstico (GH#442). Hoje o PWA não envia `ai-usage` (o diagnóstico via IA do PWA chama o AI Worker diretamente, sem passar por este endpoint — ver Gaps) |
 | `error_message` / `error` | string | não (GH#421) | Mensagem de erro quando `status = 'error'` |
 
 ### `POST /ingest/analytics` → `analytics_events` (batch, até 500 eventos)
@@ -168,6 +189,7 @@ Whitelist (`VALID_ANALYTICS_EVENTS`): `feature_used`, `screen_view`,
 | `duration_ms` | int | não | `session_end` — tempo de sessão em ms |
 | `environment` | string | não (default `production`) | todos |
 | `device_id`, `version_code`, `dist_channel`, `build_type` | — | não | todos (novo neste PR) |
+| `platform` | string | não (default `android`) | todos — `android` \| `web` (GH#442). Nenhum cliente envia analytics ainda (ver Gaps) |
 
 ## Endpoints administrativos (leitura, `/admin/*`)
 
@@ -240,6 +262,26 @@ quando aplicável.
    `session_id` do `feature_used`/`session_start` quando a feature ativa for
    um diagnóstico), ou o Worker precisa de uma estratégia de correlação por
    janela de tempo (mais fraca, não recomendada sem aprovação).
+9. **GH#441 resolvido nesta correção — PWA agora envia `POST /ingest/diagnostic`
+   real** ao final de cada teste (`pwa/src/App.tsx` chama
+   `sendAdminDiagnostic`/`buildAdminDiagnosticPayload`, fire-and-forget, mesma
+   postura do Android — sem retry/fila local, ver gap 1). O PWA **não** envia
+   `ai-usage` nem `analytics_events` — o diagnóstico por IA do PWA chama o AI
+   Worker direto (`functions/api/ai/diagnostico-conexao.ts`), sem persistir em
+   `ai_usage`, e não há emissão de eventos de produto no PWA. Ambos ficam como
+   follow-up (issue própria) se o produto quiser custo de IA e retenção também
+   para o WebApp.
+10. **GH#442 resolvido parcialmente — filtro de `platform` no Console só está
+    ligado na página Diagnósticos** (`DiagnosticsPage`/`DiagnosticsFilters`,
+    endpoints `/admin/metrics/diagnostics` e `/diagnostics/summary`). O Worker
+    já aceita `?platform=` em `/admin/metrics/overview` também, mas a página
+    Visão Geral não tem controle de UI para esse filtro ainda (exigiria
+    threading de estado global igual ao `environment` em `App.tsx`/`AppLayout`
+    — escopo maior, deixado como follow-up). `/admin/analytics/product`
+    (Produto & Uso) não recebeu filtro de `platform` nesta correção: a query
+    de retenção usa CTEs encadeadas e não há dado real de `analytics_events`
+    para nenhuma plataforma ainda (gap 2) — sem valor imediato em filtrar o
+    que está vazio, e risco desnecessário de quebrar a query nesta correção.
 
 ## Navegação do painel (SIG-294)
 

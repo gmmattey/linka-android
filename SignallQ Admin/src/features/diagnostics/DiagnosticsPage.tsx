@@ -9,7 +9,7 @@ import { DataTable } from "../../components/ui/DataTable";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { LoadingState } from "../../components/ui/LoadingState";
-import { DiagnosticSession, DiagnosticsSummary, DistChannel, BuildType } from "../../types/diagnostics";
+import { DiagnosticSession, DiagnosticsSummary, DistChannel, BuildType, DataPlatform } from "../../types/diagnostics";
 import { AppEnvironment } from "../../types/admin";
 import { Smartphone, Clock, Server, Sparkles, Zap, Info, ShieldCheck, AlertOctagon } from "lucide-react";
 
@@ -36,6 +36,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
   const [availableVersions, setAvailableVersions] = React.useState<string[]>([]);
   const [selectedDistChannel, setSelectedDistChannel] = React.useState<DistChannel | ("")>("");
   const [selectedBuildType, setSelectedBuildType] = React.useState<BuildType | ("")>("");
+  const [selectedPlatform, setSelectedPlatform] = React.useState<DataPlatform | ("")>("");
 
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -64,11 +65,13 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
         diagnosticsService.getDiagnosticSessions({
           environment: localEnv,
           period: localPeriod,
-          search: searchQuery
+          search: searchQuery,
+          platform: selectedPlatform || undefined,
         }),
         diagnosticsService.getDiagnosticsSummary({
           environment: localEnv,
-          period: localPeriod
+          period: localPeriod,
+          platform: selectedPlatform || undefined,
         })
       ]);
 
@@ -131,7 +134,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [localEnv, localPeriod, searchQuery, selectedNetwork, selectedOperator, selectedScore, selectedIssue, selectedVersion, selectedDistChannel, selectedBuildType, triggerRefreshCounter]);
+  }, [localEnv, localPeriod, searchQuery, selectedNetwork, selectedOperator, selectedScore, selectedIssue, selectedVersion, selectedDistChannel, selectedBuildType, selectedPlatform, triggerRefreshCounter]);
 
   React.useEffect(() => {
     loadSessionsData();
@@ -179,7 +182,16 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
     {
       header: "Dispositivo",
       accessor: (row: DiagnosticSession) => (
-        <span className="font-sans font-medium text-[var(--text-primary)] block max-w-[140px] truncate">{row.deviceModel}</span>
+        <div>
+          <span className="font-sans font-medium text-[var(--text-primary)] block max-w-[140px] truncate">{row.deviceModel}</span>
+          <span
+            className={`text-[9px] font-mono uppercase tracking-wider font-bold ${
+              row.platform === "web" ? "text-[var(--info)]" : "text-[var(--text-tertiary)]"
+            }`}
+          >
+            {row.platform === "web" ? "WebApp" : "Android"}
+          </span>
+        </div>
       ),
     },
     {
@@ -243,6 +255,8 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
         onDistChannelChange={setSelectedDistChannel}
         selectedBuildType={selectedBuildType}
         onBuildTypeChange={setSelectedBuildType}
+        selectedPlatform={selectedPlatform}
+        onPlatformChange={setSelectedPlatform}
         selectedPeriod={localPeriod}
         onPeriodChange={setLocalPeriod}
         selectedEnvironment={localEnv}
@@ -272,7 +286,7 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
 
       {/* 5. Tabela de Sessões de Diagnósticos Recentes (Filtros Avançados) */}
       {loading ? (
-        <LoadingState message="Acompanhando logs de conectividade do app Android..." />
+        <LoadingState message="Acompanhando logs de conectividade (Android e WebApp)..." />
       ) : error ? (
         <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--error)]/20 bg-[var(--error)]/5 rounded-[8px]">
           <h4 className="text-sm font-semibold text-[var(--error)] uppercase tracking-wider font-sans">Erro de Telemetria</h4>
@@ -337,7 +351,9 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
                 {/* Hardware constraints */}
                 <div className="grid grid-cols-2 gap-4 border-b border-[var(--border)] pb-4 mb-4 font-sans text-xs">
                   <div>
-                    <div className="text-[10px] text-[var(--text-tertiary)] font-sans uppercase tracking-wider">Dispositivo de Borda</div>
+                    <div className="text-[10px] text-[var(--text-tertiary)] font-sans uppercase tracking-wider">
+                      Dispositivo de Borda · {selectedSession.platform === "web" ? "WebApp" : "Android"}
+                    </div>
                     <p className="font-semibold text-[var(--text-primary)] mt-0.5 flex items-center gap-1.5 leading-none">
                       <Smartphone className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
                       <span>{selectedSession.deviceModel}</span>

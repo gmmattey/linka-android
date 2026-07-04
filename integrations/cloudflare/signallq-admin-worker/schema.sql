@@ -147,3 +147,11 @@ CREATE INDEX IF NOT EXISTS idx_analytics_device_id ON analytics_events(device_id
 -- Aplicar via: migrations/009_gh421.sql (npx wrangler d1 execute --file=... --remote)
 ALTER TABLE ai_usage ADD COLUMN status        TEXT DEFAULT 'success';
 ALTER TABLE ai_usage ADD COLUMN error_message TEXT DEFAULT '';
+
+-- GH#442: diferenciar origem do dado (Android vs WebApp/PWA). Default 'android'
+-- preserva a semântica de todo o dado histórico (pré-existente ao ingest do PWA).
+-- Aplicar via: migrations/011_gh442.sql (npx wrangler d1 execute --file=... --remote)
+ALTER TABLE diagnostic_sessions ADD COLUMN platform TEXT DEFAULT 'android';
+ALTER TABLE ai_usage            ADD COLUMN platform TEXT DEFAULT 'android';
+ALTER TABLE analytics_events    ADD COLUMN platform TEXT DEFAULT 'android';
+CREATE INDEX IF NOT EXISTS idx_sessions_platform ON diagnostic_sessions(platform);
