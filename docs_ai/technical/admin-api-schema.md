@@ -571,6 +571,87 @@ chamada concluída.
 
 ---
 
+### GET /admin/analytics/product
+
+Métricas de uso de produto (Produto & Uso, GH#418). Também aceita o prefixo
+`/admin/metrics/analytics/product` (compatibilidade). Fonte: `analytics_events`
+(alimentada por `POST /ingest/analytics` — ver seção de ingest).
+
+**Parâmetros:** `period` (padrão `7d`), `environment`
+
+**Response 200:**
+```json
+{
+  "source": "d1",
+  "period": "7d",
+  "environment": "production",
+  "no_data_yet": false,
+  "feature_usage": [
+    { "feature": "speedtest", "label": "speedtest", "usageCount": 1240, "uniqueUsers": 380,
+      "completionRate": 0, "failureRate": 0, "avgDurationMs": 0, "trendPercent": 0 }
+  ],
+  "screen_navigation": [
+    { "screen": "home", "label": "home", "views": 4200, "uniqueUsers": 900,
+      "avgTimeOnScreenSec": 0, "exitRate": 0, "nextMostCommonScreen": null }
+  ],
+  "feature_crashes": [
+    { "feature": "devices_scan", "label": "devices_scan", "crashes": 3, "nonFatalErrors": 0,
+      "anrs": 0, "crashRate": 1.2, "affectedVersions": ["0.21.0"], "severity": "attention" }
+  ],
+  "avg_session_duration_ms": 187000,
+  "session_count": 640,
+  "retention": [
+    { "cohort": "Cohort geral (7d)", "cohortSize": 320,
+      "day1": 42.5, "day7": 18.0, "day30": null,
+      "avgInstalledDays": 6.2, "uninstallRate": 11.4 }
+  ]
+}
+```
+
+| Campo | Descrição |
+|---|---|
+| `feature_usage[].completionRate`, `failureRate`, `avgDurationMs`, `trendPercent` | Ainda **não computados** — sempre `0`. Exigiriam eventos `feature_started`/`feature_completed`/`feature_failed` distintos de `feature_used`, que o app não emite hoje |
+| `screen_navigation[].avgTimeOnScreenSec`, `exitRate`, `nextMostCommonScreen` | Idem — não computados, sempre `0`/`null` |
+| `avg_session_duration_ms` | Média real de `duration_ms` dos eventos `session_end` no período. `null` se não houver nenhum evento `session_end` com duração no período |
+| `session_count` | Total de eventos `session_end` com `duration_ms` no período |
+| `retention[].day1`/`day7`/`day30` | % de dispositivos (`device_id`) que retornaram na respectiva janela após o primeiro evento visto. `null` quando nenhum dispositivo do cohort ainda tem dias suficientes decorridos para aquela janela |
+| `retention[].uninstallRate` | Proxy de inatividade: % de dispositivos sem nenhum evento nos últimos 14 dias. **Não é confirmação de desinstalação** (exigiria Play Console, não integrado) |
+| `retention[].avgInstalledDays` | Média de dias entre o primeiro e o último evento observado por dispositivo (span de atividade observado, não "tempo até desinstalar") |
+
+**Gap conhecido (não resolvido nesta correção):** associação de uso de IA por
+feature (`GET /admin/analytics/product` não inclui `feature_ai_usage`). Exigiria
+um identificador de sessão compartilhado entre `analytics_events.session_id`
+(sessão de app) e `ai_usage.session_id` (hoje referencia `diagnostic_sessions.id`)
+— são espaços de ID diferentes hoje, cruzá-los produziria associação incorreta.
+Ver `SignallQ Admin/docs/architecture/data-architecture.md` (seção Gaps) para o
+contrato necessário antes de implementar.
+
+---
+
+### GET /admin/analytics/battery
+
+Snapshot agregado de nível de bateria. Também aceita
+`/admin/metrics/analytics/battery`.
+
+**Parâmetros:** `period` (padrão `7d`)
+
+**Response 200:**
+```json
+{
+  "source": "d1",
+  "period": "7d",
+  "no_data_yet": false,
+  "summary": {
+    "avg_battery_level": 62,
+    "charging_sessions_pct": 18,
+    "total_snapshots": 940
+  },
+  "items": []
+}
+```
+
+---
+
 ### GET /admin/metrics/operators
 
 Métricas de diagnóstico agrupadas por operadora de telecomunicações.
