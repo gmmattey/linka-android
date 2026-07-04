@@ -1,5 +1,7 @@
 ﻿package io.signallq.app.feature.wifi
 
+import io.signallq.app.core.network.contracts.wifi.MeshOuiDatabase
+
 object TopologiaWifiEngine {
 
     fun classificar(
