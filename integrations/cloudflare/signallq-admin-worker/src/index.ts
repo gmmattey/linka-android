@@ -1899,6 +1899,69 @@ async function handleProductAnalytics(request: Request, env: Env): Promise<Respo
     ).bind(since, ...envBinds).all(),
   ]);
 
+  // GH#418: tempo médio de sessão real (duration_ms só existe em session_end, SIG-295/GH#417).
+  const sessionDurationRow = await env.DB.prepare(
+    `SELECT AVG(duration_ms) AS avg_duration_ms, COUNT(*) AS session_count
+     FROM analytics_events
+     WHERE event_name = 'session_end' AND duration_ms IS NOT NULL AND created_at >= ?${envClause}`
+  ).bind(since, ...envBinds).first<{ avg_duration_ms: number | null; session_count: number }>();
+
+  // GH#418: retenção D1/D7/D30 por cohort de device_id (device_id só existe desde GH#417/migration 008).
+  // Cohort de retenção usa histórico completo (não limitado ao `period` do request) porque D1/D7/D30
+  // exigem que o dispositivo já tenha tempo suficiente decorrido desde o primeiro evento visto.
+  const retentionRow = await env.DB.prepare(
+    `WITH first_seen AS (
+       SELECT device_id, MIN(created_at) AS install_ts
+       FROM analytics_events
+       WHERE device_id != ''${envFilter ? ' AND environment = ?' : ''}
+       GROUP BY device_id
+     ),
+     elapsed AS (
+       SELECT device_id, install_ts,
+         CAST((strftime('%s','now') - install_ts) / 86400 AS INTEGER) AS days_elapsed
+       FROM first_seen
+     ),
+     last_activity AS (
+       SELECT device_id, MAX(created_at) AS last_seen
+       FROM analytics_events
+       WHERE device_id != ''${envFilter ? ' AND environment = ?' : ''}
+       GROUP BY device_id
+     ),
+     returned_d1 AS (
+       SELECT DISTINCT a.device_id FROM analytics_events a
+       JOIN first_seen f ON a.device_id = f.device_id
+       WHERE a.created_at >= f.install_ts + 86400 AND a.created_at < f.install_ts + 172800
+     ),
+     returned_d7 AS (
+       SELECT DISTINCT a.device_id FROM analytics_events a
+       JOIN first_seen f ON a.device_id = f.device_id
+       WHERE a.created_at >= f.install_ts + 86400 AND a.created_at < f.install_ts + 691200
+     ),
+     returned_d30 AS (
+       SELECT DISTINCT a.device_id FROM analytics_events a
+       JOIN first_seen f ON a.device_id = f.device_id
+       WHERE a.created_at >= f.install_ts + 86400 AND a.created_at < f.install_ts + 2678400
+     )
+     SELECT
+       (SELECT COUNT(*) FROM elapsed WHERE days_elapsed >= 1)  AS cohort_d1,
+       (SELECT COUNT(*) FROM returned_d1)                      AS returned_d1,
+       (SELECT COUNT(*) FROM elapsed WHERE days_elapsed >= 7)  AS cohort_d7,
+       (SELECT COUNT(*) FROM returned_d7)                      AS returned_d7,
+       (SELECT COUNT(*) FROM elapsed WHERE days_elapsed >= 30) AS cohort_d30,
+       (SELECT COUNT(*) FROM returned_d30)                     AS returned_d30,
+       (SELECT COUNT(*) FROM first_seen)                       AS total_devices,
+       (SELECT AVG(days_elapsed) FROM elapsed)                 AS avg_active_span_days,
+       (SELECT COUNT(*) FROM last_activity WHERE last_seen < strftime('%s','now') - 1209600) AS inactive_14d,
+       (SELECT COUNT(*) FROM last_activity)                    AS total_with_activity
+    `
+  ).bind(...(envFilter ? [envFilter] : []), ...(envFilter ? [envFilter] : [])).first<{
+    cohort_d1: number; returned_d1: number;
+    cohort_d7: number; returned_d7: number;
+    cohort_d30: number; returned_d30: number;
+    total_devices: number; avg_active_span_days: number | null;
+    inactive_14d: number; total_with_activity: number;
+  }>();
+
   const usageByFeature = new Map<string, number>(
     (totalRows.results ?? []).map((r: any) => [r.feature_id, r.total])
   );
@@ -1943,6 +2006,24 @@ async function handleProductAnalytics(request: Request, env: Env): Promise<Respo
     };
   });
 
+  const avg_session_duration_ms = sessionDurationRow?.avg_duration_ms != null
+    ? Math.round(sessionDurationRow.avg_duration_ms)
+    : null;
+  const session_count = sessionDurationRow?.session_count ?? 0;
+
+  const totalDevices = retentionRow?.total_devices ?? 0;
+  const retention = totalDevices === 0 ? [] : [{
+    cohort:           `Cohort geral (${period})`,
+    cohortSize:       totalDevices,
+    day1:             retentionRow!.cohort_d1  > 0 ? Math.round((retentionRow!.returned_d1  / retentionRow!.cohort_d1)  * 1000) / 10 : null,
+    day7:             retentionRow!.cohort_d7  > 0 ? Math.round((retentionRow!.returned_d7  / retentionRow!.cohort_d7)  * 1000) / 10 : null,
+    day30:            retentionRow!.cohort_d30 > 0 ? Math.round((retentionRow!.returned_d30 / retentionRow!.cohort_d30) * 1000) / 10 : null,
+    avgInstalledDays: retentionRow!.avg_active_span_days != null ? Math.round(retentionRow!.avg_active_span_days * 10) / 10 : null,
+    // Proxy de churn: % de dispositivos sem nenhum evento nos últimos 14 dias. NÃO é confirmação
+    // de desinstalação real (isso exigiria Play Console/FCM, não integrado — ver data-architecture.md).
+    uninstallRate:    retentionRow!.total_with_activity > 0 ? Math.round((retentionRow!.inactive_14d / retentionRow!.total_with_activity) * 1000) / 10 : null,
+  }];
+
   return json({
     source: 'd1',
     period,
@@ -1951,6 +2032,9 @@ async function handleProductAnalytics(request: Request, env: Env): Promise<Respo
     feature_usage,
     screen_navigation,
     feature_crashes,
+    avg_session_duration_ms,
+    session_count,
+    retention,
   }, 200, env);
 }
 

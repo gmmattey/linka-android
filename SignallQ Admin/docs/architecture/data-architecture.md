@@ -222,6 +222,24 @@ quando aplicável.
    aparece como `success` até o Android também reportar falhas de inferência
    (timeout, erro de rede, resposta vazia). Trabalho de **Camilo** (Android),
    fora do escopo deste PR.
+7. **GH#418 — computado no Worker, mas ainda sem dado real (gap 2 acima):**
+   `GET /admin/analytics/product` agora calcula retenção D1/D7/D30 por cohort
+   de `device_id` e tempo médio de sessão real (`avg_session_duration_ms`, a
+   partir de `session_end.duration_ms`). O frontend (`RetentionPanel`) parou de
+   exibir números fabricados como fallback — mostra "—" quando não há cohort.
+   Segue bloqueado por dado real (gap 2), mas a lógica agora é honesta: zero
+   dado real → zero exibido, não estimativa inventada.
+8. **GH#418 — associação de uso de IA por feature não implementada.**
+   `ai_usage.session_id` referencia `diagnostic_sessions.id`;
+   `analytics_events.session_id` referencia uma sessão de app/tela — são
+   espaços de ID diferentes hoje. Cruzar os dois por `session_id` produziria
+   uma associação estatisticamente incorreta. `getFeatureAiUsage()` no painel
+   continua retornando vazio em produção (nunca mock/fabricado). Decisão
+   necessária antes de implementar: Android precisa emitir um identificador de
+   correlação comum (ex.: gravar o `diagnostic_sessions.id` também como
+   `session_id` do `feature_used`/`session_start` quando a feature ativa for
+   um diagnóstico), ou o Worker precisa de uma estratégia de correlação por
+   janela de tempo (mais fraca, não recomendada sem aprovação).
 
 ## Navegação do painel (SIG-294)
 
