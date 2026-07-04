@@ -194,7 +194,6 @@ fun HomeScreen(
     onAbrirDns: () -> Unit,
     onAbrirPing: () -> Unit,
     onIniciarTeste: (ModoSpeedtest) -> Unit,
-    onAbrirUltimoResultado: () -> Unit,
     onAbrirHistorico: () -> Unit,
     onAbrirPerfil: () -> Unit,
     onAbrirRedes: () -> Unit,
@@ -448,7 +447,6 @@ fun HomeScreen(
                     hasEffectiveResult = hasEffectiveResult,
                     history = history,
                     onAbrirHistorico = onAbrirHistorico,
-                    onAbrirUltimoResultado = onAbrirUltimoResultado,
                     onIniciarTeste = { showMedicaoTipoSheet = true },
                     c = c,
                 )
@@ -519,7 +517,6 @@ private fun CardMedicoes(
     hasEffectiveResult: Boolean,
     history: List<HistoryPoint>,
     onAbrirHistorico: () -> Unit,
-    onAbrirUltimoResultado: () -> Unit,
     onIniciarTeste: () -> Unit,
     c: LkTokens,
 ) {
@@ -574,7 +571,7 @@ private fun CardMedicoes(
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(LkRadius.card))
-                            .clickable { onAbrirUltimoResultado() },
+                            .clickable { onAbrirHistorico() },
                 ) {
                     MiniLineChart(
                         history = history,

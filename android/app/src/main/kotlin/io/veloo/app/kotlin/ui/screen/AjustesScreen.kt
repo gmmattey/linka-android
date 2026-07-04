@@ -137,6 +137,7 @@ fun AjustesScreen(
     onAbrirPrivacidade: () -> Unit = {},
     onAbrirNovidades: () -> Unit = {},
     onAbrirMinhaConexao: () -> Unit = {},
+    onAbrirFibra: () -> Unit = {},
     dadosMoveis: AjustesDadosMoveisState =
         AjustesDadosMoveisState(
             speedtestPermiteHeavyMovel = false,
@@ -591,7 +592,13 @@ fun AjustesScreen(
                             icon = Icons.Outlined.Router,
                             label = "Fibra óptica",
                             subtitle = modemHost ?: "Não configurado",
-                            onClick = { showRoteadorSheet = true },
+                            onClick = {
+                                if (modemHost.isNullOrBlank()) {
+                                    showRoteadorSheet = true
+                                } else {
+                                    onAbrirFibra()
+                                }
+                            },
                         )
                     }
                 }

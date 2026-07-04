@@ -335,11 +335,6 @@ fun AppShell(
                                     onNovoTeste(modo)
                                 }
                             },
-                            onAbrirUltimoResultado = {
-                                if (Overlay.ResultadoVelocidade !in overlayStack && snapshotSpeedtest.resultado != null) {
-                                    overlayStack.add(Overlay.ResultadoVelocidade)
-                                }
-                            },
                             onAbrirHistorico = { selectedTab = 3 },
                             onAbrirPerfil = { showPerfilSheet = true },
                             // NAV-B: Sinal agora é tab 2 — navega por tab em vez de overlay
@@ -498,6 +493,10 @@ fun AppShell(
                             onAbrirPrivacidade = { if (Overlay.Privacidade !in overlayStack) overlayStack.add(Overlay.Privacidade) },
                             onAbrirNovidades = { if (Overlay.Novidades !in overlayStack) overlayStack.add(Overlay.Novidades) },
                             onAbrirMinhaConexao = { if (Overlay.MinhaConexao !in overlayStack) overlayStack.add(Overlay.MinhaConexao) },
+                            onAbrirFibra = {
+                                onReconectarFibra(modemHost ?: "", modemUsername, modemPassword)
+                                if (Overlay.Fibra !in overlayStack) overlayStack.add(Overlay.Fibra)
+                            },
                             dadosMoveis =
                                 AjustesDadosMoveisState(
                                     speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
