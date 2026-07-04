@@ -38,6 +38,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Adjust
+import androidx.compose.material.icons.outlined.AirplanemodeActive
 import androidx.compose.material.icons.outlined.CellTower
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Construction
@@ -1622,6 +1623,60 @@ private fun MobileSignalCard(
     c: LkTokens,
     onTap: () -> Unit,
 ) {
+    if (movelSnapshot.radioDesligado) {
+        SignallQCard(c) {
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable(onClick = onTap),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(c.textTertiary.copy(alpha = 0.10f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Outlined.AirplanemodeActive,
+                        contentDescription = "Modo avião ativado",
+                        tint = c.textTertiary,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                Spacer(Modifier.width(LkSpacing.md))
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        "REDE MÓVEL",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.W600,
+                        color = c.textTertiary,
+                        letterSpacing = 0.3.sp,
+                    )
+                    Text(
+                        "Modo avião ativado",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.W600,
+                        color = c.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        "Rádio desligado",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = c.textSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        return
+    }
+
     val tec = movelSnapshot.tecnologia?.ifBlank { null }
     val tecLabel = tec?.uppercase() ?: "LTE"
     val rsrp = movelSnapshot.rsrpDbm
