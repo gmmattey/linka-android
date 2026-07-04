@@ -170,6 +170,9 @@ export interface AdminIngestRequest {
   payload: Record<string, unknown>;
 }
 
+/** Origem do dado no SignallQ Console (GH#442). Android nao envia ainda — default no worker. */
+export type AdminIngestPlatform = 'android' | 'web';
+
 export interface AdminDiagnosticPayload {
   id: string;
   created_at?: number;
@@ -188,6 +191,7 @@ export interface AdminDiagnosticPayload {
   version_code?: number;
   device_id?: string;
   ai_summary_report?: string;
+  platform?: AdminIngestPlatform;
 }
 
 export interface AdminAiUsagePayload {
@@ -201,4 +205,5 @@ export interface AdminAiUsagePayload {
   cost_usd?: number;
   environment?: string;
   version_code?: number;
+  platform?: AdminIngestPlatform;
 }

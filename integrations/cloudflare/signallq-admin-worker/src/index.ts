@@ -225,6 +225,16 @@ function getEnvironmentFilter(url: URL): string | null {
   return env === "all" || !env ? null : env;
 }
 
+/**
+ * Extrai filtro de platform da query string (GH#442).
+ * ?platform=android|web → filtra por origem do dado.
+ * ?platform=all ou ausente → sem filtro (retorna null, mostra as duas origens).
+ */
+function getPlatformFilter(url: URL): string | null {
+  const platform = url.searchParams.get("platform");
+  return platform === "all" || !platform ? null : platform;
+}
+
 async function getFirebaseAccessToken(env: Env): Promise<string> {
   const now = nowSec();
   const payload = {
@@ -323,38 +333,43 @@ async function handleOverview(request: Request, env: Env): Promise<Response> {
   const since     = nowSec() - periodToSeconds(period);
   const todaySince = nowSec() - 86400;
   const envFilter = getEnvironmentFilter(url);
+  const platformFilter = getPlatformFilter(url);
 
   const envClause    = envFilter ? " AND environment = ?" : "";
   const envBinds     = envFilter ? [envFilter]            : [];
+  const platformClause = platformFilter ? " AND platform = ?" : "";
+  const platformBinds  = platformFilter ? [platformFilter]    : [];
+  const filterClause = `${envClause}${platformClause}`;
+  const filterBinds  = [...envBinds, ...platformBinds];
 
   const [sessions, aiRows, successRows, networkRows, issueRows] = await Promise.all([
     env.DB.prepare(
       `SELECT COUNT(*) AS total,
               SUM(CASE WHEN resolved=0 THEN 1 ELSE 0 END) AS active,
               AVG(CAST(score AS REAL)) AS avg_score
-       FROM diagnostic_sessions WHERE created_at >= ?${envClause}`
-    ).bind(since, ...envBinds).first<{ total: number; active: number; avg_score: number | null }>(),
+       FROM diagnostic_sessions WHERE created_at >= ?${filterClause}`
+    ).bind(since, ...filterBinds).first<{ total: number; active: number; avg_score: number | null }>(),
     env.DB.prepare(
       `SELECT COUNT(*) AS calls, SUM(cost_usd) AS cost, SUM(total_tokens) AS tokens
-       FROM ai_usage WHERE created_at >= ?${envClause}`
-    ).bind(todaySince, ...envBinds).first<{ calls: number; cost: number; tokens: number }>(),
+       FROM ai_usage WHERE created_at >= ?${filterClause}`
+    ).bind(todaySince, ...filterBinds).first<{ calls: number; cost: number; tokens: number }>(),
     // successRate: % de sessões com status bom/regular (não ruim/critico/inconclusivo)
     env.DB.prepare(
       `SELECT COUNT(*) AS total,
               SUM(CASE WHEN status IN ('bom','excelente','regular') THEN 1 ELSE 0 END) AS successful
-       FROM diagnostic_sessions WHERE created_at >= ?${envClause}`
-    ).bind(since, ...envBinds).first<{ total: number; successful: number }>(),
+       FROM diagnostic_sessions WHERE created_at >= ?${filterClause}`
+    ).bind(since, ...filterBinds).first<{ total: number; successful: number }>(),
     // mostTestType: tipo de rede predominante
     env.DB.prepare(
       `SELECT network_type, COUNT(*) AS cnt
-       FROM diagnostic_sessions WHERE created_at >= ?${envClause}
+       FROM diagnostic_sessions WHERE created_at >= ?${filterClause}
          AND network_type IS NOT NULL AND network_type != '' AND network_type != 'unknown'
        GROUP BY network_type ORDER BY cnt DESC LIMIT 1`
-    ).bind(since, ...envBinds).first<{ network_type: string; cnt: number }>(),
+    ).bind(since, ...filterBinds).first<{ network_type: string; cnt: number }>(),
     // topProblem: issue mais frequente no período
     env.DB.prepare(
-      `SELECT issues FROM diagnostic_sessions WHERE created_at >= ?${envClause} AND issues != '[]'`
-    ).bind(since, ...envBinds).all(),
+      `SELECT issues FROM diagnostic_sessions WHERE created_at >= ?${filterClause} AND issues != '[]'`
+    ).bind(since, ...filterBinds).all(),
   ]);
 
   // Calcula successRate
@@ -387,6 +402,7 @@ async function handleOverview(request: Request, env: Env): Promise<Response> {
   return json({
     source: "d1", period,
     environment:          envFilter ?? "all",
+    platform:             platformFilter ?? "all",
     totalDiagnostics:     sessions?.total ?? 0,
     activeSessions:       sessions?.active ?? 0,
     avgNetworkScore:      sessions?.avg_score ? Math.round(sessions.avg_score) : 0,
@@ -406,9 +422,14 @@ async function handleDiagnostics(request: Request, env: Env): Promise<Response> 
   const limit     = Math.min(parseInt(url.searchParams.get("limit") ?? "50"), 200);
   const since     = nowSec() - periodToSeconds(period);
   const envFilter = getEnvironmentFilter(url);
+  const platformFilter = getPlatformFilter(url);
 
   const envClause = envFilter ? " AND environment = ?" : "";
   const envBinds  = envFilter ? [envFilter]            : [];
+  const platformClause = platformFilter ? " AND platform = ?" : "";
+  const platformBinds  = platformFilter ? [platformFilter]    : [];
+  const filterClause = `${envClause}${platformClause}`;
+  const filterBinds  = [...envBinds, ...platformBinds];
 
   const rows = await env.DB.prepare(
     `SELECT id, created_at, network_type, status, score,
@@ -416,10 +437,10 @@ async function handleDiagnostics(request: Request, env: Env): Promise<Response> 
             issues, resolved, operator,
             device_model, os_version, app_version, ai_summary_report,
             environment, dist_channel, build_type, version_code, device_id,
-            rssi, banda_wifi, padrao_wifi
-     FROM diagnostic_sessions WHERE created_at >= ?${envClause}
+            rssi, banda_wifi, padrao_wifi, platform
+     FROM diagnostic_sessions WHERE created_at >= ?${filterClause}
      ORDER BY created_at DESC LIMIT ?`
-  ).bind(since, ...envBinds, limit).all();
+  ).bind(since, ...filterBinds, limit).all();
 
   const sessions = (rows.results ?? []).map((r: any) => ({
     id:                r.id,
@@ -447,9 +468,12 @@ async function handleDiagnostics(request: Request, env: Env): Promise<Response> 
     rssi:              r.rssi              ?? null,
     banda_wifi:        r.banda_wifi        ?? null,
     padrao_wifi:       r.padrao_wifi       ?? null,
+    // GH#442: origem do dado — 'android' | 'web'. Default 'android' preserva
+    // semântica de dados anteriores à migration 011_gh442.sql.
+    platform:          r.platform          ?? 'android',
   }));
 
-  return json({ source: "d1", period, environment: envFilter ?? "all", sessions }, 200, env);
+  return json({ source: "d1", period, environment: envFilter ?? "all", platform: platformFilter ?? "all", sessions }, 200, env);
 }
 
 async function handleAiCost(request: Request, env: Env): Promise<Response> {
@@ -867,9 +891,14 @@ async function handleDiagnosticsSummary(request: Request, env: Env): Promise<Res
   const period    = url.searchParams.get("period") ?? "7d";
   const since     = nowSec() - periodToSeconds(period);
   const envFilter = getEnvironmentFilter(url);
+  const platformFilter = getPlatformFilter(url);
 
   const envClause = envFilter ? " AND environment = ?" : "";
   const envBinds  = envFilter ? [envFilter]            : [];
+  const platformClause = platformFilter ? " AND platform = ?" : "";
+  const platformBinds  = platformFilter ? [platformFilter]    : [];
+  const filterClause = `${envClause}${platformClause}`;
+  const filterBinds  = [...envBinds, ...platformBinds];
 
   const row = await env.DB.prepare(
     `SELECT
@@ -883,8 +912,8 @@ async function handleDiagnosticsSummary(request: Request, env: Env): Promise<Res
        SUM(CASE WHEN status IN ('ruim','critico') THEN 1 ELSE 0 END) AS critical_count,
        SUM(CASE WHEN resolved = 0 THEN 1 ELSE 0 END) AS active_count
      FROM diagnostic_sessions
-     WHERE created_at >= ?${envClause}`
-  ).bind(since, ...envBinds).first<{
+     WHERE created_at >= ?${filterClause}`
+  ).bind(since, ...filterBinds).first<{
     total: number;
     avg_latency_ms: number | null;
     avg_jitter_ms: number | null;
@@ -902,6 +931,7 @@ async function handleDiagnosticsSummary(request: Request, env: Env): Promise<Res
     source:                    "d1",
     period,
     environment:               envFilter ?? "all",
+    platform:                  platformFilter ?? "all",
     totalDiagnostics:          row?.total ?? 0,
     criticalCount:             row?.critical_count ?? 0,
     activeSessions:            row?.active_count ?? 0,
@@ -1776,6 +1806,11 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
   const versionCode = p.version_code ?? 0;
   const deviceId    = p.device_id    ?? '';
 
+  // GH#442: origem do dado. Default 'android' porque o app Android ainda não
+  // envia este campo (todo dado histórico é dele) — o PWA passa a mandar 'web'
+  // explicitamente (ver pwa/src/features/diagnosis/adminIngestPayload.ts).
+  const platform = p.platform === 'web' ? 'web' : 'android';
+
   // Gap 3 (SIG-164): rssi, banda_wifi, padrao_wifi enviados ao AI Worker mas nunca persistidos.
   const rssi       = p.rssi        ?? p.rssiDbm ?? null;
   const bandaWifi  = p.banda_wifi  ?? p.bandaWifi  ?? null;
@@ -1789,8 +1824,8 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
           issues, resolved, operator,
           device_model, os_version, app_version, ai_summary_report,
           environment, dist_channel, build_type, version_code, device_id,
-          rssi, banda_wifi, padrao_wifi)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          rssi, banda_wifi, padrao_wifi, platform)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       p.id, p.created_at ?? nowSec(),
       p.network_type ?? "unknown", p.status ?? "unknown", p.score ?? null,
@@ -1800,7 +1835,7 @@ async function handleIngestDiagnostic(request: Request, env: Env): Promise<Respo
       p.operator ?? null,
       deviceModel, osVersion, appVersion, aiSummaryReport,
       environment, distChannel, buildType, versionCode, deviceId,
-      rssi, bandaWifi, padraoWifi,
+      rssi, bandaWifi, padraoWifi, platform,
     ).run();
   } catch (e) {
     await logError(env, 'ingest', String(e), e instanceof Error ? e.stack ?? '' : '');
@@ -1859,19 +1894,22 @@ async function handleIngestAiUsage(request: Request, env: Env): Promise<Response
   const status       = p.status === 'error' ? 'error' : 'success';
   const errorMessage = p.error_message ?? p.error ?? '';
 
+  // GH#442: mesmo critério de origem do /ingest/diagnostic.
+  const platform = p.platform === 'web' ? 'web' : 'android';
+
   try {
     await env.DB.prepare(
       `INSERT OR REPLACE INTO ai_usage
          (id, session_id, created_at, model,
           prompt_tokens, completion_tokens, total_tokens, cost_usd,
           environment, version_code, dist_channel, build_type, device_id,
-          status, error_message)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          status, error_message, platform)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       p.id, p.session_id ?? null, p.created_at ?? nowSec(), p.model,
       prompt, completion, total, cost,
       environment, versionCode, distChannel, buildType, deviceId,
-      status, errorMessage,
+      status, errorMessage, platform,
     ).run();
   } catch (e) {
     await logError(env, 'ai-usage', String(e), e instanceof Error ? e.stack ?? '' : '');
@@ -1912,8 +1950,8 @@ async function handleIngestAnalytics(request: Request, env: Env): Promise<Respon
       env.DB.prepare(
         `INSERT OR IGNORE INTO analytics_events
            (id, event_name, session_id, created_at, app_version, feature_id, screen_name, error_type,
-            battery_level, battery_charging, environment, device_id, version_code, dist_channel, build_type, duration_ms)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            battery_level, battery_charging, environment, device_id, version_code, dist_channel, build_type, duration_ms, platform)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         typeof e.id === 'string' && e.id.length > 0 ? e.id : crypto.randomUUID(),
         e.name,
@@ -1931,6 +1969,8 @@ async function handleIngestAnalytics(request: Request, env: Env): Promise<Respon
         e.dist_channel ?? '',
         e.build_type   ?? 'release',
         typeof e.duration_ms === 'number' ? e.duration_ms : null,
+        // GH#442: mesmo critério de origem dos demais endpoints de ingest.
+        e.platform === 'web' ? 'web' : 'android',
       )
     );
 
