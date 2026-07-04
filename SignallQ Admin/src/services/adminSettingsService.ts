@@ -5,15 +5,9 @@ import { apiClient } from "./apiClient";
 const STORAGE_KEY = "@signallq/admin_settings_v1";
 
 const REQUIRED_KEYS: (keyof ExtendedSettingsPayload)[] = [
-  "monthlyBudgetUsd",
-  "budgetAction",
-  "anonymizeIp",
-  "retentionDays",
-  "firebaseAnalyticsEnabled",
-  "maxAiTokensUserDaily",
-  "maxSpeedTestDataDailyMb",
-  "contextualAdsEnabled",
-  "contextualAdsCategories",
+  "aiDailyBudgetUsd",
+  "errorSpikeThreshold",
+  "criticalScoreThreshold",
 ];
 
 function isValidSettings(obj: unknown): obj is ExtendedSettingsPayload {
@@ -21,40 +15,19 @@ function isValidSettings(obj: unknown): obj is ExtendedSettingsPayload {
   return REQUIRED_KEYS.every((key) => key in (obj as object));
 }
 
-export interface ExtendedSettingsPayload extends AdminSettingsPayload {
-  monthlyBudgetUsd: number;
-  budgetAction: "block" | "alert" | "throttle";
-  anonymizeIp: boolean;
-  retentionDays: number;
-  // Advanced behavior & monetization properties
-  firebaseAnalyticsEnabled: boolean;
-  maxAiTokensUserDaily: number;
-  maxSpeedTestDataDailyMb: number;
-  contextualAdsEnabled: boolean;
-  contextualAdsCategories: string[];
-}
+// Mantido como alias por compatibilidade de import — o contrato de settings
+// hoje é só o AdminSettingsPayload (GH#426 removeu os campos decorativos).
+export type ExtendedSettingsPayload = AdminSettingsPayload;
 
-// GH#416: defaults operacionais reais do worker (mesmos valores documentados em
-// admin-api-schema.md para GET /admin/settings quando a tabela ainda está vazia).
-// Não é dado simulado — é o que o worker devolveria na primeira execução real.
+// GH#416: defaults operacionais reais do worker (mesmos fallbacks usados em
+// GET /admin/metrics/alerts quando a tabela `admin_settings` ainda está vazia —
+// ver AI_DAILY_BUDGET/ERROR_THRESHOLD/MIN_SCORE em index.ts).
+// Não é dado simulado — é o que o worker efetivamente aplica na primeira execução.
+// GH#426: contrato reduzido aos 3 campos com consumidor real (ver types/admin.ts).
 const defaultAdminSettings: ExtendedSettingsPayload = {
-  selectedDefaultAiModel: "cloudflare_qwen",
-  aiFallbackEnabled: true,
-  maxTokensPerDiagnostic: 4096,
-  speedtestIntervalSeconds: 1800,
-  androidLogsCollectionEnabled: true,
-  stagingAlertWebhookUrl: "",
-  productionAlertWebhookUrl: "",
-  cloudflareWorkerEndpoint: "",
-  monthlyBudgetUsd: 10,
-  budgetAction: "alert",
-  anonymizeIp: true,
-  retentionDays: 90,
-  firebaseAnalyticsEnabled: true,
-  maxAiTokensUserDaily: 50000,
-  maxSpeedTestDataDailyMb: 500,
-  contextualAdsEnabled: false,
-  contextualAdsCategories: [],
+  aiDailyBudgetUsd: 1.0,
+  errorSpikeThreshold: 10,
+  criticalScoreThreshold: 50,
 };
 
 export const adminSettingsService = {
