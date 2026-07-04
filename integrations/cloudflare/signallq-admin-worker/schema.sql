@@ -119,3 +119,14 @@ CREATE TABLE IF NOT EXISTS auth_rate_limit (
   count        INTEGER NOT NULL DEFAULT 0,
   window_start INTEGER NOT NULL
 );
+
+-- GH#417: analytics_events precisa do mesmo contexto de ambiente/dispositivo
+-- que diagnostic_sessions e ai_usage já têm — sem isso não dá pra calcular
+-- retenção (D1/D7/D30) nem segmentar por versão/canal/build.
+-- Aplicar via: migrations/008_gh417.sql (npx wrangler d1 execute --file=... --remote)
+ALTER TABLE analytics_events ADD COLUMN device_id    TEXT    DEFAULT '';
+ALTER TABLE analytics_events ADD COLUMN version_code INTEGER DEFAULT 0;
+ALTER TABLE analytics_events ADD COLUMN dist_channel TEXT    DEFAULT '';
+ALTER TABLE analytics_events ADD COLUMN build_type   TEXT    DEFAULT 'release';
+ALTER TABLE analytics_events ADD COLUMN duration_ms  INTEGER DEFAULT NULL; -- só em session_end
+CREATE INDEX IF NOT EXISTS idx_analytics_device_id ON analytics_events(device_id);

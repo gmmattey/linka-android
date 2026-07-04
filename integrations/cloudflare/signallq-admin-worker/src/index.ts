@@ -1502,6 +1502,13 @@ async function handleIngestAiUsage(request: Request, env: Env): Promise<Response
 
 // --- SIG-134: analytics de produto ---
 
+// GH#417: 'session_end' carrega duration_ms — é o único evento com essa métrica,
+// necessária para calcular tempo médio de sessão em #418. Sem esse evento, a
+// aba Produto & Uso não tem como reportar duração sem heurística inventada.
+const VALID_ANALYTICS_EVENTS = new Set([
+  'feature_used', 'screen_view', 'session_start', 'session_end', 'feature_crash', 'battery_snapshot',
+]);
+
 async function handleIngestAnalytics(request: Request, env: Env): Promise<Response> {
   let body: any;
   try { body = await request.json(); } catch { return err('body JSON inválido', 400, env); }
@@ -1510,18 +1517,24 @@ async function handleIngestAnalytics(request: Request, env: Env): Promise<Respon
   if (events.length === 0) return json({ ok: true, inserted: 0 }, 200, env);
   if (events.length > 500) return err('máximo 500 eventos por batch', 400, env);
 
-  const VALID_EVENTS = new Set(['feature_used', 'screen_view', 'session_start', 'feature_crash', 'battery_snapshot']);
   const now = nowSec();
 
+  // GH#417: id é responsabilidade do cliente (UUID gerado no momento do evento).
+  // Sem isso, um retry de rede reenviaria o mesmo batch e o INSERT OR IGNORE geraria
+  // linhas duplicadas (o id anterior era sempre aleatório no worker, então nunca
+  // colidia). Clientes antigos que não enviam `id` ainda funcionam (fallback abaixo),
+  // mas não são protegidos contra duplicação em retry — motivo para o app adotar
+  // id determinístico assim que a fila local (retry/backoff) for implementada.
   const stmts = events
-    .filter((e) => e && VALID_EVENTS.has(e.name))
+    .filter((e) => e && VALID_ANALYTICS_EVENTS.has(e.name))
     .map((e) =>
       env.DB.prepare(
         `INSERT OR IGNORE INTO analytics_events
-           (id, event_name, session_id, created_at, app_version, feature_id, screen_name, error_type, battery_level, battery_charging, environment)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+           (id, event_name, session_id, created_at, app_version, feature_id, screen_name, error_type,
+            battery_level, battery_charging, environment, device_id, version_code, dist_channel, build_type, duration_ms)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
-        crypto.randomUUID(),
+        typeof e.id === 'string' && e.id.length > 0 ? e.id : crypto.randomUUID(),
         e.name,
         e.session_id ?? '',
         typeof e.timestamp === 'number' ? e.timestamp : now,
@@ -1532,6 +1545,11 @@ async function handleIngestAnalytics(request: Request, env: Env): Promise<Respon
         typeof e.battery_level    === 'number' ? e.battery_level    : null,
         typeof e.battery_charging === 'boolean' ? (e.battery_charging ? 1 : 0) : null,
         e.environment ?? 'production',
+        e.device_id    ?? '',
+        typeof e.version_code === 'number' ? e.version_code : 0,
+        e.dist_channel ?? '',
+        e.build_type   ?? 'release',
+        typeof e.duration_ms === 'number' ? e.duration_ms : null,
       )
     );
 
