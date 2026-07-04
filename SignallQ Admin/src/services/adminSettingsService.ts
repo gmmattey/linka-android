@@ -11,15 +11,9 @@ export interface FeatureFlag {
 const STORAGE_KEY = "@signallq/admin_settings_v1";
 
 const REQUIRED_KEYS: (keyof ExtendedSettingsPayload)[] = [
-  "monthlyBudgetUsd",
-  "budgetAction",
-  "anonymizeIp",
-  "retentionDays",
-  "firebaseAnalyticsEnabled",
-  "maxAiTokensUserDaily",
-  "maxSpeedTestDataDailyMb",
-  "contextualAdsEnabled",
-  "contextualAdsCategories",
+  "aiDailyBudgetUsd",
+  "errorSpikeThreshold",
+  "criticalScoreThreshold",
 ];
 
 function isValidSettings(obj: unknown): obj is ExtendedSettingsPayload {
@@ -27,18 +21,9 @@ function isValidSettings(obj: unknown): obj is ExtendedSettingsPayload {
   return REQUIRED_KEYS.every((key) => key in (obj as object));
 }
 
-export interface ExtendedSettingsPayload extends AdminSettingsPayload {
-  monthlyBudgetUsd: number;
-  budgetAction: "block" | "alert" | "throttle";
-  anonymizeIp: boolean;
-  retentionDays: number;
-  // Advanced behavior & monetization properties
-  firebaseAnalyticsEnabled: boolean;
-  maxAiTokensUserDaily: number;
-  maxSpeedTestDataDailyMb: number;
-  contextualAdsEnabled: boolean;
-  contextualAdsCategories: string[];
-}
+// Mantido como alias por compatibilidade de import — o contrato de settings
+// hoje é só o AdminSettingsPayload (GH#426 removeu os campos decorativos).
+export type ExtendedSettingsPayload = AdminSettingsPayload;
 
 export const adminSettingsService = {
   /**

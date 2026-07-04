@@ -1,6 +1,6 @@
 # Admin API — Schema de Contratos
 
-**Última atualização:** 2026-06-24
+**Última atualização:** 2026-07-04 (GH#426 — contrato de settings reduzido aos campos com consumidor real)
 **Versão do worker:** 1.x (Cloudflare Worker — `signallq-admin-worker`)
 **Base URL (produção):** `https://signallq-admin-worker.veloo.workers.dev`
 **Configurada no frontend via:** `VITE_ADMIN_API_BASE_URL`
@@ -654,28 +654,21 @@ Inicia job de sincronização. Resposta imediata (fire-and-forget).
 
 Retorna as configurações salvas no D1 (tabela `admin_settings`, chave `'admin'`). Retorna `{}` se nunca configurado.
 
+**GH#426:** o contrato de settings foi reduzido aos únicos três campos com consumidor real
+no worker (lidos em `GET /admin/metrics/alerts`). Os demais campos que existiam antes
+(`selectedDefaultAiModel`, `aiFallbackEnabled`, `maxTokensPerDiagnostic`, `speedtestIntervalSeconds`,
+`androidLogsCollectionEnabled`, `stagingAlertWebhookUrl`, `productionAlertWebhookUrl`,
+`cloudflareWorkerEndpoint`, `monthlyBudgetUsd`, `budgetAction`, `anonymizeIp`, `retentionDays`,
+`firebaseAnalyticsEnabled`, `maxAiTokensUserDaily`, `maxSpeedTestDataDailyMb`,
+`contextualAdsEnabled`, `contextualAdsCategories`) eram persistidos no D1 mas nunca lidos por
+nenhum código do worker ou do app — foram removidos da UI e do contrato do frontend. Reintroduzir
+qualquer um deles exige, no mesmo PR, o código que efetivamente os consome.
+
 **Response 200:**
 ```json
 {
   "source": "d1",
   "settings": {
-    "selectedDefaultAiModel": "@cf/qwen/qwen3-30b-a3b-fp8-fast",
-    "aiFallbackEnabled": true,
-    "maxTokensPerDiagnostic": 4096,
-    "speedtestIntervalSeconds": 1800,
-    "androidLogsCollectionEnabled": true,
-    "stagingAlertWebhookUrl": "",
-    "productionAlertWebhookUrl": "",
-    "cloudflareWorkerEndpoint": "https://...",
-    "monthlyBudgetUsd": 10.0,
-    "budgetAction": "alert",
-    "anonymizeIp": true,
-    "retentionDays": 90,
-    "firebaseAnalyticsEnabled": true,
-    "maxAiTokensUserDaily": 50000,
-    "maxSpeedTestDataDailyMb": 500,
-    "contextualAdsEnabled": false,
-    "contextualAdsCategories": [],
     "aiDailyBudgetUsd": 1.0,
     "errorSpikeThreshold": 10,
     "criticalScoreThreshold": 50
@@ -683,17 +676,25 @@ Retorna as configurações salvas no D1 (tabela `admin_settings`, chave `'admin'
 }
 ```
 
+| Campo | Tipo | Consumidor real | Descrição |
+|---|---|---|---|
+| `aiDailyBudgetUsd` | number | `GET /admin/metrics/alerts` (`AI_DAILY_BUDGET`) | Custo de IA (USD) nas últimas 24h acima do qual dispara alerta crítico `AI_BUDGET` |
+| `errorSpikeThreshold` | integer | `GET /admin/metrics/alerts` (`ERROR_THRESHOLD`) | Erros na última hora acima do qual dispara alerta `ERROR_SPIKE` |
+| `criticalScoreThreshold` | integer (0-100) | `GET /admin/metrics/alerts` (`MIN_SCORE`) | Score médio nas últimas 24h abaixo do qual dispara alerta `LOW_SCORE` |
+
 ### POST /admin/settings
 
 Persiste o objeto completo de settings no D1. Substitui o registro anterior (`INSERT OR REPLACE`).
+Valida `aiDailyBudgetUsd` (número ≥ 0), `errorSpikeThreshold` (inteiro ≥ 1) e `criticalScoreThreshold`
+(inteiro entre 0 e 100) quando presentes no body — `400` caso contrário.
 
-**Request:** objeto JSON com qualquer subconjunto de campos do schema acima.
+**Request:** objeto JSON com qualquer subconjunto dos três campos do schema acima.
 
 **Response 200:**
 ```json
 {
   "ok": true,
-  "settings": { ... }
+  "settings": { "aiDailyBudgetUsd": 1.0, "errorSpikeThreshold": 10, "criticalScoreThreshold": 50 }
 }
 ```
 

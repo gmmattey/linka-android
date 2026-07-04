@@ -1297,6 +1297,27 @@ async function handleSettings(request: Request, env: Env): Promise<Response> {
       return err("body deve ser um objeto JSON", 400, env);
     }
 
+    // Validação dos limiares consumidos em GET /admin/metrics/alerts (GH#426).
+    const b = body as Record<string, unknown>;
+    if ("aiDailyBudgetUsd" in b) {
+      const v = b.aiDailyBudgetUsd;
+      if (typeof v !== "number" || !Number.isFinite(v) || v < 0) {
+        return err("aiDailyBudgetUsd deve ser um número >= 0", 400, env);
+      }
+    }
+    if ("errorSpikeThreshold" in b) {
+      const v = b.errorSpikeThreshold;
+      if (typeof v !== "number" || !Number.isInteger(v) || v < 1) {
+        return err("errorSpikeThreshold deve ser um inteiro >= 1", 400, env);
+      }
+    }
+    if ("criticalScoreThreshold" in b) {
+      const v = b.criticalScoreThreshold;
+      if (typeof v !== "number" || !Number.isInteger(v) || v < 0 || v > 100) {
+        return err("criticalScoreThreshold deve ser um inteiro entre 0 e 100", 400, env);
+      }
+    }
+
     await env.DB.prepare(
       "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('admin', ?, ?)"
     ).bind(JSON.stringify(body), nowSec()).run();

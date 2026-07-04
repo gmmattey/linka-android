@@ -1,11 +1,7 @@
 import React from "react";
 import { adminSettingsService, ExtendedSettingsPayload } from "../../services/adminSettingsService";
-import { AiProviderSettings } from "./components/AiProviderSettings";
 import { CostLimitSettings } from "./components/CostLimitSettings";
-import { DiagnosticPipelineSettings } from "./components/DiagnosticPipelineSettings";
-import { PrivacySettings } from "./components/PrivacySettings";
 import { IntegrationsSettings } from "./components/IntegrationsSettings";
-import { MonetizationSettings } from "./components/MonetizationSettings";
 import { FeatureFlagsSettings } from "./components/FeatureFlagsSettings";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { Settings, Save, CheckCircle2, RotateCcw, ShieldCheck, AlertTriangle } from "lucide-react";
@@ -113,7 +109,7 @@ export const SettingsPage: React.FC = () => {
           <Settings className="w-5 h-5 text-[var(--text-secondary)]" />
           <div>
             <h4 className="text-xs font-semibold font-sans text-[var(--text-secondary)] uppercase">Centro Operacional de Parâmetros</h4>
-            <p className="text-[10px] text-[var(--text-tertiary)] font-sans mt-0.5">Defina quotas, timeouts e destinos do pipeline de diagnósticos de RF.</p>
+            <p className="text-[10px] text-[var(--text-tertiary)] font-sans mt-0.5">Ajustes que efetivamente alteram o comportamento do worker de alertas ou de feature flags (GH#426).</p>
           </div>
         </div>
 
@@ -156,11 +152,7 @@ export const SettingsPage: React.FC = () => {
 
       {/* Grid configuration panels layouts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-sans text-xs">
-        <AiProviderSettings settings={settings} onChange={handleUpdate} />
         <CostLimitSettings settings={settings} onChange={handleUpdate} />
-        <DiagnosticPipelineSettings settings={settings} onChange={handleUpdate} />
-        <PrivacySettings settings={settings} onChange={handleUpdate} />
-        <MonetizationSettings settings={settings} onChange={handleUpdate} />
         <IntegrationsSettings />
       </div>
 
