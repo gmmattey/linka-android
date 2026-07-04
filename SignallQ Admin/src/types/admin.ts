@@ -4,12 +4,17 @@ export interface SystemErrorLog {
   id: string;
   timestamp: string;
   source: "worker" | "android_app" | "analytics_db" | "ai_gateway";
+  // GH#422: categoria por camada — opcional para não quebrar mocks antigos.
+  category?: "app" | "backend" | "ia" | "integration";
   message: string;
   stackTrace?: string;
   count: number;
   environment: AppEnvironment;
   resolved: boolean;
   affectedUserCount: number;
+  resolvedBy?: string;
+  resolvedAt?: string | null;
+  resolutionNote?: string;
 }
 
 export interface AppVersionDetail {
