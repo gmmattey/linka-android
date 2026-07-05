@@ -84,6 +84,8 @@ Nao-negociaveis:
 
 Referencia rapida de tokens: `.claude/skills/linka-design/HANDOFF_README.md`.
 
+**Design Context (skill impeccable):** `PRODUCT.md` e `DESIGN.md` na raiz do repo formalizam esse mesmo sistema no formato impeccable/DESIGN.md spec (register: product; North Star "The Calm Translator"). Consultar antes de rodar `/impeccable craft|critique|audit|polish` em qualquer tela.
+
 ---
 
 ## Release Process
