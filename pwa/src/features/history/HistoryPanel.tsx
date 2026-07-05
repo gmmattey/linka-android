@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { AppShell, Button, HistoryTable, Icon, TopAppBar } from '@/design-system';
+import { Button, HistoryTable, Icon } from '@/design-system';
 import type { HistoryTableRow } from '@/design-system';
 import { qualityLabel, qualityLevelFromQuality, stabilityLabel } from '@/shared/verdict';
 import type { HistoryState } from './historyTypes';
@@ -11,13 +11,6 @@ interface HistoryPanelProps {
   onStartTest?: () => void;
   state: HistoryState;
 }
-
-const NAV_ITEMS = [
-  { href: '#/home', label: 'Início' },
-  { href: '#/historico', label: 'Histórico' },
-  { href: '#/ajustes', label: 'Ajustes' },
-  { href: '#/sobre', label: 'Sobre' },
-];
 
 export function HistoryPanel({ onBack, onClear, onOpenEntry, onStartTest, state }: HistoryPanelProps) {
   const rows: HistoryTableRow[] = useMemo(
@@ -34,31 +27,23 @@ export function HistoryPanel({ onBack, onClear, onOpenEntry, onStartTest, state 
     [state.entries],
   );
 
+  const stableShare = useMemo(() => {
+    if (state.entries.length === 0) return null;
+    const stableCount = state.entries.filter((entry) => entry.diagnosis.stability === 'stable').length;
+    return Math.round((stableCount / state.entries.length) * 100);
+  }, [state.entries]);
+
   return (
-    <AppShell
-      header={
-        <TopAppBar
-          actions={
-            <Button disabled={rows.length === 0} icon={<Icon name="delete_sweep" size={16} />} onClick={onClear} variant="danger-outline">
-              Limpar histórico
-            </Button>
-          }
-          activeHref="#/historico"
-          mobileAction={
-            <button aria-label="Limpar histórico" className="sq-icon-button" disabled={rows.length === 0} onClick={onClear} type="button">
-              <Icon name="delete_sweep" size={19} style={{ color: 'var(--error)' }} />
-            </button>
-          }
-          mobileMode="back"
-          mobileTitle="Histórico"
-          navItems={NAV_ITEMS}
-          onMobileBack={onBack}
-        />
-      }
-      maxWidth={920}
-    >
-      <section aria-label="Histórico local" className="sq-history-screen">
-        <h1 className="sq-visually-hidden">Histórico</h1>
+    <div className="sq-velocidade-screen">
+      <div className="sq-history-screen">
+        <div className="sq-screen-topline">
+          <button aria-label="Voltar" className="sq-icon-button" onClick={onBack} type="button">
+            <Icon name="arrow_back" size={22} />
+          </button>
+          <Button disabled={rows.length === 0} icon={<Icon name="delete_sweep" size={16} />} onClick={onClear} variant="danger-outline">
+            Limpar
+          </Button>
+        </div>
 
         {state.status === 'loading' ? <p aria-live="polite" className="sq-history-panel__message">Carregando histórico local...</p> : null}
 
@@ -83,13 +68,19 @@ export function HistoryPanel({ onBack, onClear, onOpenEntry, onStartTest, state 
 
         {rows.length > 0 ? (
           <>
-            <h2 className="sq-history-screen__title">
+            {stableShare != null ? (
+              <div className="sq-history-screen__summary body-medium">
+                Sua internet ficou <b style={{ color: 'var(--success)' }}>estável em {stableShare}%</b> das últimas{' '}
+                {state.entries.length} {state.entries.length === 1 ? 'medição' : 'medições'} salvas neste navegador.
+              </div>
+            ) : null}
+            <span className="overline sq-history-screen__title">
               {rows.length} {rows.length === 1 ? 'teste salvo' : 'testes salvos'}
-            </h2>
+            </span>
             <HistoryTable onOpen={onOpenEntry} rows={rows} />
           </>
         ) : null}
-      </section>
-    </AppShell>
+      </div>
+    </div>
   );
 }

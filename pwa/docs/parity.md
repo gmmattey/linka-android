@@ -97,6 +97,15 @@ Regras:
 
 A única ressalva obrigatória é terminológica: browser não faz ICMP real. Se a métrica for latência HTTP, a UI deve chamar de latência, não de ping ICMP.
 
+**Veredito por caso de uso (streaming/jogos/chamada de vídeo):** portado de
+`SpeedtestQualityClassifier.classificarQualidade` (Android) para
+`pwa/shared/usageVerdicts.ts` (`classifyUsageVerdicts`), com os mesmos
+limiares de download/upload/latência/jitter/perda de pacotes. Exibido na tela
+de resultado só quando download, upload, latência e jitter foram
+efetivamente medidos — nunca com um valor ausente tratado como zero. Sem
+bufferbloat (não medido no browser), então `gargaloPrimario` do Android não
+tem equivalente no PWA ainda.
+
 ### DNS
 
 Status alvo inicial: `n/a-browser` para benchmark real.

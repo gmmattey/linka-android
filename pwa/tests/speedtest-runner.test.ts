@@ -11,7 +11,10 @@ function jsonResponse(body: unknown, ok = true): Response {
 
 function byteResponse(bytes: number, ok = true): Response {
   return new Response(new Uint8Array(bytes), {
-    headers: { 'Content-Type': 'application/octet-stream' },
+    // Header exclusivo do endpoint real de download (ver createDownloadResponse em
+    // functions/_modules/speedtest.ts) — o runner valida a presenca dele antes de
+    // confiar no tamanho da resposta, entao o mock precisa reproduzi-lo.
+    headers: { 'Content-Type': 'application/octet-stream', 'X-SignallQ-Speedtest-Bytes': String(bytes) },
     status: ok ? 200 : 500,
   });
 }

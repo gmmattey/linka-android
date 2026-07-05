@@ -78,7 +78,10 @@ npm install
 npm run dev
 ```
 
-Para validar também as Cloudflare Pages Functions (`/api/*`):
+**Atenção:** `npm run dev` não serve as Cloudflare Pages Functions em `/api/*`
+— a medição de velocidade não vai funcionar de verdade nesse modo (o runner
+detecta a resposta errada e mostra "não foi possível medir", não um número
+inventado). Para testar a medição de ponta a ponta, use sempre `pages:dev`:
 
 ```powershell
 npm run pages:dev

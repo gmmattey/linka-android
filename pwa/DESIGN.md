@@ -217,7 +217,8 @@ Botões, cards e badges devem parecer diretos e confiáveis, sem enfeite: formas
 - Escala compartilha `--radius-input: 12px` com botões; nenhum componente de input dedicado foi identificado no scan atual além de controles de formulário nativos estilizados pelo token de radius.
 
 ### Navigation
-- **TopAppBar:** fixo no topo, fundo combina `--glow-accent` (glow violeta sutil) sobre `--bg-secondary`, borda inferior `--border`. Desktop: 64px, item ativo em `--accent` semibold com indicador de 18×2px. Mobile (≤860px): 54px, três modos (brand / title com truncamento / back com seta).
+- **Telas primárias (Velocidade, Histórico, Ajustes): sem navbar e sem título de tela no header.** Decisão de produto (2026-07-04): a tela inicial é a própria medição de velocidade, e a navegação entre telas acontece por ação de conteúdo — botão "Medir", linhas de ação (Histórico/Ajustes/Sobre) na tela de Velocidade, seta de voltar simples (`sq-screen-topline`) em Histórico/Ajustes, e "Ir para o início"/"Testar novamente" no Resultado. Sem chrome fixo disputando espaço com o conteúdo.
+- **TopAppBar:** mantido só nas telas ainda não redesenhadas (Sobre, Detalhe de teste, Laudo). Fixo no topo, fundo combina `--glow-accent` (glow violeta sutil) sobre `--bg-secondary`, borda inferior `--border`. Desktop: 64px, item ativo em `--accent` semibold com indicador de 18×2px. Mobile (≤860px): 54px, três modos (brand / title com truncamento / back com seta). Não usar em telas novas — ver acima.
 - **SettingsMenuItem:** linha de largura total, padding `16px 24px`, borda inferior `--border` (removida no último item), ícone líder colorido por variante (`accent`/`error`/`text-tertiary`), chevron à direita por padrão.
 
 ### ProgressRing (componente de assinatura)

@@ -7,9 +7,6 @@ import { AboutScreen } from '@/features/about/AboutScreen';
 import { HistoryPanel } from '@/features/history/HistoryPanel';
 import type { HistoryState } from '@/features/history/historyTypes';
 import { TestDetailScreen } from '@/features/history/TestDetailScreen';
-import { HomeScreen } from '@/features/home/HomeScreen';
-import type { HomeScreenLatestResult } from '@/features/home/HomeScreen';
-import { LandingScreen } from '@/features/landing/LandingScreen';
 import { getLocalReport } from '@/features/report/reportRepository';
 import { ReportPage } from '@/features/report/ReportPage';
 import type { Report } from '@/features/report/reportTypes';
@@ -18,6 +15,8 @@ import { SettingsPanel } from '@/features/settings/SettingsPanel';
 import { runSpeedTestWeb } from '@/features/speedtest/speedTestRunner';
 import { SpeedTestScreen } from '@/features/speedtest/SpeedTestScreen';
 import type { SpeedTestProgress, SpeedTestRunStatus } from '@/features/speedtest/speedTestTypes';
+import { VelocidadeIdleScreen } from '@/features/speedtest/VelocidadeIdleScreen';
+import type { SpeedTestMode, VelocidadeLatestResult } from '@/features/speedtest/VelocidadeIdleScreen';
 import { sendAdminDiagnostic } from '@/services/api';
 import { InstallPromptBanner } from '@/shared/components/InstallPromptBanner';
 import {
@@ -82,6 +81,7 @@ export function App() {
   );
   const [installPromptIsEligible, setInstallPromptIsEligible] = useState(false);
   const [installPromptIsPrompting, setInstallPromptIsPrompting] = useState(false);
+  const [mode, setMode] = useState<SpeedTestMode>('completo');
   const [progress, setProgress] = useState<SpeedTestProgress | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -211,6 +211,7 @@ export function App() {
       const run = await runSpeedTestWeb({
         onProgress: setProgress,
         signal: abortController.signal,
+        skipUpload: mode === 'rapido',
       });
 
       setStatus(run.status);
@@ -319,7 +320,7 @@ export function App() {
     />
   ) : null;
 
-  const latest: HomeScreenLatestResult | null = useMemo(() => {
+  const latest: VelocidadeLatestResult | null = useMemo(() => {
     const source = result && diagnosis ? { createdAt: new Date().toISOString(), diagnosis, speedTest: result } : historyState.entries[0];
     if (!source) return null;
     return {
@@ -331,14 +332,6 @@ export function App() {
       uploadLabel: source.speedTest.upload.mbps != null ? `${source.speedTest.upload.mbps.toFixed(0)} Mbps` : '--',
     };
   }, [result, diagnosis, historyState.entries]);
-
-  if (route.kind === 'landing') {
-    return (
-      <ThemeProvider mode={themeMode}>
-        <LandingScreen onOpenAbout={goAbout} onStartTest={startTest} />
-      </ThemeProvider>
-    );
-  }
 
   if (route.kind === 'speedtest') {
     return (
@@ -352,7 +345,13 @@ export function App() {
     if (!result) return null;
     return (
       <ThemeProvider mode={themeMode}>
-        <ResultScreen diagnosis={diagnosis} onCopyLink={() => void copyReportLink(result.id)} onRetry={startTest} result={result} />
+        <ResultScreen
+          diagnosis={diagnosis}
+          onCopyLink={() => void copyReportLink(result.id)}
+          onGoHome={goHome}
+          onRetry={startTest}
+          result={result}
+        />
       </ThemeProvider>
     );
   }
@@ -424,12 +423,14 @@ export function App() {
   return (
     <ThemeProvider mode={themeMode}>
       {installBanner}
-      <HomeScreen
+      <VelocidadeIdleScreen
         historyCount={historyState.entries.length}
         latest={latest}
+        mode={mode}
         onOpenAbout={goAbout}
         onOpenHistory={openHistory}
         onOpenSettings={openSettings}
+        onSetMode={setMode}
         onStartTest={startTest}
       />
     </ThemeProvider>

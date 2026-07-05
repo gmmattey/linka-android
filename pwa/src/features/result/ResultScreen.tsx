@@ -1,20 +1,37 @@
 import type { DiagnosisResult, SpeedTestResult } from '@shared/contracts';
-import { AppShell, Button, Icon, LimitationsCard, RecommendationList, StatusCard, TopAppBar } from '@/design-system';
+import { Icon, LimitationsCard, RecommendationList } from '@/design-system';
 import type { RecommendationListItem } from '@/design-system';
 import { metricVerdict, statusTitle, verdictFromQuality } from '@/shared/verdict';
+import { classifyUsageVerdicts, type UsageVerdict } from '@shared/usageVerdicts';
 
 interface ResultScreenProps {
   diagnosis: DiagnosisResult | null;
   onCopyLink: () => void;
+  onGoHome: () => void;
   onRetry: () => void;
   result: SpeedTestResult;
 }
 
-export function ResultScreen({ diagnosis, onCopyLink, onRetry, result }: ResultScreenProps) {
+const VERDICT_LABEL: Record<UsageVerdict, string> = { good: 'Ótimo', acceptable: 'Bom', poor: 'Fraco' };
+const VERDICT_COLOR: Record<UsageVerdict, string> = { good: 'var(--success)', acceptable: 'var(--success)', poor: 'var(--error)' };
+
+export function ResultScreen({ diagnosis, onCopyLink, onGoHome, onRetry, result }: ResultScreenProps) {
   const ping = metricVerdict(result.latency.ms, 80, 150, true);
   const jitter = metricVerdict(result.jitter.ms, 20, 40, true);
   const download = metricVerdict(result.download.mbps, 10, 3, false);
   const upload = metricVerdict(result.upload.mbps, 5, 1, false);
+  const loss = metricVerdict(result.availability.perceivedLossPercent, 1, 3, true);
+
+  const usage =
+    result.download.mbps != null && result.upload.mbps != null && result.latency.ms != null && result.jitter.ms != null
+      ? classifyUsageVerdicts({
+          downloadMbps: result.download.mbps,
+          uploadMbps: result.upload.mbps,
+          latencyMs: result.latency.ms,
+          jitterMs: result.jitter.ms,
+          packetLossPercent: result.availability.perceivedLossPercent ?? 0,
+        })
+      : null;
 
   const recommendations: RecommendationListItem[] =
     diagnosis?.actions.slice(0, 3).map((action) => ({
@@ -32,93 +49,90 @@ export function ResultScreen({ diagnosis, onCopyLink, onRetry, result }: ResultS
     })) ?? [];
 
   return (
-    <AppShell
-      header={
-        <TopAppBar
-          actions={
-            <>
-              <Button icon={<Icon name="bookmark_add" size={16} />} onClick={onCopyLink} variant="outline">
-                Salvar
-              </Button>
-              <Button icon={<Icon name="refresh" size={16} />} onClick={onRetry}>
-                Refazer
-              </Button>
-            </>
-          }
-          mobileAction={
-            <>
-              <button aria-label="Salvar" className="sq-icon-button" onClick={onCopyLink} type="button">
-                <Icon name="bookmark_add" size={19} />
-              </button>
-              <button aria-label="Refazer" className="sq-icon-button sq-icon-button--accent" onClick={onRetry} type="button">
-                <Icon name="refresh" size={19} />
-              </button>
-            </>
-          }
-          mobileMode="back"
-          mobileTitle="Resultado"
-          onMobileBack={onRetry}
-        />
-      }
-      maxWidth={800}
-    >
+    <div className="sq-velocidade-screen">
       <div className="sq-result-screen">
-        <StatusCard
-          description={diagnosis?.summary ?? 'Medimos download, upload, latência e estabilidade da sua conexão pelo navegador.'}
-          title={statusTitle(diagnosis?.quality)}
-          verdict={verdictFromQuality(diagnosis?.quality)}
-        />
-
-        <div className="sq-result-screen__context">
-          <Icon name="wifi" size={15} />
-          <span>
-            Via navegador
-            {result.connection.effectiveType ? ` · Conexão ${result.connection.effectiveType}` : ''}
-          </span>
+        <div className="sq-result-screen__status">
+          <h1 className={`headline-medium sq-result-screen__title sq-result-screen__title--${verdictFromQuality(diagnosis?.quality)}`}>
+            {statusTitle(diagnosis?.quality)}
+          </h1>
+          <p className="body-medium" style={{ color: 'var(--text-secondary)' }}>
+            {diagnosis?.summary ?? 'Medimos download, upload, latência e estabilidade da sua conexão pelo navegador.'}
+          </p>
+          <div className="sq-result-screen__context">
+            <Icon name="wifi" size={13} />
+            <span>
+              Via navegador
+              {result.connection.effectiveType ? ` · Conexão ${result.connection.effectiveType}` : ''}
+            </span>
+          </div>
         </div>
 
-        <div className="sq-metrics-card">
-          <div className="sq-metrics-card__item">
-            <span className="overline">Ping</span>
-            <strong>
-              {result.latency.ms ?? '--'}
-              <span> ms</span>
-            </strong>
-            <span className="label-small" style={{ color: ping.color }}>
-              {ping.label}
-            </span>
-          </div>
-          <div className="sq-metrics-card__item">
-            <span className="overline">Jitter</span>
-            <strong>
-              {result.jitter.ms ?? '--'}
-              <span> ms</span>
-            </strong>
-            <span className="label-small" style={{ color: jitter.color }}>
-              {jitter.label}
-            </span>
-          </div>
+        <div className="sq-metrics-card sq-metrics-card--grid">
           <div className="sq-metrics-card__item">
             <span className="overline">Download</span>
             <strong style={{ color: download.color }}>
-              {result.download.mbps?.toFixed(0) ?? '--'}
+              {result.download.mbps?.toFixed(1) ?? '--'}
               <span> Mbps</span>
             </strong>
-            <span className="label-small" style={{ color: download.color }}>
-              {download.label}
-            </span>
           </div>
           <div className="sq-metrics-card__item">
             <span className="overline">Upload</span>
             <strong style={{ color: upload.color }}>
-              {result.upload.mbps?.toFixed(0) ?? '--'}
+              {result.upload.mbps?.toFixed(1) ?? '--'}
               <span> Mbps</span>
             </strong>
-            <span className="label-small" style={{ color: upload.color }}>
-              {upload.label}
-            </span>
+          </div>
+          <div className="sq-metrics-card__item">
+            <span className="overline">Latência</span>
+            <strong style={{ color: ping.color }}>
+              {result.latency.ms ?? '--'}
+              <span> ms</span>
+            </strong>
+          </div>
+          <div className="sq-metrics-card__item">
+            <span className="overline">Jitter</span>
+            <strong style={{ color: jitter.color }}>
+              {result.jitter.ms ?? '--'}
+              <span> ms</span>
+            </strong>
+          </div>
+          <div className="sq-metrics-card__item">
+            <span className="overline">Perda</span>
+            <strong style={{ color: loss.color }}>
+              {result.availability.perceivedLossPercent != null ? result.availability.perceivedLossPercent.toFixed(1) : '--'}
+              <span> %</span>
+            </strong>
           </div>
         </div>
+
+        {usage ? (
+          <div className="sq-result-screen__usage">
+            <span className="overline">Experiência de uso</span>
+            <div className="sq-usage-list">
+              <div className="sq-usage-list__row">
+                <Icon name="tv" size={20} style={{ color: 'var(--text-secondary)' }} />
+                <span className="body-medium">Streaming 4K</span>
+                <span className="label-small" style={{ color: VERDICT_COLOR[usage.streaming], fontWeight: 700 }}>
+                  {VERDICT_LABEL[usage.streaming]}
+                </span>
+              </div>
+              <div className="sq-usage-list__row">
+                <Icon name="sports_esports" size={20} style={{ color: 'var(--text-secondary)' }} />
+                <span className="body-medium">Jogos online</span>
+                <span className="label-small" style={{ color: VERDICT_COLOR[usage.gaming], fontWeight: 700 }}>
+                  {VERDICT_LABEL[usage.gaming]}
+                </span>
+              </div>
+              <div className="sq-usage-list__row">
+                <Icon name="videocam" size={20} style={{ color: 'var(--text-secondary)' }} />
+                <span className="body-medium">Chamada de vídeo</span>
+                <span className="label-small" style={{ color: VERDICT_COLOR[usage.videoCall], fontWeight: 700 }}>
+                  {VERDICT_LABEL[usage.videoCall]}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {recommendations.length > 0 ? <RecommendationList items={recommendations} /> : null}
 
@@ -128,7 +142,21 @@ export function ResultScreen({ diagnosis, onCopyLink, onRetry, result }: ResultS
             tone={diagnosis.quality === 'good' ? 'neutral' : 'warning'}
           />
         ) : null}
+
+        <div className="sq-result-screen__actions">
+          <button className="sq-button sq-button--primary" onClick={onRetry} type="button">
+            <Icon name="refresh" size={18} />
+            <span>Testar novamente</span>
+          </button>
+          <button className="sq-button sq-button--outline" onClick={onCopyLink} type="button">
+            <Icon name="bookmark_add" size={18} />
+            <span>Salvar laudo</span>
+          </button>
+          <button className="sq-button sq-button--text" onClick={onGoHome} type="button">
+            <span>Ir para o início</span>
+          </button>
+        </div>
       </div>
-    </AppShell>
+    </div>
   );
 }

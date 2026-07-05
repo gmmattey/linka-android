@@ -285,6 +285,11 @@ async function measureDownload(
           options.signal,
         );
         if (!response.ok) throw new Error('download_failed');
+        // Confirma que a resposta veio do endpoint real de speedtest (header exclusivo dele),
+        // e nao de um fallback de SPA/proxy que devolve 200 com outro conteudo (ex: `vite dev`
+        // sem o backend de Functions) — sem isso o tamanho de um HTML pequeno seria contado
+        // como throughput real e geraria uma medicao de download totalmente errada.
+        if (!response.headers.has('X-SignallQ-Speedtest-Bytes')) throw new Error('download_failed');
         const buffer = await response.arrayBuffer();
         const elapsed = now() - startedAt;
         bytesTotal += buffer.byteLength;
@@ -377,8 +382,15 @@ async function measureUpload(
         );
         if (!response.ok) throw new Error('upload_failed');
 
+        // `data === null` significa que a resposta nao era o JSON esperado do endpoint real
+        // (ex: fallback de SPA/proxy devolvendo 200 com HTML). Nesse caso a requisicao deve
+        // contar como falha, nunca assumir que o payload enviado foi recebido por completo.
         const data = (await response.json().catch(() => null)) as UploadResponse | null;
-        const receivedBytes = data?.receivedBytes ?? payload.byteLength;
+        if (!data || typeof data.receivedBytes !== 'number') {
+          failedRequests += 1;
+          continue;
+        }
+        const receivedBytes = data.receivedBytes;
         if (receivedBytes <= 0) {
           failedRequests += 1;
           continue;

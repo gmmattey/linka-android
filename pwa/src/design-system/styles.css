@@ -1001,98 +1001,6 @@
 }
 
 /* ============================================================================
-   ProgressRing
-   ============================================================================ */
-.sq-progress-ring {
-  display: grid;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  place-items: center;
-}
-
-.sq-progress-ring__inner {
-  display: grid;
-  gap: 2px;
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  background: var(--bg-primary);
-  justify-items: center;
-  align-content: center;
-}
-
-.sq-progress-ring__inner strong {
-  font: 700 66px/1 var(--font-sans);
-  color: var(--text-primary);
-}
-
-.sq-progress-ring__unit {
-  font: 500 15px/1 var(--font-sans);
-  color: var(--text-secondary);
-}
-
-.sq-progress-ring__caption {
-  display: flex;
-  gap: var(--space-sm);
-  align-items: center;
-  margin-top: var(--space-sm);
-}
-
-/* ============================================================================
-   StepTracker
-   ============================================================================ */
-.sq-step-tracker {
-  display: flex;
-  gap: var(--space-md);
-  align-items: center;
-}
-
-.sq-step-tracker__item {
-  display: inline-flex;
-  gap: var(--space-sm);
-  align-items: center;
-  padding: var(--space-sm) var(--space-lg);
-  border: 1px solid transparent;
-  border-radius: var(--radius-pill);
-  background: var(--bg-card);
-  font: 600 13px/1 var(--font-sans);
-}
-
-.sq-step-tracker__item--done {
-  border-color: color-mix(in srgb, var(--success) 45%, transparent);
-  background: color-mix(in srgb, var(--success) 16%, var(--bg-card));
-  color: var(--success);
-}
-
-.sq-step-tracker__item--active {
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  background: color-mix(in srgb, var(--accent) 18%, var(--bg-card));
-  color: var(--accent);
-  font-weight: var(--weight-bold);
-}
-
-.sq-step-tracker__item--pending {
-  border-color: var(--border);
-  color: var(--text-secondary);
-  font-weight: var(--weight-medium);
-}
-
-.sq-step-tracker__label {
-  display: inline-flex;
-  gap: var(--space-sm);
-  align-items: center;
-}
-
-.sq-step-tracker__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: sq-pulse 1.2s ease-in-out infinite;
-}
-
-/* ============================================================================
    HistoryTable (desktop) + HistoryCards (mobile)
    ============================================================================ */
 .sq-history-table {
@@ -1371,19 +1279,6 @@
   }
 }
 
-@keyframes sq-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.85);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 @keyframes sq-spin {
   to {
     transform: rotate(1turn);
@@ -1620,63 +1515,53 @@
 }
 
 /* ============================================================================
-   LandingScreen
+   sq-velocidade-screen — wrapper de página compartilhado pelas telas novas
+   (Velocidade idle/medindo/resultado, Histórico, Ajustes). Sem navbar/topbar:
+   substitui o AppShell+TopAppBar para essas telas (ver CLAUDE.md do PWA).
    ============================================================================ */
-.sq-landing-link {
-  border: 0;
-  background: transparent;
-  color: var(--text-secondary);
-  font: 500 14px/1.4 var(--font-sans);
-  text-decoration: none;
-  cursor: pointer;
+.sq-velocidade-screen {
+  min-height: 100vh;
 }
 
-.sq-landing {
+.sq-velocidade-screen > * {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg) var(--space-xxl);
+}
+
+.sq-screen-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+/* ============================================================================
+   VelocidadeIdleScreen — arco de medir + modos + último resultado
+   ============================================================================ */
+.sq-velocidade-idle {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: var(--space-xxl);
+  gap: var(--space-lg);
   text-align: center;
 }
 
-.sq-landing__title {
-  max-width: 640px;
-  margin: var(--space-md) 0 0;
-  font: 700 38px/1.1 var(--font-sans);
-  color: var(--text-primary);
-  letter-spacing: -0.8px;
+.sq-velocidade-idle__cta-wrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-md) 0 var(--space-xs);
 }
 
-.sq-landing__lead {
-  max-width: 480px;
-  margin-top: var(--space-md);
-  font-size: 16px;
-}
-
-.sq-landing__server-pill,
-.sq-home-screen__server-pill {
-  display: inline-flex;
-  gap: var(--space-sm);
-  align-items: center;
-  margin-top: var(--space-lg);
-  padding: var(--space-sm) var(--space-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  font: 500 12px/1 var(--font-sans);
-}
-
-.sq-landing__cta,
-.sq-home-screen__cta {
+.sq-velocidade-idle__cta {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  width: 218px;
-  height: 218px;
-  margin-top: var(--space-lg);
+  width: 222px;
+  height: 222px;
   border: 0;
   border-radius: 50%;
   background: var(--accent);
@@ -1688,49 +1573,19 @@
   cursor: pointer;
 }
 
-.sq-home-screen__cta {
-  width: 222px;
-  height: 222px;
-}
-
-.sq-landing__hint,
-.sq-home-screen__hint {
-  margin-top: var(--space-sm);
-  color: var(--text-secondary);
-}
-
-.sq-landing__benefits {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
-  justify-content: center;
-  margin-top: var(--space-lg);
-}
-
-.sq-landing__benefit {
-  display: inline-flex;
-  gap: var(--space-sm);
-  align-items: center;
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-pill);
-  background: var(--bg-secondary);
-  font: 500 13px/1 var(--font-sans);
-  color: var(--text-secondary);
-}
-
-/* ============================================================================
-   HomeScreen
-   ============================================================================ */
-.sq-home-screen {
+.sq-velocidade-idle__modes {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-lg);
-  padding-top: var(--space-lg);
-  text-align: center;
+  gap: var(--space-sm);
+  width: 100%;
 }
 
-.sq-home-screen__result-card {
+.sq-velocidade-idle__mode-hint {
+  color: var(--text-secondary);
+}
+
+.sq-velocidade-idle__result-card {
   width: 100%;
   padding: var(--space-xl) var(--space-xxl);
   border: 1px solid var(--border);
@@ -1739,32 +1594,32 @@
   text-align: left;
 }
 
-.sq-home-screen__empty-card {
+.sq-velocidade-idle__empty-card {
   width: 100%;
   padding: var(--space-lg) 0;
 }
 
-.sq-home-screen__result-header {
+.sq-velocidade-idle__result-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-md);
 }
 
-.sq-home-screen__result-grid {
+.sq-velocidade-idle__result-grid {
   display: flex;
 }
 
-.sq-home-screen__result-grid > div {
+.sq-velocidade-idle__result-grid > div {
   flex: 1;
   text-align: center;
 }
 
-.sq-home-screen__result-grid > div + div {
+.sq-velocidade-idle__result-grid > div + div {
   border-left: 1px solid var(--border);
 }
 
-.sq-home-screen__result-label {
+.sq-velocidade-idle__result-label {
   display: block;
   margin-bottom: var(--space-xs);
   color: var(--text-secondary);
@@ -1772,18 +1627,18 @@
   letter-spacing: 0.3px;
 }
 
-.sq-home-screen__result-value {
+.sq-velocidade-idle__result-value {
   font: 700 23px/1 var(--font-sans);
   color: var(--text-primary);
 }
 
-.sq-home-screen__empty-card p {
+.sq-velocidade-idle__empty-card p {
   margin: 0;
   color: var(--text-secondary);
   text-align: center;
 }
 
-.sq-home-screen__action-row {
+.sq-velocidade-idle__action-row {
   display: flex;
   gap: var(--space-md);
   align-items: center;
@@ -1796,7 +1651,7 @@
   cursor: pointer;
 }
 
-.sq-home-screen__action-row-icon {
+.sq-velocidade-idle__action-row-icon {
   display: grid;
   flex: none;
   place-items: center;
@@ -1807,7 +1662,7 @@
   color: var(--accent);
 }
 
-.sq-home-screen__action-row-text {
+.sq-velocidade-idle__action-row-text {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -1815,73 +1670,87 @@
   min-width: 0;
 }
 
-.sq-home-screen__action-row-text strong {
+.sq-velocidade-idle__action-row-text strong {
   font: 600 13px/1 var(--font-sans);
   color: var(--text-primary);
 }
 
-.sq-home-screen__action-row .sq-icon {
+.sq-velocidade-idle__action-row .sq-icon {
   color: var(--text-tertiary);
 }
 
+@media (max-width: 860px) {
+  .sq-velocidade-idle__cta {
+    width: 168px;
+    height: 168px;
+    font-size: 18px;
+  }
+}
+
 /* ============================================================================
-   SpeedTestScreen
+   SpeedTestScreen — medição em andamento (anel por fase + cronômetro real)
    ============================================================================ */
-.sq-speedtest-screen {
+.sq-velocidade-running {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-xl);
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 160px);
   text-align: center;
 }
 
-.sq-progress-ring__pulse {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: var(--space-sm);
-  border-radius: 50%;
-  background: var(--accent);
-  animation: sq-pulse 1.2s ease-in-out infinite;
+.sq-velocidade-running__ring-wrap {
+  position: relative;
+  width: 240px;
+  height: 240px;
 }
 
-@media (max-width: 860px) {
-  .sq-landing__title {
-    font-size: 25px;
-  }
+.sq-velocidade-running__ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
 
-  .sq-landing__cta,
-  .sq-home-screen__cta {
-    width: 140px;
-    height: 140px;
-    margin-top: var(--space-sm);
-    font-size: 17px;
-  }
+.sq-velocidade-running__ring-center strong {
+  font: 700 40px/1 var(--font-sans);
+}
 
-  .sq-home-screen__cta {
-    width: 144px;
-    height: 144px;
-  }
+.sq-velocidade-running__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+}
 
-  .sq-landing {
-    padding-top: var(--space-xl);
-  }
+.sq-velocidade-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  font: 600 11px/1 var(--font-sans);
+  letter-spacing: 0.3px;
+}
 
-  .sq-landing__server-pill,
-  .sq-home-screen__server-pill {
-    margin-top: var(--space-sm);
-  }
+.sq-velocidade-chip--active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
 
-  .sq-landing__hint,
-  .sq-home-screen__hint {
-    margin-top: var(--space-xs);
-  }
+.sq-velocidade-chip--done {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+}
 
-  .sq-landing__benefits {
-    margin-top: var(--space-sm);
-  }
+.sq-velocidade-running__hint {
+  color: var(--text-secondary);
 }
 
 /* ============================================================================
@@ -1892,6 +1761,94 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+}
+
+.sq-result-screen__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+}
+
+.sq-result-screen__title--good {
+  color: var(--success);
+}
+
+.sq-result-screen__title--attention {
+  color: var(--warning);
+}
+
+.sq-result-screen__title--bad {
+  color: var(--error);
+}
+
+.sq-metrics-card--grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sq-metrics-card--grid .sq-metrics-card__item:nth-child(2n) {
+  border-left: 1px solid var(--border);
+}
+
+.sq-metrics-card--grid .sq-metrics-card__item:nth-child(2n + 1) {
+  border-left: none;
+}
+
+.sq-metrics-card--grid .sq-metrics-card__item:nth-child(n + 3) {
+  border-top: 1px solid var(--border);
+}
+
+.sq-result-screen__usage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.sq-usage-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-card);
+  padding: 0 var(--space-lg);
+}
+
+.sq-usage-list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.sq-usage-list__row + .sq-usage-list__row {
+  border-top: 1px solid var(--border);
+}
+
+.sq-usage-list__row span:nth-child(2) {
+  flex: 1;
+  text-align: left;
+}
+
+.sq-result-screen__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.sq-result-screen__actions .sq-button {
+  width: 100%;
+}
+
+/* ============================================================================
+   HistoryPanel — resumo real de estabilidade
+   ============================================================================ */
+.sq-history-screen__summary {
+  padding: var(--space-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--bg-card);
 }
 
 .sq-result-screen__context {

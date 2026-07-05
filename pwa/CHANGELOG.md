@@ -2,7 +2,47 @@
 
 ## Nao lancado
 
+### Changed
+- **Reconstrucao das telas de Velocidade, Historico e Ajustes (sem reaproveitar as telas anteriores).**
+  Landing e Home antigos foram removidos: a tela inicial do app agora e a
+  propria medicao de velocidade (`VelocidadeIdleScreen`), com arco de medir,
+  seletor de modo (Rapido/Completo) e ultimo resultado — sem tela de
+  boas-vindas separada. `SpeedTestScreen` (medindo) e `ResultScreen` tambem
+  foram refeitas: anel de progresso por fase com cronometro real (nao um
+  numero de velocidade fabricado — o navegador so sabe o valor real quando a
+  fase termina) e, no resultado, veredito por caso de uso (streaming/jogos/
+  chamada de video) so quando download, upload, latencia e jitter foram
+  efetivamente medidos (ver `docs/parity.md`).
+
+  **Sem navbar e sem titulo de tela no header** nessas telas — decisao de
+  produto. Navegacao por acao de conteudo em vez de chrome fixo (ver
+  `DESIGN.md`, secao Navigation). `TopAppBar`/`AppShell` continuam so nas
+  telas ainda nao redesenhadas (Sobre, Detalhe de teste, Laudo).
+
+  Removido por falta de uso: `HomeScreen`, `LandingScreen`, componentes
+  `ProgressRing` e `StepTracker` (e CSS/keyframes associados).
+
+  Modo **"Rapido"** usa a opcao `skipUpload` do runner (ja existia, nunca
+  tinha sido ligada a nada); modo **"Triplo"** do mockup de design nao foi
+  implementado nesta rodada (exigiria rodar a medicao 3x e agregar
+  resultados — feature nova, nao so troca de tela) e ficou fora do escopo
+  desta entrega.
+
 ### Fix
+- **Motor de velocidade podia fabricar numero em vez de reportar falha.**
+  `speedTestRunner.ts` confiava demais na resposta dos endpoints de
+  download/upload: se a resposta nao fosse exatamente o formato esperado
+  (ex: rodando so `vite dev`, sem o backend de Functions — cenario real de
+  alguem testando localmente com o comando errado), o codigo assumia sucesso
+  e usava o proprio payload enviado como se fosse o dado medido. Corrigido
+  para validar a resposta antes de contar como sucesso: download exige o
+  header `X-SignallQ-Speedtest-Bytes` (exclusivo do endpoint real, ver
+  `functions/_modules/speedtest.ts`), upload exige JSON valido com
+  `receivedBytes` numerico. Sem isso, a requisicao conta como falha e a UI
+  mostra "nao foi possivel medir" em vez de um numero inventado (principio
+  de honestidade do `PRODUCT.md`). Testado nos dois cenarios (backend real e
+  backend ausente) antes e depois da correcao.
+
 - **Icones nao renderizam no Safari/iOS (GitHub #365).** O componente `Icon`
   (`src/design-system/components/Icon/`) usava ligadura tipografica do
   Material Symbols (`<span class="material-symbols-outlined">nome</span>`),

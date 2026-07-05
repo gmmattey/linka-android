@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pwa-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "pwa", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "pwa-pages-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "pwa", "run", "pages:dev"],
+      "port": 8788
+    }
+  ]
+}
