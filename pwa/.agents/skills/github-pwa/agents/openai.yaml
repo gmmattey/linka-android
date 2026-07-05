@@ -1,4 +1,0 @@
-interface:
-  display_name: "GitHub PWA"
-  short_description: "Fluxo GitHub seguro para PRs e merges do SignallQ PWA."
-  default_prompt: "Use github-pwa para preparar, abrir, revisar ou mergear PRs do SignallQ PWA sem cair em bloqueios de checks, branch desatualizada ou automacoes do board."
