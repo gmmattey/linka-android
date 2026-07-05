@@ -21,7 +21,7 @@ This design system was reverse-engineered from a single attached, read-only code
 | Components | `…/ui/component/*.kt` | SignallQ, SpeedTest, Pulse, layout primitives |
 | Launcher icon | `…/res/mipmap-xxxhdpi/ic_launcher*.png` (copied to `assets/`) | App icon / wordmark "SignallQ" |
 
-**AI worker (referenced, external):** `integrations/cloudflare/ai-diagnosis-worker/` (Cloudflare Worker; Qwen3 30B MoE FP8, fallback Gemini Flash).
+**AI worker (referenced, external):** `integrations/cloudflare/ai-diagnosis-worker/` (Cloudflare Worker; provider primário Gemini 2.0 Flash quando configurado, fallback Qwen3 30B MoE FP8).
 
 ---
 
