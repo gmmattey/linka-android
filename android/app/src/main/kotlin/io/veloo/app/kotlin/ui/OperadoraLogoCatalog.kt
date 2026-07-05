@@ -36,14 +36,14 @@ data class OperadoraVisualIdentity(
 object OperadoraLogoCatalog {
     private val identidades: Map<String, OperadoraVisualIdentity> =
         mapOf(
-            "vivo_fibra" to OperadoraVisualIdentity(Color(0xFF660099), "V"), // fallback manual — ver docs/brand-assets
+            "vivo_fibra" to OperadoraVisualIdentity(Color(0xFF660099), "V", R.drawable.operator_vivo_fibra),
             "claro_net" to OperadoraVisualIdentity(Color(0xFFED1C24), "C", R.drawable.operator_claro_net),
             "tim_live" to OperadoraVisualIdentity(Color(0xFF003D8F), "T", R.drawable.operator_tim_live),
             "oi_fibra" to OperadoraVisualIdentity(Color(0xFFFF8C00), "O", R.drawable.operator_oi_fibra),
             "nio" to OperadoraVisualIdentity(Color(0xFF00B4D8), "N", R.drawable.operator_nio),
             "algar" to OperadoraVisualIdentity(Color(0xFF0066CC), "A", R.drawable.operator_algar),
             "unifique" to OperadoraVisualIdentity(Color(0xFF00A651), "U", R.drawable.operator_unifique),
-            "brisanet" to OperadoraVisualIdentity(Color(0xFFFF6600), "B"), // fallback manual — ver docs/brand-assets
+            "brisanet" to OperadoraVisualIdentity(Color(0xFFFF6600), "B", R.drawable.operator_brisanet),
             "desktop" to OperadoraVisualIdentity(Color(0xFF1E3A5F), "D", R.drawable.operator_desktop),
             "ligga" to OperadoraVisualIdentity(Color(0xFF8BC53F), "L", R.drawable.operator_ligga),
             "vero" to OperadoraVisualIdentity(Color(0xFF7B2D8E), "V", R.drawable.operator_vero),
