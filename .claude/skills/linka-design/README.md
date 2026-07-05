@@ -1,8 +1,8 @@
 # SignallQ — Design System
 
-> **SignallQ** (app store name "SignallQ app", package `io.signallq.app`) is a native **Android** smart internet-diagnostics app, built in **Kotlin / Jetpack Compose / Material Design 3**. It analyzes a home connection in real time — speed, latency, Wi-Fi signal & channels, DNS, fiber (GPON) modem, 4G/5G mobile signal — and uses on-device AI to explain *why* the internet is slow, unstable, or down, in clear, non-technical **Brazilian Portuguese**. All processing happens on-device; no personal data leaves the phone.
+> **SignallQ** (app store name "SignallQ app", package `io.signallq.app`) is a native **Android** smart internet-diagnostics app, built in **Kotlin / Jetpack Compose / Material Design 3**. It analyzes a home connection in real time — speed, latency, Wi-Fi signal & channels, DNS, fiber (GPON) modem, 4G/5G mobile signal — and uses AI (Cloudflare Worker) to explain *why* the internet is slow, unstable, or down, in clear, non-technical **Brazilian Portuguese**.
 >
-> The product is sometimes referred to commercially as **"Pulse — Speedtest Inteligente"**; inside the codebase the brand is **SignallQ**, with two named sub-systems: **SignallQ** (the conversational AI assistant) and **SignallQ Pulse** (passive background monitoring).
+> The brand is **SignallQ**, with two named sub-systems: **SignallQ** (the conversational AI assistant) and **SignallQ Pulse** (passive background monitoring).
 
 ---
 
@@ -12,17 +12,16 @@ This design system was reverse-engineered from a single attached, read-only code
 
 | Source | Path | What it gave us |
 |---|---|---|
-| Android codebase | `SignallQ Android/` (mounted, read-only) | Source of truth for all tokens, components & screens |
-| Theme tokens | `SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/SignallQTheme.kt` | `LkColors`, `LkSpacing`, `LkRadius`, `linkaTypography` |
-| Design-system docs | `SignallQ Android/docs_ai/design-system/*.md` | COLORS, TYPOGRAPHY, SPACING, COMPONENTS_ANDROID, MD3_GUIDELINES |
-| Functional spec | `SignallQ Android/docs_ai/ANDROID_FUNCIONAL.md` | Screen-by-screen behaviour, flows, copy |
-| Mockup v2 spec | `SignallQ Android/.claude/design-specs/mockup-v2-ui-screens.md` | Pixel specs for Home / Sinal / SpeedTest / Resultado |
-| Screen composables | `SignallQ Android/app/src/main/kotlin/io/linka/app/kotlin/ui/screen/*.kt` | Layout, exact labels, metric thresholds |
-| Components | `…/ui/component/*.kt` (25 custom composables) | SignallQ, SpeedTest, Pulse, layout primitives |
-| Screenshots | `SignallQ Android/linka_*.png` (copied to `_ref/`) | Visual ground-truth: SpeedTest, Sinal, Fibra, store listing |
+| Android codebase | `SignallQ/android/` (monorepo root) | Source of truth for all tokens, components & screens |
+| Theme tokens | `SignallQ/android/app/src/main/kotlin/io/veloo/app/kotlin/ui/SignallQTheme.kt` | `LkColors`, `LkSpacing`, `LkRadius`, `signallQTypography` |
+| Design-system docs | `SignallQ/docs_ai/design-system/*.md` | COLORS, TYPOGRAPHY, SPACING, DESIGN_TOKENS, COMPONENTS_ANDROID, MD3_GUIDELINES — canonical, kept in sync with the code |
+| Functional spec | `SignallQ/docs_ai/ANDROID_FUNCIONAL.md` | Screen-by-screen behaviour, flows, copy |
+| Mockup v2 spec | `SignallQ/.claude/design-specs/mockup-v2-ui-screens.md` | Pixel specs for Home / Sinal / SpeedTest / Resultado |
+| Screen composables | `SignallQ/android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/*.kt` | Layout, exact labels, metric thresholds |
+| Components | `…/ui/component/*.kt` | SignallQ, SpeedTest, Pulse, layout primitives |
 | Launcher icon | `…/res/mipmap-xxxhdpi/ic_launcher*.png` (copied to `assets/`) | App icon / wordmark "SignallQ" |
 
-**AI worker (referenced, external):** `https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev` (Cloudflare Worker, Gemma model). Contact in store listing: `giammattey.luiz@gmail.com`.
+**AI worker (referenced, external):** `integrations/cloudflare/ai-diagnosis-worker/` (Cloudflare Worker; Qwen3 30B MoE FP8, fallback Gemini Flash).
 
 ---
 
