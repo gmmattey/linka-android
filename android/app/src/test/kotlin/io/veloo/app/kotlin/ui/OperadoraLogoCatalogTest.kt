@@ -60,12 +60,14 @@ class OperadoraLogoCatalogTest {
     fun `operadoras com logo oficial disponivel expoem logoRes nao nulo`() {
         val comLogoOficial =
             setOf(
+                "vivo_fibra",
                 "claro_net",
                 "tim_live",
                 "oi_fibra",
                 "nio",
                 "algar",
                 "unifique",
+                "brisanet",
                 "desktop",
                 "ligga",
                 "vero",
@@ -75,16 +77,6 @@ class OperadoraLogoCatalogTest {
             val operadora = BancoOperadoras.lista.first { it.id == id }
             val identidade = OperadoraLogoCatalog.identidadePara(operadora)
             assertTrue("Operadora $id deveria ter logoRes", identidade.logoRes != null)
-        }
-    }
-
-    @Test
-    fun `vivo e brisanet nao tem asset baixavel com seguranca e caem no fallback cor+monograma`() {
-        val semLogoOficial = setOf("vivo_fibra", "brisanet")
-        semLogoOficial.forEach { id ->
-            val operadora = BancoOperadoras.lista.first { it.id == id }
-            val identidade = OperadoraLogoCatalog.identidadePara(operadora)
-            assertEquals("Operadora $id nao deveria ter logoRes", null, identidade.logoRes)
         }
     }
 }

@@ -1,6 +1,6 @@
 # Fontes dos logos oficiais de operadoras (SIG-292)
 
-Data de coleta: **2026-07-04**.
+Data de coleta: **2026-07-04** (Vivo, Brisanet e Algar atualizados em **2026-07-05**).
 
 Este documento registra, para cada operadora do catalogo (`OperadoraLogoCatalog.kt` /
 `BancoOperadoras.kt`), a origem exata do asset visual usado em
@@ -11,13 +11,13 @@ Este documento registra, para cada operadora do catalogo (`OperadoraLogoCatalog.
 | Operadora | id | Recurso Android | Arquivo | Fonte (URL exata) | Tipo de asset | Risco |
 |---|---|---|---|---|---|---|
 | Claro | `claro_net` | `R.drawable.operator_claro_net` | `drawable-nodpi/operator_claro_net.webp` | `https://www.claro.com.br/files/104379/300x300/787be71e56/logo-claro.webp?sq=100` (footer do site oficial claro.com.br) | WebP oficial extraido do site (raster, sem SVG disponivel no header) | Baixo |
-| Vivo | `vivo_fibra` | — (fallback cor+monograma) | — | `https://vivo.com.br/` | **Fallback manual** | — |
+| Vivo | `vivo_fibra` | `R.drawable.operator_vivo_fibra` | `drawable/operator_vivo_fibra.xml` | Fornecido diretamente por Luiz Giammattey (arquivo local, origem Wikimedia Commons/Logo.wine, coletado em 2026-07-05) | SVG oficial convertido (wordmark "vivo" completo, roxo `#650199`) | Baixo |
 | TIM | `tim_live` | `R.drawable.operator_tim_live` | `drawable/operator_tim_live.xml` | `https://www.tim.com.br/themes/custom/timbrasil/logo.svg` (header do site oficial) | SVG oficial convertido — usado **apenas o icone (4 barras vermelhas)**, sem o wordmark branco | Baixo |
 | Oi | `oi_fibra` | `R.drawable.operator_oi_fibra` | `drawable/operator_oi_fibra.xml` | `https://www.oi.com.br/lumis/portal/file/fileDownload.jsp?fileId=8ABAB6AE9A4E6BF5019A4E74A617026D` (referenciado no JSON-LD `logo` da propria oi.com.br) | SVG oficial convertido (gradiente verde->amarelo + "oi" branco) | Baixo |
 | Nio | `nio` | `R.drawable.operator_nio` | `drawable/operator_nio.xml` | `https://www.niointernet.com.br/lumis-theme/br/com/nio/theme/nio/assets/icons/default-logo.svg` (header do site oficial) | SVG oficial convertido | Baixo |
-| Algar Telecom | `algar` | `R.drawable.operator_algar` | `drawable-nodpi/operator_algar.webp` | `https://algar.com.br/img/new-logo-algar.png` (alt="Logomarca Algar", institucional/index.html) | WebP oficial extraido do site (raster, resolucao baixa 113x41 — pode perder nitidez em densidades muito altas) | Baixo |
+| Algar Telecom | `algar` | `R.drawable.operator_algar` | `drawable/operator_algar.xml` | Fornecido diretamente por Luiz Giammattey (arquivo local, origem Wikimedia Commons/Logo.wine, coletado em 2026-07-05) | SVG oficial convertido (wordmark vetorial "Algar Telecom" completo, substitui WebP raster 113x41 anterior) | Baixo |
 | Unifique | `unifique` | `R.drawable.operator_unifique` | `drawable/operator_unifique.xml` | `https://unifique.com.br/assets/imgs/logo.svg` | SVG oficial convertido | Baixo |
-| Brisanet | `brisanet` | — (fallback cor+monograma) | — | `https://www.brisanet.com.br/` | **Fallback manual** — SVG inline no header renderizou com corrupcao visual de path ao extrair via HTML estatico (provavel efeito de hidratacao client-side/Next.js); sem ambiente de browser real neste agente para validar visualmente, optamos por nao arriscar fidelidade da marca | — |
+| Brisanet | `brisanet` | `R.drawable.operator_brisanet` | `drawable/operator_brisanet.xml` | Fornecido diretamente por Luiz Giammattey (arquivo local, origem Wikimedia Commons/Logo.wine, coletado em 2026-07-05) | SVG oficial convertido (wordmark "brisanet" laranja `#FF4800`) | Baixo |
 | Desktop | `desktop` | `R.drawable.operator_desktop` | `drawable/operator_desktop.xml` | `https://www.desktop.com.br/` (SVG inline no `<header class="component main-header">`) | SVG oficial convertido — cor fixada em cinza-escuro (`#1A1A1A`); o SVG original usa `fill: var(--custom-brand-color, ...)` (tema claro/escuro dinamico via CSS custom properties) que nao e resolvido fora de um browser real | Medio (cor monocromatica assumida, nao confirmada visualmente no site) |
 | Ligga Telecom | `ligga` | `R.drawable.operator_ligga` | `drawable-nodpi/operator_ligga.webp` | `https://liggavc.com.br/wp-content/uploads/2025/04/logo-2025.png` (campo `logo` do JSON-LD schema.org da propria liggavc.com.br) | WebP oficial extraido do site (raster 310x310) | Baixo |
 | Vero | `vero` | `R.drawable.operator_vero` | `drawable/operator_vero.xml` | `https://querovero.com.br/icons/vero-logo-v2.svg` | SVG oficial convertido (variante colorida — a variante `vero-logo.svg` padrao e branca, ilegivel em fundo claro) | Baixo |
@@ -27,19 +27,18 @@ Este documento registra, para cada operadora do catalogo (`OperadoraLogoCatalog.
 ## Observacoes gerais
 
 - **Vivo**: o site vivo.com.br carrega o wordmark oficial via sprite SVG injetado por
-  JavaScript no cliente (`<svg><use xlink:href="#logo-vivo-vivinho"></use></svg>`, sem
-  `<symbol>` presente no HTML estatico). Alem disso, o CDN de assets estaticos
-  (`vivo.com.br/content/dam/...`) retornou `403 Access Denied` para todas as tentativas de
-  download programatico testadas (inclusive o favicon), indicativo de protecao anti-bot
-  (WAF/Akamai) no nivel de edge, independente da URL exata. Sem um navegador real para
-  renderizar o JS e sem acesso ao CDN de assets, nao foi possivel extrair um asset oficial
-  de forma licita. Mantido no fallback cor+monograma.
-- **Brisanet**: o wordmark esta embutido como SVG inline no HTML (nao depende de CDN
-  bloqueado), mas o path data extraido renderizou com sobreposicao/corrupcao visual ao ser
-  rasterizado (testado com ImageMagick/librsvg). Nao foi possivel confirmar visualmente a
-  causa (minificacao, hidratacao client-side alterando o DOM, ou erro de escaping na
-  extracao) sem um browser completo. Mantido no fallback cor+monograma por seguranca de
-  fidelidade visual.
+  JavaScript no cliente, e o CDN de assets estaticos bloqueava download programatico (WAF/
+  Akamai), o que impediu extracao automatica (ver historico no `git log` deste arquivo).
+  Resolvido em 2026-07-05: Luiz forneceu o SVG oficial diretamente (Wikimedia Commons/
+  Logo.wine), convertido para VectorDrawable e normalizado (viewBox com offset negativo
+  ajustado para origem zero na conversao).
+- **Brisanet**: a extracao automatica anterior do wordmark inline renderizou com corrupcao
+  visual de path (ver historico no `git log` deste arquivo). Resolvido em 2026-07-05: Luiz
+  forneceu o SVG oficial diretamente (Wikimedia Commons/Logo.wine), path data validado
+  visualmente contra o arquivo original antes de virar VectorDrawable.
+- **Algar Telecom**: substituido em 2026-07-05 o WebP raster de baixa resolucao (113x41) por
+  VectorDrawable fiel ao SVG oficial fornecido por Luiz (Wikimedia Commons/Logo.wine),
+  eliminando o risco de perda de nitidez em densidades altas.
 - **TIM**: a pagina `tim.com.br/sobre-a-tim` (com a suposta secao "Nossa marca" e brand kit
   oficial) nao apresentou, no momento da coleta, nenhum link de download de brand kit/guia
   de marca — apenas o header padrao do site, de onde foi extraido o logo.
