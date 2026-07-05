@@ -70,19 +70,19 @@ Outros documentos fonte que podem impactar a PWA:
 Preferido:
 
 ```text
-codex/pwa/<sig-id>-<descricao-curta>
+claude/pwa/<sig-id>-<descricao-curta>
 ```
 
 Fallback:
 
 ```text
-codex-pwa-<sig-id>-<descricao-curta>
+claude-pwa-<sig-id>-<descricao-curta>
 ```
 
 ## Padrão de PR
 
 ```text
-Codex PWA — <descrição>
+Claude PWA — <descrição>
 ```
 
 ## Escopo

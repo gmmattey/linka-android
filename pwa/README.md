@@ -50,23 +50,24 @@ Use tokens `--sq-*` antes de criar novos valores soltos de cor, spacing, radius 
 
 **Renan** — implementação, revisão e correção de código React/TypeScript.
 
-## Squad Farol no Codex
+## Squad Farol no Claude Code
 
-O PWA usa Codex local como executor principal.
+O PWA usa Claude Code como executor principal.
 
-Custom agents:
+Subagentes:
 
-- `pwa/.codex/agents/renan.toml`
-- `pwa/.codex/agents/eitam.toml`
-- `pwa/.codex/agents/henrique.toml`
+- `.claude/agents/renan.md` (raiz do monorepo)
+- `pwa/.claude/agents/eitam.md`
+- `pwa/.claude/agents/henrique.md`
 
 Skills:
 
-- `pwa/.agents/skills/regras-pwa/SKILL.md`
-- `pwa/.agents/skills/padroes-react/SKILL.md`
-- `pwa/.agents/skills/signallq-design/SKILL.md`
-- `pwa/.agents/skills/checar-release/SKILL.md`
-- `pwa/.agents/skills/paridade-plataformas/SKILL.md`
+- `pwa/.claude/skills/regras-pwa/SKILL.md`
+- `pwa/.claude/skills/padroes-react/SKILL.md`
+- `pwa/.claude/skills/signallq-design/SKILL.md`
+- `pwa/.claude/skills/checar-release/SKILL.md`
+- `pwa/.claude/skills/paridade-plataformas/SKILL.md`
+- `pwa/.claude/skills/github-pwa/SKILL.md`
 
 ## Como rodar
 

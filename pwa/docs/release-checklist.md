@@ -21,13 +21,13 @@ Todo PR PWA deve informar:
 Preferido:
 
 ```text
-codex/pwa/<sig-id>-<descricao-curta>
+claude/pwa/<sig-id>-<descricao-curta>
 ```
 
 Fallback:
 
 ```text
-codex-pwa-<sig-id>-<descricao-curta>
+claude-pwa-<sig-id>-<descricao-curta>
 ```
 
 ## Padrão de PR
@@ -35,7 +35,7 @@ codex-pwa-<sig-id>-<descricao-curta>
 Título deve começar com:
 
 ```text
-Codex PWA —
+Claude PWA —
 ```
 
 ## Validação local mínima

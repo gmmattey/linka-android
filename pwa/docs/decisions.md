@@ -98,6 +98,30 @@ Notion guarda contexto e decisões.
 
 `pwa/docs` guarda instruções operacionais versionadas.
 
+## ADR-006 — Migração de executor: Codex local para Claude Code
+
+Data: 04/07/2026
+
+### Decisão
+
+O PWA deixa de usar Codex local como executor e passa a usar Claude Code. A estrutura `.codex/` (agentes TOML, hooks, README) e `.agents/skills/` foram removidas; `AGENTS.md` foi descontinuado.
+
+Equivalências:
+
+- Agentes `.codex/agents/*.toml` → subagentes `.claude/agents/*.md` (Renan na raiz do monorepo; Eitam e Henrique em `pwa/.claude/agents/`).
+- Skills `.agents/skills/*/SKILL.md` → `pwa/.claude/skills/*/SKILL.md` (mesmo conteúdo, sem os manifestos `agents/openai.yaml` específicos do Codex).
+- Hook `.codex/hooks.json` → `pwa/.claude/settings.json` (hook compartilhado e versionado).
+- `AGENTS.md` → conteúdo consolidado em `pwa/CLAUDE.md`.
+- Prefixo de branch/PR `codex` → `claude` (ver ADR-005, superado por esta decisão).
+
+### Motivo
+
+Consolidar em uma única ferramenta de execução evita duas árvores de configuração paralelas (`.codex/` + `.agents/` vs `.claude/`) e a manutenção duplicada que isso exigia.
+
+### Documentação
+
+Este ADR supera o padrão de nomenclatura do ADR-005; o ADR-005 permanece como registro histórico.
+
 Quando uma regra do Notion impactar execução, ela deve ser transposta para `pwa/docs`.
 
 ## ADR-006 — Paridade PWA segue contrato Android/PWA

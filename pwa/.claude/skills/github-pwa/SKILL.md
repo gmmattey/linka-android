@@ -38,7 +38,7 @@ git branch --show-current
 2. Se houver mudanças fora de `pwa/`, isolar:
 
 ```powershell
-git worktree add C:\Projetos\SignallQ-pwa-<slug> origin/main -b codex/pwa/<sig-id>-<slug>
+git worktree add C:\Projetos\SignallQ-pwa-<slug> origin/main -b claude/pwa/<sig-id>-<slug>
 ```
 
 3. Validar no diretório `pwa/`:
