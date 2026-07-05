@@ -840,6 +840,15 @@ private val problemasPredefinidos =
         "Travamentos em streaming ou jogos",
     )
 
+/** Menor valor = maior prioridade, para escolher a ação de destaque via minByOrNull. */
+private fun prioridadeOrdem(prioridade: String): Int =
+    when (prioridade) {
+        "alta" -> 0
+        "media" -> 1
+        "baixa" -> 2
+        else -> 1
+    }
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AnalisadorProblemaSection(
@@ -946,6 +955,55 @@ private fun AnalisadorProblemaSection(
                         color = c.textPrimary,
                         lineHeight = 20.sp,
                     )
+                    // Próximo passo concreto -- o diagnóstico sozinho (texto acima) não
+                    // basta; o app não pode terminar em "isso está ruim" sem indicar o
+                    // que fazer (ver PRODUCT.md). acoesRecomendadas já vem específica e
+                    // priorizada da IA/motor local (regra 9 do prompt), só faltava ser
+                    // exibida nesta tela. Mostra ate 2 acoes (nao so a 1a) porque o
+                    // diagnostico costuma ter mais de uma causa (ex.: latencia alta +
+                    // canal congestionado), cada uma com sua propria acao pratica.
+                    val proximasAcoes =
+                        state.acoes
+                            .sortedBy { prioridadeOrdem(it.prioridade) }
+                            .take(2)
+                    if (proximasAcoes.isNotEmpty()) {
+                        Spacer(Modifier.height(LkSpacing.md))
+                        Column(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(LkRadius.card))
+                                    .background(LkColors.accent.copy(alpha = 0.08f))
+                                    .padding(LkSpacing.md),
+                            verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+                        ) {
+                            proximasAcoes.forEach { acao ->
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Info,
+                                        contentDescription = null,
+                                        tint = LkColors.accent,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Spacer(Modifier.width(LkSpacing.sm))
+                                    Column {
+                                        Text(
+                                            text = acao.titulo.ifBlank { "Próximo passo" },
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.W600,
+                                            color = c.textPrimary,
+                                        )
+                                        Text(
+                                            text = acao.descricao,
+                                            fontSize = 13.sp,
+                                            color = c.textSecondary,
+                                            lineHeight = 18.sp,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Spacer(Modifier.height(LkSpacing.md))
                     Row(
                         modifier = Modifier.fillMaxWidth(),

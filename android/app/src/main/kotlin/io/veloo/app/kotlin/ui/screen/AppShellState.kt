@@ -3,6 +3,7 @@
 import androidx.compose.runtime.Stable
 import io.signallq.app.feature.devices.SnapshotScanDispositivos
 import io.signallq.app.feature.diagnostico.SnapshotDiagnostico
+import io.signallq.app.feature.diagnostico.ai.AiAcaoRecomendada
 import io.signallq.app.feature.diagnostico.ai.DiagChatEntry
 import io.signallq.app.feature.diagnostico.chat.TipoDiagnostico
 import io.signallq.app.feature.diagnostico.pulse.OpcaoResposta
@@ -53,6 +54,7 @@ sealed class AnalisadorState {
     data class Resultado(
         val texto: String,
         val origem: String,
+        val acoes: List<AiAcaoRecomendada> = emptyList(),
     ) : AnalisadorState()
 
     data class Erro(
