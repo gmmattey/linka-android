@@ -1713,12 +1713,14 @@ class MainViewModel
                     when (resultado) {
                         is AiDiagnosisState.success -> {
                             val texto = resultado.result.textoLaudo.ifBlank { resultado.result.resumo }
-                            _analisadorState.value = AnalisadorState.Resultado(texto, "ia")
+                            _analisadorState.value =
+                                AnalisadorState.Resultado(texto, "ia", resultado.result.acoesRecomendadas)
                             speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
                         is AiDiagnosisState.fallback -> {
                             val texto = resultado.result.textoLaudo.ifBlank { resultado.result.resumo }
-                            _analisadorState.value = AnalisadorState.Resultado(texto, "local")
+                            _analisadorState.value =
+                                AnalisadorState.Resultado(texto, "local", resultado.result.acoesRecomendadas)
                             speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
                         else -> {
