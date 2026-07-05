@@ -1,8 +1,8 @@
 # Tipografia — SignallQ
 
-**Fonte:** `SignallQTheme.kt` (linkaTypography)  
-**Escopo:** Android v0.16.0  
-**Última atualização:** 2026-06-21
+**Fonte:** `SignallQTheme.kt` (signallQTypography)  
+**Escopo:** Android v0.23.0  
+**Última atualização:** 2026-07-05
 
 ---
 
@@ -41,7 +41,7 @@ Anima texto entrando caractere por caractere, criando efeito de digitação.
 ### RotatingMessageText
 Rotaciona entre múltiplas mensagens em loop, com fade in/out.
 
-**Uso:** Perguntas contextuais, hints dinâmicos no LinkaPulse.  
+**Uso:** Perguntas contextuais, hints dinâmicos no SignallQ Pulse.  
 **Arquivo:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/RotatingMessageText.kt`
 
 ---

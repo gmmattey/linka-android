@@ -1,14 +1,15 @@
 # SignallQ Android AI Documentation
 
-**Versao:** v0.21.0 (versionCode 52, release 2026-06-22) | Docs atualizados: 2026-06-26 | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
+**Versao:** v0.23.0 (versionCode 56, release 2026-07-05) | Docs atualizados: 2026-07-05 | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
 Recuperacao rapida, fatos operacionais, inferencia minima.
 
 > Ponto de entrada obrigatorio antes de carregar qualquer doc especifico.
 > Sempre prefira busca por simbolo (Grep) antes de ler arquivos completos.
 
-> Nota de marca: a UI e a documentacao usam **SignallQ**. Identificadores tecnicos
-> permanecem por compatibilidade de infra: package `io.veloo.app`, repo GitHub
-> `gmmattey/linka-android`, worker Cloudflare `linka-ai-diagnosis-worker`.
+> Nota de marca: a UI e a documentacao usam **SignallQ**. O package/namespace atual e
+> `io.signallq.app` (renomeado de `io.veloo.app` em 2026-06-28). Outros identificadores
+> tecnicos permanecem por compatibilidade de infra: repo GitHub `gmmattey/linka-android`,
+> worker Cloudflare `linka-ai-diagnosis-worker`, banco `linkaKotlin.db`.
 
 ---
 

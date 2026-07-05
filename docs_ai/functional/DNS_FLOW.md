@@ -1,5 +1,8 @@
 # DNS Flow
 
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56)
+**Tela real:** `DnsScreen.kt` em `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/` (overlay, não é aba). Namespace/package = `io.signallq.app`.
+
 ## Objective
 
 This document details the user flow for DNS-related features, mapping specific components and interactions within the SignallQ Android Kotlin application.

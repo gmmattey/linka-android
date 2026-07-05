@@ -1,3 +1,5 @@
+> ARQUIVADO 2026-07-05 — fluxo aspiracional nunca implementado. Fluxo real: ADR-006 e .claude/CLAUDE.md.
+
 # Pipeline Autônomo SIGNALLQ — Do `/task` ao Merge
 
 ## Visão Geral

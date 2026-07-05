@@ -1,6 +1,6 @@
 # Contrato de Eventos — Firebase Analytics
 
-**Última atualização:** 2026-07-04 (SIG-155)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Property ID:** 542463828 (Firebase Analytics — Android)
 **Status de implementação:** funil principal (7 eventos, ver seção "Funil
 principal") instrumentado via `AnalyticsHelper` (SIG-155). Eventos do schema
@@ -24,7 +24,7 @@ contrato (`onboarding_concluido`, `speedtest_erro`, `diag_erro`,
 - **Android — demais eventos deste contrato:** ainda não instrumentados.
 
 O contrato abaixo define os eventos que **devem ser implementados**, derivados
-do modelo de domínio atual (v0.21.0). Qualquer evento novo ou alterado exige
+do modelo de domínio atual (v0.23.0). Qualquer evento novo ou alterado exige
 atualização deste arquivo no mesmo PR.
 
 ---

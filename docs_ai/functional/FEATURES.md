@@ -1,9 +1,9 @@
 # Features — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0 — versionCode 46; flags de release revisadas contra build.gradle.kts)
-**Fonte:** código real (Marcelo, 2026-05-17; flags verificadas por Taisa 2026-06-21)
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56; flags revisadas contra build.gradle.kts)
+**Fonte:** código real (flags verificadas em `app/build.gradle.kts`)
 
-Todas as telas em: `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
+Todas as telas em: `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/` (caminho físico legado; namespace/package = `io.signallq.app`)
 
 ---
 
@@ -12,7 +12,7 @@ Todas as telas em: `app/src/main/kotlin/io/signallq/app/kotlin/ui/screen/`
 O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quais features são visíveis ao usuário final:
 
 - **Debug:** Todas as flags são `true` — desenvolvedores testam a full stack de features
-- **Release v0.16.0:** Flags ativas confirmadas em `app/build.gradle.kts`: FIBRA_SCREEN=true, DNS_SCREEN=true, DIAGNOSTICO_CHAT=true. Inativas: DEVICES_SCREEN_V2=false, LINKPULSE_ATIVO=false
+- **Release (v0.23.0):** Flags ativas confirmadas em `app/build.gradle.kts`: FIBRA_SCREEN=true, DNS_SCREEN=true, DIAGNOSTICO_CHAT=true. Inativas: DEVICES_SCREEN_V2=false, LINKPULSE_ATIVO=false
 
 ### Status das Features
 
@@ -31,7 +31,7 @@ O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quai
 | **Configurações MVP** | MVP | ✅ | ✅ | Perfil, provedor, tema, alertas |
 | **Tela Privacidade** | MVP | ✅ | ✅ | Política, LGPD, dados |
 | **Tela Novidades** | MVP | ✅ | ✅ | Release notes |
-| **Chat IA (LLMChat)** | MVP | ✅ | ✅ | FEATURE_DIAGNOSTICO_CHAT=true em release v0.16.0 |
+| **Chat IA (LLMChat)** | MVP | ✅ | ✅ | FEATURE_DIAGNOSTICO_CHAT=true em release |
 | **LinkPulse Ativo** | Pós-MVP | ✅ | ❌ | Monitoramento contínuo (v0.7.1+) |
 | **Notificação Inline** | Pós-MVP | ✅ | ❌ | Notif dentro do app (v0.7.1+) |
 | **Widget Home Screen** | Pós-MVP | ✅ | ❌ | Quick access (v0.7.1+) |
@@ -61,7 +61,7 @@ O SignallQ usa um sistema de **FeatureFlags por build type** para controlar quai
 #### Verificação Simples
 
 ```kotlin
-import io.veloo.app.kotlin.FeatureFlags
+import io.signallq.app.FeatureFlags
 
 // Em qualquer lugar:
 if (FeatureFlags.LINKPULSE_ATIVO) {
@@ -115,11 +115,11 @@ buildConfigField("Boolean", "FEATURE_LINKPULSE_ATIVO", "true")
 | Chat livre IA (LLM) | `LLMChatScreen.kt` | `:app` | Implementado (FEATURE_DIAGNOSTICO_CHAT) |
 | Análise de redes Wi-Fi | `SinalScreen.kt` | `:app` (deps: `:featureWifi`) | Implementado |
 | Scanner de dispositivos | `DispositivosScreen.kt` | `:app` (deps: `:featureDevices`) | Implementado |
-| Fibra óptica GPON | `FibraScreen.kt` | `:app` (deps: `:featureFibra`) | Implementado |
+| Fibra óptica GPON | `FibraModemScreen.kt` | `:app` (deps: `:featureFibra`) | Implementado |
 | Histórico de medições | `HistoricoScreen.kt` | `:app` (deps: `:featureHistory`) | Implementado |
 | Configurações | `AjustesScreen.kt` | `:app` (deps: `:featureSettings`) | Implementado |
 | Laudo técnico | `LaudoScreen.kt` | `:app` | Implementado |
-| LinkaPulse (monitoramento) | `LinkaPulseScreen.kt` | `:app` | Implementado |
+| SignallQ Pulse (monitoramento) | `SignallQPulseScreen.kt` | `:app` | Implementado |
 | Onboarding (primeiro uso) | `OnboardingScreen.kt` | `:app` | Implementado |
 | Permissões contextuais | `SinalScreen.kt` + sheets | `:app` | Implementado |
 | Tratamento de offline | `HomeScreen`, `SpeedTestScreen`, `SinalScreen`, `DispositivosScreen` | `:app` | Implementado |

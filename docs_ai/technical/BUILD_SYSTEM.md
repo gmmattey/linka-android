@@ -10,7 +10,7 @@ Gradle build com Kotlin DSL (.kts).
 |---|---|
 | versionName | 0.16.0 |
 | versionCode | 46 |
-| applicationId | io.veloo.app |
+| applicationId | io.signallq.app |
 | compileSdk | 36 |
 | minSdk | 24 |
 | targetSdk | 36 |
@@ -44,7 +44,7 @@ Versões declaradas em `gradle/libs.versions.toml`.
 
 ## Key Configs
 
-- **applicationId**: `io.veloo.app` (declarado em `app/build.gradle.kts`)
+- **applicationId**: `io.signallq.app` (declarado em `app/build.gradle.kts`)
 - **versionCode / versionName**: declarados em `gradle/libs.versions.toml` (atualmente 46 / 0.16.0)
 - **Build types**: `debug` (todas as feature flags ativas) e `release` (apenas flags MVP ativas)
 - **Feature flags**: 32 `buildConfigField` booleanos em `app/build.gradle.kts`; acessados via `FeatureFlags.*` (não `BuildConfig.*` diretamente)

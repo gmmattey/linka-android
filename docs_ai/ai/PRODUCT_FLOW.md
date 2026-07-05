@@ -1,7 +1,7 @@
 # Product Flow for Agents
 
-> Documentação do fluxo de produto para consumo por agentes de IA.
-> Versão: v0.16.0
+> **Fonte da verdade do squad e do fluxo:** `.claude/CLAUDE.md` + `.claude/agents/*.md`. Este arquivo resume o fluxo de produto do app; para o fluxo de trabalho dos agentes, ver `ai/AGENT_WORKFLOW.md` e `docs_ai/decisions/ADR-006-workflow-squad-5-agentes.md`.
+> Versão: v0.23.0 · 2026-07-05.
 
 ## Objetivos do produto
 

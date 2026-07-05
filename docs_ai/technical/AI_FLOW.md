@@ -1,6 +1,6 @@
 # AI Flow — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Fonte:** código real (featureDiagnostico, di/AppModule.kt, integrations/cloudflare/ai-diagnosis-worker)
 
 ---
@@ -13,7 +13,7 @@ O app integra IA via **Cloudflare Worker** externo. Não há inferência local �
 MainViewModel
     → DiagnosticOrchestrator.executar()
         → DiagnosticRunner.run(input)            [engines locais stateless]
-        → DiagnosisAiContextFactory.fromRaw()    [monta payload schema v3]
+        → DiagnosisAiContextFactory.fromRaw()    [monta payload — prompt diagnostico_v5_local_primary]
         → AiDiagnosisRepository.diagnosticar()  [POST HTTP via OkHttp]
             → linka-ai-diagnosis-worker          [Cloudflare Worker]
                 → Qwen3 30B MoE FP8             [modelo padrão]
@@ -50,8 +50,10 @@ e `DEFAULT_MODEL` no `src/index.ts`:
 const DEFAULT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
 ```
 
+**Fallback Gemini:** com a secret `GEMINI_API_KEY` configurada, o worker usa Gemini 2.0 Flash como provider primário e Qwen/CF como fallback automático. Sem a secret, Qwen/CF é o único provider cloud. Llama/Meta não é padrão nem fallback (política do projeto).
+
 **Alternativas/legado (não são o padrão):**
-- `@cf/google/gemma-7b-it` — Gemma v1, deprecation planejado, fraco para prompt complexo
+- `@cf/google/gemma-7b-it` — Gemma v1, fraco para prompt complexo
 - `@hf/google/gemma-2-9b-it` — formato incompatível com messages API
 - `@cf/google/gemma-4-26b-a4b-it` — descartado (gerava timeout > 30s)
 
@@ -59,11 +61,11 @@ const DEFAULT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
 
 ---
 
-## 4. Payload — Schema v3
+## 4. Payload — Schema atual
 
-Montado por `DiagnosisAiContextFactory.fromRaw()`. O worker aceita schemas v1/v2/v3 para retrocompatibilidade.
+Montado por `DiagnosisAiContextFactory.fromRaw()`. O worker aceita schemas anteriores para retrocompatibilidade.
 
-O schema v3 (`diagnostico_v3_raw`) envia dados brutos de rede sem análise pré-computada — a IA realiza toda a análise no worker.
+A versão de prompt atual do worker é `diagnostico_v5_local_primary` (`AI_PROMPT_VERSION` em `src/index.ts`): os achados do motor local são enviados como entrada e a IA refina/expande em cima deles. `schemaVersion` do contexto (`DiagnosisAiContext`) é enviado ao worker e registrado no evento `ia_laudo_solicitado`.
 
 Campos enviados: tipo de conexão, snapshot Wi-Fi (RSSI, canal, frequência), latência, jitter, perda de pacotes, download/upload Mbps, DNS (servidor atual, latência), histórico (médias 7d/30d), dados do ISP, configuração do usuário (plano, operadora, estado/cidade).
 

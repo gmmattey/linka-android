@@ -1,44 +1,49 @@
 # Task Breakdown
 
-> Referência completa: `AGENTS.md` e `docs_ai/ai/AGENT_WORKFLOW.md`.
+> **Fonte da verdade:** `.claude/CLAUDE.md` + `.claude/agents/*.md`. Este arquivo é um resumo apontador.
+> Decisão de fluxo: `docs_ai/decisions/ADR-006-workflow-squad-5-agentes.md`.
+> Versão: v0.23.0 · 2026-07-05.
+
+## Quem quebra
+
+A **Claudete** refina e quebra toda demanda. Absorveu o planejamento de arquitetura — não há tech lead separado. Skill de apoio: `/refinar-demanda`.
 
 ## Princípios
 
-- **Modularidade**: alinhe com os módulos `:app`, `:core*`, `:feature*` do Android.
-- **Responsabilidade única**: cada sub-task tem um objetivo verificável.
-- **Acionável**: mudanças ou investigações com resultado concreto.
-- **Dependências**: rastreie bloqueios e sequências de execução.
+- **Modularidade** — alinhe com os módulos `:app`, `:core*`, `:feature*` (Android) e a estrutura do `SignallQ Admin/`.
+- **Responsabilidade única** — cada sub-task tem objetivo verificável.
+- **Independência** — tasks devem poder rodar em trilhas paralelas por agentes diferentes.
+- **Dependências** — rastreie bloqueios e ordem de execução.
 
-## Processo de decomposição
+## Processo
 
-1. **Analise** a task → colete contexto de `docs_ai/technical/` e do código.
-2. **Estime escopo**: se >5 módulos Android ou >1 dia de trabalho → interrompa e pergunte ao usuário antes de avançar.
-3. **Decomponha** em tasks pequenas (prefira 10 tasks pequenas a 1 task gigante).
-4. **Atribua** ao agente correto com base na especialização (ver tabela abaixo).
-5. **Mapeie dependências** e ordene a execução.
-6. **Execute** e verifique.
+1. **Analise** a task e colete contexto de `docs_ai/technical/` e do código (Read/Grep/Glob).
+2. **Estime escopo** — se grande/arquitetural, proponha plano antes (ver classificação de tamanho em `.claude/CLAUDE.md`).
+3. **Decomponha** — prefira várias tasks pequenas a uma gigante.
+4. **Atribua** ao agente correto (tabela abaixo).
+5. **Mapeie dependências** e ordene.
+6. **Roteie** — bug → GitHub Issues; feature/task → Linear.
 
 ## Regra de granularidade
 
-- Nenhum dev (Camilo) recebe tarefa vaga, aberta ou monstruosa.
-- Bugfix simples (5 arquivos ou menos, sem mudança de contrato) → Camilo direto, sem passar pelo Cláudio.
-- Tasks médias ou grandes → obrigatório passar pelo Cláudio para decomposição.
+- Bugfix simples (≤5 arquivos, sem mudança de contrato) → implementador direto, sem breakdown formal.
+- Tasks médias/grandes → Claudete decompõe antes de acionar o implementador.
+- WIP: máximo 1 task In Progress por agente.
 
-## Mapeamento de agentes por tipo de task
+## Mapeamento de agentes
 
-| Tipo de task | Agente responsável |
+| Tipo de task | Agente |
 |---|---|
-| Arquitetura, planejamento, decomposição | Cláudio |
+| Refino, priorização, decomposição, arquitetura | Claudete |
 | Implementação Android (Kotlin, Compose, MVVM) | Camilo |
-| UX, design, Material Design 3, microcopy | Lia |
-| APIs Android, permissões, hardware, OEM quirks | Otávio |
-| Revisão de qualidade, bugs, regressão | Gema |
-| Versionamento, changelog, resumo técnico | Nina |
-| Documentação funcional, técnica, fluxos, PPT, HTML | Taisa |
-| Busca de código, grep de símbolos, listagem de arquivos | Marcelo |
+| Admin Panel (React/TS) e análise de dados de app | Felipe |
+| UX, design, Material 3, microcopy (task visual) | Lia |
+| Review, QA, regressão, release, changelog, higiene | Gema |
+
+Busca de código/docs = ferramentas nativas ou skills; sem agente dedicado.
 
 ## Referências
 
-- `ai/AGENT_WORKFLOW.md` — fluxo completo com responsabilidades por agente
+- `ai/AGENT_WORKFLOW.md` — fluxo completo
 - `ai/HANDOFF_RULES.md` — protocolo de handoff
-- `technical/MODULES.md` — módulos Android disponíveis
+- `technical/MODULES.md` — módulos Android

@@ -1,19 +1,19 @@
 # Assistente IA SignallQ — Funcionalidade
 
-**Última atualização:** 2026-06-21 (v0.16.0 — reescrito; modelo Qwen3 30B; SignallQScreen; LLMChatScreen)
-**Fonte:** código real verificado por Taisa 2026-06-21
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56; modelo Qwen3 30B; SignallQScreen; LLMChatScreen)
+**Fonte:** código real
 **Público-alvo:** desenvolvedor humano e agentes de IA
 
 ---
 
 ## 1. Papel da IA no Produto
 
-O assistente IA do SignallQ tem **dois modos de atuação** que coexistem no v0.16.0:
+O assistente IA do SignallQ tem **dois modos de atuação** que coexistem:
 
 | Modo | Tela | Flag | Estado release |
 |---|---|---|---|
 | Diagnóstico autônomo (pipeline) | `SignallQScreen` | — (sempre presente) | Ativo |
-| Chat diagnóstico livre (LLM) | `LLMChatScreen` | `FEATURE_DIAGNOSTICO_CHAT` | Ativo (true em release v0.16.0) |
+| Chat diagnóstico livre (LLM) | `LLMChatScreen` | `FEATURE_DIAGNOSTICO_CHAT` | Ativo (true em release) |
 
 ---
 

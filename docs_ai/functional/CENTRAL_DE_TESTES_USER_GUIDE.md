@@ -1,8 +1,8 @@
 # Central de Testes — Guia do Usuário
 
 **Para:** Usuários finais, testers, product team  
-**Versão:** 0.8.5+  
-**Data:** 2026-05-20
+**Versão:** 0.23.0 (versionCode 56)  
+**Data:** 2026-07-05
 
 ---
 

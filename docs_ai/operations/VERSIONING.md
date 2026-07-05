@@ -40,8 +40,8 @@ Antes disso (M0/M1), o app permanece em `0.x.y` — versao de desenvolvimento.
 
 | Fase | versionName | versionCode | Notas |
 |------|-------------|-------------|-------|
-| Desenvolvimento (M0/M1) | 0.x.y | 52+ | Firebase App Distribution |
-| Beta Fechado (M2) | 1.0.0-beta.1+ | 53+ | Primeiro upload Play Store |
+| Desenvolvimento (M0/M1) | 0.x.y | 56+ | Firebase App Distribution + Play Console (teste fechado desde 0.22.1) |
+| Beta Fechado (M2) | 1.0.0-beta.1+ | 57+ | Primeiro upload de versao 1.x na Play Store |
 | Open Beta | 1.0.0-rc.1+ | 60+ | Track aberto na Play Store |
 | Producao (M3) | 1.0.0 | 70+ | Release publico |
 

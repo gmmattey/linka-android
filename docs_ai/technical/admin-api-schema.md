@@ -1,8 +1,8 @@
 # Admin API — Schema de Contratos
 
-**Última atualização:** 2026-07-04 (GH#426 — contrato de settings reduzido aos campos com consumidor real)
-**Versão do worker:** 1.x (Cloudflare Worker — `signallq-admin-worker`)
-**Base URL (produção):** `https://signallq-admin-worker.veloo.workers.dev`
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
+**Versão do worker:** 1.x (Cloudflare Worker — name `signallq-admin`, diretório `signallq-admin-worker`)
+**Base URL (produção):** `https://signallq-admin.giammattey-luiz.workers.dev`
 **Configurada no frontend via:** `VITE_ADMIN_API_BASE_URL`
 
 ---
@@ -805,7 +805,7 @@ de Firebase/BigQuery/ingest).
 ```json
 {
   "source": "worker",
-  "projectId": "io-veloo-app",
+  "projectId": "signallq-app",
   "status": "connected",
   "hasCredentials": true,
   "ga4PropertyConfigured": true
@@ -944,13 +944,32 @@ Retorna todas as flags (internas e públicas). Exige sessão.
 }
 ```
 
-### POST /admin/feature-flags
+### PUT /admin/feature-flags/:key
 
-Persiste o array de flags. Exige sessão.
+Atualiza o campo `enabled` de uma única flag identificada por `:key` e grava um registro de auditoria. Exige sessão.
 
 **Request:**
 ```json
-{ "flags": [ { "key": "ai_diagnosis_enabled", "enabled": false, "scope": "public", "description": "..." } ] }
+{ "enabled": false }
+```
+
+**Response 200:**
+```json
+{ "ok": true }
+```
+
+**Erros:** `400` (body inválido), `404` (flag inexistente).
+
+### GET /flags (público)
+
+Sem prefixo `/admin/`. Sem auth. Retorna `key` + `enabled` da tabela `feature_flags` (SIG-13) para consumo do app Android.
+
+```json
+{
+  "flags": [
+    { "key": "feature_diagnostico_ia", "enabled": true }
+  ]
+}
 ```
 
 ### GET /feature-flags (público)

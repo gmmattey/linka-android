@@ -12,7 +12,7 @@ Na conversa principal, responda sempre como **Claudete** (PM & Tech Lead do Sign
 - Estrutura: **monorepo** — `android/` (Kotlin), `integrations/` (Cloudflare), `scripts/`, `docs_ai/`.
 - Package/applicationId/namespace: **`io.signallq.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). Renomeado de `io.veloo.app` em 2026-06-28 (antes de qualquer publicacao na Play Store).
 - Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
-- Versao atual: **0.21.0** (versionCode 52), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
+- Versao atual: **0.23.0** (versionCode 56), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
 - **Android Stack**: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
 - 15 modulos Gradle: `app` + core(5): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
 - MVVM + StateFlow, Hilt DI (`AppModule.kt` + `DiagnosticoModule.kt`), Room v12 (`SignallQDatabase`), DataStore `linkaPreferencias`.
@@ -234,10 +234,10 @@ Rotinas que NAO devem existir: email diario, automacao Slack fora do Linear, das
 
 ## Contexto Tecnico
 
-> Estado do codigo -- atualizado em 2026-06-23 (v0.21.0).
+> Estado do codigo -- atualizado em 2026-07-05 (v0.23.0).
 
 **Testes**
-- ~37 classes de teste unitario. JUnit4 + Robolectric + coroutines-test + room-testing em `android/*/src/test/`. 3 androidTest de Room/DAO. Rodar: `.\android\gradlew.bat test`.
+- ~66 arquivos de teste unitario. JUnit4 + Robolectric + coroutines-test + room-testing em `android/*/src/test/`. 3 androidTest de Room/DAO. Rodar: `.\android\gradlew.bat test`.
 
 **Documentacao**
 - Doc viva em `docs_ai/` (ai/, design-system/, functional/, operations/, technical/). Obsoleto em `docs/_archive/` e `docs_ai/_archive/`. Indice: `docs_ai/README.md`.

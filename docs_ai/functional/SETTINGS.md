@@ -1,5 +1,8 @@
 # Settings Functionality
 
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56)
+**Tela real:** `AjustesScreen.kt` (Aba 4 — Ajustes) em `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/`. Namespace/package = `io.signallq.app`. Os nomes `SettingsScreen.kt`/`SpeedtestScreen.kt` abaixo são caminhos inferenciais antigos; os arquivos reais são `AjustesScreen.kt` e `SpeedTestScreen.kt`.
+
 ## Objective
 
 This document details the settings functionality, mapping specific components and interactions within the SignallQ Android Kotlin application.

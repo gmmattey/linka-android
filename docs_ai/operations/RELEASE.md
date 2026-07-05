@@ -4,9 +4,12 @@
 
 This document outlines the process for releasing new versions of the SignallQ Android Kotlin application, covering the steps from build to deployment.
 
-> Versao atual: **0.16.0** (versionCode 46). Identificadores tecnicos de infra
-> permanecem: package `io.veloo.app`, repo `gmmattey/linka-android`, worker
-> `linka-ai-diagnosis-worker`.
+> Versao atual: **0.23.0** (versionCode 56), release 2026-07-05.
+> Namespace/applicationId atual: **`io.signallq.app`** (renomeado de `io.veloo.app`
+> em 2026-06-28). O caminho fisico do codigo do modulo `:app` continua sendo
+> `io/veloo/app/kotlin/` — nao alterar. Demais identificadores tecnicos de infra
+> permanecem: repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`.
+> Historico autoritativo de versoes Android: `android/CHANGELOG.md`.
 
 ## Processo Canônico do Projeto (Firebase App Distribution)
 
@@ -80,8 +83,8 @@ Quando uma feature flag pós-MVP deve ser ativada no release:
 
 2. **Incrementar versão em libs.versions.toml**
    - Arquivo: `gradle/libs.versions.toml`
-   - Campo: `versionName` — seguir semver (ex: 0.16.0 → 0.16.1)
-   - Campo: `versionCode` — incrementar de 1 em 1 (ex: 46 → 47)
+   - Campo: `versionName` — seguir semver (ex: 0.23.0 → 0.23.1)
+   - Campo: `versionCode` — incrementar de 1 em 1 (ex: 56 → 57)
 
 3. **Atualizar CHANGELOG**
    - Arquivo: `CHANGELOG.md`
