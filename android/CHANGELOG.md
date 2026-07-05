@@ -11,8 +11,22 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
 ## [Não lançado]
 
+## [0.23.0] — 2026-07-05
+
+### Adicionado
+- Logos oficiais reais de operadoras e catálogo local de badges (SIG-292) (#472, #467)
+- Exibição dos canais oficiais da operadora identificada no diagnóstico (#466)
+- Instrumentação de analytics: funil principal com 7 eventos via `AnalyticsHelper` (#473) e `feature_used` em Wi-Fi, DNS, Fibra e Histórico (#469)
+
 ### Corrigido
+- Ingest de speedtest via Wi-Fi agora inclui a operadora/ISP identificada (#468)
+- Quebras de layout com fonte grande do sistema (#470)
+- Matcher de operadora não confunde mais "Oi" com "Nio" (#465)
+- Exceção ao invocar `executarSpeedtest` agora é logada em vez de engolida silenciosamente (#433)
 - Sinal › Dispositivos exibe "Dispositivo <Fabricante>" (ex.: "Dispositivo Samsung") via fallback de fabricante por OUI do MAC quando o hostname não é resolvido, em vez do rótulo genérico "Dispositivo" sem nenhuma pista (#394). Resolução completa de nome via mDNS/NetBIOS fica para issue de feature separada.
+
+### Alterado
+- Upgrade coordenado de toolchain: AGP 9.2.1, Kotlin 2.3.21, Gradle 9.4.1 (#445)
 
 ## [0.22.1] — 2026-07-03
 
