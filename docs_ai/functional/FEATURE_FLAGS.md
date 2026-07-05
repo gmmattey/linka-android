@@ -1,6 +1,6 @@
 # Feature Flags — SignallQ Android + Admin Panel
 
-**Última atualização:** 2026-06-23 (SIG-133, SIG-125)
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56; revalidado. Base: SIG-133, SIG-125)
 **Fonte:** especificação de design e código
 **Responsável:** Felipe (painel), Camilo (Android), Gema (review)
 

@@ -2,7 +2,7 @@
 
 # Data Flow — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 
 User Action → Composable (UI) → ViewModel → Data Layer → StateFlow Update → UI Recomposition
 

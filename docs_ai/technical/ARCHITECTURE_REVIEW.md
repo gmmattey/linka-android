@@ -1,5 +1,7 @@
 # Relatório de Arquitetura — SignallQ Android
 
+> **DOCUMENTO HISTÓRICO** — reflete o estado em 2026-06-21 (v0.16.0/v0.18.1). Para o estado atual, ver `docs_ai/technical/ARCHITECTURE.md`.
+
 > **Tipo:** Read-only / análise  
 > **Data:** 2026-06-21  
 > **Versão auditada:** 0.16.0 (versionCode 46) → confirmado como 0.18.1 no Explore  

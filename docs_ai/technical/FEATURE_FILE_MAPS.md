@@ -1,6 +1,6 @@
 # Feature File Maps — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Fonte:** código real
 
 Mapa de arquivos-chave por módulo. Todos os paths são relativos à raiz do módulo (`module/src/main/kotlin/io/veloo/app/kotlin/`).

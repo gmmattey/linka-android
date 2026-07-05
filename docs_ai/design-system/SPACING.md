@@ -1,8 +1,8 @@
 # Espaçamento — SignallQ
 
 **Fonte:** `SignallQTheme.kt` (LkSpacing) | Padrão grid 8 dp  
-**Escopo:** Android v0.16.0  
-**Última atualização:** 2026-06-21
+**Escopo:** Android v0.23.0  
+**Última atualização:** 2026-07-05
 
 ---
 

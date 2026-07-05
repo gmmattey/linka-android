@@ -2,7 +2,7 @@
 
 **Módulo:** `:featureWifi`
 **Plataforma:** Android exclusivo
-**Atualizado em:** 2026-05-16
+**Atualizado em:** 2026-07-05 (v0.23.0 — versionCode 56; conteúdo técnico de APIs Wi-Fi revalidado)
 **Público-alvo:** IA (Claude) — autocontido, sem dependência de sessão anterior
 
 ---

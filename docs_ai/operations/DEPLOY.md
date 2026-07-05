@@ -4,9 +4,12 @@
 
 This document outlines the deployment process for the SignallQ Android Kotlin application, detailing how new versions are released to end-users.
 
-> Versao atual: **0.16.0** (versionCode 46). Identificadores tecnicos de infra
-> permanecem: package `io.veloo.app`, repo `gmmattey/linka-android`, worker
-> `linka-ai-diagnosis-worker`.
+> Versao atual: **0.23.0** (versionCode 56), release 2026-07-05.
+> Namespace/applicationId atual: **`io.signallq.app`** (renomeado de `io.veloo.app`
+> em 2026-06-28; caminho fisico do codigo do `:app` continua `io/veloo/app/kotlin/`).
+> Demais identificadores tecnicos permanecem: repo `gmmattey/linka-android`, worker
+> `linka-ai-diagnosis-worker`. A partir de 0.22.1 ha publicacao automatizada na Play
+> Console (trilha de teste fechado) via gradle-play-publisher no release por tag.
 
 ## Deployment Target
 

@@ -1,6 +1,6 @@
 # Screen Map — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Fonte:** código real (`AppShell.kt`)
 
 Todas as telas residem em:

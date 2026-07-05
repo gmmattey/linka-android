@@ -1,8 +1,8 @@
 # Auditoria de Dependencias — SignallQ Android
 
-Data: 2026-06-28
+Data: 2026-06-28 (versao de referencia atualizada em 2026-07-05)
 Issue: SIG-216
-Versao auditada: 0.21.0 (versionCode 52)
+Versao auditada: 0.23.0 (versionCode 56)
 Catalogo: `android/gradle/libs.versions.toml`
 
 ---

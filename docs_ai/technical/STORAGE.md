@@ -1,6 +1,6 @@
 # Storage — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Fonte:** código real
 
 O app usa dois mecanismos de persistência: **Room** (banco SQLite) e **DataStore** (preferências chave-valor).

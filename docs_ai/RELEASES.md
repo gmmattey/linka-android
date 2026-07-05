@@ -1,28 +1,51 @@
 # Histórico de Releases — SignallQ Android
 
 **Mantido por:** Gema
-**Última atualização:** 2026-06-26
-**Referência:** `git log --oneline` + CHANGELOG.md
+**Última atualização:** 2026-07-05
+**Referência:** `android/CHANGELOG.md` (fonte autoritativa do histórico Android) + `git log --oneline`
 
-> Nota de marca: identificadores técnicos permanecem por compatibilidade de infra —
-> package `io.veloo.app`, repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`.
+> Nota de marca: o namespace/applicationId atual é **`io.signallq.app`** (renomeado de
+> `io.veloo.app` em 2026-06-28; o caminho físico do código do `:app` continua
+> `io/veloo/app/kotlin/`). Demais identificadores técnicos permanecem por compatibilidade
+> de infra — repo `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`.
 
 ---
 
-## [Unreleased] — pós-v0.21.0
+## v0.23.0 (versionCode 56) — 2026-07-05
 
-**Em desenvolvimento / mergeado após 2026-06-22**
+**Logos de operadoras, canais oficiais e instrumentação de analytics**
 
-- (SIG-128/130) Firebase Crashlytics + BigQuery REST API — sync de crashes e versões
-- (SIG-13) Feature flags remotas com UI de gerenciamento no Admin Panel
-- (SIG-129) Pipeline de erros de sistema no worker com tabela `system_errors`
-- (SIG-133) Alertas de orçamento de IA via D1 com thresholds configuráveis
-- (SIG-125) `reliabilityPercentage` por modelo em `/admin/metrics/ai-usage`
-- (SIG-134) Analytics de produto: D1 + worker + Admin Panel
-- (SIG-12) Compatibilidade Safari iOS 9-10 (iPad 2012)
-- Batch fix de 16 bugs Admin Panel: crashes TypeErrors, guards defensivos, dados mockados (PR #306)
-- Modularização de backend contracts no PWA (SIG-145)
-- Design system PWA em andamento (SIG-41, branch ativa)
+- Logos oficiais reais de operadoras e catálogo local de badges (SIG-292) (#472, #467)
+- Exibição dos canais oficiais da operadora identificada no diagnóstico (#466)
+- Instrumentação de analytics: funil principal com 7 eventos via `AnalyticsHelper` (#473) e `feature_used` em Wi-Fi, DNS, Fibra e Histórico (#469)
+- Ingest de speedtest via Wi-Fi agora inclui a operadora/ISP identificada (#468)
+- Correção de quebras de layout com fonte grande do sistema (#470)
+- Matcher de operadora não confunde mais "Oi" com "Nio" (#465)
+- Sinal › Dispositivos: fallback de fabricante por OUI do MAC quando o hostname não resolve (#394)
+- Upgrade coordenado de toolchain: AGP 9.2.1, Kotlin 2.3.21, Gradle 9.4.1 (#445)
+
+---
+
+## v0.22.1 (versionCode 54) — 2026-07-03
+
+**Primeira publicação na Play Console + correções de topologia**
+
+- Primeira publicação automatizada na Play Console (trilha de teste fechado) via gradle-play-publisher no release por tag
+- Roteador dual-band único não é mais classificado como mesh; aparece como "Roteador dual-band" com bandas identificadas (#356)
+- Chip "Conectado" em Sinal › Wi-Fi não quebra mais com SSID longo; trunca com reticências (#355)
+- Aba "Dispositivos" na barra de abas da tela Sinal não quebra mais em duas linhas (#354)
+
+---
+
+## v0.22.0 (versionCode 53) — 2026-06-29
+
+**Ícone SignallQ, "Fale conosco" e otimizações**
+
+- Item "Fale conosco" na tela de Ajustes
+- Ícone do app atualizado para o símbolo SignallQ (barras de sinal roxo→azul)
+- Acessibilidade TalkBack e compatibilidade com dark theme
+- Baseline Profile atualizado para `io.signallq.app`
+- Melhorias de desempenho: startup, consumo de bateria do worker de monitoramento e tamanho do APK
 
 ---
 

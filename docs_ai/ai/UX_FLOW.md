@@ -1,54 +1,42 @@
 # UX Flow for Agents
 
-> Referência: `AGENTS.md` na raiz deste projeto.
-> Design system: `docs_ai/design-system/`
+> **Fonte da verdade:** `.claude/CLAUDE.md` + `.claude/agents/*.md`. Este arquivo é um resumo apontador.
+> Decisão de fluxo: `docs_ai/decisions/ADR-006-workflow-squad-5-agentes.md`.
+> Design system: `docs_ai/design-system/` e skill `/linka-design`.
+> Versão: v0.23.0 · 2026-07-05.
 
 ## Objetivos de UX
 
-- **Intuitividade e eficiência**: padrões documentados em `design-system/NAVIGATION.md` e `design-system/COMPONENTS_ANDROID.md`.
 - **Consistência**: aderência estrita a Material Design 3 (`design-system/MD3_GUIDELINES.md`).
-- **Acessibilidade**: contraste verificado em `design-system/COLORS.md`, targets de toque adequados.
-- **Clareza de diagnóstico**: dados de rede traduzidos em linguagem acessível ao usuário final.
+- **Acessibilidade**: contraste (`design-system/COLORS.md`) e targets de toque adequados.
+- **Clareza de diagnóstico**: métrica crua sempre com veredito humano (Excelente/Bom/Regular/Fraco/Forte).
 
-## Quando Lia é acionada
+## Gate de UX condicional
 
-Lia é obrigatória sempre que a task envolver:
+**Lia** entra **antes** da implementação **apenas** quando a mudança é visual/de fluxo:
 - Tela nova ou modificação de tela existente.
 - Estado visual novo: loading, vazio, erro, sucesso, thinking.
-- Texto ou microcopy visível ao usuário.
-- Resposta de IA ou diagnóstico exibido na tela.
+- Texto/microcopy visível ao usuário (incluindo resposta de IA/diagnóstico).
 - Mudança de fluxo de navegação.
 
-Dispensada apenas em mudanças puramente nos módulos `:core*` sem impacto visual.
+Bug ou lógica pura, e mudanças em `:core*` sem reflexo visual, **pulam a Lia** — reduz latência sem perder qualidade onde importa.
 
-## Dois momentos de atuação da Lia
+## Dois momentos da Lia
 
-1. **Antes da implementação**: revisão do plano do Cláudio — valida UX antes de codificar.
-2. **Pós-implementação**: revisão paralela com Gema — valida UX, MD3, microcopy do entregável real.
+1. **Antes da implementação** — valida que estados visuais e microcopy estão mapeados no plano.
+2. **Pós-implementação** — confirma o entregável real (junto ao gate da Gema).
 
-## Princípios de design aplicados pelos agentes
-
-1. **Centralidade no usuário**: decisões de design priorizadas pelos fluxos em `functional/`.
-2. **Aderência a MD3**: uso rigoroso das diretrizes de `design-system/MD3_GUIDELINES.md`.
-3. **Acessibilidade**: contraste e tipografia conforme `design-system/COLORS.md` e `design-system/TYPOGRAPHY.md`.
-4. **Design iterativo**: melhorias informadas pelos fluxos funcionais e feedback de usuário.
-5. **Consistência**: novos elementos de UI alinhados com `design-system/COMPONENTS_ANDROID.md` e `design-system/NAVIGATION.md`.
-
-## Agentes de UX
+## Papéis
 
 | Agente | Responsabilidade |
 |---|---|
-| Lia | Revisão de UI, MD3, microcopy, acessibilidade, estados visuais — edita somente UI/layout |
-| Camilo | Implementa UI conforme specs da Lia |
-| Gema | Valida que a implementação de UI não introduz bugs ou regressões |
+| Lia | UI, MD3, microcopy, acessibilidade, estados visuais — edita só UI/layout |
+| Camilo | Implementa a UI Android conforme spec da Lia |
+| Felipe | Implementa a UI do Admin Panel conforme spec da Lia |
+| Gema | Valida que a UI não introduz bug/regressão |
 
 ## Referências
 
-- `design-system/COMPONENTS_ANDROID.md` — 25 componentes (SignallQ, SpeedTest, Layout)
-- `design-system/MD3_GUIDELINES.md` — diretrizes Material Design 3
-- `design-system/COLORS.md` — tokens de cor, contraste
-- `design-system/TYPOGRAPHY.md` — escala tipográfica MD3
-- `design-system/MOTION.md` — animações e transições
-- `design-system/NAVIGATION.md` — padrões de navegação
-- `functional/AI_ASSISTANT.md` — apresentação de respostas de IA ao usuário
+- `design-system/COMPONENTS_ANDROID.md`, `MD3_GUIDELINES.md`, `COLORS.md`, `TYPOGRAPHY.md`, `NAVIGATION.md`
+- `functional/AI_ASSISTANT.md` — apresentação de respostas de IA
 - `functional/DIAGNOSTIC_FLOW.md` — fluxo de diagnóstico

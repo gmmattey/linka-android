@@ -1,52 +1,52 @@
 # Handoff Rules
 
-> Referência completa do fluxo de trabalho: `AGENTS.md`, `docs/PIPELINE_AUTONOMO.md` e `docs_ai/ai/AGENT_WORKFLOW.md`.
-> Comandos de agentes: `.claude/commands/`
+> **Fonte da verdade:** `.claude/CLAUDE.md` + `.claude/agents/*.md`. Este arquivo é um resumo apontador.
+> Decisão de fluxo: `docs_ai/decisions/ADR-006-workflow-squad-5-agentes.md`.
+> Versão: v0.23.0 · 2026-07-05.
 
-## Quando fazer handoff
+## Onde vive o handoff
 
-- A task requer expertise diferente da do agente atual.
-- A conclusão da task viabiliza trabalho paralelo de outro agente.
-- O escopo ultrapassa a especialização do agente.
+O estado do trabalho vive no **Linear** (status da issue) + **GitHub** (PR). O Linear notifica o Slack diretamente — não criar fluxo manual paralelo.
 
-## Formato obrigatório de handoff
+Os scripts `agent-handoff.sh`, `notify.sh`, `discord_notify.sh` e o board Discord estão **depreciados**: não são o mecanismo de handoff. Não documentar como fluxo.
 
-```
-De: [agente] Para: [agente] — Decisão: [o que foi decidido]. Pendente: [o que falta]. Riscos: [riscos identificados].
-```
+Roteamento: **bug → GitHub Issues** (formato `[BUG]`); **feature / task / daily → Linear** (projeto SignallQ).
 
-Não repita contexto completo — apenas o delta relevante para o próximo agente.
-
-## Mapeamento de handoffs por situação
+## Fluxo de handoff (squad de 5)
 
 | Situação | De | Para |
 |---|---|---|
-| Task grande ou ambígua | Claudete | Cláudio |
-| Implementação Android pronta para codificação | Cláudio | Camilo |
-| Task Android com APIs de sistema/permissões | Cláudio | Otávio → Camilo |
-| Task com impacto visual | Cláudio | Lia (antes da implementação) |
-| Revisão final | Camilo | Gema + Lia (paralelo) |
-| Bump de versão e changelog | Gema + Lia | Nina |
-| Doc funcional/técnica/fluxo/PPT/HTML | Nina | Taisa (condicional) |
-| Busca em código | Qualquer agente | Marcelo (Haiku) |
-| Busca em documentação | Qualquer agente | Nina (Haiku) |
+| Demanda bruta → refino e breakdown | Usuário | Claudete |
+| Task visual/de fluxo, antes de implementar | Claudete | Lia (gate condicional) |
+| Task Android pronta para implementar | Claudete | Camilo |
+| Task Admin Panel / análise de dados | Claudete | Felipe |
+| Implementação pronta → gate de Done | Camilo / Felipe / Lia | Gema |
+| Reprovação (máx. 2 rodadas) | Gema | implementador |
+| 3ª divergência no loop de review | Gema | Claudete (decide) |
 
-## Agentes atuais e seus papéis
+Lia entra **antes** só quando a mudança é visual/de fluxo; bug/lógica pura pula a Lia.
+
+## Formato do handoff (no comentário da issue)
+
+```
+De: [agente] Para: [agente] — Decisão: [o que foi decidido]. Pendente: [o que falta]. Riscos: [riscos].
+```
+
+Não repita contexto completo — apenas o delta relevante.
+
+## Agentes e arquivos
 
 | Agente | Arquivo | Papel |
 |---|---|---|
-| Claudete | `.claude/agents/claudete.md` | Product Owner |
-| Cláudio | `.claude/agents/claudio.md` | Líder Técnico |
-| Lia | `.claude/agents/lia.md` | UX/UI, Material Design 3 |
-| Otávio | `.claude/agents/otavio.md` | Android Device/OS/Hardware |
+| Claudete | `.claude/agents/claudete.md` | PM & Tech Lead |
 | Camilo | `.claude/agents/camilo.md` | Dev Android |
-| Gema | `.claude/agents/gema.md` | QA |
-| Nina | `.claude/agents/nina.md` | Documentação leve, changelog (Haiku) |
-| Taisa | `.claude/agents/taisa.md` | Documentação especializada |
-| Marcelo | `.claude/agents/marcelo.md` | Busca e triagem de código (Haiku) |
+| Felipe | `.claude/agents/felipe.md` | Admin Panel & dados |
+| Lia | `.claude/agents/lia.md` | UX & Design |
+| Gema | `.claude/agents/gema.md` | QA, Release & Higiene |
+
+Busca de código/docs = ferramentas nativas (Read/Grep/Glob) ou skills. Não há agente dedicado a busca.
 
 ## Referências
 
-- `ai/AGENT_WORKFLOW.md` — fluxo completo com passo a passo
+- `ai/AGENT_WORKFLOW.md` — fluxo completo
 - `ai/TASK_BREAKDOWN.md` — decomposição de tasks
-- `AGENTS.md` — contrato curto de operacao

@@ -2,7 +2,7 @@
 
 App Android de **diagnóstico de conectividade** com IA — analisa Wi-Fi, fibra, rede móvel e dispositivos da rede local e gera laudos com explicações em linguagem natural.
 
-> Identificadores técnicos preservam o nome anterior (`io.veloo.app`, repo `linka-android`, banco `linkaKotlin.db`) — são técnicos, não a marca. A marca é **SignallQ**.
+> Package/namespace atual é `io.signallq.app` (renomeado de `io.veloo.app` em 2026-06-28). Outros identificadores técnicos preservam nomes anteriores — repo `linka-android`, banco `linkaKotlin.db`, worker `linka-ai-diagnosis-worker` — são técnicos, não a marca. A marca é **SignallQ**.
 
 ## Stack
 
@@ -56,6 +56,7 @@ Worker Cloudflare: havendo mudança em `integrations/cloudflare/*/src/`, `npx wr
 - `SignallQ Admin/` — painel administrativo (React + Vite + TypeScript)
 - `integrations/cloudflare/ai-diagnosis-worker/` — worker de diagnóstico IA
 - `integrations/cloudflare/signallq-admin-worker/` — worker do painel admin
+- `integrations/cloudflare/signallq-privacy-worker/` — worker da política de privacidade
 
 ## Roadmap de lançamento (Play Store — alvo 07/08/2026)
 

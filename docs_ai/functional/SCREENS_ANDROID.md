@@ -1,16 +1,18 @@
 # Telas Android — SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0 — abas corrigidas; OrbitScreen→SignallQScreen; AjustesScreen promovida para Aba 4; DispositivosScreen deixa de ser aba)
-**Fonte:** código real — AppShell.kt linha 947–951, AppNavGraph.kt, verificados por Taisa 2026-06-21
-**Arquivo de navegação:** `AppShell.kt`, `AppNavGraph.kt`
-**Diretório de telas:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/`
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56; LinkaPulseScreen→SignallQPulseScreen; FibraScreen→FibraModemScreen; inventário de telas reconciliado com o diretório real)
+**Fonte:** código real — `AppShell.kt` (5 abas: home, speedtest, sinal_wifi, historico, ajustes), diretório de telas
+**Arquivo de navegação:** `AppShell.kt` (abas + pilha de overlays)
+**Diretório de telas:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/` (caminho físico legado; namespace/package = `io.signallq.app`)
 
 ---
 
-## Visão Geral — 16 Telas
+## Visão Geral — Telas
 
-> Abas da NavigationBar confirmadas via `AppShell.kt` linhas 947–951 (v0.16.0):
+> O diretório de telas contém 32 arquivos `.kt`, dos quais **22 são composables `*Screen.kt`**. Os demais são `*UiState.kt`, `*State.kt` e componentes de apoio (`UptimeGridChart.kt`, `ExportHistoricoBottomSheet.kt`, sheets de permissão).
+> Abas da NavigationBar confirmadas via `AppShell.kt` (`tabScreenNames = listOf("home", "speedtest", "sinal_wifi", "historico", "ajustes")`):
 > [0] Início · [1] Velocidade · [2] Sinal · [3] Histórico · [4] Ajustes
+> **Dispositivos, Fibra e Diagnóstico/IA são overlays empilhados, não abas. Não existe aba "Mais".**
 
 | # | Composable | Arquivo | Tipo | Entrada | Saída |
 |---|---|---|---|---|---|
@@ -18,18 +20,24 @@
 | 2 | `SpeedTestScreen` | `SpeedTestScreen.kt` | Aba 1 — Velocidade | NavigationBar | VelocidadeScreen, DiagnosticoScreen, DnsBenchmarkSheet |
 | 3 | `SinalScreen` | `SinalScreen.kt` | Aba 2 — Sinal | NavigationBar | — |
 | 4 | `HistoricoScreen` | `HistoricoScreen.kt` | Aba 3 — Histórico | NavigationBar | — |
-| 5 | `AjustesScreen` | `AjustesScreen.kt` | Aba 4 — Ajustes | NavigationBar | FibraScreen, LaudoScreen |
+| 5 | `AjustesScreen` | `AjustesScreen.kt` | Aba 4 — Ajustes | NavigationBar | FibraModemScreen, LaudoScreen |
 | 6 | `VelocidadeScreen` | `VelocidadeScreen.kt` | Overlay (fluxo) | SpeedTestScreen (auto) | ResultadoVelocidadeScreen |
 | 7 | `ResultadoVelocidadeScreen` | `ResultadoVelocidadeScreen.kt` | Overlay (fluxo) | VelocidadeScreen (auto) | DiagnosticoScreen, LLMChatScreen, HomeScreen |
 | 8 | `DiagnosticoScreen` | `DiagnosticoScreen.kt` | Overlay (fluxo) | ResultadoVelocidade, SpeedTestScreen | LLMChatScreen |
 | 9 | `LLMChatScreen` | `LLMChatScreen.kt` | Overlay (fluxo) | DiagnosticoScreen, ResultadoVelocidade | volta ao anterior |
 | 10 | `SignallQScreen` | `SignallQScreen.kt` | Overlay (fluxo) | Diagnóstico autônomo | — (ex-OrbitScreen) |
 | 11 | `DispositivosScreen` | `DispositivosScreen.kt` | Overlay | AjustesScreen ou outras entradas | — |
-| 12 | `FibraScreen` | `FibraScreen.kt` | Overlay (fluxo) | AjustesScreen | AjustesScreen |
+| 12 | `FibraModemScreen` | `FibraModemScreen.kt` | Overlay (fluxo) | AjustesScreen | AjustesScreen |
 | 13 | `LaudoScreen` | `LaudoScreen.kt` | Overlay (fluxo) | AjustesScreen | AjustesScreen |
-| 14 | `LinkaPulseScreen` | `LinkaPulseScreen.kt` | Overlay (debug) | FEATURE_LINKPULSE_ATIVO | — |
+| 14 | `SignallQPulseScreen` | `SignallQPulseScreen.kt` | Overlay (debug) | FEATURE_LINKPULSE_ATIVO | — |
 | 15 | `OnboardingScreen` | `OnboardingScreen.kt` | Especial | Primeira execução | HomeScreen |
-| 16 | `PrivacidadeScreen` / `NovidadesScreen` | `.kt` | Overlay (AnimatedVisibility) | AjustesScreen | AjustesScreen |
+| 16 | `MinhaConexaoScreen` | `MinhaConexaoScreen.kt` | Overlay | detalhe de conexão | — |
+| 17 | `PingScreen` | `PingScreen.kt` | Overlay | ferramenta de ping | — |
+| 18 | `DnsScreen` | `DnsScreen.kt` | Overlay | benchmark DoH | — |
+| 19 | `PrivacidadeScreen` | `PrivacidadeScreen.kt` | Overlay (AnimatedVisibility) | AjustesScreen | AjustesScreen |
+| 20 | `NovidadesScreen` | `NovidadesScreen.kt` | Overlay (AnimatedVisibility) | AjustesScreen | AjustesScreen |
+| 21 | `ChatScreen` | `ChatScreen.kt` | Overlay (fluxo legado) | — | — |
+| 22 | `ChatDiagnosticoIaScreen` | `ChatDiagnosticoIaScreen.kt` | Overlay (fluxo legado v0.12.0) | — | — |
 
 ---
 
@@ -125,7 +133,7 @@
 
 ### DispositivosScreen
 
-**Tipo:** Overlay empilhado — não é aba da NavigationBar em v0.16.0 (DEVICES_SCREEN_V2=false em release)
+**Tipo:** Overlay empilhado — não é aba da NavigationBar (DEVICES_SCREEN_V2=false em release)
 
 **O que exibe:** 
 - `OfflineBanner` (novo): exibido no topo quando sem conectividade
@@ -188,7 +196,7 @@
 **Botões:** "Conversar com IA", "Testar Upload Novamente", "Ir para o início", "Testar novamente"
 
 **Navegação de saída:**
-- → `LLMChatScreen` (botão "Conversar com IA" — FEATURE_DIAGNOSTICO_CHAT ativo em release v0.16.0)
+- → `LLMChatScreen` (botão "Conversar com IA" — FEATURE_DIAGNOSTICO_CHAT ativo em release)
 - → `DiagnosticoScreen`
 - → `HomeScreen`
 
@@ -234,7 +242,7 @@
 
 **Tipo:** Overlay (fluxo) — `LLMChatScreen.kt`
 
-**Flag:** `FEATURE_DIAGNOSTICO_CHAT` — ativo em release v0.16.0
+**Flag:** `FEATURE_DIAGNOSTICO_CHAT` — ativo em release
 
 **Parâmetros recebidos:** contexto do diagnóstico + histórico de mensagens
 
@@ -263,11 +271,11 @@
 | Análise avançada | On/Off | Toggle |
 | Fibra | Host, usuário, senha, manter conectado | Formulário + Toggle |
 
-**Navegação de saída:** → `FibraScreen`, → `LaudoScreen`, → `HistoricoScreen`
+**Navegação de saída:** → `FibraModemScreen`, → `LaudoScreen`, → `HistoricoScreen`
 
 ---
 
-### FibraScreen
+### FibraModemScreen
 
 **Tipo:** Fluxo a partir de AjustesScreen
 
@@ -296,9 +304,11 @@ Ver seção `SignallQScreen` acima. O arquivo `OrbitScreen.kt` foi substituído 
 
 ---
 
-### LinkaPulseScreen
+### SignallQPulseScreen
 
-**Tipo:** Dashboard de monitoramento contínuo com símbolo LinkaPulse animado.
+**Composable/arquivo:** `SignallQPulseScreen.kt` (ex-`LinkaPulseScreen`)
+
+**Tipo:** Dashboard de monitoramento contínuo com símbolo SignallQ Pulse animado. Controlado por `FEATURE_LINKPULSE_ATIVO` — inativo em release, visível apenas em builds debug.
 
 ---
 

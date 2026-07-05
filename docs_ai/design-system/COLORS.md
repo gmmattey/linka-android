@@ -1,8 +1,8 @@
 # Tokens de Cores — SignallQ
 
 **Fonte:** `SignallQTheme.kt` (LkColors)
-**Escopo:** Android v0.16.0
-**Última atualização:** 2026-06-21
+**Escopo:** Android v0.23.0
+**Última atualização:** 2026-07-05
 
 ---
 
@@ -69,11 +69,11 @@ Componentes IA (`SignallQ*`) mantêm sempre paleta escura independente do tema d
 
 | Token | Valor | Uso |
 |---|---|---|
-| `linkaBlack` | `#0D0D1A` | Background principal da superfície SignallQ |
-| `linkaDarkSurface` | `#1A0B2E` | Superfícies secundárias dentro do SignallQ |
-| `linkaDarkCard` | `#1E1130` | Cards de bolhas de IA (`SignallQAiMessageBubble`) |
-| `linkaTextOnDark` | `#F3F4F6` | Texto primário sobre escuro (high contrast) |
-| `linkaTextSecondaryOnDark` | `#9CA3AF` | Texto secundário sobre escuro |
+| `signallQBlack` | `#0D0D1A` | Background principal da superfície SignallQ |
+| `signallQDarkSurface` | `#1A0B2E` | Superfícies secundárias dentro do SignallQ |
+| `signallQDarkCard` | `#1E1130` | Cards de bolhas de IA (`SignallQAiMessageBubble`) |
+| `signallQTextOnDark` | `#F3F4F6` | Texto primário sobre escuro (high contrast) |
+| `signallQTextSecondaryOnDark` | `#9CA3AF` | Texto secundário sobre escuro |
 
 > Estes tokens permanecem fixos. `SignallQScreen`, `LLMChatScreen` e todos os componentes `SignallQ*` usam esta paleta independente de o usuário ter tema claro ou escuro no sistema.
 

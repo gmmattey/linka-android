@@ -2,7 +2,7 @@
 
 Use este guia para gerar APK release assinado sem perder versao, nome ou local do artefato.
 
-> Versao atual: **0.16.0** (versionCode 46). Para o processo completo de
+> Versao atual: **0.23.0** (versionCode 56). Para o processo completo de
 > deploy (commit → push → clean build → Firebase) veja `docs_ai/operations/RELEASE.md`.
 > Resumo Firebase: `./gradlew clean assembleRelease --no-build-cache` e depois
 > `./gradlew appDistributionUploadRelease` (nunca usar cache em release).
@@ -24,7 +24,7 @@ signallq-android-v<versionName>+<versionCode>-release-<yyyyMMdd-HHmmss>.apk
 Exemplo:
 
 ```text
-C:\Projetos\Linka Android\builds\apk\release\0.16.0\signallq-android-v0.16.0+46-release-20260621-112233.apk
+C:\Projetos\Linka Android\builds\apk\release\0.23.0\signallq-android-v0.23.0+56-release-20260705-112233.apk
 ```
 
 ## Pre-requisitos

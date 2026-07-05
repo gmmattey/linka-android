@@ -1,6 +1,6 @@
 # Arquitetura — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Fonte:** código real
 **Padrão:** MVVM com Hilt DI
 
@@ -196,7 +196,7 @@ Fallback: AiFallbackFactory.fromLocal() [se IA falhar ou timeout]
 **Flags pós-MVP (ativas em debug, inativas em release):**
 `FEATURE_LINKPULSE_ATIVO`, `FEATURE_NOTIFICACAO_INLINE`, `FEATURE_WIDGET`, `FEATURE_QUICK_SETTINGS_TILE`, `FEATURE_PROVA_REAL_COMPLETO`, `FEATURE_DIAGNOSTICO_ITERATIVO`, `FEATURE_TRACEROUTE`, `FEATURE_FIBRA_SCREEN`, `FEATURE_DNS_SCREEN`, `FEATURE_DEVICES_SCREEN_V2`, `FEATURE_TELEPHONY_AVANCADO`, `FEATURE_MAPA_CALOR_WIFI`, `FEATURE_AGENDAMENTO_TESTES`, `FEATURE_LINKPULSE_CHAT`, `FEATURE_LINKASYNC`, `FEATURE_BACKUP_LOCAL`, `FEATURE_CONTRIBUICAO_ANONIMA`, `FEATURE_RATE_US`, `FEATURE_ACESSIBILIDADE`
 
-**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/veloo/app/kotlin/FeatureFlags.kt` (package `io.veloo.app`):
+**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/veloo/app/kotlin/FeatureFlags.kt` (package `io.signallq.app`):
 
 `kotlin
 if (FeatureFlags.FEATURE_SPEEDTEST) {

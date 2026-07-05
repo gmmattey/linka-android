@@ -1,7 +1,7 @@
 # Fluxo de Diagnóstico — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0 — OrbitOrchestrator→SignallQOrchestrator; OrbitInlineQuestion→SignallQInlineQuestion; modelo Qwen3 30B; ChatScreen→SignallQScreen)
-**Fonte:** código real (Marcelo, 2026-05-17; marca corrigida por Taisa 2026-06-21)
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56; OrbitOrchestrator→SignallQOrchestrator; OrbitInlineQuestion→SignallQInlineQuestion; modelo Qwen3 30B; ChatScreen→SignallQScreen)
+**Fonte:** código real
 
 ---
 

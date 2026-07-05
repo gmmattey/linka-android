@@ -1,7 +1,7 @@
 # Design Tokens — Android
 
-**Escopo:** SignallQ v0.16.0 | Android
-**Última atualização:** 2026-07-04
+**Escopo:** SignallQ v0.23.0 | Android
+**Última atualização:** 2026-07-05
 **Fonte Android:** `SignallQTheme.kt` (era `LinkaTheme.kt`, renomeado em v0.15.0)
 
 ---
@@ -53,7 +53,7 @@
 
 ### Família de Fonte
 
-MD3 padrão (`androidx.compose.material3`).
+Roboto (fonte padrão MD3, via `androidx.compose.material3`). Escala em `signallQTypography` no `SignallQTheme.kt`.
 
 ### Escala
 
