@@ -248,10 +248,6 @@ fun AppShell(
         tabScreenNames.getOrNull(selectedTab)?.let { onScreenView(it) }
     }
 
-    LaunchedEffect(showDnsSheet) {
-        if (showDnsSheet) onDispararBenchmarkDns()
-    }
-
     LaunchedEffect(snapshotSpeedtest.estado) {
         when (snapshotSpeedtest.estado) {
             EstadoExecucaoSpeedtest.executando -> testeAtivo = true
@@ -269,10 +265,20 @@ fun AppShell(
         }
     }
 
-    // Abre LaudoScreen automaticamente ao concluir qualquer diagnóstico.
+    // #480: no cold start, iniciarRotinasNaoSpeedtest() dispara o diagnóstico em background
+    // e ele pode concluir rápido (ex.: cache/BD), fazendo este efeito abrir o Laudo por cima
+    // da aba Velocidade antes do usuário pedir qualquer coisa. Suprime só a primeira conclusão
+    // observada nesta composição; diagnósticos seguintes (ex.: apos novo speedtest) abrem normalmente.
+    var primeiraConclusaoDiagnosticoIgnorada by remember { mutableStateOf(false) }
+
+    // Abre LaudoScreen automaticamente ao concluir qualquer diagnóstico, exceto o do cold start.
     LaunchedEffect(snapshotDiagnostico.estado) {
         if (snapshotDiagnostico.estado == EstadoDiagnostico.concluido) {
-            if (Overlay.Laudo !in overlayStack) overlayStack.add(Overlay.Laudo)
+            if (!primeiraConclusaoDiagnosticoIgnorada) {
+                primeiraConclusaoDiagnosticoIgnorada = true
+            } else if (Overlay.Laudo !in overlayStack) {
+                overlayStack.add(Overlay.Laudo)
+            }
         }
     }
 
@@ -685,6 +691,7 @@ fun AppShell(
                     dnsResolverIp = dnsResolverIp,
                     snapshotRede = snapshotRede,
                     c = c,
+                    onIniciarBenchmark = onDispararBenchmarkDns,
                 )
             }
         }
