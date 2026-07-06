@@ -325,12 +325,14 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                 title = {
                     val estaConectado =
                         snapshotRede.estadoConexao == EstadoConexao.wifi ||
                             snapshotRede.estadoConexao == EstadoConexao.movel
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Outlined.Home,
@@ -360,6 +362,7 @@ fun HomeScreen(
                         nomeUsuario = nomeUsuario,
                         fotoUri = fotoUriUsuario,
                         onClick = onAbrirPerfil,
+                        modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                     )
                 },
                 colors =
