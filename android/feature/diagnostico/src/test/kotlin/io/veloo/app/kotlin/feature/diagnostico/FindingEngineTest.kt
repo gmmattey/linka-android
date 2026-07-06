@@ -83,6 +83,44 @@ class FindingEngineTest {
     }
 
     // -------------------------------------------------------------------------
+    // Mensagem por tipo de conexao (#514): DECISAO-02/02b nao pode falar de
+    // "Wi-Fi"/"roteador" quando a conexao real e rede movel.
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `internet critica em rede movel - DECISAO-02 nao menciona Wi-Fi nem roteador`() {
+        val r = FindingEngine.analisar(
+            internetResultados = listOf(resultado("IN-CRITICO", DiagnosticStatus.critical, "internet")),
+            wifiQuality = WifiQualityResult(emptyList(), confiavelParaTeste = true),
+            connectionType = ConnectionType.mobile,
+        )
+
+        assertEquals("DECISAO-02", r.principal.id)
+        assertTrue(
+            "mensagem nao pode mencionar Wi-Fi quando a conexao e movel: ${r.principal.mensagemUsuario}",
+            !r.principal.mensagemUsuario.contains("Wi-Fi"),
+        )
+        assertTrue(
+            "recomendacao nao pode sugerir reiniciar o roteador em rede movel: ${r.principal.recomendacao}",
+            r.principal.recomendacao?.contains("roteador") != true,
+        )
+    }
+
+    @Test
+    fun `internet critica em Wi-Fi (default) - DECISAO-02 preserva mensagem historica`() {
+        val r = FindingEngine.analisar(
+            internetResultados = listOf(resultado("IN-CRITICO", DiagnosticStatus.critical, "internet")),
+            wifiQuality = WifiQualityResult(emptyList(), confiavelParaTeste = true),
+        )
+
+        assertEquals("DECISAO-02", r.principal.id)
+        assertEquals(
+            "O Wi-Fi está bom, mas há problemas na conexão com a internet. O problema pode estar no roteador ou no provedor.",
+            r.principal.mensagemUsuario,
+        )
+    }
+
+    // -------------------------------------------------------------------------
     // Desempate por score (severidade × confiança)
     // -------------------------------------------------------------------------
 

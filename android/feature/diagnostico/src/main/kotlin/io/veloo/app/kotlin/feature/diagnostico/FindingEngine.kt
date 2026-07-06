@@ -90,6 +90,10 @@ object FindingEngine {
         rttGatewayMs: Int? = null,
         /** Latência de internet (ping externo) para correlação com RTT gateway. */
         latenciaInternetMs: Double? = null,
+        /** Tipo de conexão ativa no momento do teste. Usado por DECISAO-02/02b para não
+         *  falar de "Wi-Fi"/"roteador" quando a conexão real é rede móvel (ver #514).
+         *  Default `wifi` preserva o texto histórico para quem não passa este parâmetro. */
+        connectionType: ConnectionType = ConnectionType.wifi,
     ): FindingResult {
         val dnsCritico = internetResultados.any { it.categoria == "dns" && it.status == DiagnosticStatus.critical }
         val dnsAtencao = internetResultados.any { it.categoria == "dns" && it.status == DiagnosticStatus.attention }
@@ -319,6 +323,11 @@ object FindingEngine {
         // internet/ISP. Guard do engine antigo (`!wifiRuim`) preservado: quando o
         // Wi-Fi é ruim, a causa vira hipótese suprimida em favor de DECISAO-01
         // (Wi-Fi pode estar mascarando/causando o sintoma de internet).
+        //
+        // Mensagem/recomendação variam por tipo de conexão (#514): em rede móvel não
+        // faz sentido falar de "Wi-Fi" nem sugerir reiniciar o roteador — o usuário não
+        // tem controle sobre a infraestrutura da operadora.
+        val emRedeMovel = connectionType == ConnectionType.mobile
         if (internetCritico) {
             candidatos += Achado(
                 DiagnosticResult(
@@ -326,8 +335,16 @@ object FindingEngine {
                     titulo = "Problema na Internet",
                     status = DiagnosticStatus.critical,
                     evidencia = "problemas=${internetResultados.filter { it.status == DiagnosticStatus.critical }.map { it.id }}",
-                    mensagemUsuario = "O Wi-Fi está bom, mas há problemas na conexão com a internet. O problema pode estar no roteador ou no provedor.",
-                    recomendacao = "Reinicie o roteador. Se o problema persistir, contate o suporte do seu provedor de internet.",
+                    mensagemUsuario = if (emRedeMovel) {
+                        "A rede móvel está estável, mas há problemas na conexão com a internet. O problema pode estar na operadora."
+                    } else {
+                        "O Wi-Fi está bom, mas há problemas na conexão com a internet. O problema pode estar no roteador ou no provedor."
+                    },
+                    recomendacao = if (emRedeMovel) {
+                        "Teste em outro local ou horário. Se o problema persistir, entre em contato com sua operadora."
+                    } else {
+                        "Reinicie o roteador. Se o problema persistir, contate o suporte do seu provedor de internet."
+                    },
                     categoria = CAT,
                     podeConcluir = true,
                 ),
@@ -343,8 +360,16 @@ object FindingEngine {
                     titulo = "Atenção na Qualidade da Internet",
                     status = DiagnosticStatus.attention,
                     evidencia = "alertas=${internetResultados.filter { it.status == DiagnosticStatus.attention }.map { it.id }}",
-                    mensagemUsuario = "O Wi-Fi está bom, mas alguns indicadores de internet merecem atenção.",
-                    recomendacao = "Monitore a conexão. Se o problema persistir, reinicie o roteador ou entre em contato com o provedor.",
+                    mensagemUsuario = if (emRedeMovel) {
+                        "A rede móvel está estável, mas alguns indicadores de internet merecem atenção."
+                    } else {
+                        "O Wi-Fi está bom, mas alguns indicadores de internet merecem atenção."
+                    },
+                    recomendacao = if (emRedeMovel) {
+                        "Monitore a conexão. Se o problema persistir, teste em outro local/horário ou contate sua operadora."
+                    } else {
+                        "Monitore a conexão. Se o problema persistir, reinicie o roteador ou entre em contato com o provedor."
+                    },
                     categoria = CAT,
                     podeConcluir = false,
                 ),
