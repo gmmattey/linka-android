@@ -1,43 +1,37 @@
 # Review Flow for Agents
 
-> Referência: `AGENTS.md` e `docs_ai/ai/AGENT_WORKFLOW.md`.
+> **Fonte da verdade:** `.claude/CLAUDE.md` + `.claude/agents/*.md`. Este arquivo é um resumo apontador.
+> Decisão de fluxo: `docs_ai/decisions/ADR-006-workflow-squad-5-agentes.md`.
+> Versão: v0.23.0 · 2026-07-05.
 
-## Tipos de revisão
+## Gate único: Gema
 
-| Tipo | Critérios | Agente |
-|---|---|---|
-| Código | Corretude, arquitetura, performance, segurança, testes, ausência de regressão | Gema |
-| UX/Design | Aderência MD3, componentes, fluxos, microcopy, acessibilidade | Lia |
-| Documentação | Precisão, clareza, concisão, ausência de linguagem inferencial | Taisa |
+**Gema** é o gate único de Done: review de código, QA, release e higiene. Não há revisor de arquitetura separado (Claudete absorveu a decisão de arquitetura) nem revisor de docs separado (Gema absorveu Nina/Taisa).
 
-## Processo de revisão
+## Processo
 
-1. **Gatilho**: Camilo conclui implementação.
-2. **Checks automáticos**: `./gradlew lint` e `./gradlew test` devem passar.
-3. **Revisão especializada em paralelo**:
-   - Gema: bugs, regressões, arquitetura, risco técnico.
-   - Lia: UX, MD3, microcopy, estados visuais, acessibilidade.
-4. **Feedback**: agentes emitem parecer; humano aprova ou solicita correção.
-5. **Handoff para Nina**: após aprovação, bump de versão e changelog.
+1. **Gatilho** — Camilo, Felipe ou Lia concluem a implementação.
+2. **Checks** — `.\android\gradlew.bat lint` e `test` (Android) ou `npm run lint`/`npm run build` (Admin) devem passar.
+3. **Review da Gema** — bugs, regressões, risco técnico, testes faltando, aderência ao design system e higiene (changelog, bump de versão, docs).
+4. **UX condicional** — Lia valida o entregável visual quando a mudança foi de tela/fluxo.
+5. **Veredito** — `Aprovado` / `Aprovado com ressalvas` / `Reprovado`.
 
-## Padrões de qualidade
+## Limite de loop
 
-- Código: `technical/ARCHITECTURE.md`, `technical/BUILD_SYSTEM.md`
-- Design: `design-system/` (MD3, componentes, cores, tipografia)
-- Documentação: sem linguagem inferencial ("likely", "probably", "appears to") — apenas fatos verificáveis no código
+Ciclo Gema → implementador tem no máximo **2 rodadas**. Na 3ª divergência, escala para a **Claudete** decidir (aceitar débito, repriorizar ou reescopar). Evita ping-pong infinito.
 
-## O que Gema não faz
+## O que a Gema não faz
 
-- Não implementa correções — devolve para Camilo.
-- Não aprova mudanças de arquitetura sem consultar Cláudio.
+- Não implementa correções — devolve ao implementador.
+- Decisão de arquitetura vai para a Claudete.
 
-## O que Lia não faz
+## O que a Lia não faz
 
 - Não edita lógica de negócio — apenas UI e layout.
-- Não aprova UX de feature que não foi especificada antes da implementação.
+- Não aprova UX de feature visual que não passou por ela antes da implementação.
 
 ## Referências
 
-- `ai/AGENT_WORKFLOW.md` — fluxo completo do sistema multiagente
+- `ai/AGENT_WORKFLOW.md` — fluxo completo
 - `design-system/MD3_GUIDELINES.md` — referência de revisão visual
 - `technical/ARCHITECTURE.md` — referência de revisão técnica

@@ -1,36 +1,35 @@
 # Context Policy
 
-> Referência principal: `AGENTS.md` na raiz deste projeto.
-> Comandos de agentes: `.claude/commands/`
+> **Fonte da verdade:** `.claude/CLAUDE.md` + `.claude/agents/*.md`. Este arquivo é um resumo apontador.
+> Decisão de fluxo: `docs_ai/decisions/ADR-006-workflow-squad-5-agentes.md`.
+> Versão: v0.23.0 · 2026-07-05.
 
 ## Fontes de contexto (ordem de prioridade)
 
-1. `docs_ai/technical/` — arquitetura, módulos, telas
-2. `docs_ai/ai/` — regras de workflow, handoffs
-3. `docs_ai/design-system/` — consistência visual
-4. Codebase da raiz — módulos `app/`, `core*` e `feature*`
-5. `.claude/commands/` — comandos auxiliares de agentes
+1. `.claude/CLAUDE.md` + `.claude/agents/*` — squad, fluxo e regras operacionais
+2. `docs_ai/technical/` — arquitetura, módulos, telas
+3. `docs_ai/ai/` — resumos apontadores de workflow e handoff
+4. `docs_ai/design-system/` — consistência visual
+5. Codebase — módulos `android/` e `SignallQ Admin/`
 
 ## Estratégia de carregamento
 
 - Leia `docs_ai/README.md` como ponto de entrada.
-- Carregue apenas os docs relevantes à task (ex: `ARCHITECTURE.md` para perguntas de estrutura).
-- Use `Grep` para localizar arquivos e símbolos específicos antes de ler módulos inteiros.
+- Carregue apenas os docs relevantes à task.
+- Use Grep/Glob para localizar arquivos e símbolos antes de ler módulos inteiros. Busca de código é ferramenta nativa — não há agente de busca.
 - Evite carregar docs completos quando a busca por símbolo resolve mais rápido.
-- Delegue buscas de código ao Marcelo (Haiku) para preservar contexto Sonnet.
-- Delegue buscas de documentação à Nina (Haiku) para triagem inicial de docs.
 
 ## O que NÃO fazer
 
-- Não assuma que módulos de feature existem separados do `app/` sem verificar no código.
-- Não infira paths não confirmados explicitamente.
-- Não referencie `.signallq/` — esse sistema foi descontinuado e substituído por `.claude/`.
-- Não invente comportamento de feature que não está confirmado no código ou nos docs.
+- Não referencie `.signallq/` — descontinuado, substituído por `.claude/`.
+- Não trate `docs_ai/ai/*` como verdade paralela — são resumos; o canônico é `.claude/CLAUDE.md` + `.claude/agents/*`.
+- Não infira paths não confirmados no código.
+- Não invente comportamento de feature não confirmado.
 
 ## Docs de referência rápida
 
 - `technical/ARCHITECTURE.md` — design do sistema
 - `technical/MODULES.md` — breakdown de módulos
 - `technical/SCREEN_MAP.md` — localização de telas
-- `ai/HANDOFF_RULES.md` — protocolo de handoff entre agentes
-- `ai/AGENT_WORKFLOW.md` — fluxo completo do sistema multiagente
+- `ai/HANDOFF_RULES.md` — protocolo de handoff
+- `ai/AGENT_WORKFLOW.md` — fluxo completo

@@ -1,5 +1,7 @@
 ﻿# Schema de Eventos GA4 — SignallQ Android
 
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
+
 > SIG-134 — instrumentação GA4 para alimentar ProductAnalyticsPage no Admin Panel.
 
 ## Visão Geral

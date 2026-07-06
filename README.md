@@ -2,13 +2,13 @@
 
 App Android de **diagnóstico de conectividade** com IA — analisa Wi-Fi, fibra, rede móvel e dispositivos da rede local e gera laudos com explicações em linguagem natural.
 
-> Identificadores técnicos preservam o nome anterior (`io.veloo.app`, repo `linka-android`, banco `linkaKotlin.db`) — são técnicos, não a marca. A marca é **SignallQ**.
+> Package/namespace atual é `io.signallq.app` (renomeado de `io.veloo.app` em 2026-06-28). Outros identificadores técnicos preservam nomes anteriores — repo `linka-android`, banco `linkaKotlin.db`, worker `linka-ai-diagnosis-worker` — são técnicos, não a marca. A marca é **SignallQ**.
 
 ## Stack
 
 - **Android** Kotlin + Jetpack Compose (Material 3), MVVM + `StateFlow`
 - **DI** Hilt · **Persistência** Room (`SignallQDatabase`) + DataStore · **Background** WorkManager (`MonitoramentoWorker`)
-- **IA** Cloudflare Worker (`integrations/cloudflare/ai-diagnosis-worker`), modelo Qwen3 30B MoE FP8, URL via `BuildConfig.AI_WORKER_URL`
+- **IA** Cloudflare Worker (`integrations/cloudflare/ai-diagnosis-worker`), URL via `BuildConfig.AI_WORKER_URL` — provider primário Gemini 2.0 Flash (quando `GEMINI_API_KEY` configurada), fallback Qwen3 30B MoE FP8 (Cloudflare Workers AI)
 - **Analytics** Firebase Analytics + Crashlytics
 - minSdk 24 · target/compileSdk 36 · JVM 17 (alvo de build) · CI roda em Java 21
 
@@ -56,6 +56,7 @@ Worker Cloudflare: havendo mudança em `integrations/cloudflare/*/src/`, `npx wr
 - `SignallQ Admin/` — painel administrativo (React + Vite + TypeScript)
 - `integrations/cloudflare/ai-diagnosis-worker/` — worker de diagnóstico IA
 - `integrations/cloudflare/signallq-admin-worker/` — worker do painel admin
+- `integrations/cloudflare/signallq-privacy-worker/` — worker da política de privacidade
 
 ## Roadmap de lançamento (Play Store — alvo 07/08/2026)
 

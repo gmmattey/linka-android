@@ -4,11 +4,23 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este projeto adere a [Semantic Versioning](https://semver.org/).
 
-> Nota de marca: a UI e a documentação usam **SignallQ**. Identificadores técnicos
-> permanecem por compatibilidade de infra — package `io.veloo.app`, repo
-> `gmmattey/linka-android`, worker `linka-ai-diagnosis-worker`.
+> Nota de marca: a UI e a documentação usam **SignallQ**. O package/namespace atual é
+> `io.signallq.app` (renomeado de `io.veloo.app` em 2026-06-28). Outros identificadores
+> técnicos permanecem por compatibilidade de infra — repo `gmmattey/linka-android`,
+> worker `linka-ai-diagnosis-worker`, banco `linkaKotlin.db`.
+
+> Fonte autoritativa do histórico Android é [`android/CHANGELOG.md`](android/CHANGELOG.md).
+> Este arquivo agrega o histórico do monorepo (Android + Admin Worker Cloudflare).
 
 ---
+
+## [0.24.1] — 2026-07-05
+
+Fix: card "Análise por IA" no resultado do speedtest passa a exibir as ações recomendadas pela IA, não só o diagnóstico. Primeira publicação na trilha de teste fechado da Play Console desde a 0.22.1. Ver [`android/CHANGELOG.md`](android/CHANGELOG.md#0241--2026-07-05).
+
+## [0.24.0] — 2026-07-05
+
+Ciclo de critique de design/UX (skill `impeccable`) nas 5 telas de maior uso do Android (Início, Velocidade, Sinal, Histórico, Ajustes) + fix de bug do WhatsApp da TIM. Ver [`android/CHANGELOG.md`](android/CHANGELOG.md#0240--2026-07-05) para o detalhamento completo e Linear SIG-304 para o resumo do ciclo.
 
 ## [Unreleased] — Admin Worker / SIG-128 / SIG-130 / SIG-13 / SIG-129 / SIG-133
 
@@ -29,6 +41,63 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/) e este p
 
 - `affectedUserCount` sempre retorna 0 na Fase A — sem PII no D1. Derivar por `device_id` é Fase B.
 - Filtro `?environment=` ignorado na Fase A (tabela `system_errors` não tem coluna `environment`). Entra na Fase B com SIG-143.
+
+---
+
+## [0.23.0] — 2026-07-05
+
+### Added
+
+- Logos oficiais reais de operadoras e catálogo local de badges (SIG-292) (#472, #467)
+- Exibição dos canais oficiais da operadora identificada no diagnóstico (#466)
+- Instrumentação de analytics: funil principal com 7 eventos via `AnalyticsHelper` (#473) e `feature_used` em Wi-Fi, DNS, Fibra e Histórico (#469)
+
+### Fixed
+
+- Ingest de speedtest via Wi-Fi agora inclui a operadora/ISP identificada (#468)
+- Quebras de layout com fonte grande do sistema (#470)
+- Matcher de operadora não confunde mais "Oi" com "Nio" (#465)
+- Exceção ao invocar `executarSpeedtest` agora é logada em vez de engolida silenciosamente (#433)
+- Sinal › Dispositivos exibe "Dispositivo <Fabricante>" via fallback de fabricante por OUI do MAC quando o hostname não é resolvido (#394)
+
+### Changed
+
+- Upgrade coordenado de toolchain: AGP 9.2.1, Kotlin 2.3.21, Gradle 9.4.1 (#445)
+
+---
+
+## [0.22.1] — 2026-07-03
+
+### Publicação
+
+- Primeira publicação automatizada na Play Console (trilha de teste fechado) via gradle-play-publisher no release por tag.
+
+### Fixed
+
+- Roteador dual-band único (mesmo SSID/OUI em 2.4 GHz e 5 GHz) não é mais classificado como mesh; aparece como "Roteador dual-band" com as bandas identificadas (#356)
+- Chip "Conectado" no card da rede em Sinal › Wi-Fi trunca SSID longo com reticências (#355)
+- Aba "Dispositivos" na barra de abas da tela Sinal não quebra mais em duas linhas (#354)
+
+---
+
+## [0.22.0] — 2026-06-29
+
+### Added
+
+- Item "Fale conosco" na tela de Ajustes
+
+### Changed
+
+- Ícone do app atualizado para o símbolo SignallQ (barras de sinal roxo→azul)
+
+### Fixed
+
+- Acessibilidade TalkBack e compatibilidade com dark theme
+- Baseline Profile atualizado para `io.signallq.app`
+
+### Performance
+
+- Startup time reduzido, consumo de bateria do worker de monitoramento otimizado, tamanho do APK reduzido
 
 ---
 

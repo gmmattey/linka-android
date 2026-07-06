@@ -9,11 +9,11 @@
 
 | Arquivo | Localização | Propósito |
 | --- | --- | --- |
-| `MonitoramentoScheduler.kt` | `io.veloo.app.kotlin.monitoramento` | Agenda/cancela periodic work |
-| `MonitoramentoWorker.kt` | `io.veloo.app.kotlin.monitoramento` | Worker executa background speedtest |
-| `SignallQOrchestrator.kt` | `io.veloo.app.kotlin.pulse` | Orquestra diagnóstico + IA (renomeado de LinkaPulseOrchestrator na v0.15.0) |
+| `MonitoramentoScheduler.kt` | `io.signallq.app.monitoramento` | Agenda/cancela periodic work |
+| `MonitoramentoWorker.kt` | `io.signallq.app.monitoramento` | Worker executa background speedtest |
+| `SignallQOrchestrator.kt` | `io.signallq.app.pulse` | Orquestra diagnóstico + IA (renomeado de LinkaPulseOrchestrator na v0.15.0) |
 | `LinkaPulseScreen.kt` | `ui.screen` | UI exibição resultados |
-| `SignallQSnapshot.kt` | `io.veloo.app.kotlin.pulse` | Data class estado do fluxo (renomeado de SnapshotLinkaPulse) |
+| `SignallQSnapshot.kt` | `io.signallq.app.pulse` | Data class estado do fluxo (renomeado de SnapshotLinkaPulse) |
 
 ---
 

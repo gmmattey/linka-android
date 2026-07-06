@@ -1,6 +1,6 @@
 # Arquitetura — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Fonte:** código real
 **Padrão:** MVVM com Hilt DI
 
@@ -165,7 +165,7 @@ App Android
     → AiDiagnosisRepository
     → POST https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev/api/ai/diagnostico-conexao
     → Cloudflare Worker (name: linka-ai-diagnosis-worker)
-    → Qwen3 30B MoE FP8 (@cf/qwen/qwen3-30b-a3b-fp8) — modelo padrão atual
+    → Gemini 2.0 Flash (primário, quando `GEMINI_API_KEY` configurada) / Qwen3 30B MoE FP8 (@cf/qwen/qwen3-30b-a3b-fp8, fallback cloud)
     → AiDiagnosisResult (JSON parseado pelo app)
 
 Fallback: AiFallbackFactory.fromLocal() [se IA falhar ou timeout]
@@ -173,7 +173,9 @@ Fallback: AiFallbackFactory.fromLocal() [se IA falhar ou timeout]
 
 **Schema da versão atual:** `diagnostico_v3_raw` — payload com dados brutos; a IA faz toda a análise. O parser do worker aceita schemas v1/v2/v3 para retrocompatibilidade.
 
-**Modelos no worker (wrangler.toml `AI_MODEL`):**
+**Provider primário:** Gemini 2.0 Flash (Google), ativado quando a secret `GEMINI_API_KEY` está configurada. Sem a secret, Qwen3/Cloudflare é o único provider cloud.
+
+**Modelos no worker (wrangler.toml `AI_MODEL`) — usado quando o fallback Qwen3/Cloudflare entra em ação:**
 - Padrão: `@cf/qwen/qwen3-30b-a3b-fp8` (Qwen3 30B MoE FP8)
 - Alternativas/legado: Gemma 7B-IT, Gemma 2 9B, Gemma 4 26B (descartado — timeout)
 
@@ -196,7 +198,7 @@ Fallback: AiFallbackFactory.fromLocal() [se IA falhar ou timeout]
 **Flags pós-MVP (ativas em debug, inativas em release):**
 `FEATURE_LINKPULSE_ATIVO`, `FEATURE_NOTIFICACAO_INLINE`, `FEATURE_WIDGET`, `FEATURE_QUICK_SETTINGS_TILE`, `FEATURE_PROVA_REAL_COMPLETO`, `FEATURE_DIAGNOSTICO_ITERATIVO`, `FEATURE_TRACEROUTE`, `FEATURE_FIBRA_SCREEN`, `FEATURE_DNS_SCREEN`, `FEATURE_DEVICES_SCREEN_V2`, `FEATURE_TELEPHONY_AVANCADO`, `FEATURE_MAPA_CALOR_WIFI`, `FEATURE_AGENDAMENTO_TESTES`, `FEATURE_LINKPULSE_CHAT`, `FEATURE_LINKASYNC`, `FEATURE_BACKUP_LOCAL`, `FEATURE_CONTRIBUICAO_ANONIMA`, `FEATURE_RATE_US`, `FEATURE_ACESSIBILIDADE`
 
-**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/veloo/app/kotlin/FeatureFlags.kt` (package `io.veloo.app`):
+**Acesso nas telas:** nunca usar `BuildConfig.DEBUG` ou `BuildConfig.FEATURE_*` diretamente. Usar sempre `FeatureFlags.*` — objeto Kotlin em `app/src/main/kotlin/io/veloo/app/kotlin/FeatureFlags.kt` (package `io.signallq.app`):
 
 `kotlin
 if (FeatureFlags.FEATURE_SPEEDTEST) {

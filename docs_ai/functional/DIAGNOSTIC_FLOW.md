@@ -1,7 +1,7 @@
 # Fluxo de Diagnóstico — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0 — OrbitOrchestrator→SignallQOrchestrator; OrbitInlineQuestion→SignallQInlineQuestion; modelo Qwen3 30B; ChatScreen→SignallQScreen)
-**Fonte:** código real (Marcelo, 2026-05-17; marca corrigida por Taisa 2026-06-21)
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56; OrbitOrchestrator→SignallQOrchestrator; OrbitInlineQuestion→SignallQInlineQuestion; modelo Qwen3 30B; ChatScreen→SignallQScreen)
+**Fonte:** código real
 
 ---
 
@@ -117,7 +117,7 @@ SignallQScreen → SignallQOrchestrator
     ├── Speedtest silencioso (sem abrir VelocidadeScreen)
     ├── Monta payload DiagnosisAiContext (schema v3)
     └── Envia ao Worker Cloudflare
-        └── Qwen3 30B (padrão) / fallback local
+        └── Gemini 2.0 Flash (primário) / Qwen3 30B (fallback cloud) / fallback local
             └── AiDiagnosisResult (JSON)
                 └── SignallQScreen exibe resposta em markdown
 ```

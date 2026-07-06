@@ -1,14 +1,15 @@
 # SignallQ Android AI Documentation
 
-**Versao:** v0.21.0 (versionCode 52, release 2026-06-22) | Docs atualizados: 2026-06-26 | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
+**Versao:** v0.23.0 (versionCode 56, release 2026-07-05) | Docs atualizados: 2026-07-05 | Referencia para agentes de IA no projeto SignallQ Android Kotlin.
 Recuperacao rapida, fatos operacionais, inferencia minima.
 
 > Ponto de entrada obrigatorio antes de carregar qualquer doc especifico.
 > Sempre prefira busca por simbolo (Grep) antes de ler arquivos completos.
 
-> Nota de marca: a UI e a documentacao usam **SignallQ**. Identificadores tecnicos
-> permanecem por compatibilidade de infra: package `io.veloo.app`, repo GitHub
-> `gmmattey/linka-android`, worker Cloudflare `linka-ai-diagnosis-worker`.
+> Nota de marca: a UI e a documentacao usam **SignallQ**. O package/namespace atual e
+> `io.signallq.app` (renomeado de `io.veloo.app` em 2026-06-28). Outros identificadores
+> tecnicos permanecem por compatibilidade de infra: repo GitHub `gmmattey/linka-android`,
+> worker Cloudflare `linka-ai-diagnosis-worker`, banco `linkaKotlin.db`.
 
 ---
 
@@ -59,7 +60,7 @@ Recuperacao rapida, fatos operacionais, inferencia minima.
 - [Data Flow (`technical/DATA_FLOW.md`)](./technical/DATA_FLOW.md)
 - [API Map (`technical/API_MAP.md`)](./technical/API_MAP.md)
 - [AI Flow (`technical/AI_FLOW.md`)](./technical/AI_FLOW.md)
-- [Cloudflare Integration (`technical/CLOUDFLARE.md`)](./technical/CLOUDFLARE.md) — worker `linka-ai-diagnosis-worker`, modelo padrao Qwen3 30B, fallback local
+- [Cloudflare Integration (`technical/CLOUDFLARE.md`)](./technical/CLOUDFLARE.md) — worker `linka-ai-diagnosis-worker`, Gemini 2.0 Flash primario / Qwen3 30B fallback cloud / fallback local
 - [Admin API Schema (`technical/admin-api-schema.md`)](./technical/admin-api-schema.md) — schema D1 e contratos do `signallq-admin`
 - [Analytics Events (`technical/analytics-events.md`)](./technical/analytics-events.md) — contrato de eventos Firebase Analytics
 - [Storage Details (`technical/STORAGE.md`)](./technical/STORAGE.md) — Room v10, DataStore

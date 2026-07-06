@@ -1,7 +1,7 @@
 # Runbook de Lançamento — SignallQ Android
 
 **Projeto:** SignallQ (diagnóstico de conectividade)
-**Package:** `io.veloo.app`
+**Package:** `io.signallq.app`
 **Criado:** 2026-06-28
 **Responsáveis:** Claudete (PM), Gema (QA/Release), Camilo (Dev Android)
 
@@ -64,7 +64,7 @@
 
 #### Play Console (preparar antes do upload)
 - [ ] Conta de desenvolvedor ativa e verificada
-- [ ] App criado no Play Console com package `io.veloo.app`
+- [ ] App criado no Play Console com package `io.signallq.app`
 - [ ] Listing completo: título, descrição curta/longa, screenshots, ícone, feature graphic
 - [ ] Categorização: Ferramentas > Conectividade
 - [ ] Classificação IARC preenchida
@@ -140,7 +140,7 @@ jarsigner -verify app/build/outputs/bundle/release/app-release.aab
 ### 2.3 Upload para Play Console
 
 1. Acessar: https://play.google.com/console
-2. Selecionar app `io.veloo.app`
+2. Selecionar app `io.signallq.app`
 3. Navegar para **Release > Production** (ou track adequado ao milestone)
 
 #### Por milestone:

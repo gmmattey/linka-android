@@ -4,9 +4,12 @@
 
 This document outlines the deployment process for the SignallQ Android Kotlin application, detailing how new versions are released to end-users.
 
-> Versao atual: **0.16.0** (versionCode 46). Identificadores tecnicos de infra
-> permanecem: package `io.veloo.app`, repo `gmmattey/linka-android`, worker
-> `linka-ai-diagnosis-worker`.
+> Versao atual: **0.23.0** (versionCode 56), release 2026-07-05.
+> Namespace/applicationId atual: **`io.signallq.app`** (renomeado de `io.veloo.app`
+> em 2026-06-28; caminho fisico do codigo do `:app` continua `io/veloo/app/kotlin/`).
+> Demais identificadores tecnicos permanecem: repo `gmmattey/linka-android`, worker
+> `linka-ai-diagnosis-worker`. A partir de 0.22.1 ha publicacao automatizada na Play
+> Console (trilha de teste fechado) via gradle-play-publisher no release por tag.
 
 ## Deployment Target
 
@@ -60,7 +63,7 @@ The deployment process involves several key steps:
 ## Backend Service Deployment
 
 -   Concurrent deployment of backend services is often necessary, especially for features relying on updated APIs or AI models.
--   The worker em `integrations/cloudflare/ai-diagnosis-worker/` (Cloudflare `linka-ai-diagnosis-worker`, modelo padrão **Qwen3 30B** com fallback local) tem seu próprio deploy via `npx wrangler deploy`, executado ANTES do commit quando há mudanças em `src/`.
+-   The worker em `integrations/cloudflare/ai-diagnosis-worker/` (Cloudflare `linka-ai-diagnosis-worker`, **Gemini 2.0 Flash primário** / Qwen3 30B fallback cloud / fallback local) tem seu próprio deploy via `npx wrangler deploy`, executado ANTES do commit quando há mudanças em `src/`.
 
 ## Key Files/Configuration
 

@@ -1,5 +1,7 @@
 # Migração de Arquitetura SignallQ — Junho 2026
 
+> **DOCUMENTO HISTÓRICO** — reflete o estado em 2026-06-21 (v0.16.0). Para o estado atual, ver `docs_ai/technical/ARCHITECTURE.md`.
+
 > **Tipo:** Relatório de migração — consolidado  
 > **Data:** 2026-06-21  
 > **Versão:** 0.16.0 (versionCode 46)  

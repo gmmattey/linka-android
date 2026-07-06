@@ -1,8 +1,9 @@
 # Firebase Integration Endpoints — OpenAPI Documentation
 
-**Created**: 27.06.2026  
-**Issue**: SIG-169  
-**Based on**: integrations/cloudflare/signallq-admin-worker/src/index.ts (lines 1080–1276)
+**Created**: 27.06.2026
+**Última atualização**: 2026-07-05 (v0.23.0, versionCode 56)
+**Issue**: SIG-169
+**Based on**: integrations/cloudflare/signallq-admin-worker/src/index.ts (worker `signallq-admin`)
 
 ---
 
@@ -30,7 +31,7 @@ SignallQ Admin integrates with **Firebase** (Google Cloud) to sync app analytics
 ```json
 {
   "source": "worker",
-  "projectId": "signallq-analytics-prod",
+  "projectId": "signallq-app",
   "status": "connected",
   "hasCredentials": true,
   "ga4PropertyConfigured": true
@@ -39,7 +40,7 @@ SignallQ Admin integrates with **Firebase** (Google Cloud) to sync app analytics
 
 **Fields**:
 - `source` (string): Always "worker" — response from Worker, not external API
-- `projectId` (string): Firebase Project ID from env
+- `projectId` (string): Firebase Project ID from env (`FIREBASE_PROJECT_ID` = `signallq-app`)
 - `status` (string): Always "connected" if credentials present
 - `hasCredentials` (boolean): Whether FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY are configured
 - `ga4PropertyConfigured` (boolean): Whether FIREBASE_GA4_PROPERTY_ID is set

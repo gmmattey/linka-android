@@ -1,19 +1,19 @@
 # Assistente IA SignallQ — Funcionalidade
 
-**Última atualização:** 2026-06-21 (v0.16.0 — reescrito; modelo Qwen3 30B; SignallQScreen; LLMChatScreen)
-**Fonte:** código real verificado por Taisa 2026-06-21
+**Última atualização:** 2026-07-05 (v0.23.0 — versionCode 56; modelo Qwen3 30B; SignallQScreen; LLMChatScreen)
+**Fonte:** código real
 **Público-alvo:** desenvolvedor humano e agentes de IA
 
 ---
 
 ## 1. Papel da IA no Produto
 
-O assistente IA do SignallQ tem **dois modos de atuação** que coexistem no v0.16.0:
+O assistente IA do SignallQ tem **dois modos de atuação** que coexistem:
 
 | Modo | Tela | Flag | Estado release |
 |---|---|---|---|
 | Diagnóstico autônomo (pipeline) | `SignallQScreen` | — (sempre presente) | Ativo |
-| Chat diagnóstico livre (LLM) | `LLMChatScreen` | `FEATURE_DIAGNOSTICO_CHAT` | Ativo (true em release v0.16.0) |
+| Chat diagnóstico livre (LLM) | `LLMChatScreen` | `FEATURE_DIAGNOSTICO_CHAT` | Ativo (true em release) |
 
 ---
 
@@ -29,7 +29,7 @@ O `SignallQOrchestrator` executa um pipeline multi-turno de diagnóstico:
 4. Exibe resultado estruturado com chips de follow-up
 5. Máx. 5 turnos; detecção de off-topic ativa
 
-**Modelo padrão:** Qwen3 30B  
+**Modelo padrão:** Gemini 2.0 Flash (primário, quando `GEMINI_API_KEY` configurada) / Qwen3 30B (fallback cloud)  
 **Fallback:** `AiFallbackFactory` — diagnóstico local sem IA se o Worker falhar  
 **API:** Worker Cloudflare (URL em `AiDiagnosisRepository`)
 

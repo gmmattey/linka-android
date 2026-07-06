@@ -1,7 +1,7 @@
 # Componentes Android — SignallQ
 
-**Versão:** v0.16.0 | **Localização:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/`  
-**Última atualização:** 2026-06-21
+**Versão:** v0.23.0 | **Localização:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/`  
+**Última atualização:** 2026-07-05
 
 25+ componentes custom agrupados por domínio.
 
@@ -24,7 +24,7 @@ Componentes exclusivos da superfície de IA. Mantêm paleta escura (`#0D0D1A`/`#
 | `SignallQInlineQuestion` | `SignallQInlineQuestion.kt` | Pergunta inline, resposta rápida (ex-OrbitInlineQuestion) |
 | `SignallQActionsCard` | `SignallQActionsCard.kt` | Botões ação sugeridos (ex-OrbitActionsCard) |
 | `SignallQTechnicalResultBubble` | `SignallQTechnicalResultBubble.kt` | Card resultados técnicos dentro do chat |
-| `LinkaIaHeader` | `LinkaIaHeader.kt` | Header padrão telas IA (mantido; pode ser renomeado futuramente) |
+| `SignallQIaHeader` | `SignallQIaHeader.kt` | Header padrão telas IA |
 
 ---
 
@@ -36,8 +36,8 @@ Componentes exclusivos da superfície de IA. Mantêm paleta escura (`#0D0D1A`/`#
 | `MiniGrafico` | `MiniGrafico.kt` | Gráfico pequeno histórico/mini-trend |
 | `PulseResultCard` | `PulseResultCard.kt` | Card resultado monitoramento passivo |
 | `SilentSpeedtestIndicator` | `SilentSpeedtestIndicator.kt` | Indicador speedtest background |
-| `LinkaPulseSymbol` | `LinkaPulseSymbol.kt` | Logo/marca LinkaPulse |
-| `LinkaPulseIcon` | `LinkaPulseIcon.kt` | Ícone monitor passivo |
+| `SignallQSymbol` | `SignallQSymbol.kt` | Logo/marca SignallQ Pulse |
+| `SignallQPulseIcon` | `SignallQPulseIcon.kt` | Ícone monitor passivo |
 
 ---
 
@@ -64,7 +64,7 @@ Componentes exclusivos da superfície de IA. Mantêm paleta escura (`#0D0D1A`/`#
 
 ---
 
-## Total: 25+ componentes (v0.16.0)
+## Total: 25+ componentes (v0.23.0)
 
 - **Reutilizáveis:** Todos suportam slots e customização via Composable lambdas.
 - **Tipados:** TypeScript-like - tudo com @Composable, Modifier, etc.
@@ -75,7 +75,7 @@ Componentes exclusivos da superfície de IA. Mantêm paleta escura (`#0D0D1A`/`#
 ## Convenção de Nomenclatura
 
 - **SignallQ***: Componentes exclusivos da superfície de IA (chat diagnóstico). Ex.: `SignallQTopBar`, `SignallQInputArea`. Renomeados de `Orbit*` no rebranding v0.15.0.
-- **Pulse / LinkaPulse**: Componentes do monitoramento passivo.
+- **Pulse / SignallQ Pulse**: Componentes do monitoramento passivo.
 - **Diag***: Componentes do Diagnóstico IA v0.14.0+ (ex.: `DiagVerdictHeroCard`, `DiagRootCauseCard`, `DiagActionFooter`).
 - Sem prefixo genérico (Lk-, App-) — nome direto descreve propósito.
 
@@ -95,5 +95,5 @@ DiagnosticoScreen usa: DiagVerdictHeroCard, DiagRootCauseCard, DiagImpactCard,
 
 SpeedTestScreen usa: GaugeCircular, MiniGrafico, DiagnosisChipsRow
 
-LinkaPulseScreen usa: PulseResultCard, LinkaPulseSymbol, MiniGrafico
+SignallQPulseScreen usa: PulseResultCard, SignallQSymbol, MiniGrafico
 ```

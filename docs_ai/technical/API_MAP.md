@@ -1,7 +1,9 @@
 # APIs — Android SignallQ
 
-**Última atualização:** 2026-06-21 (v0.16.0)
+**Última atualização:** 2026-07-05 (v0.23.0, versionCode 56)
 **Fonte:** código real
+
+> **Workers Cloudflare do projeto (3):** `linka-ai-diagnosis-worker` (IA de diagnóstico, seção 2.1), `signallq-admin` (painel admin + ingest — ver `admin-api-schema.md` / `ENDPOINTS_MAPPING.md`) e `signallq-privacy` (política de privacidade pública — ver `CLOUDFLARE.md`). Esta página cobre apenas as APIs consumidas diretamente pelo app Android.
 
 ---
 
@@ -59,9 +61,10 @@ setter: suspend set*(value: T)   — escrita
 | Método | POST |
 | Content-Type | application/json |
 | Autenticação | Nenhuma (worker público) |
-| Modelo | Qwen3 30B MoE FP8 (`@cf/qwen/qwen3-30b-a3b-fp8`) |
-| Schema do payload | v3 (`diagnostico_v3_raw`) |
-| Schemas aceitos | v1, v2, v3 (retrocompatível) |
+| Modelo padrão | Qwen3 30B MoE FP8 (`@cf/qwen/qwen3-30b-a3b-fp8`) |
+| Provider primário opcional | Gemini 2.0 Flash quando `GEMINI_API_KEY` está configurada (Qwen/CF vira fallback) |
+| Prompt version atual | `diagnostico_v5_local_primary` |
+| Schemas aceitos | versões anteriores mantidas por retrocompatibilidade |
 
 **Classe cliente:** `AiDiagnosisRepository` em `:featureDiagnostico`
 

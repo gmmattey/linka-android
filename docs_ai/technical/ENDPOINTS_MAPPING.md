@@ -1,8 +1,12 @@
 # SignallQ API Endpoints — Complete Mapping
 
-**Date**: 27.06.2026  
-**Issue**: SIG-166  
-**Source**: integrations/cloudflare/signallq-admin-worker/src/index.ts
+**Última atualização**: 2026-07-05 (v0.23.0, versionCode 56)
+**Issue original**: SIG-166
+**Source**: integrations/cloudflare/signallq-admin-worker/src/index.ts (worker `signallq-admin`)
+
+> **Contexto:** o SignallQ opera três workers Cloudflare — `linka-ai-diagnosis-worker` (IA), `signallq-admin` (este mapeamento) e `signallq-privacy` (política de privacidade). Este arquivo cobre o `signallq-admin`. O contrato detalhado e atualizado de request/response de cada rota está em `admin-api-schema.md` — esta página é o índice de rotas.
+
+> **Nota de atualização (2026-07-05):** a coluna "Documented" abaixo reflete o estado histórico da SIG-166 (OpenAPI). Vários endpoints marcados como "Missing" já foram implementados no worker e documentados em `admin-api-schema.md` — entre eles `/admin/feature-flags` (GET) e `/admin/feature-flags/:key` (PUT, com audit log), `/admin/alerts` (GET), `/admin/alerts/:id/resolve` (POST), `/admin/metrics/errors` (GET) e `/admin/metrics/ai-usage` (GET, com `reliabilityPercentage`). "Documented" aqui = presente no spec OpenAPI, não "implementado no worker".
 
 ---
 
@@ -98,14 +102,21 @@
 
 | Method | Path | Summary | Auth | Documented |
 |--------|------|---------|------|------------|
-| GET | /admin/feature-flags | List all feature flags | session | ❌ **Missing** |
-| PUT | /admin/feature-flags/:flag | Update feature flag state | session | ❌ **Missing** |
+| GET | /admin/feature-flags | List all feature flags | session | ✅ Implementado |
+| PUT | /admin/feature-flags/:key | Update flag `enabled` + grava audit log | session | ✅ Implementado |
 
 ### Health (`/health`) — 1 endpoint
 
 | Method | Path | Summary | Auth | Documented |
 |--------|------|---------|------|------------|
 | GET | /health | Worker heartbeat | Bearer ADMIN_SECRET (legacy) | ❌ **Missing** |
+
+### Public (`/flags`, `/feature-flags`) — sem prefixo `/admin/`, sem auth
+
+| Method | Path | Summary | Auth | Documented |
+|--------|------|---------|------|------------|
+| GET | /flags | Flags de produto para o app Android (`key` + `enabled`, tabela `feature_flags`, SIG-13) | None | ✅ Implementado |
+| GET | /feature-flags | Flags públicas legadas (`scope: "public"`), retrocompat | None | ✅ Implementado |
 
 ---
 
@@ -163,8 +174,8 @@
 17. **GET /admin/integrations/firebase/crash-issues** — Grouped issues
 18. **POST /admin/integrations/firebase/sync** — Trigger sync
 19. **PUT /admin/settings** — Update settings
-20. **GET /admin/feature-flags** — List flags
-21. **PUT /admin/feature-flags/:flag** — Update flag
+20. **GET /admin/feature-flags** — List flags (implementado)
+21. **PUT /admin/feature-flags/:key** — Update flag + audit log (implementado)
 22. **GET /health** — Health check
 
 ### Missing from Documentation

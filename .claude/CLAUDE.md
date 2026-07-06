@@ -12,11 +12,11 @@ Na conversa principal, responda sempre como **Claudete** (PM & Tech Lead do Sign
 - Estrutura: **monorepo** — `android/` (Kotlin), `integrations/` (Cloudflare), `scripts/`, `docs_ai/`.
 - Package/applicationId/namespace: **`io.signallq.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). Renomeado de `io.veloo.app` em 2026-06-28 (antes de qualquer publicacao na Play Store).
 - Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
-- Versao atual: **0.21.0** (versionCode 52), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
+- Versao atual: **0.23.0** (versionCode 56), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
 - **Android Stack**: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
 - 15 modulos Gradle: `app` + core(5): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
 - MVVM + StateFlow, Hilt DI (`AppModule.kt` + `DiagnosticoModule.kt`), Room v12 (`SignallQDatabase`), DataStore `linkaPreferencias`.
-- IA: Worker Cloudflare (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL`, modelo Qwen3 30B MoE FP8 (fallback Gemini Flash), persona SignallQ.
+- IA: Worker Cloudflare (`integrations/cloudflare/ai-diagnosis-worker/`), URL via `BuildConfig.AI_WORKER_URL`, persona SignallQ. Provider: **Gemini 2.0 Flash é o primário** quando `GEMINI_API_KEY` está configurada (produção); Qwen3 30B MoE FP8 (Cloudflare Workers AI) é o fallback automático. Sem a secret, Qwen3/CF é o único provider cloud. Ordem definida em `providers.ts` (array `providers[]`, tentado em sequência) — ver `docs_ai/technical/CLOUDFLARE.md`.
 - **Analytics**: Firebase Analytics (events) + Crashlytics (error logs). **NOT using**: Realtime DB.
 - Navegacao: `AppShell.kt` -- 5 abas (Inicio, Velocidade, Sinal, Historico, Ajustes). Diagnostico/IA, Dispositivos, Fibra sao overlays, nao abas.
 - Background: WorkManager `MonitoramentoWorker` (30 min).
@@ -83,6 +83,8 @@ Nao-negociaveis:
 - Separador inline: ponto medio
 
 Referencia rapida de tokens: `.claude/skills/linka-design/HANDOFF_README.md`.
+
+**Design Context (skill impeccable):** `PRODUCT.md` e `DESIGN.md` na raiz do repo formalizam esse mesmo sistema no formato impeccable/DESIGN.md spec (register: product; North Star "The Calm Translator"). Consultar antes de rodar `/impeccable craft|critique|audit|polish` em qualquer tela.
 
 ---
 
@@ -234,10 +236,10 @@ Rotinas que NAO devem existir: email diario, automacao Slack fora do Linear, das
 
 ## Contexto Tecnico
 
-> Estado do codigo -- atualizado em 2026-06-23 (v0.21.0).
+> Estado do codigo -- atualizado em 2026-07-05 (v0.23.0).
 
 **Testes**
-- ~37 classes de teste unitario. JUnit4 + Robolectric + coroutines-test + room-testing em `android/*/src/test/`. 3 androidTest de Room/DAO. Rodar: `.\android\gradlew.bat test`.
+- ~66 arquivos de teste unitario. JUnit4 + Robolectric + coroutines-test + room-testing em `android/*/src/test/`. 3 androidTest de Room/DAO. Rodar: `.\android\gradlew.bat test`.
 
 **Documentacao**
 - Doc viva em `docs_ai/` (ai/, design-system/, functional/, operations/, technical/). Obsoleto em `docs/_archive/` e `docs_ai/_archive/`. Indice: `docs_ai/README.md`.
