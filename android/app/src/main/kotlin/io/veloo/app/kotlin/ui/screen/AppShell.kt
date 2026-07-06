@@ -248,10 +248,6 @@ fun AppShell(
         tabScreenNames.getOrNull(selectedTab)?.let { onScreenView(it) }
     }
 
-    LaunchedEffect(showDnsSheet) {
-        if (showDnsSheet) onDispararBenchmarkDns()
-    }
-
     LaunchedEffect(snapshotSpeedtest.estado) {
         when (snapshotSpeedtest.estado) {
             EstadoExecucaoSpeedtest.executando -> testeAtivo = true
@@ -685,6 +681,7 @@ fun AppShell(
                     dnsResolverIp = dnsResolverIp,
                     snapshotRede = snapshotRede,
                     c = c,
+                    onIniciarBenchmark = onDispararBenchmarkDns,
                 )
             }
         }
