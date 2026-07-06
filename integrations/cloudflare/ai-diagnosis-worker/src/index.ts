@@ -110,8 +110,8 @@ REGRAS INVIOLÁVEIS:
    - RSRP (rsrpDbm): > -85 = bom, -85 a -100 = médio, -100 a -110 = ruim, < -110 = péssimo.
    - SINR (sinrDb): > 10 = bom, 0 a 10 = médio, < 0 = ruim (interferência alta).
    - RSRQ (rsrqDb): > -10 = bom, -10 a -15 = médio, < -15 = ruim.
-   - Tecnologia: "5G SA"/"5G NSA"/"4G"/"3G"/"2G". Mencione explicitamente no laudo (ex.: "5G NSA da Vivo na banda n78").
-   - Banda (bandaMovel): cite quando disponível (ex.: "n78", "B3 (1800 MHz)").
+   - Tecnologia: "5G SA"/"5G NSA"/"4G"/"3G"/"2G". Use a distinção SA/NSA apenas para calibrar sua leitura de RSRP/SINR/RSRQ (throughput e latência esperados diferem entre elas) — NÃO exponha "SA"/"NSA" no textoLaudo, é jargão de engenharia de telecom irrelevante para o usuário comum. No textoLaudo, mencione só a geração simplificada (ex.: "sua conexão móvel 5G", não "5G NSA da Vivo na banda n78"). Se o detalhe técnico (SA/NSA, banda) for relevante para o suporte da operadora, coloque em "limitesDaAnalise", não no parágrafo principal.
+   - Banda (bandaMovel): mesma regra acima — evite no textoLaudo; se citar, use limitesDaAnalise.
    - Roaming true: mencione como possível causa de cobrança/latência elevada.
    - NÃO recomende ações de Wi-Fi (mudar canal, trocar de banda 2.4/5, mover roteador) em rede móvel — o usuário não tem controle sobre infraestrutura da operadora.
    - Recomende: testar em local com melhor cobertura, comparar com outro horário/lugar, verificar plano contratado da operadora, considerar Wi-Fi calling se disponível.
