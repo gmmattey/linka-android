@@ -97,9 +97,6 @@ fun SpeedTestScreen(
     onAbrirAjustes: () -> Unit = {},
     nomeUsuario: String = "",
     fotoUri: String? = null,
-    speedtestPendenteModoMovel: ModoSpeedtest? = null,
-    onConfirmarSpeedtestMovel: () -> Unit = {},
-    onCancelarSpeedtestMovel: () -> Unit = {},
     onAbrirPerfil: () -> Unit = {},
     planoInternet: String = "",
     movelSnapshot: MovelSnapshot? = null,
@@ -138,36 +135,9 @@ fun SpeedTestScreen(
         )
     }
 
-    // Dialog de confirmação de uso de dados móveis — fonte de verdade no ViewModel (Task 4)
-    if (speedtestPendenteModoMovel != null) {
-        val titulo =
-            when (speedtestPendenteModoMovel) {
-                ModoSpeedtest.triplo -> "Usar dados móveis para teste triplo?"
-                ModoSpeedtest.complete -> "Usar dados móveis para teste?"
-                else -> "Usar dados móveis para teste?"
-            }
-        val mensagem =
-            when (speedtestPendenteModoMovel) {
-                ModoSpeedtest.triplo -> "Este teste vai usar aproximadamente 30 MB em 3 medições. Você poderá repetir em Wi-Fi depois."
-                ModoSpeedtest.complete -> "Este teste vai usar aproximadamente 25 MB. Você poderá repetir em Wi-Fi depois."
-                else -> "Este teste vai usar aproximadamente 25 MB. Você poderá repetir em Wi-Fi depois."
-            }
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = onCancelarSpeedtestMovel,
-            title = { Text(titulo) },
-            text = { Text(mensagem) },
-            confirmButton = {
-                androidx.compose.material3.Button(onClick = onConfirmarSpeedtestMovel) {
-                    Text("Testar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onCancelarSpeedtestMovel) {
-                    Text("Cancelar")
-                }
-            },
-        )
-    }
+    // Dialog de confirmação de uso de dados móveis agora vive a nível de AppShell
+    // (ver SpeedtestMovelDialog em AppShell.kt) — cobre tanto esta tela quanto o
+    // fluxo de "Medir velocidade" a partir da Home (#516).
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

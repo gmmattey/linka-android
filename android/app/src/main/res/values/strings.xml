@@ -246,8 +246,6 @@
     <string name="global_cd_voltar">Voltar</string>
 
     <!-- AppShell (SIG-238) -->
-    <string name="appshell_sem_wifi">Sem Wi-Fi</string>
-    <string name="appshell_continuar_mesmo_assim">Continuar mesmo assim</string>
     <string name="appshell_concluido">Concluído</string>
     <string name="appshell_cd_concluido">Concluído</string>
 

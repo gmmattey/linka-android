@@ -67,7 +67,6 @@ import io.signallq.app.BuildConfig
 import io.signallq.app.FeatureFlags
 import io.signallq.app.R
 import io.signallq.app.core.database.MedicaoEntity
-import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.SnapshotRede
 import io.signallq.app.core.telephony.MovelSimSnapshot
 import io.signallq.app.core.telephony.MovelSnapshot
@@ -234,7 +233,6 @@ fun AppShell(
     var modoSelecionado by remember { mutableStateOf(ModoSpeedtest.complete) }
     val overlayStack = remember { mutableStateListOf<Overlay>() }
     var showDnsSheet by remember { mutableStateOf(false) }
-    var showForaDoWifiDialog by remember { mutableStateOf(false) }
     var showPerfilSheet by remember { mutableStateOf(false) }
     var showGerenciarDadosSheet by remember { mutableStateOf(false) }
     var testeAtivo by remember { mutableStateOf(false) }
@@ -340,15 +338,12 @@ fun AppShell(
                             movelSnapshot = movelSnapshot,
                             simsAtivos = simsAtivos,
                             onIniciarTeste = { modo ->
-                                if (snapshotRede.estadoConexao == EstadoConexao.movel) {
-                                    // AppShell decide: em rede móvel mostra ForaDoWifiDialog
-                                    // O modo fica registrado no modoSelecionado para uso posterior
-                                    modoSelecionado = modo
-                                    showForaDoWifiDialog = true
-                                } else {
-                                    modoSelecionado = modo
-                                    onNovoTeste(modo)
-                                }
+                                // Confirmação de dados móveis (quando aplicável) é decidida por
+                                // onNovoTeste/reiniciarSuite via speedtestPendenteModoMovel, cujo
+                                // dialog é renderizado a nível de AppShell — funciona a partir de
+                                // qualquer aba, não só da Velocidade.
+                                modoSelecionado = modo
+                                onNovoTeste(modo)
                             },
                             onAbrirHistorico = { selectedTab = 3 },
                             onAbrirPerfil = { showPerfilSheet = true },
@@ -398,9 +393,6 @@ fun AppShell(
                             fotoUri = fotoUriUsuario,
                             onAbrirPerfil = { showPerfilSheet = true },
                             planoInternet = planoInternet,
-                            speedtestPendenteModoMovel = speedtestPendenteModoMovel,
-                            onConfirmarSpeedtestMovel = onConfirmarSpeedtestMovel,
-                            onCancelarSpeedtestMovel = onCancelarSpeedtestMovel,
                             movelSnapshot = movelSnapshot,
                         )
                     // NAV-B: Tab 2 — Sinal (SinalScreen como tab fixa, sem botão voltar)
@@ -713,13 +705,15 @@ fun AppShell(
             )
         }
 
-        if (showForaDoWifiDialog) {
-            ForaDoWifiDialog(
-                onContinuar = {
-                    showForaDoWifiDialog = false
-                    onNovoTeste(modoSelecionado)
-                },
-                onCancelar = { showForaDoWifiDialog = false },
+        // #514/#516: dialog de confirmação de dados móveis renderizado a nível de shell
+        // (não só dentro da tab Velocidade) — cobre o fluxo de "Medir velocidade" a partir
+        // da Home, que antes chamava onNovoTeste sem nenhum dialog capaz de capturar
+        // speedtestPendenteModoMovel e o teste nunca era de fato iniciado.
+        if (speedtestPendenteModoMovel != null) {
+            SpeedtestMovelDialog(
+                modo = speedtestPendenteModoMovel,
+                onConfirmar = onConfirmarSpeedtestMovel,
+                onCancelar = onCancelarSpeedtestMovel,
             )
         }
 
@@ -805,25 +799,34 @@ private fun RowScope.AppNavItem(
     )
 }
 
-// ─── Dialog: fora do Wi-Fi ────────────────────────────────────────────────────
+// ─── Dialog: confirmação de teste em dados móveis ────────────────────────────
+// Antes vivia só dentro de SpeedTestScreen (tab Velocidade); promovido a nível
+// de AppShell para também cobrir o fluxo de "Medir velocidade" a partir da Home
+// (ver #516). Mensagem por modo, já que o consumo estimado de dados varia.
 
 @Composable
-private fun ForaDoWifiDialog(
-    onContinuar: () -> Unit,
+private fun SpeedtestMovelDialog(
+    modo: ModoSpeedtest,
+    onConfirmar: () -> Unit,
     onCancelar: () -> Unit,
 ) {
+    val titulo =
+        when (modo) {
+            ModoSpeedtest.triplo -> "Usar dados móveis para teste triplo?"
+            else -> "Usar dados móveis para teste?"
+        }
+    val mensagem =
+        when (modo) {
+            ModoSpeedtest.triplo -> "Este teste vai usar aproximadamente 30 MB em 3 medições. Você poderá repetir em Wi-Fi depois."
+            else -> "Este teste vai usar aproximadamente 25 MB. Você poderá repetir em Wi-Fi depois."
+        }
     AlertDialog(
         onDismissRequest = onCancelar,
-        title = { Text(stringResource(R.string.appshell_sem_wifi), fontWeight = FontWeight.W600) },
-        text = {
-            Text(
-                "Você está usando dados móveis. Fazer um teste de velocidade pode consumir uma quantidade significativa do seu plano de dados.\n\nDeseja continuar mesmo assim?",
-                fontSize = 14.sp,
-            )
-        },
+        title = { Text(titulo, fontWeight = FontWeight.W600) },
+        text = { Text(mensagem, fontSize = 14.sp) },
         confirmButton = {
-            TextButton(onClick = onContinuar) {
-                Text(stringResource(R.string.appshell_continuar_mesmo_assim), color = LkColors.warning)
+            TextButton(onClick = onConfirmar) {
+                Text("Testar", color = LkColors.warning)
             }
         },
         dismissButton = {
