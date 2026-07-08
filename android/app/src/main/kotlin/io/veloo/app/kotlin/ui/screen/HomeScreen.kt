@@ -943,13 +943,15 @@ private fun NetworkPath(
                 val operadoraIdentificada = BancoOperadoras.resolverMovel(nomeOperadora)
                 val nodeLabel = nomeOperadora ?: "Operadora"
                 val tec = movelSnapshot?.tecnologia?.ifBlank { null }
-                val nodeSubLabel =
+                val statusLabel =
                     when {
                         hasInternetError -> stringResource(R.string.home_network_sem_conexao)
-                        tec != null -> tec
                         loadingInternet -> stringResource(R.string.home_network_conectando)
                         else -> stringResource(R.string.home_network_conectado)
                     }
+                // "4G" sozinho não confirma nada pro usuário leigo — sempre acompanhar de
+                // status de conexão, mesmo quando a tecnologia é conhecida (Lia, PR #524).
+                val nodeSubLabel = if (tec != null && !hasInternetError) "$tec · $statusLabel" else statusLabel
                 PathNode(
                     icon = Icons.Outlined.CellTower,
                     iconColor = if (hasInternetError) c.textTertiary else c.textSecondary,
