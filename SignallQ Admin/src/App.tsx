@@ -375,8 +375,7 @@ export default function App() {
         <ErrorsTab
           environment={environment}
           period={period}
-          onEnvironmentChange={handleEnvironmentChange}
-          onPeriodChange={handlePeriodChange}
+          onNavigate={handleNavigate}
           triggerRefreshCounter={refreshCounter}
         />
       )}
