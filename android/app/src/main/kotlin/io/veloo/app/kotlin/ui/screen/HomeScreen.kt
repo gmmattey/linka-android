@@ -175,6 +175,12 @@ private fun topBarSubtitulo(
         }
     }
 
+/**
+ * "5G SA"/"5G NSA" → "5G" para texto voltado ao usuário leigo — NSA/SA é jargão de operadora,
+ * não informação acionável (GH#515, ver `movelSnapshot.tecnologia`/[MovelSnapshot]).
+ */
+internal fun tecnologiaSimplificada(tec: String?): String? = tec?.ifBlank { null }?.substringBefore(" ")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -942,7 +948,7 @@ private fun NetworkPath(
                         ?: mobileGateway.name.takeIf { it != "Antena movel" && it != "Antena móvel" }
                 val operadoraIdentificada = BancoOperadoras.resolverMovel(nomeOperadora)
                 val nodeLabel = nomeOperadora ?: "Operadora"
-                val tec = movelSnapshot?.tecnologia?.ifBlank { null }
+                val tec = tecnologiaSimplificada(movelSnapshot?.tecnologia)
                 val statusLabel =
                     when {
                         hasInternetError -> stringResource(R.string.home_network_sem_conexao)
@@ -1738,7 +1744,7 @@ private fun MobileSignalCard(
         return
     }
 
-    val tec = movelSnapshot.tecnologia?.ifBlank { null }
+    val tec = tecnologiaSimplificada(movelSnapshot.tecnologia)
     val tecLabel = tec?.uppercase() ?: "LTE"
     val rsrp = movelSnapshot.rsrpDbm
     val mobileColor = mobileSignalColor(rsrp)
@@ -3567,7 +3573,7 @@ private fun ConnectionContextCard(
                     ?.operadora
                     ?.takeIf { it.isNotBlank() }
                     ?: stringResource(R.string.home_context_movel_operadora_desconhecida)
-            val tecnologia = movelSnapshot?.tecnologia
+            val tecnologia = tecnologiaSimplificada(movelSnapshot?.tecnologia)
 
             SignallQCard(c) {
                 Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
