@@ -3,10 +3,13 @@ import { errorMetricsService } from "../../services/errorMetricsService";
 import { RecentErrorsTable } from "./components/RecentErrorsTable";
 import { ErrorMetricGrid } from "./components/ErrorMetricGrid";
 import { ErrorByEndpointChart } from "./components/ErrorByEndpointChart";
+import { ErrorAlertsPanel } from "./components/ErrorAlertsPanel";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
+import { GlobalFilters } from "../../components/ui/GlobalFilters";
+import { InsightBlock } from "../../components/ui/InsightBlock";
 import { AppEnvironment } from "../../types/admin";
-import { SystemError } from "../../types/errors";
+import { SystemError, SystemErrorCategory } from "../../types/errors";
 import {
   RefreshCw,
   Search,
@@ -23,6 +26,13 @@ interface ErrorsPageProps {
   triggerRefreshCounter: number;
 }
 
+const CATEGORY_LABEL: Record<SystemErrorCategory, string> = {
+  app: "App",
+  backend: "Backend",
+  ia: "IA",
+  integration: "Integração",
+};
+
 export const ErrorsPage: React.FC<ErrorsPageProps> = ({
   environment: propEnv,
   period: propPeriod,
@@ -33,6 +43,7 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
   const [localEnv, setLocalEnv] = React.useState<AppEnvironment>(propEnv);
   const [localPeriod, setLocalPeriod] = React.useState<string>(propPeriod);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
 
   const [loading, setLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -118,6 +129,24 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
     }
   };
 
+  const filteredErrors = React.useMemo(() => {
+    if (categoryFilter === "all") return errors;
+    return errors.filter((e) => (e.category ?? "backend") === categoryFilter);
+  }, [errors, categoryFilter]);
+
+  // GH#552 (Fase 2) — síntese derivada só do que já está carregado (fonte
+  // principal por contagem de eventos). Sem inventar taxa de crash: esta tela
+  // reporta erros de sistema (worker/app/IA/integração), não crash rate de app.
+  const insightText = React.useMemo(() => {
+    if (filteredErrors.length === 0) return null;
+    const bySource = new Map<string, number>();
+    filteredErrors.forEach((e) => bySource.set(e.source, (bySource.get(e.source) ?? 0) + e.count));
+    const top = [...bySource.entries()].sort((a, b) => b[1] - a[1])[0];
+    const activeCount = filteredErrors.filter((e) => !e.resolved).length;
+    if (!top) return null;
+    return `${activeCount} erro(s) ativo(s) no período. Maior concentração de eventos vem de "${top[0]}" (${top[1]} ocorrências) — comece a investigação por ali.`;
+  }, [filteredErrors]);
+
   return (
     <div className="space-y-6">
       {/* 1. Bar of core controls: Search and Filtering */}
@@ -193,46 +222,55 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
         </div>
       </div>
 
-      {/* 2. Grid de métricas de erros */}
+      {/* 1.5. Filtro global adicional — categoria real do dado (SystemError.category) */}
+      <GlobalFilters
+        id="errors-global-filters"
+        filters={[
+          {
+            key: "category",
+            label: "Categoria",
+            value: categoryFilter,
+            onChange: setCategoryFilter,
+            options: [
+              { label: "Todas", value: "all" },
+              ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label })),
+            ],
+          },
+        ]}
+      />
+
+      {/* 2. KPIs — grid de métricas de erros */}
       <ErrorMetricGrid environment={localEnv} />
 
-      {/* 3. Operational grid layouts */}
+      {/* 3. Gráfico principal — volume histórico de erros por fonte técnica */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
         <div className="lg:col-span-2">
           <ErrorByEndpointChart environment={localEnv} />
         </div>
         <div>
-          <FeatureComingSoon
-            feature="Alertas Críticos de Infraestrutura"
-            reason="Sistema de alertas não implementado"
-          />
+          <ErrorAlertsPanel />
         </div>
       </div>
 
-      {/* 3.5. Agrupamentos e Respostas Operacionais */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
-        <div className="lg:col-span-7">
-          <FeatureComingSoon
-            feature="Agrupador de Falhas por Função / Tela / Versão"
-            reason="Requer rota de agregação de erros no worker"
-          />
-        </div>
-        <div className="lg:col-span-5">
-          <FeatureComingSoon
-            feature="Análise Automática de Vitals"
-            reason="Requer integração com Firebase Crashlytics e Google Play Vitals"
-          />
-        </div>
-      </div>
+      {/* 4. Bloco de explicação — antes da tabela de investigação */}
+      {insightText && <InsightBlock id="errors-insight-block">{insightText}</InsightBlock>}
 
-      {/* 4. Fine-grained logs of system errors */}
+      {/* Funcionalidades ainda sem rota de agregação no worker — reunidas numa
+          faixa compacta em vez de dois cards vazios grandes (menos ruído visual). */}
+      <FeatureComingSoon
+        feature="Agrupador de Falhas por Função/Tela/Versão · Análise Automática de Vitals"
+        reason="Requer rota de agregação de erros e integração com Firebase Crashlytics/Google Play Vitals"
+        compact
+      />
+
+      {/* 5. Tabela de investigação — drill-down por caso, com ação de resolução */}
       {loading ? (
         <LoadingState message="Acompanhando dumps de erros e crash outputs..." />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           <div className="xl:col-span-7">
             <RecentErrorsTable
-              errors={errors}
+              errors={filteredErrors}
               selectedError={selectedError}
               onSelectError={(row) => {
                 setSelectedError(row);
