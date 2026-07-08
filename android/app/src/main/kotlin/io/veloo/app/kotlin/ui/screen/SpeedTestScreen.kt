@@ -471,7 +471,7 @@ private fun LinhaContextoConexao(
                 banda
             }
             EstadoConexao.movel -> {
-                val tec = movelSnapshot?.tecnologia?.ifBlank { null }?.uppercase()
+                val tec = tecnologiaSimplificada(movelSnapshot?.tecnologia)?.uppercase()
                 if (tec != null) "Rede móvel · $tec" else "Rede móvel"
             }
             EstadoConexao.ethernet -> "Ethernet"
