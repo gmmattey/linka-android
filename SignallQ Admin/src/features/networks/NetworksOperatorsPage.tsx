@@ -10,6 +10,8 @@ import { GlobalFilters } from "../../components/ui/GlobalFilters";
 import { SectionIntro } from "../../components/ui/SectionIntro";
 import { InsightBlock } from "../../components/ui/InsightBlock";
 import { ActionsRow } from "../../components/ui/ActionsRow";
+import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
+import { OperatorSessionsList } from "./components/OperatorSessionsList";
 import { OperatorRecord, AppEnvironment } from "../../types/admin";
 import { MetricVerdict } from "../../types/metrics";
 import { Award, Globe, ChevronDown } from "lucide-react";
@@ -293,8 +295,25 @@ export const NetworksOperatorsPage: React.FC<NetworksOperatorsPageProps> = ({
         />
       </div>
 
-      {/* 3. Gráfico principal — responde "onde a qualidade varia": score médio
-          (agrega latência, perda de pacote e velocidade) por operadora. */}
+      {/* 3. Composição paridade mockup — onde o app é mais usado (mapa por UF,
+          sem coluna de região no worker hoje) + sessões por operadora (real). */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
+        <ChartCard
+          title="Onde o app é mais usado"
+          description="Volume de sessões por estado — não é indicador de qualidade de rede."
+          id="regions-map-card"
+        >
+          <FeatureComingSoon
+            feature="Mapa de sessões por UF"
+            reason="Métrica ainda não disponível — aguardando exposição no worker (diagnostic_sessions não coleta região/UF hoje)"
+          />
+        </ChartCard>
+        <OperatorSessionsList operators={filteredOperators} wifiStat={wifiStat} mobileStat={mobileStat} />
+      </div>
+
+      {/* Gráfico complementar — responde "onde a qualidade varia": score médio
+          (agrega latência, perda de pacote e velocidade) por operadora. Mantido
+          como contexto adicional fora da composição fixa do mockup. */}
       <ChartCard
         title="Score Médio de Diagnóstico por Operadora"
         description="Score calculado pelo engine local do app (0 a 100), agregado por operadora. Não é pesquisa de satisfação — essa fonte de dado não existe hoje."

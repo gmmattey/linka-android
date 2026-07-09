@@ -169,24 +169,53 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
         />
       </div>
 
-      {/* 2. Gráfico principal — disponibilidade/latência por serviço ao longo do
-          tempo pedido pelo wireframe não tem contrato de dados hoje: o worker só
-          responde o check no instante da chamada, sem histórico persistido. */}
-      <ChartCard
-        title="Disponibilidade por serviço ao longo do tempo"
-        description="Uptime e latência histórica por serviço Cloudflare."
-        id="system-health-main-chart"
-      >
-        <FeatureComingSoon
-          feature="Série histórica de disponibilidade"
-          reason="Worker responde só o check no instante da chamada — sem histórico persistido de uptime/latência"
-        />
-      </ChartCard>
+      {/* 2. Composição paridade mockup — latência p95 · 14 dias (sem histórico
+          persistido no worker hoje) + status dos serviços (real, mesmo dado
+          de serviceRows usado na tabela de investigação abaixo). */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ChartCard
+            title="Latência P95 da API · 14 dias"
+            description="Uptime e latência histórica por serviço Cloudflare."
+            id="system-health-main-chart"
+          >
+            <FeatureComingSoon
+              feature="Série histórica de latência/uptime"
+              reason="Métrica ainda não disponível — aguardando exposição no worker (só o check no instante da chamada é persistido)"
+            />
+          </ChartCard>
+        </div>
+        <div className="lg:col-span-1 rounded-[var(--radius-card)] p-5" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border)" }}>
+          <h4 className="text-[11px] font-semibold font-sans uppercase tracking-[0.08em] mb-3.5" style={{ color: "var(--text-secondary)" }}>
+            Status dos serviços
+          </h4>
+          <div className="space-y-1">
+            {serviceRows.length === 0 ? (
+              <p className="text-xs font-sans py-4 text-center" style={{ color: "var(--text-tertiary)" }}>Sem checks disponíveis.</p>
+            ) : (
+              serviceRows.map((r, idx) => {
+                const dotColor = r.status === "ok" ? "var(--success)" : r.status === "error" ? "var(--error)" : "var(--attention)";
+                return (
+                  <div
+                    key={r.service}
+                    className="flex items-center gap-2.5 py-2"
+                    style={idx > 0 ? { borderTop: "1px solid var(--border)" } : undefined}
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
+                    <span className="text-[12.5px] font-medium font-sans flex-1 truncate" style={{ color: "var(--text-primary)" }}>{r.service}</span>
+                    <span className="text-[11px] font-semibold font-sans" style={{ color: dotColor }}>{statusLabel(r.status)}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* 3. Bloco de explicação */}
       {insightText && <InsightBlock id="system-health-insight-block">{insightText}</InsightBlock>}
 
-      {/* 4. Tabela de investigação — um serviço monitorado por linha */}
+      {/* 4. Tabela de investigação — um serviço monitorado por linha (detalhe completo) */}
       <SectionCard
         title="Serviços monitorados"
         description="Status real de cada dependência, medido a cada chamada a /admin/system-health."

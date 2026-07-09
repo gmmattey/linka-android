@@ -10,6 +10,7 @@ import { BarChart } from "../../components/charts/BarChart";
 import { MetricCard } from "../../components/ui/MetricCard";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { StatusBadge } from "../../components/ui/StatusBadge";
 import { GlobalFilters } from "../../components/ui/GlobalFilters";
 import { SectionIntro } from "../../components/ui/SectionIntro";
 import { InsightBlock } from "../../components/ui/InsightBlock";
@@ -194,7 +195,14 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
       {/* 4. Bloco de explicação — antes da tabela, só quando há versão em foco */}
       {insightText && <InsightBlock id="versions-insight-block">{insightText}</InsightBlock>}
 
-      {/* 5. Tabela de investigação — dados por release, versão em foco destacada */}
+      {/* 5. Tabela de investigação — dados por release, versão em foco destacada.
+          GH#781 (paridade mockup): coluna "Base instalada" do mockup vira aqui
+          "Participação em sessões" (share real de v.sessions sobre o total do
+          período) — o worker não expõe % de base instalada (isso viria da
+          Android Publisher API, que hoje só retorna rating, ver GH#761).
+          "Situação" é derivada honestamente comparando com productionVersion,
+          sem inventar rollout%/crash rate/ANR que o Play Console real não
+          expõe ainda (ver googlePlayAdapter.ts). */}
       <SectionCard
         title="Dados por release"
         description="Sessões de diagnóstico agrupadas por versão, build e canal de distribuição, direto do D1."
@@ -210,6 +218,27 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
             },
             { header: "Canal", accessor: (v) => distChannelLabel(v.distChannel) },
             { header: "Build", accessor: (v) => v.buildType },
+            {
+              header: "Participação em sessões",
+              accessor: (v) => {
+                const totalSessions = versions.reduce((sum, x) => sum + x.sessions, 0);
+                const pct = totalSessions > 0 ? Math.round((v.sessions / totalSessions) * 100) : 0;
+                return (
+                  <div className="flex items-center gap-2 min-w-[110px]">
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-base)" }}>
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: "var(--accent-blue)" }} />
+                    </div>
+                    <span className="text-[11px] font-sans w-9 text-right" style={{ color: "var(--text-secondary)" }}>{pct}%</span>
+                  </div>
+                );
+              },
+            },
+            {
+              header: "Situação",
+              accessor: (v) => (
+                <StatusBadge status={v.appVersion === productionVersion?.appVersion ? "stable" : "deprecated"} />
+              ),
+            },
             { header: "Sessões", accessor: (v) => v.sessions.toLocaleString("pt-BR") },
             {
               header: "Score médio",
