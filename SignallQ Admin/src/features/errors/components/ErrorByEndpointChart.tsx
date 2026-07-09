@@ -1,36 +1,18 @@
 import React from "react";
 import { ChartCard } from "../../../components/ui/ChartCard";
-import { BarChart } from "../../../components/charts/BarChart";
-import { errorMetricsService } from "../../../services/errorMetricsService";
-import { ErrorByEndpointEntry } from "../../../mocks/errors.mock";
-import { AppEnvironment } from "../../../types/admin";
+import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 
-interface ErrorByEndpointChartProps {
-  environment: AppEnvironment;
-}
-
-export const ErrorByEndpointChart: React.FC<ErrorByEndpointChartProps> = ({ environment }) => {
-  const [chartData, setChartData] = React.useState<ErrorByEndpointEntry[]>([]);
-
-  React.useEffect(() => {
-    let active = true;
-    errorMetricsService.getErrorByEndpoint({ environment }).then((data) => {
-      if (active) setChartData(data);
-    });
-    return () => { active = false; };
-  }, [environment]);
-
+// Paridade com o mockup do Luiz (sec-errors): overline "ERROS POR TELA" com
+// lista de barras de progresso por tela do app. SystemError não carrega o
+// campo tela/screen — só a fonte técnica que originou o erro (worker/
+// ai_gateway/analytics_db) — então não há dado real de erros por tela.
+// Mantém "Não disponível" em vez de inventar números por tela do app.
+export const ErrorByEndpointChart: React.FC = () => {
   return (
-    <ChartCard
-      title="Volume Histórico de Erros por Interface"
-      description="Frequência bruta agregada das exceções capturadas nos logs técnicos."
-      id="error-endpoint-chart"
-    >
-      <BarChart
-        data={chartData}
-        xAxisKey="name"
-        series={[{ key: "erros", name: "Dumps Técnico Detectados", color: "var(--error)" }]}
-        height={240}
+    <ChartCard title="ERROS POR TELA" id="error-by-screen-card">
+      <FeatureComingSoon
+        feature="Erros por tela"
+        reason="Métrica ainda não disponível — requer instrumentação de tela nos logs de erro do app"
       />
     </ChartCard>
   );
