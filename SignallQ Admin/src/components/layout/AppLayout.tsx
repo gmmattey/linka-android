@@ -49,11 +49,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       case "/operators":
         return "Redes & Provedores";
       case "/ai-cost":
-        return "IA & Custo";
+        return "IA & Custos";
       case "/errors":
         return "Problemas & Incidentes";
       case "/app-versions":
         return "Releases & Qualidade";
+      case "/system-health":
+        return "Saúde do Sistema";
       case "/settings":
       case "/feature-flags":
         return "Configurações";

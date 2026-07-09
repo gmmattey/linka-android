@@ -121,7 +121,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       parts.push(`${diagCount} diagnósticos executados no período selecionado`);
     }
     if (successRate != null) {
-      parts.push(`taxa de sucesso de ${successRate}%`);
+      // GH#766 — successRate já vem formatado como string com "%" (ex: "63.0%");
+      // concatenar outro "%" aqui duplicava o símbolo ("0.0%%").
+      parts.push(`taxa de sucesso de ${successRate}`);
     }
     if (peak?.timestamp) {
       parts.push(`pico de volume em ${peak.timestamp} (${peak.completedDiagnostics} diagnósticos)`);

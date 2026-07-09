@@ -134,10 +134,10 @@ export const IntegrationsSettings: React.FC = () => {
                 {renderBadge(fb.status)}
               </div>
 
-              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-sans">{fb.message}</p>
+              <p className="text-[11px] text-zinc-400 leading-relaxed font-sans">{fb.message}</p>
 
               {/* Telemetry metadata block */}
-              <div className="space-y-1.5 pt-2 border-t border-zinc-900 text-[10px] font-mono text-[var(--text-tertiary)]">
+              <div className="space-y-1.5 pt-2 border-t border-zinc-900 text-[10px] font-mono text-zinc-500">
                 <div className="flex justify-between">
                   <span>Plataforma:</span>
                   <span className="text-[var(--text-primary)]">{fb.platform || "Android (Firebase Analytics + Crashlytics)"}</span>
@@ -145,7 +145,7 @@ export const IntegrationsSettings: React.FC = () => {
                 <div className="flex justify-between">
                   <span>Última Sync:</span>
                   <span className="text-[var(--text-primary)] flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-[var(--text-tertiary)]" />
+                    <Clock className="w-3 h-3 text-zinc-500" />
                     {fb.lastSyncTimestamp || "Nunca sincronizado"}
                   </span>
                 </div>
@@ -189,9 +189,9 @@ export const IntegrationsSettings: React.FC = () => {
                 {renderBadge(gp.status)}
               </div>
 
-              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-sans">{gp.message}</p>
+              <p className="text-[11px] text-zinc-400 leading-relaxed font-sans">{gp.message}</p>
 
-              <div className="space-y-1.5 pt-2 border-t border-zinc-900 text-[10px] font-mono text-[var(--text-tertiary)]">
+              <div className="space-y-1.5 pt-2 border-t border-zinc-900 text-[10px] font-mono text-zinc-500">
                 <div className="flex justify-between">
                   <span>Plataforma:</span>
                   <span className="text-[var(--text-primary)]">{gp.platform || "Android (Google Play Console)"}</span>
@@ -199,7 +199,7 @@ export const IntegrationsSettings: React.FC = () => {
                 <div className="flex justify-between">
                   <span>Última Sync:</span>
                   <span className="text-[var(--text-primary)] flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-[var(--text-tertiary)]" />
+                    <Clock className="w-3 h-3 text-zinc-500" />
                     {gp.lastSyncTimestamp || "Nunca sincronizado"}
                   </span>
                 </div>
@@ -241,18 +241,18 @@ export const IntegrationsSettings: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-[var(--text-tertiary)] shrink-0" />
-                  <span className="text-sm font-bold text-[var(--text-secondary)]">App Store Connect</span>
+                  <Smartphone className="w-4 h-4 text-zinc-500 shrink-0" />
+                  <span className="text-sm font-bold text-zinc-400">App Store Connect</span>
                 </div>
                 {renderBadge(as.status)}
               </div>
 
-              <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed font-sans">{as.message}</p>
+              <p className="text-[11px] text-zinc-400 leading-relaxed font-sans">{as.message}</p>
 
-              <div className="space-y-1.5 pt-2 border-t border-zinc-900 text-[10px] font-mono text-[var(--text-tertiary)]">
+              <div className="space-y-1.5 pt-2 border-t border-zinc-900 text-[10px] font-mono text-zinc-500">
                 <div className="flex justify-between">
                   <span>Plataforma:</span>
-                  <span className="text-[var(--text-tertiary)]">{as.platform || "Apple iOS"}</span>
+                  <span className="text-zinc-500">{as.platform || "Apple iOS"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sincronização:</span>
@@ -260,7 +260,7 @@ export const IntegrationsSettings: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Custo Atual:</span>
-                  <span className="text-[var(--text-tertiary)]">$0,00</span>
+                  <span className="text-zinc-500">$0,00</span>
                 </div>
               </div>
             </div>
@@ -269,9 +269,9 @@ export const IntegrationsSettings: React.FC = () => {
               <button
                 type="button"
                 disabled={true}
-                className="w-full h-8 flex items-center justify-center gap-1.5 text-[11px] font-sans font-semibold bg-zinc-900/30 text-[var(--text-tertiary)] border border-transparent rounded-lg cursor-not-allowed"
+                className="w-full h-8 flex items-center justify-center gap-1.5 text-[11px] font-sans font-semibold bg-zinc-900/30 text-zinc-500 border border-transparent rounded-lg cursor-not-allowed"
               >
-                <AlertTriangle className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                <AlertTriangle className="w-3.5 h-3.5 text-zinc-500" />
                 <span>DESABILITADO</span>
               </button>
             </div>

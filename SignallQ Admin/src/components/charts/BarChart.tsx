@@ -18,6 +18,10 @@ interface BarChartProps {
     key: string;
     name: string;
     color: string;
+    // GH#757 — eixo Y opcional por série. Necessário quando as séries têm
+    // escalas muito diferentes (ex.: score 0-100 vs. contagem de sessões
+    // 0-12) — no mesmo eixo, a série de menor escala fica achatada.
+    yAxisId?: "left" | "right";
   }[];
   height?: number;
   id?: string;
@@ -35,6 +39,8 @@ export const BarChart: React.FC<BarChartProps> = ({
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const hasRightAxis = series.some((s) => s.yAxisId === "right");
 
   if (!isMounted) {
     return (
@@ -70,6 +76,7 @@ export const BarChart: React.FC<BarChartProps> = ({
             dy={8}
           />
           <YAxis
+            yAxisId="left"
             stroke="var(--sq-text-tertiary)"
             fontSize={11}
             fontFamily="var(--sq-font-sans)"
@@ -77,6 +84,18 @@ export const BarChart: React.FC<BarChartProps> = ({
             axisLine={false}
             dx={-8}
           />
+          {hasRightAxis && (
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              stroke="var(--sq-text-tertiary)"
+              fontSize={11}
+              fontFamily="var(--sq-font-sans)"
+              tickLine={false}
+              axisLine={false}
+              dx={8}
+            />
+          )}
           <Tooltip
             contentStyle={{
               backgroundColor: "var(--sq-bg-card)",
@@ -103,6 +122,7 @@ export const BarChart: React.FC<BarChartProps> = ({
           {series.map((s) => (
             <Bar
               key={s.key}
+              yAxisId={s.yAxisId ?? "left"}
               dataKey={s.key}
               name={s.name}
               fill={s.color}
