@@ -1,19 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { SectionCard } from "../../components/ui/SectionCard";
 import { SectionIntro } from "../../components/ui/SectionIntro";
 import { MetricCard } from "../../components/ui/MetricCard";
-import { D1StatusCard } from "./components/D1StatusCard";
-import { IntegrationCheckRow } from "./components/IntegrationCheckRow";
-import { LastEventsCard } from "./components/LastEventsCard";
-import { InsightBlock } from "../../components/ui/InsightBlock";
-import { ActionsRow } from "../../components/ui/ActionsRow";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { ChartCard } from "../../components/ui/ChartCard";
-import { DataTable } from "../../components/ui/DataTable";
-import { StatusBadge } from "../../components/ui/StatusBadge";
 import { systemHealthService, SystemHealthResponse, HealthStatus } from "../../services/systemHealthService";
 import { AppEnvironment } from "../../types/admin";
-import { MetricVerdict } from "../../types/metrics";
 
 interface WorkerHealth {
   name: string;
@@ -26,7 +17,6 @@ interface SystemHealthPageProps {
   environment: AppEnvironment;
   period: string;
   triggerRefreshCounter?: number;
-  onNavigate?: (path: string) => void;
 }
 
 interface ServiceRow {
@@ -34,10 +24,6 @@ interface ServiceRow {
   status: HealthStatus | "ok" | "error" | "loading";
   detail: string;
   message?: string;
-}
-
-function statusVerdict(status: string): MetricVerdict {
-  return status === "ok" ? "excelente" : status === "not_configured" || status === "idle" ? "regular" : "fraco";
 }
 
 function statusLabel(status: string): string {
@@ -54,7 +40,6 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
   environment: _environment,
   period: _period,
   triggerRefreshCounter = 0,
-  onNavigate,
 }) => {
   const [health, setHealth] = useState<SystemHealthResponse | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
@@ -102,26 +87,23 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
   }, [load, triggerRefreshCounter]);
 
   const d1Check = health?.checks.d1;
-  const ingestCheck = health?.checks.ingest;
 
-  // GH#552 (Fase 3) — tabela de investigação: um serviço monitorado por linha,
-  // é a representação honesta mais próxima de "incidentes de infra" que os
-  // dados atuais permitem (não há histórico de incidentes, só o check atual).
+  // Paridade com mockup (sec-health, array `services`): 4 itens, nomes literais
+  // "Cloudflare Worker (Admin API)", "Firebase Firestore", "Firebase Auth",
+  // "Crashlytics Ingest". O worker real não roda check de Firestore (o admin
+  // usa D1, não Firestore) — renomear D1 para "Firebase Firestore" seria dado
+  // inventado, então esse item mantém o nome honesto "D1 Database". Os outros
+  // três mapeiam 1:1 para checks reais: worker → Cloudflare Worker (Admin API),
+  // firebaseCredentials → Firebase Auth (autentica JWT do Firebase Admin SDK),
+  // bigQuery → Crashlytics Ingest (é o acesso ao export do Crashlytics via
+  // BigQuery). O check de ingest do app (5º item do código anterior) não tem
+  // equivalente no mockup e foi removido desta lista.
   const serviceRows: ServiceRow[] = health ? [
-    { service: "Worker Admin API", status: adminWorker.status, detail: adminWorker.latencyMs != null ? `${adminWorker.latencyMs} ms` : "—" },
+    { service: "Cloudflare Worker (Admin API)", status: adminWorker.status, detail: adminWorker.latencyMs != null ? `${adminWorker.latencyMs} ms` : "—" },
     { service: "D1 Database", status: d1Check?.status ?? "error", detail: d1Check?.latencyMs != null ? `${d1Check.latencyMs} ms` : "—", message: d1Check?.message },
-    { service: "Credenciais Firebase", status: health.checks.firebaseCredentials.status, detail: health.checks.firebaseCredentials.latencyMs != null ? `${health.checks.firebaseCredentials.latencyMs} ms` : "—", message: health.checks.firebaseCredentials.message },
-    { service: "Acesso BigQuery", status: health.checks.bigQuery.status, detail: health.checks.bigQuery.latencyMs != null ? `${health.checks.bigQuery.latencyMs} ms` : "—", message: health.checks.bigQuery.message },
-    { service: "Ingest configurado", status: ingestCheck?.status ?? "error", detail: ingestCheck?.lastSuccessAt ? new Date(ingestCheck.lastSuccessAt).toLocaleString("pt-BR") : "Sem ingest registrado", message: ingestCheck?.message },
+    { service: "Firebase Auth", status: health.checks.firebaseCredentials.status, detail: health.checks.firebaseCredentials.latencyMs != null ? `${health.checks.firebaseCredentials.latencyMs} ms` : "—", message: health.checks.firebaseCredentials.message },
+    { service: "Crashlytics Ingest", status: health.checks.bigQuery.status, detail: health.checks.bigQuery.latencyMs != null ? `${health.checks.bigQuery.latencyMs} ms` : "—", message: health.checks.bigQuery.message },
   ] : [];
-
-  const failingServices = serviceRows.filter((r) => r.status === "error");
-
-  const insightText = !health
-    ? null
-    : failingServices.length === 0
-    ? "Todos os serviços monitorados (Worker Admin, D1, Firebase, BigQuery, ingest) respondem normalmente."
-    : `${failingServices.length} serviço(s) com falha: ${failingServices.map((s) => s.service).join(", ")}. Verifique a tabela abaixo antes de escalar.`;
 
   return (
     <div className="space-y-6">
@@ -140,32 +122,40 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
         </div>
       )}
 
-      {/* 1. KPIs — 4 checks reais de infraestrutura, com veredito (GH#552 Fase 3) */}
+      {/* 1. KPIs — paridade com mockup (healthKpis): Uptime do Worker (30d),
+          Latência p95 da API, Erros 5xx (7d), Fila de eventos pendentes.
+          Nenhuma dessas 4 métricas tem dado real hoje — /admin/system-health só
+          expõe o check pontual no instante da chamada, sem série histórica de
+          uptime/latência p95/taxa de erro/fila. "Não disponível" é o estado
+          honesto em vez de inventar número (mesmo padrão de OverviewMetricGrid). */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          label="Worker Admin"
-          value={loading ? "—" : statusLabel(adminWorker.status)}
-          verdict={loading ? undefined : statusVerdict(adminWorker.status)}
-          verdictNote={adminWorker.latencyMs != null ? `${adminWorker.latencyMs} ms` : undefined}
-          id="metric-worker-admin-status"
+          label="Uptime do Worker (30d)"
+          value="Não disponível"
+          verdictNote="Sem série histórica persistida no worker"
+          source="não implementado"
+          id="metric-worker-uptime-30d"
         />
         <MetricCard
-          label="D1 Database"
-          value={loading || !d1Check ? "—" : statusLabel(d1Check.status)}
-          verdict={loading || !d1Check ? undefined : statusVerdict(d1Check.status)}
-          id="metric-d1-status"
+          label="Latência p95 da API"
+          value="Não disponível"
+          verdictNote="Só a latência do check pontual é registrada"
+          source="não implementado"
+          id="metric-api-latency-p95"
         />
         <MetricCard
-          label="Credenciais Firebase"
-          value={loading || !health ? "—" : statusLabel(health.checks.firebaseCredentials.status)}
-          verdict={loading || !health ? undefined : statusVerdict(health.checks.firebaseCredentials.status)}
-          id="metric-firebase-status"
+          label="Erros 5xx (7d)"
+          value="Não disponível"
+          verdictNote="Sem contagem de erros por status persistida"
+          source="não implementado"
+          id="metric-errors-5xx-7d"
         />
         <MetricCard
-          label="Acesso BigQuery"
-          value={loading || !health ? "—" : statusLabel(health.checks.bigQuery.status)}
-          verdict={loading || !health ? undefined : statusVerdict(health.checks.bigQuery.status)}
-          id="metric-bigquery-status"
+          label="Fila de eventos pendentes"
+          value="Não disponível"
+          verdictNote="Métrica ainda não exposta pelo worker"
+          source="não implementado"
+          id="metric-pending-events-queue"
         />
       </div>
 
@@ -212,86 +202,6 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
         </div>
       </div>
 
-      {/* 3. Bloco de explicação */}
-      {insightText && <InsightBlock id="system-health-insight-block">{insightText}</InsightBlock>}
-
-      {/* 4. Tabela de investigação — um serviço monitorado por linha (detalhe completo) */}
-      <SectionCard
-        title="Serviços monitorados"
-        description="Status real de cada dependência, medido a cada chamada a /admin/system-health."
-        id="system-health-services-table"
-      >
-        <DataTable
-          data={serviceRows}
-          columns={[
-            { header: "Serviço", accessor: (r: ServiceRow) => <span className="font-sans font-semibold text-[var(--text-primary)]">{r.service}</span> },
-            { header: "Status", accessor: (r: ServiceRow) => <StatusBadge status={r.status === "ok" ? "ok" : r.status === "error" ? "critical" : "attention"} customLabel={statusLabel(r.status)} /> },
-            { header: "Latência / detalhe", accessor: (r: ServiceRow) => <span className="font-mono text-[var(--text-secondary)] text-xs">{r.detail}</span> },
-            { header: "Mensagem", accessor: (r: ServiceRow) => <span className="text-xs text-[var(--text-tertiary)]">{r.message ?? "—"}</span> },
-          ]}
-          keyExtractor={(r) => r.service}
-          emptyMessage="Sem checks disponíveis."
-          id="system-health-services-datatable"
-        />
-      </SectionCard>
-
-      {/* Detalhe adicional do D1 (mantido: traz o timestamp da última query, que
-          não cabe na tabela compacta acima) */}
-      <D1StatusCard
-        status={!d1Check ? "error" : d1Check.status === "ok" ? "connected" : "error"}
-        lastQuery={health?.timestamp ?? null}
-        loading={loading}
-      />
-
-      {loading ? (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-16 rounded-xl animate-pulse" style={{ backgroundColor: "var(--bg-surface-hover)" }} />
-          ))}
-        </div>
-      ) : (
-        <SectionCard
-          title="Integrações externas"
-          description="Credenciais Firebase, acesso ao BigQuery (Crashlytics export) e configuração do ingest do app."
-          id="integrations-status-card"
-        >
-          <div className="space-y-3">
-            <IntegrationCheckRow
-              label="Credenciais Firebase"
-              status={health?.checks.firebaseCredentials.status ?? "error"}
-              detail={health?.checks.firebaseCredentials.latencyMs != null ? `${health.checks.firebaseCredentials.latencyMs} ms` : undefined}
-              message={health?.checks.firebaseCredentials.message}
-            />
-            <IntegrationCheckRow
-              label="Acesso BigQuery"
-              status={health?.checks.bigQuery.status ?? "error"}
-              detail={health?.checks.bigQuery.latencyMs != null ? `${health.checks.bigQuery.latencyMs} ms` : undefined}
-              message={health?.checks.bigQuery.message}
-            />
-            <IntegrationCheckRow
-              label="Ingest configurado"
-              status={ingestCheck?.status ?? "error"}
-              detail={ingestCheck?.lastSuccessAt ? `Último ingest: ${new Date(ingestCheck.lastSuccessAt).toLocaleString("pt-BR")}` : "Sem ingest registrado"}
-              message={ingestCheck?.message}
-            />
-          </div>
-        </SectionCard>
-      )}
-
-      <LastEventsCard
-        lastFailure={health?.lastFailure ?? null}
-        lastSuccess={health?.lastSuccess ?? null}
-        loading={loading}
-      />
-
-      {/* 5. Ações */}
-      <ActionsRow
-        id="system-health-actions-row"
-        actions={[
-          { label: "Ver logs no Cloudflare", onClick: () => window.open("https://dash.cloudflare.com", "_blank", "noopener,noreferrer"), variant: "secondary" },
-          ...(onNavigate ? [{ label: "Ver Problemas & Incidentes", onClick: () => onNavigate("/errors") }] : []),
-        ]}
-      />
     </div>
   );
 };

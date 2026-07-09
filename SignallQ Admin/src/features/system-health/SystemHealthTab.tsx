@@ -13,14 +13,12 @@ export const SystemHealthTab: React.FC<SystemHealthTabProps> = ({
   environment,
   period,
   triggerRefreshCounter = 0,
-  onNavigate,
 }) => {
   return (
     <SystemHealthPage
       environment={environment}
       period={period}
       triggerRefreshCounter={triggerRefreshCounter}
-      onNavigate={onNavigate}
     />
   );
 };
