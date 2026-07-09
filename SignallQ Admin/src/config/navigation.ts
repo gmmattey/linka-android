@@ -1,7 +1,7 @@
 export interface NavigationItem {
   name: string;
   path: string;
-  iconName: "LayoutDashboard" | "LineChart" | "Activity" | "Wifi" | "Globe" | "BrainCircuit" | "AlertTriangle" | "GitBranch" | "ToggleRight" | "Settings" | "HeartPulse";
+  iconName: "LayoutDashboard" | "LineChart" | "Activity" | "Wifi" | "Globe" | "BrainCircuit" | "AlertTriangle" | "GitBranch" | "ToggleRight" | "Settings" | "HeartPulse" | "Wrench";
   badge?: string;
   badgeType?: "info" | "error" | "warning";
 }
@@ -43,6 +43,7 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
       { name: "IA & Custos", path: "/ai-cost", iconName: "BrainCircuit" },
       { name: "Saúde do Sistema", path: "/system-health", iconName: "HeartPulse" },
       { name: "Configurações", path: "/settings", iconName: "Settings" },
+      { name: "Ferramentas", path: "/tools", iconName: "Wrench" },
     ],
   },
 ];
