@@ -467,14 +467,19 @@ export const adminMetricsService = {
           resolved: number;
         }> }>("GET", `/admin/metrics/operators?environment=${envOperators}&period=${period}`);
 
+        // GH#757 — avg_download/avg_upload vêm crus do D1 (ex.: 150.23826166666666).
+        // Arredonda pra 1 casa decimal antes de exibir, mesmo espírito do
+        // round1 do worker (signallq-admin-worker/src/index.ts).
+        const round1 = (v: number | null) => (v == null ? null : Math.round(v * 10) / 10);
+
         return (raw.operators ?? []).map((r, idx) => ({
           id:                             `op_${idx}`,
           name:                           r.operator,
           country:                        "Brasil",
           type:                           r.type,
           testCount:                      r.total_diagnostics,
-          averageDownloadMbps:            r.avg_download,
-          averageUploadMbps:              r.avg_upload,
+          averageDownloadMbps:            round1(r.avg_download),
+          averageUploadMbps:              round1(r.avg_upload),
           averageLatencyMs:               r.avg_latency,
           packetLossAverage:              r.packetLossAverage,
           averageScorePercentage:         r.avg_score,

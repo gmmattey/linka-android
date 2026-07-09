@@ -332,8 +332,10 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
             data={aggregate.map((r) => ({ name: r.networkType, sessões: r.diagnosticsCount, score: r.avgScore }))}
             xAxisKey="name"
             series={[
-              { key: "sessões", name: "Sessões", color: "var(--chart-line-primary)" },
-              { key: "score", name: "Score médio", color: "var(--chart-line-tertiary)" },
+              // GH#757 — escalas incompatíveis no mesmo eixo (score 0-100 x
+              // sessões 0-12) achatavam a barra de sessões perto do zero.
+              { key: "sessões", name: "Sessões", color: "var(--chart-line-primary)", yAxisId: "right" },
+              { key: "score", name: "Score médio", color: "var(--chart-line-tertiary)", yAxisId: "left" },
             ]}
           />
         )}
