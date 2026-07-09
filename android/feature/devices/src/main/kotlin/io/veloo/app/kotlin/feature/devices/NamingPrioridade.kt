@@ -17,6 +17,16 @@
  */
 object NamingPrioridade {
 
+    /**
+     * Fonte reservada para nome obtido por **leitura ativa** do gateway/roteador (epic #525,
+     * SIG-358/359/360/361 — leitura ativa do gateway). Nenhum scanner produz este valor ainda:
+     * a autenticação/leitura real no roteador é item futuro (ver
+     * `GatewayConnectionService.kt`). O valor existe hoje só como infraestrutura de UI
+     * (ícone/label/cor em `DispositivosScreen.kt`) para não precisar retrabalhar a tela
+     * quando a leitura ativa estiver pronta — ver issue #532.
+     */
+    const val FONTE_NOME_ROUTER_ACTIVE = "routerActive"
+
     /** Nomes que não carregam informação útil — tratados como ausentes na priorização. */
     val NOMES_GENERICOS = setOf(
         "Dispositivo não identificado",
