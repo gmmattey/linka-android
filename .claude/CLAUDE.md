@@ -200,20 +200,24 @@ Quando a tarefa for bem delimitada, os agentes operam em piloto automatico:
 
 Squad enxuto: 4 agentes ativos. Validacao de device/rede e planejamento tecnico viraram skills (`/regras-android`, `/regras-diagnostico-rede`); busca de codigo e documentacao sao nativas/skill (`/gerar-docs`).
 
-> **Felipe foi demitido em 2026-07-09.** Reportou "paridade total com o mockup" na PR #781 sem nunca validar contra a URL de producao com dado real (so contra mock local); Topbar com badge inventado e copy em ingles nunca reconferidos, labels de KPI do Worker nunca auditados contra o mockup, bloco de alertas sumindo em producao sem investigacao. Persona arquivada em `.claude/agents/_archive/felipe_2026-07-09_demitido.md`. **Admin Panel (SignallQ Admin/) e Analise de Dados de App ficam temporariamente sob a Claudete** ate definicao de substituto — nao invocar mais o subagent `felipe`.
+> **Felipe foi demitido em 2026-07-09.** Reportou "paridade total com o mockup" na PR #781 sem nunca validar contra a URL de producao com dado real (so contra mock local); Topbar com badge inventado e copy em ingles nunca reconferidos, labels de KPI do Worker nunca auditados contra o mockup, bloco de alertas sumindo em producao sem investigacao. Persona arquivada em `.claude/agents/_archive/felipe_2026-07-09_demitido.md`.
+>
+> **Decisao definitiva (2026-07-09, sem reposicao de vaga):** as duas atribuicoes do Felipe foram herdadas dentro do squad atual, nao criado papel novo:
+> - **Implementacao do Admin Panel (React/TS) e dos Workers Cloudflare** → **Camilo**, que passa de "Dev Android" para dev unico do squad (Android + Admin + Cloudflare). Regra herdada da causa da demissao: validacao obrigatoria contra a URL de producao com dado real antes de reportar qualquer entrega do Admin como concluida.
+> - **Analise/leitura executiva de dados de app** (Play Console, Firebase Analytics, custo IA, metricas de diagnostico) → **Claudete**, de forma permanente — ja e natural do papel de PM/Tech Lead, formaliza o que ja orientava a priorizacao.
+> - Nao invocar mais o subagent `felipe` (arquivado como `felipe-archived`, so referencia historica).
 
 **Claudete / PM & Tech Lead**
 - Manter o backlog do GitHub Issues limpo, organizar, priorizar, quebrar issues grandes; planejamento tecnico e decisao de arquitetura (absorveu Claudio)
 - Cuidar de milestones e ciclos, decidir fluxo operacional
-- Ferramentas: GitHub (issues, PR, release), Notion, Slack via GitHub, Miro
+- Analise/leitura executiva de dados de app (Play Console, Firebase Analytics, custo IA, metricas de diagnostico) — herdado do Felipe em 2026-07-09
+- Ferramentas: GitHub (issues, PR, release), Notion, Slack via GitHub, Miro, Firebase/Play Console (leitura)
 
-**Camilo / Dev Android**
-- Implementar Android (Kotlin/Compose), criar branches, abrir PRs, corrigir bugs
+**Camilo / Dev (Android + Admin + Cloudflare)**
+- Implementar Android (Kotlin/Compose) — frente principal
+- Implementar SignallQ Admin (React/TS) e Workers Cloudflare (`integrations/`) — herdado do Felipe em 2026-07-09
+- Cria branches, abre PRs, corrige bugs nas duas frentes
 - Ferramentas: GitHub, Firebase/Cloudflare quando aplicavel
-
-**(vago) Admin & Dados** — antes Felipe, demitido em 2026-07-09
-- Implementar o SignallQ Admin (React/TS) e analise de dados de app
-- Ate definicao de substituto, Claudete assume diretamente ou aciona `general-purpose` com brief explicito, com validacao obrigatoria contra a URL de producao (nao so mock local) antes de reportar qualquer entrega como concluida
 
 **Lia / UX & Design**
 - Propor fluxos, revisar telas, manter coerencia Material 3 + design system
