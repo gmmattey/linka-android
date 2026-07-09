@@ -155,6 +155,30 @@ object CoreDatabaseModulo {
             }
         }
 
+    /** SIG-812: historico de exibicao/feedback de recomendacoes do RecommendationEngine (#790). */
+    private val migracao12para13 =
+        object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `recommendation_history` (" +
+                        "`id` TEXT NOT NULL, " +
+                        "`recommendationId` TEXT NOT NULL, " +
+                        "`shownAtEpochMs` INTEGER NOT NULL, " +
+                        "`feedback` TEXT, " +
+                        "`feedbackAtEpochMs` INTEGER, " +
+                        "PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_recommendation_history_shownAtEpochMs` " +
+                        "ON `recommendation_history` (`shownAtEpochMs`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_recommendation_history_recommendationId` " +
+                        "ON `recommendation_history` (`recommendationId`)",
+                )
+            }
+        }
+
     fun criarBanco(context: Context): SignallQDatabase {
         return Room.databaseBuilder(
             context.applicationContext,
@@ -171,6 +195,7 @@ object CoreDatabaseModulo {
             .addMigrations(migracao9para10)
             .addMigrations(migracao10para11)
             .addMigrations(migracao11para12)
+            .addMigrations(migracao12para13)
             .build()
     }
 
