@@ -24,7 +24,6 @@ export const ProviderCostDonut: React.FC<ProviderCostDonutProps> = ({ insights }
   return (
     <ChartCard
       title="Custo por provedor"
-      description="Participação de cada provedor de IA no custo total do período."
       id="provider-cost-donut-card"
     >
       {withCost.length === 0 ? (
@@ -39,7 +38,9 @@ export const ProviderCostDonut: React.FC<ProviderCostDonutProps> = ({ insights }
             value: Number(i.estimatedCostUsd.toFixed(2)),
             color: PROVIDER_COLORS[i.provider] ?? SQ_TOKENS.aiFallback,
           }))}
-          height={180}
+          layout="column"
+          size={132}
+          showValue={false}
         />
       )}
     </ChartCard>

@@ -42,7 +42,7 @@ export const AiBudgetCard: React.FC<AiBudgetCardProps> = ({ totalCostUsd, ceilin
       </div>
       <p className="text-[11px] mt-2" style={{ color: "var(--text-tertiary)" }}>
         {pct != null
-          ? `${pct}% do orçamento usado no período · teto de alerta configurado no worker`
+          ? `${pct}% do orçamento usado · projeção de fechamento não disponível (worker não expõe projeção mensal hoje)`
           : "Sem dado de custo no período selecionado."}
       </p>
     </div>
