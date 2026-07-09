@@ -41,6 +41,13 @@ class NamingPrioridadeTest {
     }
 
     @Test
+    fun `FONTE_NOME_ROUTER_ACTIVE e distinta das fontes passivas existentes`() {
+        val fontesPassivas = setOf("ssdp", "ssdpXml", "mdnsJmDns", "subnetMdns", "arp", "subnet", "tcpProbe", "gateway")
+        assertEquals("routerActive", NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE)
+        assert(NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE !in fontesPassivas)
+    }
+
+    @Test
     fun `rotuloFallbackGenerico com fabricante retorna Dispositivo mais fabricante`() {
         assertEquals("Dispositivo Samsung", NamingPrioridade.rotuloFallbackGenerico("Samsung"))
         assertEquals("Dispositivo Apple", NamingPrioridade.rotuloFallbackGenerico("Apple"))
