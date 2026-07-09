@@ -1106,9 +1106,17 @@ class SignallQOrchestrator(
     ) {
         val repo = adminIngestRepository ?: return
         scope.launch {
-            val status = when {
-                relatorio == null -> "failed"
-                else -> "completed"
+            // GH#764 — antes mandava "completed"/"failed" (ciclo de vida da sessao,
+            // nao o veredito de qualidade), o que zerava a Taxa de Sucesso no admin
+            // (a query la espera o vocabulario canonico excelente/bom/regular/
+            // ruim/critico/inconclusivo). Mapeia a decisao real do motor local.
+            val status = when (relatorio?.decisao?.status) {
+                null -> "failed"
+                io.signallq.app.feature.diagnostico.DiagnosticStatus.ok -> "excelente"
+                io.signallq.app.feature.diagnostico.DiagnosticStatus.info -> "bom"
+                io.signallq.app.feature.diagnostico.DiagnosticStatus.attention -> "regular"
+                io.signallq.app.feature.diagnostico.DiagnosticStatus.critical -> "critico"
+                io.signallq.app.feature.diagnostico.DiagnosticStatus.inconclusive -> "inconclusivo"
             }
             val deviceId = runCatching { deviceIdProvider() }.getOrDefault("unknown")
             val distChannel = runCatching { distChannelProvider() }.getOrDefault("unknown")
