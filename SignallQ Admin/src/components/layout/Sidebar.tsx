@@ -84,16 +84,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       `}
       style={{
         backgroundColor: "var(--bg-sidebar)",
-        borderRight: "1px solid var(--border)",
       }}
     >
       {/* Top Session / Branding */}
       <div className="flex flex-col">
         {/* Logo Section */}
-        <div
-          className="p-6 flex items-center justify-between"
-          style={{ borderBottom: "1px solid var(--border)" }}
-        >
+        <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <img
               src={logoSrc}
@@ -224,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Sidebar Footer — usuário + tema (Design System.dc.html) */}
-      <div className="p-4 flex items-center gap-3" style={{ borderTop: "1px solid var(--border)" }}>
+      <div className="p-4 flex items-center gap-3">
         <div
           className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-sans font-semibold text-white shrink-0 select-none"
           style={{ background: "linear-gradient(135deg, var(--primary), var(--sq-accent-blue))" }}
@@ -244,7 +240,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onToggleTheme}
             className="w-[30px] h-[30px] shrink-0 flex items-center justify-center rounded-full transition-colors cursor-pointer"
             style={{
-              border: "1px solid var(--border)",
               backgroundColor: "var(--bg-surface)",
               color: "var(--text-tertiary)",
             }}

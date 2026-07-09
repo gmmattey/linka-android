@@ -38,7 +38,6 @@ export const Topbar: React.FC<TopbarProps> = ({
       id={id || "topbar-header"}
       className="h-14 lg:h-16 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 select-none"
       style={{
-        borderBottom: "1px solid var(--border)",
         backgroundColor: "var(--bg-topbar)",
       }}
     >
