@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { DiagnosticsPage } from "./DiagnosticsPage";
 
-// GH#552 (Fase 3) — smoke test: mocka o service diretamente (em vez de depender
-// do modo mock global do apiClient, que é resolvido em tempo de build pelo Vite
-// via .env.local e não é sobrescrito de forma confiável em runtime de teste).
+// GH#781 (paridade mockup) — smoke test: mocka o service diretamente (em vez de
+// depender do modo mock global do apiClient, que é resolvido em tempo de build
+// pelo Vite via .env.local e não é sobrescrito de forma confiável em runtime de teste).
 vi.mock("../../services/diagnosticsService", () => ({
   diagnosticsService: {
     getDiagnosticSessions: vi.fn().mockResolvedValue([]),
@@ -20,41 +20,36 @@ vi.mock("../../services/diagnosticsService", () => ({
       averagePacketLossPercentage: 0.8,
       issueDistribution: {},
     }),
-    getAggregateDiagnostics: vi.fn().mockResolvedValue([
-      { networkType: "Wi-Fi", diagnosticsCount: 2400, avgScore: 78, avgDownload: "60 Mbps", avgUpload: "-", avgPing: "30 ms", avgJitter: "-", avgLoss: "-", topIssue: "-", trend: "stable", trendLabel: "61%" },
-      { networkType: "Móvel", diagnosticsCount: 1541, avgScore: 68, avgDownload: "40 Mbps", avgUpload: "-", avgPing: "48 ms", avgJitter: "-", avgLoss: "-", topIssue: "-", trend: "up", trendLabel: "39%" },
-    ]),
-    triggerReDiagnosis: vi.fn().mockResolvedValue({ success: false, message: "não disponível" }),
   },
 }));
 
 describe("DiagnosticsPage", () => {
-  it("renderiza sem crash e mostra os filtros de busca", () => {
+  it("renderiza sem crash e mostra a identidade da tela", () => {
     render(
       <DiagnosticsPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
     expect(
-      screen.getByPlaceholderText(/Pesquise por dispositivo, ID da sessão/i)
+      screen.getByText("O motor de diagnóstico está funcionando bem?")
     ).toBeInTheDocument();
   });
 
-  it("carrega os KPIs com veredito após o fetch", async () => {
+  it("carrega os KPIs do mockup após o fetch", async () => {
     render(
       <DiagnosticsPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
-    expect(await screen.findByText("Total de diagnósticos")).toBeInTheDocument();
-    expect(screen.getByText("Score médio de qualidade")).toBeInTheDocument();
-    expect(screen.getByText("Tipo de rede mais comum")).toBeInTheDocument();
+    expect(await screen.findByText("Diagnósticos executados (7d)")).toBeInTheDocument();
+    expect(screen.getByText("Taxa de sucesso")).toBeInTheDocument();
+    expect(screen.getByText("Duração média")).toBeInTheDocument();
+    expect(screen.getByText("Sessões ativas agora")).toBeInTheDocument();
   });
 
-  it("renderiza a tabela de investigação (agregação por tipo de rede)", async () => {
+  it("renderiza o painel de motivos de falha", async () => {
     render(
       <DiagnosticsPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
-    expect(await screen.findByText("Análise Agregada de Diagnósticos")).toBeInTheDocument();
-    expect(await screen.findByText("Wi-Fi")).toBeInTheDocument();
+    expect(await screen.findByText("Motivos de falha")).toBeInTheDocument();
   });
 });
