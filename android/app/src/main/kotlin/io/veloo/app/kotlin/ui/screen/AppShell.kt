@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import io.signallq.app.BuildConfig
 import io.signallq.app.FeatureFlags
 import io.signallq.app.R
+import io.signallq.app.bssidElegivelParaAutoconexao
 import io.signallq.app.core.database.MedicaoEntity
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.SnapshotRede
@@ -73,6 +74,7 @@ import io.signallq.app.core.network.contracts.gateway.GatewayConnectionResultado
 import io.signallq.app.core.network.contracts.gateway.GatewayConnectionService
 import io.signallq.app.core.telephony.MovelSimSnapshot
 import io.signallq.app.core.telephony.MovelSnapshot
+import io.signallq.app.feature.devices.ehClienteFinal
 import io.signallq.app.feature.diagnostico.EstadoDiagnostico
 import io.signallq.app.feature.dns.SnapshotBenchmarkDns
 import io.signallq.app.feature.fibra.SnapshotFibra
@@ -86,6 +88,7 @@ import io.signallq.app.ui.IspInfo
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.resumoBandasWifi
 import io.signallq.app.ui.state.UiState
 import kotlinx.coroutines.delay
 
@@ -224,11 +227,17 @@ fun AppShell(
     val onRefreshSinal = wifi.onRefreshSinal
     val onSalvarApelido = wifi.onSalvarApelido
 
+    // GH#531 — resumo de bandas Wi-Fi + contagem de clientes do gateway, reusado
+    // no subtítulo de Ajustes ("Roteador e rede") e no GatewayItem de Dispositivos.
+    val bandasWifiGateway = resumoBandasWifi(snapshotWifi.redes, connectedNetwork?.ssid)
+    val clientesNaRedeGateway = snapshotDevices.dispositivos.count { it.ehClienteFinal() }
+
     val snapshotDiagnostico = diagnostico.snapshotDiagnostico
     val onIniciarDiagnostico = diagnostico.onIniciarDiagnostico
     val analisadorState = diagnostico.analisadorState
     val onAnalisarProblema = diagnostico.onAnalisarProblema
     val onResetarAnalisador = diagnostico.onResetarAnalisador
+    val onLaudoFechado = diagnostico.onLaudoFechado
 
     val operadoraMovel = signallQ.operadoraMovel
     val onVerificarGemma = signallQ.onVerificarGemma
@@ -248,15 +257,9 @@ fun AppShell(
     var modoSelecionado by remember { mutableStateOf(ModoSpeedtest.complete) }
     val overlayStack = remember { mutableStateListOf<Overlay>() }
 
-    // GH#530 — sessao "manter conectado" do gateway, fonte unica compartilhada pelos dois
-    // entry points (Home e Ajustes). Valida quando o toggle esta ativo E o BSSID atual bate
-    // com o BSSID em que a sessao foi estabelecida — rede diferente invalida a sessao.
-    val bssidAtual = snapshotRede.wifiLinkSnapshot?.bssid
-    val gatewaySessaoValida =
-        modemPermanecerConectado && gatewaySessionBssid != null && gatewaySessionBssid == bssidAtual
-
-    // Implementacao mock (GH#526/#530) — autenticacao real no equipamento e escopo de #527.
-    // Existe so para a sheet funcionar hoje, sem acoplar a UI a uma implementacao concreta.
+    // Implementacao mock (GH#526/#530) — autenticacao real no equipamento (HTTP/TR-064 por
+    // fabricante/firmware) segue fora deste escopo. Existe so para a sheet e a autoconexao
+    // funcionarem hoje, sem acoplar a UI a uma implementacao concreta.
     val gatewayConnectionServiceMock =
         remember {
             GatewayConnectionService { _, _, _ ->
@@ -264,6 +267,28 @@ fun AppShell(
                 GatewayConnectionResultado.Sucesso
             }
         }
+
+    // GH#527 — sessao "manter conectado" do gateway, fonte unica compartilhada pelos dois
+    // entry points (Home e Ajustes). Elegivel quando o toggle esta ativo E o BSSID atual bate
+    // com o BSSID vinculado a credencial — rede diferente (mesmo com o mesmo SSID) invalida.
+    // Elegibilidade sozinha nao basta: dispara uma tentativa real de autenticacao silenciosa
+    // ao entrar na rede vinculada, sem pedir a senha de novo. Falha nao mostra erro intrusivo —
+    // so mantem a trilha no estado "desconectado" (nó do gateway volta a abrir a sheet manual).
+    val bssidAtual = snapshotRede.wifiLinkSnapshot?.bssid
+    val elegivelParaAutoconexao =
+        bssidElegivelParaAutoconexao(modemPermanecerConectado, gatewaySessionBssid, bssidAtual)
+    var gatewaySessaoValida by remember { mutableStateOf(false) }
+    LaunchedEffect(elegivelParaAutoconexao, modemHost, modemUsername, modemPassword) {
+        gatewaySessaoValida =
+            if (elegivelParaAutoconexao && !modemHost.isNullOrBlank()) {
+                val resultado =
+                    runCatching { gatewayConnectionServiceMock.conectar(modemHost, modemUsername, modemPassword) }
+                        .getOrNull()
+                resultado is GatewayConnectionResultado.Sucesso
+            } else {
+                false
+            }
+    }
 
     // Destino provisorio da conexao ao gateway — FibraModemScreen ja le sinal do modem, mas
     // NAO e a tela de detalhe definitiva do GPON/Roteador (isso e SIG-357, ainda nao existe).
@@ -337,7 +362,10 @@ fun AppShell(
 
     // Back em overlay: desfaz último overlay empilhado.
     BackHandler(enabled = overlayStack.isNotEmpty()) {
-        overlayStack.removeLastOrNull()
+        val removido = overlayStack.removeLastOrNull()
+        // SIG-173/#664 — back fisico tambem conta como "fechou o Laudo" para fins
+        // de elegibilidade do prompt de avaliacao, mesmo caminho do botao voltar da tela.
+        if (removido == Overlay.Laudo) onLaudoFechado()
     }
 
     // Back na tab Histórico (índice 3): volta para Home em vez de sair do app.
@@ -563,6 +591,8 @@ fun AppShell(
                                     gatewaySessaoValida = gatewaySessaoValida,
                                     conectarGateway = gatewayConnectionServiceMock,
                                     onGatewayConectado = onGatewayConectado,
+                                    bandasWifi = bandasWifiGateway,
+                                    dispositivosNaRede = clientesNaRedeGateway,
                                 ),
                             temaSelecionado = temaSelecionado,
                             onDefinirTemaSelecionado = onDefinirTemaSelecionado,
@@ -656,8 +686,6 @@ fun AppShell(
                     localizacaoServidor = localizacaoServidorStr,
                     ispInfo = ispInfoData,
                     operadoraMovel = operadoraMovel,
-                    anatelBannerDismissed = anatelBannerDismissed,
-                    onDismissAnatelBanner = onDispensarBannerAnatel,
                     analisadorState = analisadorState,
                     onAnalisarProblema = onAnalisarProblema,
                     onResetarAnalisador = onResetarAnalisador,
@@ -678,7 +706,10 @@ fun AppShell(
                 ssid = connectedNetwork?.ssid,
                 ipLocal = localIpStr,
                 ipPublico = publicIpStr,
-                onVoltar = { overlayStack.remove(Overlay.Laudo) },
+                onVoltar = {
+                    overlayStack.remove(Overlay.Laudo)
+                    onLaudoFechado()
+                },
                 velocidadeContratadaMbps = planoInternet.filter { it.isDigit() }.toIntOrNull(),
                 conectado = snapshotRede.conectado,
             )
@@ -740,6 +771,7 @@ fun AppShell(
                 apelidos = apelidos,
                 onSalvarApelido = onSalvarApelido,
                 onVoltar = { overlayStack.remove(Overlay.Dispositivos) },
+                bandasWifi = bandasWifiGateway,
             )
         }
 

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Print
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Smartphone
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Button
@@ -75,6 +76,7 @@ import io.signallq.app.feature.devices.EstadoScanDispositivos
 import io.signallq.app.feature.devices.NamingPrioridade
 import io.signallq.app.feature.devices.SnapshotScanDispositivos
 import io.signallq.app.feature.devices.TipoDispositivo
+import io.signallq.app.feature.devices.ehClienteFinal
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
@@ -92,6 +94,9 @@ fun DispositivosScreen(
     apelidos: Map<String, String>,
     onSalvarApelido: (mac: String, apelido: String) -> Unit,
     onVoltar: (() -> Unit)? = null,
+    // GH#531 — resumo "2,4G + 5G" das bandas Wi-Fi do gateway conectado, exibido
+    // no subtítulo do GatewayItem na seção INFRAESTRUTURA. Null quando sem dado.
+    bandasWifi: String? = null,
 ) {
     val c = LocalLkTokens.current
 
@@ -162,6 +167,7 @@ fun DispositivosScreen(
                         onRefresh = onRefresh,
                         apelidos = apelidos,
                         onSalvarApelido = onSalvarApelido,
+                        bandasWifi = bandasWifi,
                     )
                 }
             } // Box
@@ -221,6 +227,7 @@ private fun DispositivosLista(
     onRefresh: () -> Unit,
     apelidos: Map<String, String>,
     onSalvarApelido: (mac: String, apelido: String) -> Unit,
+    bandasWifi: String? = null,
 ) {
     val gateways = remember(dispositivos) { dispositivos.filter { it.fonteNome == "gateway" } }
     val aps =
@@ -228,7 +235,7 @@ private fun DispositivosLista(
     val clientes =
         remember(dispositivos) {
             dispositivos
-                .filter { it.fonteNome != "gateway" && it.tipoDispositivo != TipoDispositivo.pontoAcesso }
+                .filter { it.ehClienteFinal() }
                 .sortedByDescending { it.esteDispositivo }
         }
 
@@ -271,6 +278,8 @@ private fun DispositivosLista(
                         dispositivo = gw,
                         c = c,
                         apelido = gw.mac?.let { apelidos[it] },
+                        bandasWifi = bandasWifi,
+                        clientesCount = clientes.size,
                         onTap = { deviceEmSheet = gw },
                     )
                 }
@@ -369,9 +378,20 @@ private fun GatewayItem(
     c: LkTokens,
     apelido: String?,
     onTap: () -> Unit,
+    // GH#531 — bandas Wi-Fi ("2,4G + 5G") e contagem de clientes detectados;
+    // null/0 mantém o subtítulo antigo (só IP) quando não há dado suficiente.
+    bandasWifi: String? = null,
+    clientesCount: Int = 0,
 ) {
     val iconColor = LkColors.accent
     val bgColor = LkColors.accent.copy(alpha = 0.12f)
+    val ip = dispositivo.ip ?: ""
+    val subtituloGateway =
+        if (bandasWifi.isNullOrBlank()) {
+            ip
+        } else {
+            listOf(ip, bandasWifi, "$clientesCount clientes").filter { it.isNotBlank() }.joinToString(" · ")
+        }
 
     LkListRow(
         c = c,
@@ -393,7 +413,7 @@ private fun GatewayItem(
             }
         },
         title = apelido?.takeIf { it.isNotBlank() } ?: dispositivo.nomeExibicao,
-        subtitle = dispositivo.ip ?: "",
+        subtitle = subtituloGateway,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BadgePill(label = "Roteador", bg = LkColors.accent.copy(alpha = 0.10f), fg = LkColors.accent)
@@ -521,13 +541,28 @@ private fun DispositivoItem(
                         } else {
                             dispositivo.nomeExibicao
                         }
-                Text(
-                    text = nomeDisplay,
-                    color = c.textPrimary,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = nomeDisplay,
+                        color = c.textPrimary,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (dispositivo.fonteNome == NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE) {
+                        Spacer(Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.VerifiedUser,
+                            contentDescription = "Nome confirmado pelo roteador",
+                            tint = LkColors.accent,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
                 // Exibe fabricante somente se disponível e não for o próprio título
                 if (fabricante != null && nomeDisplay != fabricante) {
                     Text(
@@ -720,7 +755,13 @@ private fun DeviceDetailSheet(
         }
         item {
             LkListRow(c = c, title = "Descoberto via", showDivider = false, trailing = {
-                Text(fonteNomeLabel(dispositivo.fonteNome), fontSize = 13.sp, color = c.textSecondary)
+                val corFonte =
+                    if (dispositivo.fonteNome == NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE) {
+                        LkColors.accent
+                    } else {
+                        c.textSecondary
+                    }
+                Text(fonteNomeLabel(dispositivo.fonteNome), fontSize = 13.sp, color = corFonte)
             })
         }
     }
@@ -1210,6 +1251,7 @@ private fun tipoLabel(tipo: TipoDispositivo): String =
 
 private fun fonteNomeLabel(fonte: String) =
     when (fonte) {
+        NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE -> "Confirmado pelo roteador"
         "gateway" -> "Roteador (gateway)"
         "mdns" -> "mDNS · Bonjour"
         "ssdp" -> "UPnP · SSDP"
