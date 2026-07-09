@@ -7,6 +7,7 @@ import { ErrorAlertsPanel } from "./components/ErrorAlertsPanel";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { GlobalFilters } from "../../components/ui/GlobalFilters";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { InsightBlock } from "../../components/ui/InsightBlock";
 import { ActionsRow } from "../../components/ui/ActionsRow";
 import { AppEnvironment } from "../../types/admin";
@@ -153,6 +154,15 @@ export const ErrorsPage: React.FC<ErrorsPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz */}
+      <SectionIntro
+        id="errors-section-intro"
+        overline="PROBLEMAS & INCIDENTES"
+        question="O app está falhando em algum lugar?"
+        description="Crashes, ANRs e erros — priorizados por impacto em usuários, não por volume bruto."
+        source="FONTE · FIREBASE CRASHLYTICS"
+      />
+
       {/* 1. Busca livre — free-text não cabe no idioma de GlobalFilters (lista de
           opções), então fica isolada. Env/período já são globais via Topbar
           (SIG#552 Fase 1) — não reimplementar aqui. */}

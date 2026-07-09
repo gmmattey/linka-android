@@ -13,6 +13,7 @@ import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { InsightBlock } from "../../components/ui/InsightBlock";
 import { ActionsRow } from "../../components/ui/ActionsRow";
 import { GlobalFilters } from "../../components/ui/GlobalFilters";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { AppEnvironment } from "../../types/admin";
 import { AiModelInsights, AiUsageRecord, AiDailyUsage } from "../../types/ai";
 import { Bot, RefreshCw } from "lucide-react";
@@ -242,6 +243,15 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz */}
+      <SectionIntro
+        id="ai-cost-section-intro"
+        overline="IA & CUSTOS"
+        question="A IA está entregando valor com custo controlado?"
+        description="Custo por provedor e por funcionalidade, latência, taxa de fallback e orçamento mensal."
+        source="FONTE · CLOUDFLARE WORKERS AI (AI_USAGE)"
+      />
+
       {/* 1. Toolbar de sincronismo + filtro por provider */}
       <div
         className="flex flex-wrap justify-between items-center gap-3 rounded-[var(--radius-card)] p-4 select-none"

@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center gap-3 min-w-0">
             <img
               src={logoSrc}
-              alt="7Agents Admin Console"
+              alt="SignallQ Admin"
               className="h-10 w-auto shrink-0"
               draggable={false}
             />

@@ -6,6 +6,7 @@ import { LoadingState } from "../../components/ui/LoadingState";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { FeatureFlagsTab } from "../feature-flags/FeatureFlagsTab";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { Settings, Save, CheckCircle2, RotateCcw, ShieldCheck, AlertTriangle } from "lucide-react";
 import { alpha } from "../../utils/color";
 
@@ -115,6 +116,15 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz (sem linha de fonte,
+          igual ao mockup: Configurações não lista proveniência de dado). */}
+      <SectionIntro
+        id="settings-section-intro"
+        overline="CONFIGURAÇÕES"
+        question="Configurações do painel"
+        description="Ambiente, feature flags, exportações e acesso da equipe."
+      />
+
       {/* Settings Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--bg-sidebar)] border border-[var(--border)] rounded-[var(--radius-card)] p-5 select-none">
         <div className="flex items-center gap-3">

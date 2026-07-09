@@ -12,6 +12,7 @@ import { ActionsRow } from "../../components/ui/ActionsRow";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { BarChart } from "../../components/charts/BarChart";
 import { ChartCard } from "../../components/ui/ChartCard";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { DiagnosticSession, DiagnosticsSummary, DistChannel, BuildType, DataPlatform, AggregateRow } from "../../types/diagnostics";
 import { AppEnvironment } from "../../types/admin";
 import { Smartphone, Clock, Server, Sparkles, Zap, Info, ShieldCheck, AlertOctagon } from "lucide-react";
@@ -285,6 +286,15 @@ export const DiagnosticsPage: React.FC<DiagnosticsPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz */}
+      <SectionIntro
+        id="diagnostics-section-intro"
+        overline="DIAGNÓSTICOS"
+        question="O motor de diagnóstico está funcionando bem?"
+        description="Volume, taxa de sucesso e motivos de falha das varreduras de conectividade disparadas pelo SDK."
+        source="FONTE · FIREBASE ANALYTICS (DIAGNOSTIC_SESSIONS)"
+      />
+
       {/* 1. Avançados Filtros Integrados */}
       <DiagnosticsFilters
         searchText={searchQuery}

@@ -11,6 +11,7 @@ import { MetricCard } from "../../components/ui/MetricCard";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { GlobalFilters } from "../../components/ui/GlobalFilters";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { InsightBlock } from "../../components/ui/InsightBlock";
 import { ActionsRow } from "../../components/ui/ActionsRow";
 import { AppEnvironment } from "../../types/admin";
@@ -120,6 +121,15 @@ export const VersionsTab: React.FC<VersionsTabProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz */}
+      <SectionIntro
+        id="app-versions-section-intro"
+        overline="RELEASES & QUALIDADE"
+        question="Os últimos releases estão estáveis?"
+        description="Adoção de versão, rollout gradual e qualidade (crash rate / ANR) por release — modelo Play Console Vitals."
+        source="FONTE · GOOGLE PLAY CONSOLE"
+      />
+
       {/* 1. Filtro — versão em foco (usa só versões reais já carregadas) */}
       <GlobalFilters
         id="versions-global-filters"

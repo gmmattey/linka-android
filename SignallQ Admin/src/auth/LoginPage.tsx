@@ -64,10 +64,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             className="text-xl font-semibold tracking-tight"
             style={{ color: "var(--sq-text-primary)" }}
           >
-            7Agents Admin Console
+            SignallQ Admin
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--sq-text-tertiary)" }}>
-            Painel de administração
+            Console técnico do SignallQ
           </p>
         </div>
 

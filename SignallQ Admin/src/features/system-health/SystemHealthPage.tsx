@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { MetricCard } from "../../components/ui/MetricCard";
 import { D1StatusCard } from "./components/D1StatusCard";
 import { IntegrationCheckRow } from "./components/IntegrationCheckRow";
@@ -124,6 +125,15 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz */}
+      <SectionIntro
+        id="system-health-section-intro"
+        overline="SAÚDE DO SISTEMA"
+        question="A infraestrutura por trás do app está de pé?"
+        description="Uptime e latência do Worker, Firebase e pipeline de eventos — postura Cloudflare Status."
+        source="FONTE · CLOUDFLARE WORKERS · FIREBASE STATUS"
+      />
+
       {healthError && (
         <div className="p-4 rounded-xl text-[13px] bg-[var(--error)]/8 border border-[var(--error)]/25 text-[var(--error)]">
           Não foi possível consultar /admin/system-health: {healthError}

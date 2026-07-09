@@ -11,6 +11,7 @@ import { AppEnvironment } from "../../types/admin";
 import { OverviewMetricsResponse } from "../../mocks/overview.mock";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { GlobalFilters } from "../../components/ui/GlobalFilters";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { InsightBlock } from "../../components/ui/InsightBlock";
 import { ActionsRow } from "../../components/ui/ActionsRow";
 import { PERIOD_FILTERS } from "../../config/constants";
@@ -169,6 +170,20 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz (signallq-admin-mockup.dc.html) */}
+      <SectionIntro
+        id="overview-section-intro"
+        hero={{
+          iconSrc: `${import.meta.env.BASE_URL}icon-192.png`,
+          title: "SignallQ — Diagnóstico de Rede",
+          subtitle: `io.signallq.app · Conta técnica · Atualizado em ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`,
+        }}
+        overline="CENTRO DE CONTROLE"
+        question="O SignallQ está saudável agora?"
+        description="Visão consolidada de uso, estabilidade, custo de IA e performance do app — para decidir onde agir sem cruzar painéis manualmente."
+        source="FONTES · FIREBASE ANALYTICS · PLAY CONSOLE · CLOUDFLARE WORKERS · CRASHLYTICS"
+      />
+
       {/* 1. Filtros globais — período (env já é global via Topbar) */}
       <GlobalFilters
         filters={[

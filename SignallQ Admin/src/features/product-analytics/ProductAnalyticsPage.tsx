@@ -13,6 +13,7 @@ import { ActionsRow } from "../../components/ui/ActionsRow";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { ChartCard } from "../../components/ui/ChartCard";
 import { BarChart } from "../../components/charts/BarChart";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 
 interface ProductAnalyticsPageProps {
   environment: AppEnvironment;
@@ -144,6 +145,15 @@ export const ProductAnalyticsPage: React.FC<ProductAnalyticsPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz */}
+      <SectionIntro
+        id="product-analytics-section-intro"
+        overline="USO DO APP"
+        question="As pessoas estão usando o app como esperado?"
+        description="Engajamento, retenção, funcionalidades mais usadas e dispositivos — via SDK de analytics do app."
+        source="FONTE · FIREBASE ANALYTICS (ANALYTICS_EVENTS)"
+      />
+
       {/* 1. KPIs — 4 cards, com veredito vs. benchmark de mercado (GH#552 Fase 3) */}
       <FeatureUsageGrid retention={data!.retention} sessionDuration={data!.sessionDuration} />
 

@@ -7,6 +7,7 @@ import { BarChart } from "../../components/charts/BarChart";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { MetricCard } from "../../components/ui/MetricCard";
 import { GlobalFilters } from "../../components/ui/GlobalFilters";
+import { SectionIntro } from "../../components/ui/SectionIntro";
 import { InsightBlock } from "../../components/ui/InsightBlock";
 import { ActionsRow } from "../../components/ui/ActionsRow";
 import { OperatorRecord, AppEnvironment } from "../../types/admin";
@@ -237,6 +238,15 @@ export const NetworksOperatorsPage: React.FC<NetworksOperatorsPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* 0. Identidade da tela — paridade com mockup do Luiz */}
+      <SectionIntro
+        id="networks-section-intro"
+        overline="REDES & PROVEDORES"
+        question="Onde e em que tipo de rede o app é mais usado?"
+        description="Contexto de uso por tipo de conexão, operadora e região — para entender a base instalada, não para avaliar a qualidade da rede do usuário."
+        source="FONTE · SIGNALLQ ANALYTICS (SESSÕES AGREGADAS)"
+      />
+
       {/* 1. Filtros globais */}
       <GlobalFilters
         id="networks-global-filters"
