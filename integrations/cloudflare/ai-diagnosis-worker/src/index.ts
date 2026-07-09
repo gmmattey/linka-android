@@ -18,7 +18,7 @@ import {
   GeminiFlashProvider,
   QwenCFProvider,
 } from "./providers";
-import type { ProviderResult } from "./providers";
+import type { ProviderResult, TokenUsage } from "./providers";
 import { extractJson, stripThinkingTokens } from "./text-parsing.ts";
 
 type Env = {
@@ -704,6 +704,7 @@ async function ingestToPainel(
   payload: Record<string, unknown>,
   parsed: Record<string, unknown>,
   model: string,
+  usage?: TokenUsage,
 ): Promise<void> {
   if (!env.ADMIN_WORKER_URL || !env.ADMIN_SECRET) return;
 
@@ -752,6 +753,10 @@ async function ingestToPainel(
         session_id: sessionId,
         created_at: now,
         model,
+        // GH#758 — sem isso, ai_usage sempre gravava tokens/custo zerados.
+        prompt_tokens: usage?.promptTokens ?? 0,
+        completion_tokens: usage?.completionTokens ?? 0,
+        total_tokens: usage?.totalTokens ?? 0,
       }),
     }),
   ]);
@@ -866,6 +871,9 @@ export default {
       parsed.source = "cloudflare_ai";
       parsed.generatedAt = Date.now();
       parsed.modeloIa = providerResult.modeloIa;
+      // GH#758 — app Android lê "usage" da resposta pra logar tokens localmente;
+      // sem isso o ai_usage do admin sempre chegava zerado.
+      if (providerResult.usage) parsed.usage = providerResult.usage;
 
       // Ingerir métricas no painel admin de forma assíncrona, sem bloquear resposta.
       ctx.waitUntil(
@@ -875,6 +883,7 @@ export default {
           payload as Record<string, unknown>,
           parsed,
           providerResult.effectiveModelId,
+          providerResult.usage,
         ),
       );
 

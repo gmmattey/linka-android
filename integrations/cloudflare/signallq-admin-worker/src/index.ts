@@ -1252,13 +1252,41 @@ async function handleFirebaseAnalytics(request: Request, env: Env): Promise<Resp
   }
 }
 
+interface FirebaseSyncState {
+  syncedAt: string;
+  eventsImported: number;
+  crashesImported: number;
+}
+
+async function readFirebaseSyncState(env: Env): Promise<FirebaseSyncState | null> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'firebase_sync'"
+  ).first<{ value: string }>();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value) as FirebaseSyncState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeFirebaseSyncState(env: Env, state: FirebaseSyncState): Promise<void> {
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('firebase_sync', ?, ?)"
+  ).bind(JSON.stringify(state), nowSec()).run();
+}
+
 async function handleFirebaseStatus(_req: Request, env: Env): Promise<Response> {
+  const syncState = await readFirebaseSyncState(env);
   return json({
     source: "worker",
     projectId: env.FIREBASE_PROJECT_ID,
     status: "connected",
     hasCredentials: !!(env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY),
     ga4PropertyConfigured: !!env.FIREBASE_GA4_PROPERTY_ID,
+    lastSyncTimestamp: syncState?.syncedAt ?? null,
+    eventsImported: syncState?.eventsImported ?? 0,
+    crashesImported: syncState?.crashesImported ?? 0,
   }, 200, env);
 }
 
@@ -1518,14 +1546,26 @@ async function handleFirebaseSync(_req: Request, env: Env): Promise<Response> {
   `);
 
   if (error === "table_not_found" || !rows.length) {
-    return json({ ok: false, source: "no_data_yet", sessionsYesterday: 0, syncedAt: nowSec() }, 200, env);
+    const syncedAt = new Date().toISOString();
+    await writeFirebaseSyncState(env, { syncedAt, eventsImported: 0, crashesImported: 0 });
+    return json({ ok: false, source: "no_data_yet", sessionsYesterday: 0, syncedAt }, 200, env);
   }
   if (error) {
+    // Query falhou: não persiste estado de sync, pois nada foi de fato sincronizado.
     return json({ ok: false, source: "error", message: error }, 200, env);
   }
 
   const sessions = parseInt(rows[0]?.sessions ?? "0", 10);
-  return json({ ok: true, source: "bigquery", sessionsYesterday: sessions, syncedAt: nowSec() }, 200, env);
+  const syncedAt = new Date().toISOString();
+  // crashesImported não é coletado nesta query (só conta session_start via BigQuery);
+  // não há fonte real para esse número aqui, então preserva o valor anterior em vez de inventar.
+  const previous = await readFirebaseSyncState(env);
+  await writeFirebaseSyncState(env, {
+    syncedAt,
+    eventsImported: sessions,
+    crashesImported: previous?.crashesImported ?? 0,
+  });
+  return json({ ok: true, source: "bigquery", sessionsYesterday: sessions, syncedAt }, 200, env);
 }
 
 async function handleSettings(request: Request, env: Env): Promise<Response> {
