@@ -1,18 +1,23 @@
 import React from "react";
-import { RefreshCw, Download, LogOut, Menu } from "lucide-react";
+import { RefreshCw, Bell, Palette, LayoutGrid, Menu } from "lucide-react";
 import { AppEnvironment } from "../../types/admin";
 import { PERIOD_FILTERS } from "../../config/constants";
+import { adminMetricsService } from "../../services/adminMetricsService";
 import { alpha } from "../../utils/color";
 
+// Link para o DESIGN.md do repositório — mesmo destino real usado como
+// referência de design system, sem inventar uma tela nova só pra esse link.
+const DESIGN_SYSTEM_URL =
+  "https://github.com/gmmattey/linka-android/blob/main/SignallQ%20Admin/DESIGN.md";
+
 interface TopbarProps {
-  title: string;
   environment: AppEnvironment;
   onEnvironmentChange: (env: AppEnvironment) => void;
   period: string;
   onPeriodChange: (period: string) => void;
   onRefresh?: () => void;
-  onExport?: () => void;
   onLogout?: () => void;
+  onNavigate?: (path: string) => void;
   onOpenMobileSidebar?: () => void;
   isRefreshing?: boolean;
   theme?: "dark" | "light";
@@ -20,19 +25,31 @@ interface TopbarProps {
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
-  title,
   environment,
   onEnvironmentChange,
   period,
   onPeriodChange,
   onRefresh,
-  onExport,
   onLogout,
+  onNavigate,
   onOpenMobileSidebar,
   isRefreshing = false,
-  theme = "dark",
   id,
 }) => {
+  // Contagem real de alertas — mesma fonte de dado do card "Alertas Recentes"
+  // da Overview (adminMetricsService.getRecentAlerts), não valor estático.
+  const [alertsCount, setAlertsCount] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
+    adminMetricsService.getRecentAlerts({ environment }).then((alerts) => {
+      if (active) setAlertsCount(alerts.length);
+    }).catch(() => {
+      if (active) setAlertsCount(null);
+    });
+    return () => { active = false; };
+  }, [environment]);
+
   return (
     <header
       id={id || "topbar-header"}
@@ -41,15 +58,14 @@ export const Topbar: React.FC<TopbarProps> = ({
         backgroundColor: "var(--bg-topbar)",
       }}
     >
-      {/* Left: hamburger (mobile) + title */}
-      <div className="flex items-center gap-3 min-w-0">
+      {/* Left: hamburger (mobile) + filtros globais (paridade com mockup) */}
+      <div className="flex items-center gap-2 lg:gap-3.5 min-w-0">
         {/* Hamburger — mobile only */}
         {onOpenMobileSidebar && (
           <button
             onClick={onOpenMobileSidebar}
             className="lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors shrink-0"
             style={{
-              border: "1px solid var(--border)",
               backgroundColor: "var(--bg-surface)",
               color: "var(--text-secondary)",
             }}
@@ -59,30 +75,6 @@ export const Topbar: React.FC<TopbarProps> = ({
           </button>
         )}
 
-        {/* Page Title */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <h1 className="text-[18px] font-semibold tracking-[-0.01em] truncate" style={{ color: "var(--text-primary)" }}>
-              {title}
-            </h1>
-            {environment === "staging" && (
-              <span
-                className="shrink-0 px-2 py-0.5 text-[10px] font-mono rounded"
-                style={{
-                  backgroundColor: alpha("var(--attention)", 20),
-                  color: "var(--attention)",
-                  border: `1px solid ${alpha("var(--attention)", 30)}`,
-                }}
-              >
-                STAGING
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Right Controls Segment */}
-      <div className="flex items-center gap-2 lg:gap-3.5 shrink-0">
         {/* Environment Filter */}
         <div
           className="flex p-0.5 rounded-xl"
@@ -138,23 +130,25 @@ export const Topbar: React.FC<TopbarProps> = ({
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Action: Export — hidden on mobile */}
-        {onExport && (
-          <button
-            onClick={onExport}
-            className="hidden lg:flex px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer items-center gap-2"
-            style={{
-              border: "1px solid var(--border)",
-              backgroundColor: "var(--bg-surface)",
-              color: "var(--text-secondary)",
-            }}
-            title="Download CSV database dump"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
-          </button>
-        )}
+      {/* Right Controls Segment */}
+      <div className="flex items-center gap-2 lg:gap-3.5 shrink-0">
+        {/* Alertas não lidos — mesma contagem real da Overview */}
+        <button
+          onClick={() => onNavigate?.("/overview")}
+          className="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+          style={{
+            backgroundColor: alpha("var(--sq-accent-blue)", 10),
+            color: "var(--sq-accent-blue)",
+          }}
+          title="Ver alertas recentes"
+        >
+          <Bell className="w-3.5 h-3.5" />
+          <span>
+            {alertsCount != null && alertsCount > 0 ? `Alertas não lidos (${alertsCount})` : "Alertas não lidos"}
+          </span>
+        </button>
 
         {/* Action: Refresh */}
         {onRefresh && (
@@ -173,19 +167,35 @@ export const Topbar: React.FC<TopbarProps> = ({
           </button>
         )}
 
-        {/* Action: Logout */}
+        {/* Link Design System — aponta pro DESIGN.md real do repo, sem tela nova */}
+        <a
+          href={DESIGN_SYSTEM_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+          style={{
+            backgroundColor: "var(--bg-surface)",
+            color: "var(--text-secondary)",
+          }}
+          title="Abrir DESIGN.md no GitHub"
+        >
+          <Palette className="w-3.5 h-3.5" />
+          <span>Design System</span>
+        </a>
+
+        {/* Menu/Sair — mesmo slot do icone de apps do mockup, ligado a uma acao real */}
         {onLogout && (
           <button
             onClick={onLogout}
-            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all cursor-pointer"
+            className="w-8 h-8 shrink-0 flex items-center justify-center rounded-full transition-all cursor-pointer"
             style={{
-              border: "1px solid var(--border)",
               backgroundColor: "var(--bg-surface)",
-              color: "var(--text-tertiary)",
+              color: "var(--text-secondary)",
             }}
             title="Sair"
+            aria-label="Sair"
           >
-            <LogOut className="w-4 h-4" />
+            <LayoutGrid className="w-4 h-4" />
           </button>
         )}
       </div>
