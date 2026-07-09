@@ -528,8 +528,6 @@ fun AppShell(
                     3 ->
                         HistoricoScreen(
                             historico = historicoFiltrado,
-                            blocoUptime = blocoUptime,
-                            narrativaUptime = narrativaUptime,
                             resumoHistorico = resumoHistorico,
                             nomeUsuario = nomeUsuario,
                             fotoUri = fotoUriUsuario,

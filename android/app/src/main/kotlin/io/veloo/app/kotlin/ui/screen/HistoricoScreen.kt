@@ -86,7 +86,6 @@ import io.signallq.app.core.database.MedicaoEntity
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.feature.diagnostico.MetricClassifier
 import io.signallq.app.feature.diagnostico.MetricStatus
-import io.signallq.app.feature.history.BlocoUptime
 import io.signallq.app.feature.history.ResumoHistorico
 import io.signallq.app.feature.history.TendenciaEstado
 import io.signallq.app.feature.history.calcularTendencia
@@ -313,11 +312,6 @@ private fun LineChartGrafico(
 
     val ordered = remember(medicoes) { medicoes.sortedBy { it.timestampEpochMs } }
 
-    if (ordered.size == 1) {
-        UnicaMedicaoDestaque(medicao = ordered.first(), c = c)
-        return
-    }
-
     val maxMbps =
         remember(ordered) {
             ordered
@@ -513,59 +507,6 @@ private fun LineChartGrafico(
     }
 }
 
-/**
- * Card de destaque para quando ha apenas 1 medicao no filtro atual: nao da pra escalar
- * um eixo Y nem tracar uma serie com 1 unico ponto, entao mostra os valores da medicao
- * em destaque (sem grafico) ate que existam medicoes suficientes para uma serie real.
- */
-@Composable
-private fun UnicaMedicaoDestaque(
-    medicao: MedicaoEntity,
-    c: LkTokens,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = c.bgCard),
-        border = BorderStroke(1.dp, c.border),
-        shape = RoundedCornerShape(LkRadius.card),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Column(modifier = Modifier.padding(LkSpacing.lg)) {
-            Text(
-                "PRIMEIRA MEDIÇÃO",
-                style = MaterialTheme.typography.labelSmall,
-                color = c.textTertiary,
-            )
-            Spacer(Modifier.height(LkSpacing.xs))
-            Text(
-                "Faça mais testes para ver a evolução em gráfico",
-                style = MaterialTheme.typography.bodySmall,
-                color = c.textSecondary,
-            )
-            Spacer(Modifier.height(LkSpacing.md))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-            ) {
-                MediaCard(
-                    label = "DOWNLOAD",
-                    value = medicao.downloadMbps?.let { "%.0f Mbps".format(it) } ?: "--",
-                    color = LkColors.accent,
-                    modifier = Modifier.weight(1f),
-                    c = c,
-                )
-                MediaCard(
-                    label = "UPLOAD",
-                    value = medicao.uploadMbps?.let { "%.0f Mbps".format(it) } ?: "--",
-                    color = LkColors.accentBlue,
-                    modifier = Modifier.weight(1f),
-                    c = c,
-                )
-            }
-        }
-    }
-}
-
 private fun formatDateShort(epochMs: Long): String {
     val cal = Calendar.getInstance().apply { timeInMillis = epochMs }
     val today = Calendar.getInstance()
@@ -731,8 +672,6 @@ private fun FiltrosConexao(
 @Composable
 fun HistoricoScreen(
     historico: List<MedicaoEntity>,
-    blocoUptime: List<BlocoUptime> = emptyList(),
-    narrativaUptime: String = "",
     resumoHistorico: ResumoHistorico? = null,
     nomeUsuario: String = "",
     fotoUri: String? = null,
@@ -868,11 +807,6 @@ fun HistoricoScreen(
                 if (listaParaExibir.isNotEmpty()) {
                     item(key = "grafico_linha") {
                         LineChartGrafico(medicoes = historicoFiltrado, c = c)
-                    }
-                    if (blocoUptime.isNotEmpty()) {
-                        item(key = "uptime_grid") {
-                            UptimeGridChart(blocos = blocoUptime, narrativa = narrativaUptime)
-                        }
                     }
                     item(key = "media_cards") {
                         MediaCards(medicoes = historicoFiltrado, c = c)
