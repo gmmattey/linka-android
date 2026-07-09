@@ -312,6 +312,13 @@ private fun secoesTecnicas(snapshot: LocalNetworkDeviceSnapshot): List<Equipamen
                             fiber?.rxPowerDbm?.let { EquipamentoItemTecnico("Potência RX", "%.2f dBm".format(it)) },
                             fiber?.txPowerDbm?.let { EquipamentoItemTecnico("Potência TX", "%.2f dBm".format(it)) },
                             fiber?.temperaturaCelsius?.let { EquipamentoItemTecnico("Temperatura", "%.1f °C".format(it)) },
+                            fiber?.tensaoV?.let { EquipamentoItemTecnico("Tensão do laser", "%.2f V".format(it)) },
+                            fiber?.correnteLaserMa?.let { EquipamentoItemTecnico("Corrente do laser", "%.1f mA".format(it)) },
+                            fiber
+                                ?.serialOnt
+                                ?.trim()
+                                ?.takeIf { it.isNotBlank() && it != "—" }
+                                ?.let { EquipamentoItemTecnico("Número de série da ONT", it) },
                         ).ifEmpty { listOf(EquipamentoItemTecnico("Fibra óptica", "Sem leitura nesta captura")) },
                 ),
             )

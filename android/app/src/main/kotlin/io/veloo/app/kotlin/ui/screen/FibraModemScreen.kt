@@ -1,12 +1,17 @@
 ﻿package io.signallq.app.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +26,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SignalCellularAlt
 import androidx.compose.material3.Button
@@ -36,13 +44,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -338,7 +350,107 @@ private fun FibraConcluidoContent(
             c = c,
         )
 
+        FibraDetalhesTecnicosDisclosure(gpon = gpon, c = c)
+
         Spacer(Modifier.height(LkSpacing.lg))
+    }
+}
+
+/**
+ * Bloco colapsado de identificação técnica (tensão/corrente do laser, serial
+ * da ONT, modo de conexão) — dado de suporte/diagnóstico, não veredito de
+ * saúde. Nenhum destes itens tem threshold calibrado no
+ * [FibraSignalQualityEngine], então não recebem badge/cor de status (spec
+ * Lia, gap "tensão/corrente/serial nunca aparecem na UI"). Some por
+ * completo (nem o header aparece) quando nenhum dos 4 campos tem leitura.
+ */
+@Composable
+private fun FibraDetalhesTecnicosDisclosure(
+    gpon: io.signallq.app.feature.fibra.GponStatus,
+    c: LkTokens,
+) {
+    val itens =
+        remember(gpon) {
+            listOfNotNull(
+                gpon.voltageV.takeIf { it > 0.0 }?.let { "Tensão do laser" to "%.2f V".format(it) },
+                gpon.laserCurrentMa.takeIf { it > 0.0 }?.let { "Corrente do laser" to "%.1f mA".format(it) },
+                gpon.serial
+                    .trim()
+                    .takeIf { it.isNotBlank() && it != "—" }
+                    ?.let { "Número de série" to it },
+                gpon.mode
+                    .trim()
+                    .takeIf { it.isNotBlank() && it != "—" }
+                    ?.let { "Modo de conexão" to it },
+            )
+        }
+    if (itens.isEmpty()) return
+
+    var expandido by remember { mutableStateOf(false) }
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(LkRadius.card))
+                .background(c.bgSecondary),
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 48.dp)
+                    .clickable { expandido = !expandido }
+                    .padding(horizontal = LkSpacing.md, vertical = LkSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Outlined.Info,
+                contentDescription = null,
+                tint = c.textSecondary,
+                modifier = Modifier.size(16.dp),
+            )
+            Spacer(Modifier.width(LkSpacing.xs))
+            Text(
+                "Detalhes técnicos",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.W600,
+                color = c.textSecondary,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                if (expandido) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                contentDescription = null,
+                tint = c.textSecondary,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+
+        AnimatedVisibility(visible = expandido, enter = expandVertically(), exit = shrinkVertically()) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = LkSpacing.md)
+                        .padding(bottom = LkSpacing.sm),
+            ) {
+                itens.forEach { (label, valor) ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(label, fontSize = 12.sp, color = c.textSecondary, modifier = Modifier.weight(1f))
+                        Text(
+                            valor,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W600,
+                            color = c.textPrimary,
+                            fontFamily = if (label == "Número de série") FontFamily.Monospace else FontFamily.Default,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
