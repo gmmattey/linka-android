@@ -120,8 +120,6 @@ fun AppShell(
     deviceName: String,
     dnsResolverIp: String?,
     historico: List<MedicaoEntity>,
-    blocoUptime: List<io.signallq.app.feature.history.BlocoUptime> = emptyList(),
-    narrativaUptime: String = "",
     resumoHistorico: ResumoHistorico? = null,
     snapshotFibra: SnapshotFibra,
     modemHost: String?,
@@ -528,8 +526,6 @@ fun AppShell(
                     3 ->
                         HistoricoScreen(
                             historico = historicoFiltrado,
-                            blocoUptime = blocoUptime,
-                            narrativaUptime = narrativaUptime,
                             resumoHistorico = resumoHistorico,
                             nomeUsuario = nomeUsuario,
                             fotoUri = fotoUriUsuario,
