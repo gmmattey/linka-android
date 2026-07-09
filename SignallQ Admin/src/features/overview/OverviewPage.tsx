@@ -7,18 +7,13 @@ import { GooglePlayRatingSummary } from "../../integrations/google-play/googlePl
 import { OverviewMetricGrid } from "./components/OverviewMetricGrid";
 import { DiagnosticsTimeline } from "./components/DiagnosticsTimeline";
 import { ScreenSessionsDonut } from "./components/ScreenSessionsDonut";
-import { TopIssuesPanel } from "./components/TopIssuesPanel";
 import { RecentAlertsPanel } from "./components/RecentAlertsPanel";
-import { AiProviderUsagePanel } from "./components/AiProviderUsagePanel";
 import { LoadingState } from "../../components/ui/LoadingState";
 import { AppEnvironment } from "../../types/admin";
 import { OverviewMetricsResponse } from "../../mocks/overview.mock";
 import { productAnalyticsService } from "../../services/productAnalyticsService";
 import { ScreenNavigationMetric } from "../../types/productAnalytics";
-import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { SectionIntro } from "../../components/ui/SectionIntro";
-import { InsightBlock } from "../../components/ui/InsightBlock";
-import { ActionsRow } from "../../components/ui/ActionsRow";
 
 interface OverviewPageProps {
   environment: AppEnvironment;
@@ -31,8 +26,6 @@ interface OverviewPageProps {
 export const OverviewPage: React.FC<OverviewPageProps> = ({
   environment,
   period,
-  onPeriodChange,
-  onNavigate,
   triggerRefreshCounter,
 }) => {
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -43,9 +36,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   const [metrics, setMetrics] = React.useState<OverviewMetricsResponse | null>(null);
   const [timelineData, setTimelineData] = React.useState<any[]>([]);
   const [screenNavigation, setScreenNavigation] = React.useState<ScreenNavigationMetric[]>([]);
-  const [topIssues, setTopIssues] = React.useState<any[]>([]);
   const [alerts, setAlerts] = React.useState<any[]>([]);
-  const [aiUsage, setAiUsage] = React.useState<any[]>([]);
 
   // Paridade com o mockup: os 4 KPIs do Centro de Controle são Usuários Ativos,
   // Crash-free rate, Custo de IA (mês) e Nota na Play Store — não os que estavam
@@ -70,25 +61,19 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
           metricsRes,
           timelineRes,
           screenNavRes,
-          issuesRes,
           alertsRes,
-          aiUsageRes,
         ] = await Promise.all([
           adminMetricsService.getOverviewMetrics(filters),
           adminMetricsService.getDiagnosticsTimeline(filters),
           productAnalyticsService.getScreenNavigation({ period: period as any, environment }),
-          adminMetricsService.getTopIssues(filters),
           adminMetricsService.getRecentAlerts(filters),
-          adminMetricsService.getAiProviderUsage(filters),
         ]);
 
         if (active) {
           setMetrics(metricsRes);
           setTimelineData(timelineRes);
           setScreenNavigation(screenNavRes);
-          setTopIssues(issuesRes);
           setAlerts(alertsRes);
-          setAiUsage(aiUsageRes);
         }
 
         // KPIs do mockup — resilientes individualmente (.catch(() => null)): a
@@ -128,41 +113,6 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
       active = false;
     };
   }, [environment, period, triggerRefreshCounter, retryCount]);
-
-  // GH#552 (Fase 2) — síntese textual derivada só de valores já carregados nesta
-  // tela (metrics + timelineData), sem inventar correlação que os dados não
-  // sustentam. Se algum valor de referência faltar, cai para uma frase neutra.
-  //
-  // Precisa ficar antes dos early-returns abaixo (loading/error/!metrics): um
-  // hook chamado condicionalmente muda de ordem entre renders e quebra a tela
-  // inteira com "Rendered more hooks than during the previous render" (GH#753).
-  const insightText = React.useMemo(() => {
-    if (!metrics) return null;
-    const diagCount = metrics.diagnosticsCount?.value;
-    const successRate = metrics.successRate?.value;
-    const aiCost = metrics.aiCost?.value;
-    const peak = timelineData.reduce(
-      (max, point: any) => (point.completedDiagnostics > (max?.completedDiagnostics ?? -1) ? point : max),
-      null as any
-    );
-    const parts: string[] = [];
-    if (diagCount != null) {
-      parts.push(`${diagCount} diagnósticos executados no período selecionado`);
-    }
-    if (successRate != null) {
-      // GH#766 — successRate já vem formatado como string com "%" (ex: "63.0%");
-      // concatenar outro "%" aqui duplicava o símbolo ("0.0%%").
-      parts.push(`taxa de sucesso de ${successRate}`);
-    }
-    if (peak?.timestamp) {
-      parts.push(`pico de volume em ${peak.timestamp} (${peak.completedDiagnostics} diagnósticos)`);
-    }
-    if (aiCost != null) {
-      parts.push(`custo de IA acumulado de ${aiCost}`);
-    }
-    if (parts.length === 0) return null;
-    return `${parts.join(", ")}.`;
-  }, [metrics, timelineData]);
 
   if (loading) {
     return (
@@ -204,7 +154,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         hero={{
           iconSrc: `${import.meta.env.BASE_URL}icon-192.png`,
           title: "SignallQ — Diagnóstico de Rede",
-          subtitle: `io.signallq.app · Conta técnica · Atualizado em ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`,
+          subtitle: `io.signallq.app · Conta técnica · Última atualização: ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`,
         }}
         overline="CENTRO DE CONTROLE"
         question="O SignallQ está saudável agora?"
@@ -223,49 +173,20 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
         playStoreRating={playStoreRating}
       />
 
-      {/* 3. Gráfico principal — volume de diagnósticos x dispositivos ativos,
-          com a composição de sessões por tela ao lado (paridade mockup). */}
+      {/* 3. Gráfico principal — sessões x diagnósticos, com a composição de
+          sessões por tela ao lado (paridade mockup). */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <DiagnosticsTimeline timelineData={timelineData} period={period} />
+          <DiagnosticsTimeline timelineData={timelineData} />
         </div>
         <div>
           <ScreenSessionsDonut screens={screenNavigation} />
         </div>
       </div>
 
-      {/* 4. Alertas recentes — card full-width, posição fixa no mockup (item 3
-          logo abaixo do par gráfico/donut). */}
+      {/* 4. Alertas recentes — card full-width, último item da composição fixa
+          do mockup para sec-overview (hero > KPIs > gráfico+donut > alertas). */}
       <RecentAlertsPanel alerts={alerts} />
-
-      {/* 5. Bloco de explicação — antes da tabela de investigação */}
-      {insightText && <InsightBlock id="overview-insight-block">{insightText}</InsightBlock>}
-
-      {/* 6. Drill-down secundário — problemas recorrentes e uso de IA por
-          provedor (contexto adicional, fora da composição fixa do mockup). */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-        <div>
-          <TopIssuesPanel issues={topIssues} />
-        </div>
-        <div>
-          <AiProviderUsagePanel usage={aiUsage} />
-        </div>
-      </div>
-
-      {/* Saúde de produto — sem dado real ainda (requer Firebase Analytics/Crashlytics) */}
-      <FeatureComingSoon
-        feature="Saúde e Engajamento do Produto"
-        reason="Requer Firebase Analytics, Crashlytics e Product Analytics no worker"
-      />
-
-      {/* 6. Ações — navegação direta pras telas que aprofundam cada eixo do semáforo */}
-      <ActionsRow
-        id="overview-actions-row"
-        actions={[
-          { label: "Ver Problemas & Incidentes", onClick: () => onNavigate("/errors") },
-          { label: "Ver IA & Custos", onClick: () => onNavigate("/ai-cost"), variant: "secondary" },
-        ]}
-      />
     </div>
   );
 };
