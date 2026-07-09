@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Print
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Smartphone
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Button
@@ -521,13 +522,28 @@ private fun DispositivoItem(
                         } else {
                             dispositivo.nomeExibicao
                         }
-                Text(
-                    text = nomeDisplay,
-                    color = c.textPrimary,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = nomeDisplay,
+                        color = c.textPrimary,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (dispositivo.fonteNome == NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE) {
+                        Spacer(Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.VerifiedUser,
+                            contentDescription = "Nome confirmado pelo roteador",
+                            tint = LkColors.accent,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
                 // Exibe fabricante somente se disponível e não for o próprio título
                 if (fabricante != null && nomeDisplay != fabricante) {
                     Text(
@@ -720,7 +736,13 @@ private fun DeviceDetailSheet(
         }
         item {
             LkListRow(c = c, title = "Descoberto via", showDivider = false, trailing = {
-                Text(fonteNomeLabel(dispositivo.fonteNome), fontSize = 13.sp, color = c.textSecondary)
+                val corFonte =
+                    if (dispositivo.fonteNome == NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE) {
+                        LkColors.accent
+                    } else {
+                        c.textSecondary
+                    }
+                Text(fonteNomeLabel(dispositivo.fonteNome), fontSize = 13.sp, color = corFonte)
             })
         }
     }
@@ -1210,6 +1232,7 @@ private fun tipoLabel(tipo: TipoDispositivo): String =
 
 private fun fonteNomeLabel(fonte: String) =
     when (fonte) {
+        NamingPrioridade.FONTE_NOME_ROUTER_ACTIVE -> "Confirmado pelo roteador"
         "gateway" -> "Roteador (gateway)"
         "mdns" -> "mDNS · Bonjour"
         "ssdp" -> "UPnP · SSDP"
