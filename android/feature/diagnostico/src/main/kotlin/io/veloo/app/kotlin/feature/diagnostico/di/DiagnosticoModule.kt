@@ -9,8 +9,13 @@ import dagger.hilt.components.SingletonComponent
 import io.signallq.app.feature.diagnostico.BuildConfig
 import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
 import io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository
+import io.signallq.app.core.database.SignallQDatabase
+import io.signallq.app.core.database.recommendation.RecommendationHistoryDao
 import io.signallq.app.core.datastore.PreferenciasAppRepository
 import io.signallq.app.core.network.AnalyticsHelper
+import io.signallq.app.core.recommendation.RecommendationEngine
+import io.signallq.app.core.recommendation.catalog.LocalRecommendationCatalog
+import io.signallq.app.core.recommendation.catalog.RecommendationCatalog
 import io.signallq.app.feature.diagnostico.ingest.AdminIngestRepository
 import io.signallq.app.feature.diagnostico.topology.TopologyDiagnostic
 import okhttp3.OkHttpClient
@@ -103,4 +108,19 @@ object DiagnosticoModule {
         client = httpClient,
         consentimentoProvider = { prefs.buscarConsentimentoLgpd() == true },
     )
+
+    @Provides
+    @Singleton
+    fun provideRecommendationHistoryDao(bancoDados: SignallQDatabase): RecommendationHistoryDao =
+        bancoDados.recommendationHistoryDao()
+
+    /** Catalogo local embarcado -- ainda nao ha catalogo remoto (fora de escopo da #790). */
+    @Provides
+    @Singleton
+    fun provideRecommendationCatalog(): RecommendationCatalog = LocalRecommendationCatalog()
+
+    @Provides
+    @Singleton
+    fun provideRecommendationEngine(catalog: RecommendationCatalog): RecommendationEngine =
+        RecommendationEngine(catalog = catalog)
 }
