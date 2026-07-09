@@ -8,6 +8,12 @@
 // logging e do campo modeloIa.
 // =============================================================================
 
+export type TokenUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+};
+
 export type ProviderResult = {
   /** Texto bruto devolvido pelo modelo (JSON ainda não parseado). */
   text: string;
@@ -17,6 +23,8 @@ export type ProviderResult = {
   modeloIa: Record<string, unknown>;
   /** ID de modelo usado para logs e ingestão de métricas. */
   effectiveModelId: string;
+  /** GH#758 — tokens consumidos, quando o provider expõe essa informação. */
+  usage?: TokenUsage;
 };
 
 export interface AiProvider {
@@ -103,6 +111,7 @@ export class GeminiFlashProvider implements AiProvider {
       providerId: this.id,
       modeloIa: GEMINI_MODELO_IA,
       effectiveModelId: GEMINI_MODEL_ID,
+      usage: extractGeminiUsage(json),
     };
   }
 
@@ -133,6 +142,26 @@ function extractGeminiText(json: Record<string, unknown>): string {
   const text = parts[0].text;
   if (typeof text !== "string" || !text) throw new Error("Gemini: no text in parts[0]");
   return text;
+}
+
+// GH#758 — Gemini expõe consumo real em usageMetadata; sem isso, ai_usage no
+// admin fica sempre com tokens/custo zerados apesar do laudo ser real.
+function extractGeminiUsage(json: Record<string, unknown>): TokenUsage | undefined {
+  const usageMetadata = json.usageMetadata as Record<string, unknown> | undefined;
+  if (!usageMetadata) return undefined;
+  const promptTokens = usageMetadata.promptTokenCount;
+  const completionTokens = usageMetadata.candidatesTokenCount;
+  const totalTokens = usageMetadata.totalTokenCount;
+  if (typeof promptTokens !== "number" && typeof totalTokens !== "number") return undefined;
+  return {
+    promptTokens: typeof promptTokens === "number" ? promptTokens : 0,
+    completionTokens: typeof completionTokens === "number" ? completionTokens : 0,
+    totalTokens:
+      typeof totalTokens === "number"
+        ? totalTokens
+        : (typeof promptTokens === "number" ? promptTokens : 0) +
+          (typeof completionTokens === "number" ? completionTokens : 0),
+  };
 }
 
 // Converte o SSE do Gemini para o formato do Workers AI:
@@ -218,6 +247,7 @@ export class QwenCFProvider implements AiProvider {
       providerId: this.id,
       modeloIa: this.modeloIa,
       effectiveModelId: this.model,
+      usage: extractCFUsage(result),
     };
   }
 
@@ -276,6 +306,31 @@ function extractCFText(result: unknown): string {
   throw new Error(
     `CF AI: formato de resposta desconhecido: ${JSON.stringify(result).slice(0, 200)}`,
   );
+}
+
+// GH#758 — Workers AI expõe `usage` no formato OpenAI-compatible (prompt_tokens/
+// completion_tokens/total_tokens) para vários modelos; quando ausente, retorna
+// undefined em vez de inventar número (fica 0 no ingest, não é encoberto).
+function extractCFUsage(result: unknown): TokenUsage | undefined {
+  if (!result || typeof result !== "object") return undefined;
+  const r = result as Record<string, unknown>;
+  const usage = (r.usage ?? (r.result as Record<string, unknown> | undefined)?.usage) as
+    | Record<string, unknown>
+    | undefined;
+  if (!usage) return undefined;
+  const promptTokens = usage.prompt_tokens;
+  const completionTokens = usage.completion_tokens;
+  const totalTokens = usage.total_tokens;
+  if (typeof promptTokens !== "number" && typeof totalTokens !== "number") return undefined;
+  return {
+    promptTokens: typeof promptTokens === "number" ? promptTokens : 0,
+    completionTokens: typeof completionTokens === "number" ? completionTokens : 0,
+    totalTokens:
+      typeof totalTokens === "number"
+        ? totalTokens
+        : (typeof promptTokens === "number" ? promptTokens : 0) +
+          (typeof completionTokens === "number" ? completionTokens : 0),
+  };
 }
 
 // =============================================================================
