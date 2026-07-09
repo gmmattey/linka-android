@@ -36,34 +36,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
 
-  // Determine topbar page title dynamically
-  const pageTitle = React.useMemo(() => {
-    switch (currentPath) {
-      case "/overview":
-        return "Visão Geral";
-      case "/product-analytics":
-        return "Produto & Uso";
-      case "/diagnostics":
-        return "Diagnósticos";
-      case "/networks":
-      case "/operators":
-        return "Redes & Provedores";
-      case "/ai-cost":
-        return "IA & Custos";
-      case "/errors":
-        return "Problemas & Incidentes";
-      case "/app-versions":
-        return "Releases & Qualidade";
-      case "/system-health":
-        return "Saúde do Sistema";
-      case "/settings":
-      case "/feature-flags":
-        return "Configurações";
-      default:
-        return "SignallQ Admin";
-    }
-  }, [currentPath]);
-
   const handleNavigate = React.useCallback((path: string) => {
     onNavigate(path);
     setIsMobileSidebarOpen(false);
@@ -99,7 +71,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Top Header Row with quick controls connected globally */}
         <Topbar
-          title={pageTitle}
           environment={environment}
           onEnvironmentChange={onEnvironmentChange}
           period={period}
@@ -107,6 +78,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
           onLogout={onLogout}
+          onNavigate={handleNavigate}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           theme={theme}
         />
