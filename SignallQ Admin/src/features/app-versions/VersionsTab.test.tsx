@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { VersionsTab } from "./VersionsTab";
 
-// GH#746 — smoke test: gráfico principal que faltava (sessões por versão),
-// mesmo padrão de mock de service usado em AiCostPage.test.tsx.
+// GH#781 — paridade com o mockup: KPIs de versão estável/rollout/crash rate/ANR
+// rate, tabela "Versões em produção" e card "Notas de release recentes".
 vi.mock("../../services/appVersionsService", () => ({
   appVersionsService: {
     getAppVersions: vi.fn().mockResolvedValue({
@@ -20,20 +20,29 @@ vi.mock("../../integrations/integrationsService", () => ({
   integrationsService: {
     getFirebaseVersions: vi.fn().mockResolvedValue(null),
     getGooglePlayCrashAnr: vi.fn().mockResolvedValue(null),
+    getGooglePlayTracks: vi.fn().mockResolvedValue([]),
+    getGooglePlayVersions: vi.fn().mockResolvedValue([]),
   },
 }));
 
 describe("VersionsTab", () => {
-  it("renderiza o gráfico principal de sessões por versão", async () => {
+  it("renderiza a tabela de versões em produção", async () => {
     render(<VersionsTab environment="production" period="7d" onNavigate={vi.fn()} triggerRefreshCounter={0} />);
 
-    expect(await screen.findByText("Sessões por versão")).toBeInTheDocument();
+    expect(await screen.findByText("Versões em produção")).toBeInTheDocument();
   });
 
   it("mostra aviso de Crashlytics não configurado quando crashStats é null", async () => {
     render(<VersionsTab environment="production" period="7d" onNavigate={vi.fn()} triggerRefreshCounter={0} />);
 
-    expect(await screen.findByText("Cobertura Crashlytics")).toBeInTheDocument();
+    expect(await screen.findByText("Crash rate (release atual)")).toBeInTheDocument();
     expect(screen.getAllByText("Não configurado").length).toBeGreaterThan(0);
+  });
+
+  it("mostra estado vazio explícito para notas de release quando o worker não expõe changelog", async () => {
+    render(<VersionsTab environment="production" period="7d" onNavigate={vi.fn()} triggerRefreshCounter={0} />);
+
+    expect(await screen.findByText("Notas de release recentes")).toBeInTheDocument();
+    expect(await screen.findByText("Notas de release não disponíveis")).toBeInTheDocument();
   });
 });

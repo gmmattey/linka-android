@@ -10,6 +10,7 @@ import {
   GitBranch,
   Settings,
   HeartPulse,
+  Wrench,
   X,
 } from "lucide-react";
 import { NAVIGATION_SECTIONS } from "../../config/navigation";
@@ -38,6 +39,7 @@ const iconMap = {
   GitBranch: GitBranch,
   Settings: Settings,
   HeartPulse: HeartPulse,
+  Wrench: Wrench,
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({

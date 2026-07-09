@@ -3,15 +3,9 @@ import { AppEnvironment } from "../../types/admin";
 import { productAnalyticsService, DashboardFilters } from "../../services/productAnalyticsService";
 import { FeatureUsageMetric, ScreenNavigationMetric, FeatureCrashMetric, RetentionMetric } from "../../types/productAnalytics";
 import { FeatureUsageGrid } from "./components/FeatureUsageGrid";
-import { MostUsedFeaturesTable } from "./components/MostUsedFeaturesTable";
-import { ScreenNavigationPanel } from "./components/ScreenNavigationPanel";
-import { FeatureCrashTable } from "./components/FeatureCrashTable";
-import { RetentionPanel } from "./components/RetentionPanel";
 import { FeatureRankingBars } from "./components/FeatureRankingBars";
 import { RetentionBars } from "./components/RetentionBars";
 import { LoadingState } from "../../components/ui/LoadingState";
-import { InsightBlock } from "../../components/ui/InsightBlock";
-import { ActionsRow } from "../../components/ui/ActionsRow";
 import { FeatureComingSoon } from "../../components/ui/FeatureComingSoon";
 import { ChartCard } from "../../components/ui/ChartCard";
 import { SectionIntro } from "../../components/ui/SectionIntro";
@@ -35,7 +29,6 @@ export const ProductAnalyticsPage: React.FC<ProductAnalyticsPageProps> = ({
   environment,
   period,
   triggerRefreshCounter,
-  onNavigate,
 }) => {
   const [data, setData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,49 +59,6 @@ export const ProductAnalyticsPage: React.FC<ProductAnalyticsPageProps> = ({
   }, [environment, period, triggerRefreshCounter]);
 
   useEffect(() => { load(); }, [load]);
-
-  const handleExportFeatureUsage = () => {
-    if (!data) return;
-    const header = "Feature,Usos,Usuários únicos,Taxa conclusão,Taxa falha,Duração média (s),Tendência\r\n";
-    const rows = data.featureUsage
-      .map((f) => [
-        f.feature, f.usageCount, f.uniqueUsers,
-        `${(f.completionRate * 100).toFixed(1)}%`, `${(f.failureRate * 100).toFixed(1)}%`,
-        (f.avgDurationMs / 1000).toFixed(1), `${f.trendPercent}%`,
-      ].join(","))
-      .join("\r\n");
-    const csvContent = `data:text/csv;charset=utf-8,${header}${rows}`;
-    const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent));
-    link.setAttribute("download", `signallq_uso_do_app_${environment}_${period}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // GH#552 (Fase 3) — bloco de explicação: compara retenção com benchmark e
-  // aponta a feature com maior abandono (menor completionRate), sem inventar
-  // correlação além do que os dois conjuntos de dados já carregados mostram.
-  const insightText = React.useMemo(() => {
-    if (!data) return null;
-    const cohort = data.retention[0];
-    const worstFeature = [...data.featureUsage].sort((a, b) => a.completionRate - b.completionRate)[0];
-    const parts: string[] = [];
-    if (cohort?.day1 != null) {
-      const inRange = cohort.day1 >= 25 && cohort.day1 <= 40;
-      parts.push(
-        inRange
-          ? `Retenção D1 de ${cohort.day1.toFixed(0)}% está na faixa saudável de mercado para utilitários (25-40%).`
-          : `Retenção D1 de ${cohort.day1.toFixed(0)}% está ${cohort.day1 < 25 ? "abaixo" : "acima"} da faixa saudável de mercado (25-40%).`
-      );
-    }
-    if (worstFeature) {
-      parts.push(
-        `Maior abandono está em "${worstFeature.label}" (${(worstFeature.completionRate * 100).toFixed(0)}% de conclusão) — investigar se é timeout de IA (ver IA & Custos).`
-      );
-    }
-    return parts.length > 0 ? parts.join(" ") : null;
-  }, [data]);
 
   if (loading) {
     return (
@@ -158,10 +108,6 @@ export const ProductAnalyticsPage: React.FC<ProductAnalyticsPageProps> = ({
       {/* 1. KPIs — 4 cards, com veredito vs. benchmark de mercado (GH#552 Fase 3) */}
       <FeatureUsageGrid retention={data!.retention} sessionDuration={data!.sessionDuration} />
 
-      {/* DAU/MAU pedido pelo wireframe não tem endpoint de usuários ativos únicos
-          por dia/mês hoje — só uniqueUsers por feature/tela. Sem número inventado. */}
-      <FeatureComingSoon feature="DAU/MAU" reason="Requer contagem de usuários ativos únicos por dia/mês no worker" compact />
-
       {/* 2. Composição principal — paridade mockup: funcionalidade mais usada
           (ranking real) + funil de teste de velocidade (sem contrato de dado
           hoje, ver FeatureComingSoon abaixo) */}
@@ -169,7 +115,7 @@ export const ProductAnalyticsPage: React.FC<ProductAnalyticsPageProps> = ({
         {data!.featureUsage.length > 0 ? (
           <FeatureRankingBars metrics={data!.featureUsage} />
         ) : (
-          <ChartCard title="Funcionalidade mais usada" id="feature-ranking-bars-card">
+          <ChartCard title="Funcionalidade mais usada · Sessões 7 dias" id="feature-ranking-bars-card">
             <FeatureComingSoon feature="Funcionalidade mais usada" reason="Métrica ainda não disponível — aguardando exposição no worker" />
           </ChartCard>
         )}
@@ -196,31 +142,6 @@ export const ProductAnalyticsPage: React.FC<ProductAnalyticsPageProps> = ({
           />
         </ChartCard>
       </div>
-
-      {/* 3. Bloco de explicação */}
-      {insightText && <InsightBlock id="product-analytics-insight-block">{insightText}</InsightBlock>}
-
-      {/* 4. Tabela de investigação — engajamento por função (drill-down primário) */}
-      {data!.featureUsage.length > 0 && <MostUsedFeaturesTable metrics={data!.featureUsage} />}
-
-      {/* Drill-down secundário — navegação de telas e crashes por função */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {data!.screenNavigation.length > 0 && <ScreenNavigationPanel metrics={data!.screenNavigation} />}
-        {data!.featureCrashes.length > 0 && <FeatureCrashTable metrics={data!.featureCrashes} />}
-      </div>
-
-      {(data!.retention.length > 0 || data!.sessionDuration) && (
-        <RetentionPanel metrics={data!.retention} sessionDuration={data!.sessionDuration} />
-      )}
-
-      {/* 5. Ações */}
-      <ActionsRow
-        id="product-analytics-actions-row"
-        actions={[
-          { label: "Exportar CSV", onClick: handleExportFeatureUsage, variant: "secondary" },
-          ...(onNavigate ? [{ label: "Ver IA & Custos", onClick: () => onNavigate("/ai-cost") }] : []),
-        ]}
-      />
     </div>
   );
 };

@@ -42,9 +42,10 @@ describe("AiCostPage", () => {
     expect(screen.getByText("Taxa de falha")).toBeInTheDocument();
   });
 
-  it("renderiza a tabela de investigação (custo por provider)", async () => {
+  it("renderiza o orçamento mensal e a composição de custo por provedor", async () => {
     render(<AiCostPage environment="production" period="7d" triggerRefreshCounter={0} />);
 
-    expect(await screen.findByText("Custo e métricas por provedor")).toBeInTheDocument();
+    expect(await screen.findByText("Orçamento mensal de IA")).toBeInTheDocument();
+    expect(screen.getByText("Custo por provedor")).toBeInTheDocument();
   });
 });

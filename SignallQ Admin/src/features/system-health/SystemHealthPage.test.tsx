@@ -26,32 +26,25 @@ vi.mock("../../services/systemHealthService", () => ({
 }));
 
 describe("SystemHealthPage", () => {
-  it("renderiza os KPIs de infraestrutura", () => {
+  it("renderiza os KPIs de performance de infra (paridade mockup)", () => {
     render(
       <SystemHealthPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
-    expect(screen.getByText("Worker Admin")).toBeInTheDocument();
-    expect(screen.getAllByText("D1 Database").length).toBeGreaterThan(0);
-    expect(screen.getByText("Credenciais Firebase")).toBeInTheDocument();
-    expect(screen.getByText("Acesso BigQuery")).toBeInTheDocument();
+    expect(screen.getByText("Uptime do Worker (30d)")).toBeInTheDocument();
+    expect(screen.getByText("Latência p95 da API")).toBeInTheDocument();
+    expect(screen.getByText("Erros 5xx (7d)")).toBeInTheDocument();
+    expect(screen.getByText("Fila de eventos pendentes")).toBeInTheDocument();
   });
 
-  it("carrega a tabela de serviços monitorados após o fetch", async () => {
+  it("carrega a lista de status dos serviços após o fetch", async () => {
     render(
       <SystemHealthPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
-    expect(await screen.findByText("Serviços monitorados")).toBeInTheDocument();
-  });
-
-  it("mostra o bloco de explicação com o resultado do check", async () => {
-    render(
-      <SystemHealthPage environment="production" period="7d" triggerRefreshCounter={0} />
-    );
-
-    expect(
-      await screen.findByText(/respondem normalmente/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Cloudflare Worker (Admin API)")).toBeInTheDocument();
+    expect(screen.getByText("D1 Database")).toBeInTheDocument();
+    expect(screen.getByText("Firebase Auth")).toBeInTheDocument();
+    expect(screen.getByText("Crashlytics Ingest")).toBeInTheDocument();
   });
 });

@@ -25,6 +25,7 @@ const SLICE_COLORS = [
 // Redes & Provedores — não foi descartada, só realocada pro lugar certo.
 export const ScreenSessionsDonut: React.FC<ScreenSessionsDonutProps> = ({ screens }) => {
   const top = [...screens].sort((a, b) => b.views - a.views).slice(0, 5);
+  const total = top.reduce((sum, s) => sum + (s.views ?? 0), 0);
 
   return (
     <ChartCard
@@ -45,6 +46,11 @@ export const ScreenSessionsDonut: React.FC<ScreenSessionsDonutProps> = ({ screen
             color: SLICE_COLORS[idx % SLICE_COLORS.length],
           }))}
           height={180}
+          layout="column"
+          size={170}
+          showValue={false}
+          centerValue={total.toLocaleString("pt-BR")}
+          centerLabel="sessões"
         />
       )}
     </ChartCard>

@@ -37,11 +37,11 @@ describe("ProductAnalyticsPage", () => {
     expect(screen.getByText("Duração média de sessão")).toBeInTheDocument();
   });
 
-  it("renderiza a tabela de investigação (engajamento por função)", async () => {
+  it("renderiza o ranking de funcionalidade mais usada", async () => {
     render(
       <ProductAnalyticsPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
-    expect(await screen.findByText("Engajamento por Funcionalidade")).toBeInTheDocument();
+    expect(await screen.findByText("Funcionalidade mais usada · Sessões 7 dias")).toBeInTheDocument();
   });
 });

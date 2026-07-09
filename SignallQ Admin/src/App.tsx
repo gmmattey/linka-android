@@ -16,6 +16,7 @@ import { ErrorsTab } from "./features/errors/ErrorsTab";
 import { VersionsTab } from "./features/app-versions/VersionsTab";
 import { SettingsTab } from "./features/settings/SettingsTab";
 import { SystemHealthTab } from "./features/system-health/SystemHealthTab";
+import { ToolsTab } from "./features/tools/ToolsTab";
 
 export default function App() {
   const { theme, toggle: onToggleTheme } = useTheme();
@@ -92,6 +93,7 @@ export default function App() {
         "/feature-flags",
         "/system-health",
         "/settings",
+        "/tools",
       ];
       if (hash && validPaths.includes(hash)) {
         setCurrentPath(hash);
@@ -252,6 +254,13 @@ export default function App() {
       {/* GH#552 (Fase 2): "/feature-flags" fundido em "/settings" — mesmo componente
           renderizado nos dois hashes até que nada mais linke pro slug antigo. */}
       {(currentPath === "/settings" || currentPath === "/feature-flags") && <SettingsTab />}
+      {currentPath === "/tools" && (
+        <ToolsTab
+          environment={environment}
+          period={period}
+          triggerRefreshCounter={refreshCounter}
+        />
+      )}
       </ErrorBoundary>
     </AppLayout>
   );

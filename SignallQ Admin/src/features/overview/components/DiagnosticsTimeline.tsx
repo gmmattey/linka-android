@@ -5,36 +5,17 @@ import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 
 interface DiagnosticsTimelineProps {
   timelineData: any[];
-  period: string;
 }
 
-export const DiagnosticsTimeline: React.FC<DiagnosticsTimelineProps> = ({ timelineData, period }) => {
-  const getTimelineTitle = () => {
-    switch (period) {
-      case "today":
-        return "Frequência de Diagnósticos Hoje (Por Hora)";
-      case "30d":
-        return "Varreduras Consolidadas por Semana (Últimos 30 Dias)";
-      default:
-        return "Consumo de Diagnósticos vs Usuários (Histórico 7 Dias)";
-    }
-  };
-
-  const getTimelineDescription = () => {
-    switch (period) {
-      case "today":
-        return "Acompanhamento da telemetria de conectividade e taxa de varreduras disparada a cada duas horas.";
-      case "30d":
-        return "Estatísticas semanais agregadas de conectividade e integridade recolhidas de todos os dispositivos.";
-      default:
-        return "Frequência diária de varreduras de conectividade completas disparadas via SDK Android.";
-    }
-  };
-
+// Paridade com o mockup (signallq-admin-mockup.dc.html) — título e legenda são
+// texto literal fixo ("Sessões vs. Diagnósticos · 14 dias"), não variam por
+// período. "Sessões" ainda não tem contagem própria no worker; reaproveita
+// activeUsers como proxy (mesmo padrão já usado em ScreenSessionsDonut/GH#781).
+export const DiagnosticsTimeline: React.FC<DiagnosticsTimelineProps> = ({ timelineData }) => {
   return (
     <ChartCard
-      title={getTimelineTitle()}
-      description={getTimelineDescription()}
+      title="Sessões vs. Diagnósticos · 14 dias"
+      description="Volume de sessões e diagnósticos completos no período selecionado."
       id="diagnostics-timeline-card"
     >
       {timelineData.length === 0 ? (
@@ -47,8 +28,8 @@ export const DiagnosticsTimeline: React.FC<DiagnosticsTimelineProps> = ({ timeli
           data={timelineData}
           xAxisKey="timestamp"
           series={[
-            { key: "completedDiagnostics", name: "Diagnósticos Executados", color: "var(--sq-text-primary)" },
-            { key: "activeUsers", name: "Dispositivos Ativos", color: "var(--sq-text-secondary)" },
+            { key: "activeUsers", name: "Sessões", color: "var(--sq-accent)" },
+            { key: "completedDiagnostics", name: "Diagnósticos", color: "var(--sq-accent-blue)" },
           ]}
           height={260}
         />

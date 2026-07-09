@@ -18,12 +18,28 @@ interface DonutChartProps {
   data: DonutChartData[];
   height?: number;
   id?: string;
+  /** "row" (padrão, donut + legenda lado a lado) ou "column" (donut centralizado acima da legenda — paridade mockup IA & Custos, GH#781). */
+  layout?: "row" | "column";
+  /** Tamanho fixo (px) do donut quando layout="column". Ignorado em layout="row". */
+  size?: number;
+  /** Exibe o valor bruto na legenda antes do percentual. Default true (comportamento pré-existente). */
+  showValue?: boolean;
+  /** Overlay de total no miolo do donut (paridade mockup Centro de Controle,
+   *  GH#781 item Overview). Só some algo quando ambos são passados; sem eles o
+   *  donut fica como antes (usado por AI & Custos). */
+  centerValue?: string;
+  centerLabel?: string;
 }
 
 export const DonutChart: React.FC<DonutChartProps> = ({
   data,
   height = 200,
   id,
+  layout = "row",
+  size = 132,
+  showValue = true,
+  centerValue,
+  centerLabel,
 }) => {
   const [isMounted, setIsMounted] = React.useState(false);
 
@@ -52,10 +68,28 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     );
   }
 
+  const isColumn = layout === "column";
+
   return (
-    <div id={id} className="flex flex-col md:flex-row items-center justify-between gap-4 py-2">
+    <div
+      id={id}
+      className={isColumn ? "flex flex-col items-center gap-4 py-2" : "flex flex-col md:flex-row items-center justify-between gap-4 py-2"}
+    >
       {/* Donut */}
-      <div style={{ width: "100%", maxWidth: 170, height }}>
+      <div
+        className="relative"
+        style={isColumn ? { width: size, height: size, margin: "0 auto" } : { width: "100%", maxWidth: 170, height }}
+      >
+        {centerValue && centerLabel && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[20px] font-bold font-sans leading-tight" style={{ color: "var(--sq-text-primary)" }}>
+              {centerValue}
+            </span>
+            <span className="text-[10px] font-sans" style={{ color: "var(--sq-text-tertiary)" }}>
+              {centerLabel}
+            </span>
+          </div>
+        )}
         <ResponsiveContainer width="100%" height="100%">
           <RePieChart>
             <Tooltip
@@ -98,9 +132,11 @@ export const DonutChart: React.FC<DonutChartProps> = ({
                 <span style={{ color: "var(--sq-text-primary)" }}>{item.name}</span>
               </div>
               <div className="flex items-center gap-3" style={{ fontFamily: "var(--sq-font-sans)" }}>
-                <span className="font-medium text-[11px]" style={{ color: "var(--sq-text-secondary)" }}>
-                  {value.toLocaleString("pt-BR")}
-                </span>
+                {showValue && (
+                  <span className="font-medium text-[11px]" style={{ color: "var(--sq-text-secondary)" }}>
+                    {value.toLocaleString("pt-BR")}
+                  </span>
+                )}
                 <span
                   className="font-medium text-[12px] w-12 text-right"
                   style={{ color: "var(--sq-text-secondary)" }}
