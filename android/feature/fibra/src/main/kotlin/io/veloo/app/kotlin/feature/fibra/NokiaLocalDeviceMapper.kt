@@ -1,5 +1,6 @@
 package io.signallq.app.feature.fibra
 
+import io.signallq.app.core.network.contracts.localdevice.ClientSnapshot
 import io.signallq.app.core.network.contracts.localdevice.DataFreshness
 import io.signallq.app.core.network.contracts.localdevice.DeviceCapabilities
 import io.signallq.app.core.network.contracts.localdevice.DeviceType
@@ -35,8 +36,9 @@ object NokiaLocalDeviceMapper {
                 suportaWan = true,
                 suportaWifi = true,
                 suportaLan = true,
-                // Fase 2 (fora de escopo #865) — lista de clientes conectados.
-                suportaClientes = false,
+                // GH#839/#865 Fase 2 — lista real de clientes (device_cfg +
+                // alias_cfg), ligada em 2026-07-10.
+                suportaClientes = true,
                 suportaDiagnosticoNativo = false,
             ),
             vendor = "Nokia",
@@ -88,7 +90,14 @@ object NokiaLocalDeviceMapper {
                     faixaDhcpFim = lan.dhcpFaixaFim,
                 )
             },
-            clientes = emptyList(),
+            clientes = snapshot.clientes.map { cliente ->
+                ClientSnapshot(
+                    mac = cliente.mac,
+                    ip = cliente.ip,
+                    hostname = cliente.hostname,
+                    tipoConexao = cliente.tipoConexao,
+                )
+            },
             warnings = emptyList(),
             freshness = DataFreshness(capturadoEmEpochMs = capturadoEmEpochMs, expirado = false),
         )

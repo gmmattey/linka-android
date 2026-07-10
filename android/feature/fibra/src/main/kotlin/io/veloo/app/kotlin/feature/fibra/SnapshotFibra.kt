@@ -14,4 +14,7 @@ data class SnapshotFibra(
     // preenchendo).
     val wifi: WifiStatus? = null,
     val lan: LanStatus? = null,
+    // GH#839/#865 Fase 2 — lista real de clientes conectados (device_cfg +
+    // alias_cfg de lan_status.cgi?wlan).
+    val clientes: List<ClienteFibra> = emptyList(),
 )

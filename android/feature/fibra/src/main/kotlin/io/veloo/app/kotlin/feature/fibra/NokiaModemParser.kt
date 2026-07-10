@@ -196,6 +196,46 @@ internal object NokiaModemParser {
         }
     }
 
+    /**
+     * Extrai a lista real de clientes conectados (`device_cfg`, array JS) e
+     * funde com os apelidos que o usuário deu no próprio roteador
+     * (`alias_cfg`) — ambos vivem em `lan_status.cgi?wlan`. GH#839/#865
+     * Fase 2, ver `docs_ai/technical/NOKIA_GPON_FIELD_MAP.md`.
+     *
+     * Apelido (`HostAlias`) tem prioridade sobre o hostname técnico
+     * (`HostName`, que costuma vir genérico tipo "Unknown_90:75:bc:39:83:30")
+     * quando o usuário deu um nome no roteador — o filtro de nomes genéricos
+     * na tela "Dispositivos" (`NamingPrioridade`) cuida do resto.
+     */
+    fun parseClientes(html: String): List<ClienteFibra> {
+        return try {
+            val aliasPorMac =
+                extractJsObjectBlocks(html, "alias_cfg")
+                    .mapNotNull { block ->
+                        val mac = extractJsStringAny(block, listOf("MACAddress"))?.lowercase()?.takeIf { it.isNotBlank() }
+                        val alias = extractJsStringAny(block, listOf("HostAlias"))?.takeIf { it.isNotBlank() }
+                        if (mac != null && alias != null) mac to alias else null
+                    }
+                    .toMap()
+
+            extractJsObjectBlocks(html, "device_cfg").mapNotNull { block ->
+                val mac = extractJsStringAny(block, listOf("MACAddress"))?.takeIf { it.isNotBlank() }
+                    ?: return@mapNotNull null
+                val ip = extractJsStringAny(block, listOf("IPAddress"))?.takeIf { it.isNotBlank() }
+                val hostName = extractJsStringAny(block, listOf("HostName"))?.takeIf { it.isNotBlank() }
+                val tipoConexao = extractJsStringAny(block, listOf("InterfaceType"))?.takeIf { it.isNotBlank() }
+                ClienteFibra(
+                    mac = mac,
+                    ip = ip,
+                    hostname = aliasPorMac[mac.lowercase()] ?: hostName,
+                    tipoConexao = tipoConexao,
+                )
+            }
+        } catch (_: Throwable) {
+            emptyList()
+        }
+    }
+
     fun parseDeviceInfo(html: String): DeviceInfoFibra? {
         return try {
             val model = Regex(""""ModelName":"([^"]*)"""").find(html)?.groupValues?.get(1) ?: ""

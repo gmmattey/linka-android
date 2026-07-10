@@ -266,7 +266,7 @@ class ScannerDispositivosAndroid(
                             // "meio-confirmado": mantém fonte/nome que a varredura passiva já
                             // tinha resolvido).
                             val nomeRouterActive =
-                                NamingPrioridade.resolverNomeRouterActive(macResolvido, clientesGateway)
+                                NamingPrioridade.resolverNomeRouterActive(macResolvido, clientesGateway, d.ip)
 
                             // Prioridade de fabricante: manufacturer UPnP(XML) > fabricante mDNS TXT > OUI(MAC)
                             val fabricanteOui = OuiDatabase.lookupFabricante(macResolvido)
