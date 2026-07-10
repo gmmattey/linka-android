@@ -8,23 +8,24 @@ import org.junit.Test
 
 /**
  * GH#865 Fase 1 — cobre os campos novos de Wi-Fi/LAN extraidos a partir de
- * fixtures representativas do padrao JS ja usado pelo firmware Nokia
- * (`docs_ai/technical/NOKIA_GPON_FIELD_MAP.md`). O documento so descreve os
- * campos por nome/tipo (nao reproduz o dump JS bruto por causa de segredo
- * adjacente na mesma tela) — a fixture abaixo segue o mesmo estilo de
- * objeto JS com aspas simples ja usado nas telas de GPON/WAN, mas nao foi
- * validada contra o equipamento real (ver observacao no PR).
+ * fixtures representativas do padrao JS real do firmware Nokia
+ * (`docs_ai/technical/NOKIA_GPON_FIELD_MAP.md`, revisado apos revalidacao
+ * contra equipamento real em 2026-07-10). `wlan_status` e um objeto indexado
+ * por chave numerica (`{1:{...}, 2:{...}}`), nao um array — e vive na pagina
+ * `lan_status.cgi?lan`, nao em `?wlan`. `Enable` (por SSID) tem prioridade
+ * sobre `RadioEnabled` (do radio fisico inteiro, fica 1 mesmo com SSID
+ * guest desligado).
  */
 class NokiaModemParserTest {
 
     // ─── parseWifi ──────────────────────────────────────────────────────
 
     private val wlanStatusFixture = """
-        var wlan_status = [
-        {SSID:'CasaWifi',RadioEnabled:true,Channel:6,Standard:'b,g,n',BeaconType:'WPAand11i',TransmitPower:100,TotalAssociations:5},
-        {SSID:'CasaWifi_5G',RadioEnabled:false,Channel:44,Standard:'a,n,ac',BeaconType:'11i',TransmitPower:80,TotalAssociations:0},
-        {RadioEnabled:true,Channel:1,Standard:'b,g,n',BeaconType:'None',TransmitPower:100,TotalAssociations:0}
-        ];
+        var wlan_status = {
+        1:{"RadioEnabled":1,"Enable":1,"SSID":"CasaWifi","Channel":6,"Standard":"b,g,n","BeaconType":"WPAand11i","TransmitPower":100,"TotalAssociations":5},
+        5:{"RadioEnabled":1,"Enable":0,"SSID":"CasaWifi_5G","Channel":44,"Standard":"a,n,ac","BeaconType":"11i","TransmitPower":80,"TotalAssociations":0},
+        6:{"RadioEnabled":1,"Enable":1,"Channel":1,"Standard":"b,g,n","BeaconType":"None","TransmitPower":100,"TotalAssociations":0}
+        };
     """.trimIndent()
 
     @Test
@@ -49,6 +50,23 @@ class NokiaModemParserTest {
         assertFalse(radio5.habilitado)
         assertEquals("11i", radio5.criptografia)
         assertEquals("80%", radio5.potenciaTx)
+    }
+
+    @Test
+    fun `parseWifi prioriza Enable sobre RadioEnabled para SSID guest desligado`() {
+        // Achado real da revalidacao de 2026-07-10: guest SSID desligado tem
+        // RadioEnabled=1 (radio fisico do band ligado) mas Enable=0 (essa
+        // rede especifica desligada) — usar RadioEnabled primeiro faria o
+        // guest aparecer como ativo por engano.
+        val fixture = """
+            var wlan_status = {
+            2:{"RadioEnabled":1,"Enable":0,"SSID":"Guest","Channel":6,"Standard":"b,g,n","BeaconType":"11i","TransmitPower":100,"TotalAssociations":0}
+            };
+        """.trimIndent()
+        val resultado = NokiaModemParser.parseWifi(fixture)
+
+        requireNotNull(resultado)
+        assertFalse(resultado.radios.single().habilitado)
     }
 
     @Test

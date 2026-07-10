@@ -103,9 +103,15 @@ internal object NokiaModemParser {
     }
 
     /**
-     * Extrai os radios Wi-Fi (2.4GHz/5GHz) da tela "Home Networking"
-     * (`lan_status.cgi?wlan`, objeto JS `wlan_status`) — GH#865 Fase 1.
-     * Ver `docs_ai/technical/NOKIA_GPON_FIELD_MAP.md`.
+     * Extrai os radios Wi-Fi (2.4GHz/5GHz) do objeto JS `wlan_status`
+     * — GH#865 Fase 1, corrigido apos revalidacao contra equipamento real
+     * em 2026-07-10.
+     *
+     * IMPORTANTE: `wlan_status` vive na pagina `lan_status.cgi?lan` (a mesma
+     * ja buscada para LAN), NAO em `lan_status.cgi?wlan` como o documento de
+     * campo original (e a primeira versao deste parser) assumiam. A pagina
+     * `?wlan` contem outros objetos (`wlan_ssid`, `device_cfg`, `alias_cfg`)
+     * — ver `docs_ai/technical/NOKIA_GPON_FIELD_MAP.md`, secao revisada.
      *
      * `larguraCanal` fica sempre null nesta fase: o unico campo documentado
      * para largura de banda (`X_ASB_COM_OperatingChannelBandwidth`) vive na
@@ -115,7 +121,7 @@ internal object NokiaModemParser {
      */
     fun parseWifi(html: String): WifiStatus? {
         return try {
-            val blocks = extractJsObjectBlocks(html, "wlan_status")
+            val blocks = extractJsKeyedObjectBlocks(html, "wlan_status")
             if (blocks.isEmpty()) return null
 
             val radios = blocks.mapNotNull { block ->
@@ -128,7 +134,12 @@ internal object NokiaModemParser {
                 } else {
                     "2.4GHz"
                 }
-                val habilitado = extractJsBoolAny(block, listOf("RadioEnabled", "Enable")) ?: true
+                // "Enable" e o flag do SSID especifico (liga/desliga essa rede);
+                // "RadioEnabled" e do radio fisico do band inteiro e fica 1 mesmo
+                // pras redes guest desativadas — usar Enable primeiro, senao todo
+                // SSID guest desligado aparece como ativo. Achado na revalidacao
+                // de 2026-07-10.
+                val habilitado = extractJsBoolAny(block, listOf("Enable", "RadioEnabled")) ?: true
                 val canal = extractJsIntAny(block, listOf("Channel"))
                 val criptografia = extractJsStringAny(block, listOf("BeaconType")) ?: "—"
                 val potenciaRaw = extractJsStringAny(block, listOf("TransmitPower"))
@@ -310,6 +321,60 @@ internal object NokiaModemParser {
                     depthBrace--
                     if (depthBrace == 0 && blockStart != -1) {
                         blocks.add(arrayContent.substring(blockStart, j + 1))
+                        blockStart = -1
+                    }
+                }
+            }
+            j++
+        }
+        return blocks
+    }
+
+    /**
+     * Extrai os blocos `{...}` de um objeto JS indexado por chave numerica
+     * (`var nome = { 1:{...}, 2:{...}, ... }`), diferente de um array
+     * (`var nome = [{...}, {...}]`) que `extractJsObjectBlocks` cobre.
+     * Achado na revalidacao de 2026-07-10: `wlan_status` no Nokia G-1425G-B
+     * usa esse formato, nao o de array que o parser original assumia.
+     */
+    internal fun extractJsKeyedObjectBlocks(source: String, objVarName: String): List<String> {
+        val escaped = Regex.escape(objVarName)
+        val varMatch = Regex("""\b$escaped\b\s*[:=]\s*\{""").find(source) ?: return emptyList()
+        val objStart = varMatch.range.last // índice do '{' de abertura do objeto
+
+        var depthBrace = 0
+        var objEnd = -1
+        var i = objStart
+        while (i < source.length) {
+            when (source[i]) {
+                '{' -> depthBrace++
+                '}' -> {
+                    depthBrace--
+                    if (depthBrace == 0) {
+                        objEnd = i
+                        break
+                    }
+                }
+            }
+            i++
+        }
+        if (objEnd == -1) return emptyList()
+
+        val objContent = source.substring(objStart + 1, objEnd)
+        val blocks = mutableListOf<String>()
+        var depthInner = 0
+        var blockStart = -1
+        var j = 0
+        while (j < objContent.length) {
+            when (objContent[j]) {
+                '{' -> {
+                    if (depthInner == 0) blockStart = j
+                    depthInner++
+                }
+                '}' -> {
+                    depthInner--
+                    if (depthInner == 0 && blockStart != -1) {
+                        blocks.add(objContent.substring(blockStart, j + 1))
                         blockStart = -1
                     }
                 }
