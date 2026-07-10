@@ -45,6 +45,14 @@ object NamingPrioridade {
     )
 
     /**
+     * Prefixo sintético que alguns firmwares de roteador (Nokia GPON incluso) usam como
+     * `HostName` de fallback para clientes que nunca enviaram hostname via DHCP —
+     * `Unknown_<mac>`. Não é um nome real; tratado como genérico na leitura ativa do
+     * gateway ([resolverNomeRouterActive]) mesmo não estando em [NOMES_GENERICOS].
+     */
+    private const val PREFIXO_HOSTNAME_ROUTER_SINTETICO = "Unknown_"
+
+    /**
      * Resolve o melhor nome de exibição disponível para um dispositivo.
      *
      * @param nomeSsdpXml friendlyName extraído do XML UPnP (fonte mais confiável para smart home)
@@ -72,13 +80,17 @@ object NamingPrioridade {
 
     /**
      * Resolve nome via **leitura ativa do gateway** (issue #839) — bypass de [resolverNome],
-     * não parte dele. Casa [macDispositivo] (normalizado) contra a lista de [ClientSnapshot]
-     * reportada pelo próprio equipamento e retorna o hostname do roteador quando:
-     *  1. Existe um [ClientSnapshot] com o mesmo MAC normalizado.
+     * não parte dele. Casa o dispositivo contra a lista de [ClientSnapshot] reportada pelo
+     * próprio equipamento e retorna o hostname do roteador quando:
+     *  1. Existe um [ClientSnapshot] com o mesmo MAC normalizado, OU — Android 10+ bloqueia
+     *     leitura de `/proc/net/arp` para apps não privilegiados (`EACCES`), então MAC quase
+     *     nunca está disponível na varredura local — com o mesmo IP normalizado.
      *  2. O hostname desse cliente não é nulo, não é branco e não está em [NOMES_GENERICOS].
      *
-     * Retorna `null` em qualquer outro caso (sem MAC, sem match, hostname ausente/genérico) —
-     * o chamador deve manter o nome/fonte já resolvidos pela varredura passiva, sem
+     * MAC tem prioridade sobre IP quando ambos batem (IP muda por lease DHCP, MAC não).
+     *
+     * Retorna `null` em qualquer outro caso (sem MAC/IP, sem match, hostname ausente/genérico)
+     * — o chamador deve manter o nome/fonte já resolvidos pela varredura passiva, sem
      * "meio-confirmado": ou o selo acende com nome real, ou não acende.
      *
      * [clientesGateway] já deve vir filtrada pelo chamador por `capabilities.suportaClientes`
@@ -88,10 +100,15 @@ object NamingPrioridade {
     fun resolverNomeRouterActive(
         macDispositivo: String?,
         clientesGateway: List<ClientSnapshot>,
+        ipDispositivo: String? = null,
     ): String? {
-        val macNormalizado = normalizarMac(macDispositivo) ?: return null
-        val cliente = clientesGateway.firstOrNull { normalizarMac(it.mac) == macNormalizado } ?: return null
-        return cliente.hostname?.takeIf { it.isNotBlank() && it !in NOMES_GENERICOS }
+        val macNormalizado = normalizarMac(macDispositivo)
+        val cliente = macNormalizado?.let { mac -> clientesGateway.firstOrNull { normalizarMac(it.mac) == mac } }
+            ?: ipDispositivo?.let { ip -> clientesGateway.firstOrNull { it.ip == ip } }
+            ?: return null
+        return cliente.hostname?.takeIf {
+            it.isNotBlank() && it !in NOMES_GENERICOS && !it.startsWith(PREFIXO_HOSTNAME_ROUTER_SINTETICO)
+        }
     }
 
     /** Normaliza MAC para comparação: lowercase, sem separador (`:`/`-`). */

@@ -68,6 +68,18 @@ class ExecutorFibra {
                     null
                 }
 
+                // GH#839/#865 Fase 2 — lista real de clientes (device_cfg + alias_cfg),
+                // vive em lan_status.cgi?wlan (achado real na revalidacao de
+                // 2026-07-10 — essa pagina NAO tem wlan_status, so esses objetos).
+                // Best-effort, mesmo padrao de wifi/lan.
+                val clientes = runCatching {
+                    val wlanHtml = client.fetchPage("/lan_status.cgi?wlan")
+                    NokiaModemParser.parseClientes(wlanHtml)
+                }.getOrElse {
+                    Timber.w(it, "executar[${tentativa + 1}]: falha ao ler clientes (nao critico)")
+                    emptyList()
+                }
+
                 Timber.i("executar[${tentativa + 1}]: gpon=${gpon?.status} rx=${gpon?.rxPowerDbm}")
                 mutableSnapshotFlow.value = SnapshotFibra(
                     estado = EstadoFibra.concluido,
@@ -78,6 +90,7 @@ class ExecutorFibra {
                     erroMensagem = null,
                     wifi = wifi,
                     lan = lan,
+                    clientes = clientes,
                 )
                 return@withContext
             } catch (t: Throwable) {
