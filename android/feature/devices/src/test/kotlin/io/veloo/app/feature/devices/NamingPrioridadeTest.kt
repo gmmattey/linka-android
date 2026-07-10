@@ -105,6 +105,41 @@ class NamingPrioridadeTest {
     }
 
     @Test
+    fun `resolverNomeRouterActive casa por IP quando MAC do dispositivo e nulo`() {
+        val clientes = listOf(ClientSnapshot(mac = "aa:bb:cc:dd:ee:ff", ip = "192.168.1.66", hostname = "ESP_7FE810", tipoConexao = "wifi"))
+        val nome = NamingPrioridade.resolverNomeRouterActive(macDispositivo = null, clientesGateway = clientes, ipDispositivo = "192.168.1.66")
+        assertEquals("ESP_7FE810", nome)
+    }
+
+    @Test
+    fun `resolverNomeRouterActive prefere match por MAC mesmo com IP tambem disponivel`() {
+        val clientes = listOf(
+            ClientSnapshot(mac = "aa:bb:cc:dd:ee:ff", ip = "192.168.1.66", hostname = "por-mac", tipoConexao = "wifi"),
+            ClientSnapshot(mac = "11:22:33:44:55:66", ip = "192.168.1.67", hostname = "por-ip", tipoConexao = "wifi"),
+        )
+        val nome = NamingPrioridade.resolverNomeRouterActive(
+            macDispositivo = "aa:bb:cc:dd:ee:ff",
+            clientesGateway = clientes,
+            ipDispositivo = "192.168.1.67",
+        )
+        assertEquals("por-mac", nome)
+    }
+
+    @Test
+    fun `resolverNomeRouterActive retorna null quando IP nao bate com nenhum cliente`() {
+        val clientes = listOf(ClientSnapshot(mac = null, ip = "192.168.1.10", hostname = "notebook", tipoConexao = "wired"))
+        val nome = NamingPrioridade.resolverNomeRouterActive(macDispositivo = null, clientesGateway = clientes, ipDispositivo = "192.168.1.99")
+        assertNull(nome)
+    }
+
+    @Test
+    fun `resolverNomeRouterActive trata hostname sintetico Unknown_MAC do roteador como generico`() {
+        val clientes = listOf(ClientSnapshot(mac = "aa:bb:cc:dd:ee:ff", ip = "192.168.1.10", hostname = "Unknown_aa:bb:cc:dd:ee:ff", tipoConexao = "wifi"))
+        val nome = NamingPrioridade.resolverNomeRouterActive("aa:bb:cc:dd:ee:ff", clientes)
+        assertNull(nome)
+    }
+
+    @Test
     fun `rotuloFallbackGenerico com fabricante retorna Dispositivo mais fabricante`() {
         assertEquals("Dispositivo Samsung", NamingPrioridade.rotuloFallbackGenerico("Samsung"))
         assertEquals("Dispositivo Apple", NamingPrioridade.rotuloFallbackGenerico("Apple"))

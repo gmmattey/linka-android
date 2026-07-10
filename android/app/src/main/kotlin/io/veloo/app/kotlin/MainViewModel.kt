@@ -16,6 +16,7 @@ import io.signallq.app.core.network.DispatcherProvider
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.MonitorRede
 import io.signallq.app.core.network.NetworkCapabilitiesProvider
+import io.signallq.app.core.network.contracts.localdevice.LocalNetworkDeviceSnapshot
 import io.signallq.app.core.network.contracts.wifi.channel.freqToChannel
 import io.signallq.app.core.permissions.GerenciadorPermissoesRede
 import io.signallq.app.core.recommendation.RecommendationDecision
@@ -67,6 +68,7 @@ import io.signallq.app.feature.dns.EstadoBenchmarkDns
 import io.signallq.app.feature.dns.OrientadorConfiguracaoDns
 import io.signallq.app.feature.fibra.EstadoFibra
 import io.signallq.app.feature.fibra.ExecutorFibra
+import io.signallq.app.feature.fibra.NokiaLocalDeviceMapper
 import io.signallq.app.feature.history.ObservadorHistoricoRoom
 import io.signallq.app.feature.history.ResumoHistorico
 import io.signallq.app.feature.speedtest.ExecutorSpeedtest
@@ -195,6 +197,20 @@ class MainViewModel
 
         private val _analisadorState = MutableStateFlow<AnalisadorState>(AnalisadorState.Inativo)
         val analisadorState: StateFlow<AnalisadorState> = _analisadorState
+
+        // GH#865 Fase 1 — snapshot normalizado do equipamento local (ONT Nokia),
+        // consumido por LocalDeviceSection via AppShell. null ate a primeira
+        // leitura de fibra concluir com sucesso (ver NokiaLocalDeviceMapper).
+        // Eagerly, nao WhileSubscribed: iniciarScan() le .value de fora de
+        // qualquer tela que esteja de fato coletando este StateFlow (ex.:
+        // Dispositivos na rede nao observa Resultado/Velocidade) — sem
+        // coletor ativo o upstream nunca roda e .value fica preso no initial
+        // (null) mesmo com a leitura de fibra ja concluida.
+        val localDeviceSnapshot: StateFlow<LocalNetworkDeviceSnapshot?> by lazy {
+            executorFibra.snapshotFlow
+                .map { NokiaLocalDeviceMapper.map(it, System.currentTimeMillis()) }
+                .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        }
 
         // ── Recomendacao do Recommendation Engine na experiencia pos-diagnostico (#813) ──
         // Uma unica decisao por diagnostico concluido -- recalculada em iniciarObservadores()
@@ -869,7 +885,9 @@ class MainViewModel
         fun iniciarRotinasNaoSpeedtest() {
             if (!scannerDispositivosDisparado) {
                 scannerDispositivosDisparado = true
-                viewModelScope.launch { scannerDispositivos.iniciarScan(profundo = false) }
+                viewModelScope.launch {
+                    scannerDispositivos.iniciarScan(profundo = false, clientesGateway = localDeviceSnapshot.value?.clientes.orEmpty())
+                }
             }
             if (!scanWifiDisparado) {
                 scanWifiDisparado = true
@@ -1446,7 +1464,9 @@ class MainViewModel
         }
 
         fun refreshDispositivos() {
-            viewModelScope.launch { scannerDispositivos.iniciarScan() }
+            viewModelScope.launch {
+                scannerDispositivos.iniciarScan(clientesGateway = localDeviceSnapshot.value?.clientes.orEmpty())
+            }
         }
 
         /**
@@ -1468,7 +1488,7 @@ class MainViewModel
             viewModelScope.launch(dispatchers.io) {
                 try {
                     // Scan leve — nao bloqueia UI, resultado rapido via ARP + SubnetDevices
-                    scannerDispositivos.iniciarScan(profundo = false)
+                    scannerDispositivos.iniciarScan(profundo = false, clientesGateway = localDeviceSnapshot.value?.clientes.orEmpty())
 
                     val dispositivosAtuais = scannerDispositivos.snapshotFlow.value.dispositivos
 

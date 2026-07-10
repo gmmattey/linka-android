@@ -43,6 +43,43 @@ class ExecutorFibra {
                 val ppp = NokiaModemParser.parsePpp(pppJson)
                 val devInfo = NokiaModemParser.parseDeviceInfo(deviceHtml)
 
+                // GH#865 Fase 1 — Wi-Fi/LAN reais (docs_ai/technical/NOKIA_GPON_FIELD_MAP.md).
+                // Leitura best-effort: falha nessas paginas novas nao deve derrubar o
+                // resultado de fibra/WAN que ja funcionava.
+                //
+                // O objeto wlan_status (radios Wi-Fi com canal/seguranca/potencia) vive
+                // na mesma pagina lan_status.cgi?lan ja buscada para LAN — corrigido apos
+                // revalidacao contra equipamento real em 2026-07-10. A pagina
+                // lan_status.cgi?wlan NAO contem esse objeto (contem wlan_ssid/device_cfg/
+                // alias_cfg, ainda nao consumidos).
+                val lanStatusHtml = client.fetchPage("/lan_status.cgi?lan")
+                val lanConfigHtml = client.fetchPage("/lan_ipv4.cgi")
+
+                val wifi = runCatching {
+                    NokiaModemParser.parseWifi(lanStatusHtml)
+                }.getOrElse {
+                    Timber.w(it, "executar[${tentativa + 1}]: falha ao ler wifi (nao critico)")
+                    null
+                }
+                val lan = runCatching {
+                    NokiaModemParser.parseLan(lanStatusHtml, lanConfigHtml)
+                }.getOrElse {
+                    Timber.w(it, "executar[${tentativa + 1}]: falha ao ler lan (nao critico)")
+                    null
+                }
+
+                // GH#839/#865 Fase 2 — lista real de clientes (device_cfg + alias_cfg),
+                // vive em lan_status.cgi?wlan (achado real na revalidacao de
+                // 2026-07-10 — essa pagina NAO tem wlan_status, so esses objetos).
+                // Best-effort, mesmo padrao de wifi/lan.
+                val clientes = runCatching {
+                    val wlanHtml = client.fetchPage("/lan_status.cgi?wlan")
+                    NokiaModemParser.parseClientes(wlanHtml)
+                }.getOrElse {
+                    Timber.w(it, "executar[${tentativa + 1}]: falha ao ler clientes (nao critico)")
+                    emptyList()
+                }
+
                 Timber.i("executar[${tentativa + 1}]: gpon=${gpon?.status} rx=${gpon?.rxPowerDbm}")
                 mutableSnapshotFlow.value = SnapshotFibra(
                     estado = EstadoFibra.concluido,
@@ -51,6 +88,9 @@ class ExecutorFibra {
                     ppp = ppp,
                     deviceInfo = devInfo,
                     erroMensagem = null,
+                    wifi = wifi,
+                    lan = lan,
+                    clientes = clientes,
                 )
                 return@withContext
             } catch (t: Throwable) {
