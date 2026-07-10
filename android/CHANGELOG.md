@@ -9,9 +9,57 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
 ---
 
-## [Não lançado]
+## [0.25.0] — 2026-07-10
+
+Acumula todo o trabalho desde a 0.24.1 (nunca publicada como release own — a 0.24.2/versionCode 59 foi bumpada mas não taggeada).
+
 ### Adicionado
-- Seção "Equipamento local" agora exibe segurança do Wi-Fi (traduzida em Sem senha/WEP/WPA/WPA2/WPA3), largura de canal normalizada e potência de transmissão (#843)
+- Recommendation Engine desacoplado (`coreRecommendation`) integrado à experiência pós-diagnóstico: sugestão priorizada de ação prática após cada diagnóstico, com histórico persistido e feedback do usuário (#807, #811, #812, #813/#821)
+- Avaliação nativa do Google Play (in-app review) sem atrito, elegibilidade decidida por `ReviewPromptPolicy` (#664/#806)
+- Guia ilustrado de credenciais do modem na sheet de conexão com o gateway (#529/#805)
+- Autoconexão do gateway vinculada ao BSSID em que a sessão "Manter conectado" foi estabelecida — reconecta sozinho na mesma rede Wi-Fi (#802)
+- Resumo de bandas Wi-Fi e contagem de dispositivos exibidos direto no card do gateway (#803)
+- Seção "Equipamento local" (Nokia GPON): segurança do Wi-Fi, largura de canal e potência de transmissão (#843); gateway, DNS secundário e interface na seção WAN (#842); máscara de sub-rede e faixa de DHCP na LAN (#845); tensão/corrente do laser e serial da ONT (#841); indicador de frescor da leitura (#840); capability `suportaDiagnosticoNativo` (#846)
+- Contrato normalizado de equipamento local (`LocalNetworkDeviceSnapshot`) com classificação de `DeviceType`/`SupportLevel`, filtro allowlist e integração ao motor de diagnóstico (#546/#794, #796, #797, #798, #539/#800, #799)
+- Parser real de Wi-Fi/LAN do roteador Nokia GPON — antes esses campos existiam só no contrato, sem produtor real (#865/#866)
+- Lista de dispositivos conectados usa dado real do próprio roteador (`device_cfg`/`alias_cfg`) para confirmar nome via MAC/IP, com selo "Nome confirmado pelo roteador" na tela Dispositivos na rede (#839/#844, #856, #869)
+- Tela Resultado do teste simplificada: diagnóstico IA movido para sheet, com PDF completo (#536/#808)
+- Árvore de rede móvel mostra Dispositivo → Operadora com logo real (#524)
+
+### Corrigido
+- Diagnóstico automático de fundo (cold start ou releitura de fibra/ONT concluindo) não abre mais o Laudo sozinho por cima da aba Velocidade — supressão anterior (#481) só cobria a primeira conclusão observada, uma segunda conclusão automática escapava (#870)
+- Campo de apelido não aparecia quando o MAC do dispositivo não era resolvível (#853/#864)
+- Botão de escanear rede na tela Dispositivos ficou visível/acessível (#863)
+- Resumo "Minha conexão" exibe a velocidade contratada salva (#849/#860)
+- Cor do Switch desabilitado ignorava o estado `checked` (#859)
+- `AnatelBanner` não renderizava na Home após a medição (#847/#858)
+- Gate de dados móveis passa a usar `metered` de `SnapshotRede` em vez de consulta avulsa (#838/#857)
+- `categoriaOrigem` real do achado propagada até a tela de diagnóstico (#836/#837)
+- Contato com a operadora exibido para categoria fibra (#832/#834)
+- Lista de dias da semana e card de medição única removidos do Histórico (#828)
+- Altura da barra 4 do ícone do launcher corrigida (#825/#831)
+- `CardMedicoes` não reserva mais altura de gráfico sem 2+ pontos válidos (#827/#830)
+- 3 bugs Android + sheet de conexão ao gateway (#789)
+- Status enviado ao Admin passa a ser o veredito real da IA/motor (#776)
+- Jargão "5G NSA"/"5G SA" removido de textos voltados ao usuário (#533)
+- Furo do "o" no logo da Vivo agora é transparente, não branco sólido (#523)
+- Mensagem de DECISAO-02/02b não fala mais de Wi-Fi em rede móvel (#519)
+- Speedtest inicia direto ao confirmar aviso de dados móveis na Home (#520)
+- Contraste WCAG AA do violeta sobre superfície escura corrigido (#513)
+- DNS exige clique em Iniciar, igual ao Ping — antes iniciava sozinho (#511)
+- Copy contraditória entre canal estável e troca de canal corrigida (#510)
+- TopAppBar da Home mantém-se sólido durante fade de scroll (#509)
+- Gráfico de histórico não quebra mais com 1 única medição (#508)
+- Uptime de 7 dias não reporta mais 100% sem dado medido (#507)
+- Nome de gateway travado e fallback sem rótulo claro corrigidos (#219/#506)
+- UX de tipo de equipamento e leitura de fibra clareada entre Nokia e roteador genérico (#538/#801)
+
+### Alterado
+- Hierarquia visual do diagnóstico detalhado simplificada (#833/#835)
+- Fonte `routerActive` reservada e proveniência do nome indicada na UI de dispositivos (#804)
+
+### Removido
+- `DiagnosticoScreen` órfã e componentes exclusivos dela (`DiagActionFooter`, `DiagImpactCard`, `DiagMetricsGrid`, `DiagRecommendationCard`, `DiagRootCauseCard`, `SignalToggleCard`) — código morto, tela substituída pelo Laudo em sheet (#868)
 
 ## [0.24.1] — 2026-07-05
 
