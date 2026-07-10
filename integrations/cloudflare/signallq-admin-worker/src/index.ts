@@ -2780,6 +2780,53 @@ const INGEST_ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }
   { method: "POST", pattern: /^\/ingest\/analytics$/,  handler: withErrorLogging('analytics', handleIngestAnalytics) },
 ];
 
+// GH#877 — automatiza o sync de telemetria (Firebase Analytics + Google Play
+// ratings/tracks) que antes só rodava quando alguém clicava em "Sincronizar
+// telemetria" no Admin. O botão manual continua existindo (força um sync fora
+// do horário do cron); o cron cobre o caso de ninguém lembrar de clicar.
+//
+// Cada sync roda isolada: uma falhar não pode impedir as outras, por isso
+// try/catch individual por job em vez de um Promise.all que aborta tudo no
+// primeiro reject. logError é a única forma de alguém notar que o cron parou
+// de funcionar, já que não existe nenhuma UI olhando essa execução em tempo real.
+const SCHEDULED_SYNC_JOBS: Array<{
+  name: string;
+  run: (env: Env) => Promise<Response>;
+  isError: (data: Record<string, unknown>) => boolean;
+}> = [
+  {
+    name: 'firebase',
+    run: (env) => handleFirebaseSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.source === 'error',
+  },
+  {
+    name: 'google-play',
+    run: (env) => handleGooglePlaySync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'google-play-tracks',
+    run: (env) => handleGooglePlayTracksSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+];
+
+async function runScheduledSync(env: Env): Promise<void> {
+  await Promise.allSettled(
+    SCHEDULED_SYNC_JOBS.map(async (job) => {
+      try {
+        const resp = await job.run(env);
+        const data = (await resp.json()) as Record<string, unknown>;
+        if (job.isError(data)) {
+          await logError(env, `${job.name}-scheduled-sync`, String(data.message ?? 'falha sem mensagem detalhada'));
+        }
+      } catch (e) {
+        await logError(env, `${job.name}-scheduled-sync`, String(e), e instanceof Error ? (e.stack ?? '') : '');
+      }
+    })
+  );
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === "OPTIONS") {
@@ -2846,5 +2893,10 @@ export default {
       }
     }
     return err("Not found", 404, env);
+  },
+
+  // GH#877 — Cloudflare Cron Trigger (ver [triggers] em wrangler.toml).
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(runScheduledSync(env));
   },
 };
