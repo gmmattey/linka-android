@@ -31,10 +31,10 @@ export const mockFirebaseAnalytics: FirebaseAnalyticsSummary = {
 };
 
 export const mockFirebaseCrashlytics: FirebaseCrashlyticsSummary = {
-  unresolvedCrashesCount: 4,
-  unresolvedNonFatalsCount: 28,
-  affectedUsersCount: 142,
-  totalCrashesTrend: "down"
+  source: "bigquery",
+  unresolvedCrashes: 4,
+  affectedUsers: 142,
+  crashFreeUsersPercentage: 98.6
 };
 
 export const mockFirebaseAppVersions: FirebaseAppVersionCrashStats[] = [
@@ -63,33 +63,27 @@ export const mockFirebaseAppVersions: FirebaseAppVersionCrashStats[] = [
 
 export const mockFirebaseCrashIssues: FirebaseCrashIssue[] = [
   {
-    issueId: "issue_fb_4892",
-    title: "java.net.SocketTimeoutException",
-    subtitle: "at okhttp3.internal.connection.RealConnection.connect(RealConnection.java)",
+    id: "issue_fb_4892",
+    title: "java.net.SocketTimeoutException at okhttp3.internal.connection.RealConnection.connect",
+    totalCrashes: 410,
     affectedUsers: 84,
-    occurrences: 410,
-    platform: "Android",
-    appVersion: "0.16.0",
-    status: "open"
+    lastSeen: Date.now() - 2 * 60 * 60 * 1000,
+    appVersion: "0.16.0"
   },
   {
-    issueId: "issue_fb_1204",
+    id: "issue_fb_1204",
     title: "NullPointerException - Gemini Output Mapping",
-    subtitle: "at com.signallq.diagnostic.ai.IntelligenceAdapter.parseFindings(IntelligenceAdapter.kt)",
+    totalCrashes: 120,
     affectedUsers: 48,
-    occurrences: 120,
-    platform: "Android",
-    appVersion: "0.17.0",
-    status: "new"
+    lastSeen: Date.now() - 26 * 60 * 60 * 1000,
+    appVersion: "0.17.0"
   },
   {
-    issueId: "issue_fb_3129",
+    id: "issue_fb_3129",
     title: "IllegalArgumentException - Unknown Carrier Name Code",
-    subtitle: "at com.signallq.diagnostic.io.CellularMonitor.resolveOperator(CellularMonitor.kt)",
+    totalCrashes: 14,
     affectedUsers: 10,
-    occurrences: 14,
-    platform: "Android",
-    appVersion: "0.18.1",
-    status: "resolved"
+    lastSeen: Date.now() - 5 * 24 * 60 * 60 * 1000,
+    appVersion: "0.18.1"
   }
 ];

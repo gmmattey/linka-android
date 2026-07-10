@@ -23,11 +23,18 @@ export interface FirebaseAnalyticsSummary {
   topEvents: FirebaseEventMetric[];
 }
 
+// Espelha o shape real de GET /admin/integrations/firebase/crashlytics —
+// worker sempre retorna 200 com "source" indicando se o dado é real
+// (source==="bigquery") ou honesto-vazio (no_credentials/no_data_yet/error).
+// crashFreeUsersPercentage e unresolvedCrashes sempre vêm preenchidos (0/100
+// como neutro nos branches sem dado); affectedUsers só existe quando
+// source==="bigquery"; message só existe em no_data_yet/error.
 export interface FirebaseCrashlyticsSummary {
-  unresolvedCrashesCount: number;
-  unresolvedNonFatalsCount: number;
-  affectedUsersCount: number;
-  totalCrashesTrend: "up" | "down" | "stable";
+  source: "bigquery" | "no_credentials" | "no_data_yet" | "error";
+  unresolvedCrashes: number;
+  crashFreeUsersPercentage: number;
+  affectedUsers?: number;
+  message?: string;
 }
 
 export interface FirebaseAppVersionCrashStats {
@@ -38,13 +45,22 @@ export interface FirebaseAppVersionCrashStats {
   status: "stable" | "unstable" | "critical";
 }
 
+// Espelha o shape real de GET /admin/integrations/firebase/crash-issues.
+// appVersion/deviceModel são opcionais: o worker ainda não os expõe (schema
+// do BigQuery não confirmado sem credencial — ver comentário em
+// handleFirebaseCrashIssues no worker). UI trata ausência como "-", nunca
+// inventa valor.
 export interface FirebaseCrashIssue {
-  issueId: string;
+  id: string;
   title: string;
-  subtitle: string;
+  totalCrashes: number;
   affectedUsers: number;
-  occurrences: number;
-  platform: string;
-  appVersion: string;
-  status: "new" | "open" | "resolved";
+  lastSeen: number;
+  appVersion?: string;
+  deviceModel?: string;
+}
+
+export interface FirebaseCrashIssuesResult {
+  source: "bigquery" | "no_credentials" | "no_data_yet" | "error";
+  issues: FirebaseCrashIssue[];
 }
