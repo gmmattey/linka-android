@@ -273,7 +273,7 @@ export async function getFirebaseCrashIssues(
   };
 }
 
-export async function syncFirebaseMetrics(): Promise<{ jobId: string; status: string; startedAt: string; message?: string }> {
+export async function syncFirebaseMetrics(): Promise<{ jobId: string; status: string; startedAt: string; message?: string; source?: string }> {
   if (apiClient.isMockEnabled()) {
     return apiClient.simulateFetch({
       jobId: "job_fb_mock_" + Date.now().toString(36),
@@ -288,10 +288,14 @@ export async function syncFirebaseMetrics(): Promise<{ jobId: string; status: st
   );
   return {
     jobId: raw.syncedAt ?? "",
-    status: raw.ok ? "started" : "error",
+    // "no_data_yet" nao e falha - e o worker rodou a query, so nao achou
+    // sessao nenhuma no periodo (ex: 1 dia sem uso). So "error" de verdade
+    // (BigQuery/credencial) deve virar status "error" na UI.
+    status: raw.source === "error" ? "error" : "started",
     startedAt: raw.syncedAt ?? new Date().toISOString(),
     // GH#873-followup: propaga a mensagem real do worker (ex: erro do
     // BigQuery) em vez de deixar a UI cair num "worker retornou erro" generico.
     message: raw.message,
+    source: raw.source,
   };
 }
