@@ -12,6 +12,7 @@ import {
   FirebaseCrashlyticsSummary,
   FirebaseAppVersionCrashStats,
   FirebaseCrashIssue,
+  FirebaseCrashIssuesResult,
 } from "./firebase.types";
 import { DashboardFilters } from "../../services/adminMetricsService";
 
@@ -56,12 +57,6 @@ interface GA4WorkerResponse {
     dimensionHeaders?: Array<{ name: string }>;
     metricHeaders?: Array<{ name: string }>;
   };
-}
-
-// Estrutura crua retornada pelas rotas stub do worker.
-interface StubWorkerResponse {
-  source: string;
-  [key: string]: unknown;
 }
 
 // Estrutura crua retornada pela rota de status do worker (ver admin-api-schema.md).
@@ -150,32 +145,50 @@ export async function getFirebaseAnalyticsSummary(
   };
 }
 
+// Estrutura crua retornada pela rota de crashlytics do worker (todos os
+// branches: no_credentials/no_data_yet/error/bigquery — ver
+// handleFirebaseCrashlytics no signallq-admin-worker).
+interface FirebaseCrashlyticsWorkerResponse {
+  source: string;
+  unresolvedCrashes?: number;
+  crashFreeUsersPercentage?: number;
+  affectedUsers?: number;
+  message?: string;
+}
+
 export async function getFirebaseCrashlyticsSummary(
   filters: DashboardFilters = {}
-): Promise<FirebaseCrashlyticsSummary | null> {
+): Promise<FirebaseCrashlyticsSummary> {
   if (apiClient.isMockEnabled()) {
     const result = await apiClient.simulateFetch(mockFirebaseCrashlytics, filters);
     if (filters.environment === "staging") {
       return {
-        unresolvedCrashesCount: 1,
-        unresolvedNonFatalsCount: 3,
-        affectedUsersCount: 4,
-        totalCrashesTrend: "down",
+        source: "bigquery",
+        unresolvedCrashes: 1,
+        affectedUsers: 4,
+        crashFreeUsersPercentage: 99.8,
       };
     }
     return result;
   }
 
-  const raw = await apiClient.request<StubWorkerResponse>(
+  const raw = await apiClient.request<FirebaseCrashlyticsWorkerResponse>(
     "GET",
     `/admin/integrations/firebase/crashlytics${buildQuery(filters)}`
   );
 
-  if (raw.source === "stub") {
-    return NOT_AVAILABLE;
-  }
-
-  return raw as unknown as FirebaseCrashlyticsSummary;
+  // O worker nunca deixa de mandar "source"/crashFreeUsersPercentage — mesmo
+  // sem dado real ele responde com 100/0 neutros. O indicador de "dado real"
+  // é source==="bigquery"; qualquer outro valor é honesto-vazio, tratado
+  // pela UI (nunca "stub" nesta rota — mesma ressalva já documentada em
+  // getFirebaseAppVersions).
+  return {
+    source: raw.source as FirebaseCrashlyticsSummary["source"],
+    unresolvedCrashes: raw.unresolvedCrashes ?? 0,
+    crashFreeUsersPercentage: raw.crashFreeUsersPercentage ?? 100,
+    affectedUsers: raw.affectedUsers,
+    message: raw.message,
+  };
 }
 
 export async function getFirebaseAppVersions(
@@ -216,23 +229,48 @@ export async function getFirebaseAppVersions(
   }));
 }
 
+// Estrutura crua retornada pela rota de crash-issues do worker (ver
+// handleFirebaseCrashIssues). appVersion/deviceModel ainda não são expostos
+// pelo worker (ver nota no worker sobre schema do BigQuery não confirmado),
+// mas o adapter já os aceita como opcionais para quando existirem.
+interface FirebaseCrashIssuesWorkerResponse {
+  source: string;
+  issues?: Array<{
+    id: string;
+    title: string;
+    totalCrashes: number;
+    affectedUsers: number;
+    lastSeen: number;
+    appVersion?: string;
+    deviceModel?: string;
+  }>;
+}
+
 export async function getFirebaseCrashIssues(
   filters: DashboardFilters = {}
-): Promise<FirebaseCrashIssue[] | null> {
+): Promise<FirebaseCrashIssuesResult> {
   if (apiClient.isMockEnabled()) {
-    return apiClient.simulateFetch(mockFirebaseCrashIssues, filters);
+    const issues = await apiClient.simulateFetch(mockFirebaseCrashIssues, filters);
+    return { source: "bigquery", issues };
   }
 
-  const raw = await apiClient.request<StubWorkerResponse>(
+  const raw = await apiClient.request<FirebaseCrashIssuesWorkerResponse>(
     "GET",
     `/admin/integrations/firebase/crash-issues${buildQuery(filters)}`
   );
 
-  if (raw.source === "stub") {
-    return NOT_AVAILABLE;
-  }
-
-  return raw as unknown as FirebaseCrashIssue[];
+  return {
+    source: raw.source as FirebaseCrashIssuesResult["source"],
+    issues: (raw.issues ?? []).map((i): FirebaseCrashIssue => ({
+      id: i.id ?? "",
+      title: i.title ?? "Unknown crash",
+      totalCrashes: i.totalCrashes ?? 0,
+      affectedUsers: i.affectedUsers ?? 0,
+      lastSeen: i.lastSeen ?? 0,
+      appVersion: i.appVersion,
+      deviceModel: i.deviceModel,
+    })),
+  };
 }
 
 export async function syncFirebaseMetrics(): Promise<{ jobId: string; status: string; startedAt: string }> {

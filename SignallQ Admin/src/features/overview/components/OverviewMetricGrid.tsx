@@ -1,23 +1,40 @@
 import React from "react";
 import { MetricCard } from "../../../components/ui/MetricCard";
 import { GooglePlayRatingSummary } from "../../../integrations/google-play/googlePlay.types";
+import { FirebaseCrashlyticsSummary } from "../../../integrations/firebase/firebase.types";
 
 interface OverviewMetricGridProps {
   activeUsersToday: number | null;
+  firebaseCrashlytics: FirebaseCrashlyticsSummary | null;
   aiCostMonthLabel: string | null;
   playStoreRating: GooglePlayRatingSummary | null;
 }
 
 // Paridade com o mockup do Luiz (signallq-admin-mockup.dc.html, sec-overview):
 // Usuários Ativos, Crash-free rate, Custo de IA (mês), Nota na Play Store.
-// Crash-free rate e Nota na Play Store não têm integração real ainda
-// (getGooglePlayRatings/crashAnr são mock-only hoje) — "Não disponível" é o
-// estado honesto: mostrar um número fabricado seria pior que não mostrar nada.
+// Nota na Play Store não tem integração real ainda (getGooglePlayRatings é
+// mock-only hoje) — "Não disponível" é o estado honesto: mostrar um número
+// fabricado seria pior que não mostrar nada.
+function crashFreeReason(source: FirebaseCrashlyticsSummary["source"] | undefined): string {
+  switch (source) {
+    case "no_credentials":
+      return "Firebase não configurado no Admin Worker";
+    case "no_data_yet":
+      return "BigQuery export ainda sem volume de crash";
+    case "error":
+      return "Erro ao consultar o BigQuery — tente novamente";
+    default:
+      return "Crashlytics indisponível";
+  }
+}
+
 export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({
   activeUsersToday,
+  firebaseCrashlytics,
   aiCostMonthLabel,
   playStoreRating,
 }) => {
+  const crashFreeAvailable = firebaseCrashlytics?.source === "bigquery";
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Usuários Ativos — real, Firebase Analytics (GA4) */}
@@ -29,13 +46,14 @@ export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({
         id="metric-active-users"
       />
 
-      {/* 2. Crash-free rate — sem integração real ainda (Crashlytics não expõe
-          percentual, só contagens de crash) */}
+      {/* 2. Crash-free rate — real via BigQuery export do Crashlytics quando
+          source==="bigquery"; qualquer outro source é honesto-vazio, com o
+          motivo exato do worker (sem credencial, sem volume ainda, ou erro). */}
       <MetricCard
         label="Crash-free Rate"
-        value="Não disponível"
-        verdictNote="Crashlytics ainda não expõe percentual — só contagem de crashes"
-        source="não implementado"
+        value={crashFreeAvailable ? `${firebaseCrashlytics!.crashFreeUsersPercentage}%` : "Não disponível"}
+        verdictNote={crashFreeAvailable ? undefined : crashFreeReason(firebaseCrashlytics?.source)}
+        source={crashFreeAvailable ? "firebase (bigquery)" : "não disponível"}
         id="metric-crash-free"
       />
 
