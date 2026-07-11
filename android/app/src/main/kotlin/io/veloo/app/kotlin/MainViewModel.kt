@@ -1299,7 +1299,13 @@ class MainViewModel
                 // GH#527 — revogar "manter conectado" por aqui tambem limpa o BSSID vinculado,
                 // senao fica credencial orfa tentando autoconectar numa sessao que o usuario
                 // ja desligou.
-                if (!perm) preferenciasAppRepository.definirGatewaySessionBssid(null)
+                // #894 — junto com o BSSID, encerra a sessao HTTP cacheada no ExecutorFibra:
+                // desligar "manter conectado" tem que derrubar a sessao imediatamente, nao so
+                // parar de tentar reconectar sozinho.
+                if (!perm) {
+                    preferenciasAppRepository.definirGatewaySessionBssid(null)
+                    executorFibra.desconectar()
+                }
             }
         }
 
