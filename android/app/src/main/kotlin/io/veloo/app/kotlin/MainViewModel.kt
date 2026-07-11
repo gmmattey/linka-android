@@ -263,9 +263,15 @@ class MainViewModel
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SignallQUiState.Idle)
         }
 
-        val onboardingConcluido: StateFlow<Boolean> by lazy {
+        // #895: default ERA `false` — todo cold start (mesmo de usuario que ja concluiu o
+        // onboarding) renderizava OnboardingScreen por um instante ate o DataStore emitir o
+        // valor real, causando o "piscar" de tela incorreta reportado. `null` = "ainda nao
+        // lido do DataStore", distinto de `false` = "usuario e novo, precisa ver onboarding".
+        // MainActivity usa essa distincao pra mostrar so um loading neutro nesse meio-tempo.
+        val onboardingConcluido: StateFlow<Boolean?> by lazy {
             preferenciasAppRepository.onboardingConcluidoFlow
-                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+                .map { it as Boolean? }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
         }
 
         val consentimentoLgpd: StateFlow<Boolean?> by lazy {
