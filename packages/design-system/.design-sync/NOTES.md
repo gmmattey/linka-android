@@ -58,6 +58,32 @@ O `_ds_sync.json` serve como âncora de diff — componentes sem mudança de has
   Decisão da Lia: não criar componente novo, repetir o padrão inline nas 7. Se aparecer
   uma 8ª tela do mesmo tipo, considerar extrair um `OverlayTopBar`.
 
+- **Toggle switch duplicado — candidato a primitive público**: o pill de toggle
+  (~40×24, bolinha deslizante) foi reimplementado inline em `GatewayConnectionSheet`
+  (Fase 2 lote A, 1×) e `DiagnosticoSheet` (Fase 2 lote C, 5×) — mesmo código copiado.
+  Recomendação da Lia: extrair para `src/primitives/Switch.tsx` público antes de crescer
+  mais. Flagado como task separada (`task_3bf51fc4`), não bloqueante para o upload.
+
+- **`PingScreenSheet` — célula `InFrame` renderiza vazia**: o sheet é curto (poucas
+  linhas de conteúdo) e o wrapper de preview o posiciona em `bottom: 0` de um
+  `PhoneFrame` de 820px; a célula `InFrame` do capture harness corta acima de onde o
+  sheet começa, então a screenshot mostra só o scrim cinza. A célula `Standalone`
+  (view principal) está correta e completa. Grade registrado como `needs-work` para
+  `InFrame` — não bloqueante, mas fica marcado (não escondido). Fix possível: dar um
+  `minHeight` ao container do sheet no preview wrapper, ou usar `justify-content:
+  flex-end` num container de altura fixa em vez de `position: absolute; bottom: 0`.
+  Não aplicado ainda.
+
+- **Processos `chrome.exe`/`node.exe` órfãos do Playwright entre re-syncs**: cada
+  `resync.mjs` com capture ativo sobe um Chromium via Playwright; em pelo menos uma
+  sessão (Windows), dezenas de processos `chrome.exe` ficaram vivos entre execuções e
+  travaram `rm -rf ds-bundle` com `EPERM`/`Device or resource busy` (mesmo depois do
+  processo Node principal já ter saído). Mitigação usada: `taskkill /F /IM chrome.exe`
+  antes de tentar remover `ds-bundle/`; se o lock persistir mesmo assim, usar um
+  `--out` alternativo (`ds-bundle2`) para a rodada e limpar os dois ao final. Verificar
+  processos órfãos (`tasklist`) antes de cada re-sync em vez de assumir que o anterior
+  encerrou tudo sozinho.
+
 ## Cobertura por fase
 
 **Fase 1 (2026-07-11) — telas/overlays full-screen que faltavam:** `DispositivosScreen`,
@@ -66,15 +92,34 @@ O `_ds_sync.json` serve como âncora de diff — componentes sem mudança de has
 direta do Kotlin real em `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/`
 (inventário completo, não só a doc antiga de `ui_kits/android/`).
 
-**Fase 2 (pendente) — bottom sheets** (~24 mapeados, não iniciados): `DeviceInfoSheet`,
-`GatewayInfoSheet`, `GatewayConnectionSheet`, `GatewayCredentialsGuideSheet`,
-`InternetInfoSheet`, `CellularInfoSheet`, `MedicaoTipoSheet`, `DiagnosticoDetalhadoSheet`,
-`OperadoraBottomSheet`, `NetworkDetailSheet`, `ChannelDetailSheet`,
-`PermissaoLocalizacaoContextoSheet`, `PermissaoTelefoniaContextoSheet`,
-`DeviceDetailSheet`, `MeshApSheet`, `PingScreen` (é sheet apesar do nome),
-`MinhaConexaoScreen` (idem), `HistoricoDetailSheet`, `ExportHistoricoBottomSheet`,
-`PerfilEditSheet`, sheets simples de Ajustes (`SimpleInfoSheet`, `DiagnosticoSheet`,
-`DadosLocaisSheet`, `DiagnosticoAppSheet`).
+**Fase 2 (2026-07-11) — bottom sheets, completa. 24 sheets + o novo layout primitive
+`SheetFrame`** (fundo branco, cantos superiores 24px, alcinha de drag centralizada —
+sem título/close embutido, cada sheet renderiza seu próprio conteúdo como children,
+fiel ao `ModalBottomSheet` real do Android que é dispensado por swipe/scrim, não por
+botão X):
+
+- **Home**: `DeviceInfoSheet`, `GatewayInfoSheet`, `GatewayConnectionSheet` (3 estados:
+  Formulário/Conectando/Erro), `GatewayCredentialsGuideSheet`, `InternetInfoSheet`,
+  `CellularInfoSheet`, `MedicaoTipoSheet`.
+- **Velocidade + Sinal**: `DiagnosticoDetalhadoSheet`, `OperadoraBottomSheet`,
+  `PingScreenSheet` (nome real do Kotlin é `PingScreen`, sufixo `Sheet` adicionado pra
+  não colidir com a convenção de `screens/`), `NetworkDetailSheet`, `ChannelDetailSheet`,
+  `PermissaoLocalizacaoContextoSheet` (2 estados: Solicitar/Bloqueada),
+  `PermissaoTelefoniaContextoSheet`.
+- **Dispositivos + Histórico + Ajustes**: `DeviceDetailSheet`, `MeshApSheet`,
+  `HistoricoDetailSheet`, `ExportHistoricoBottomSheet` (2 estados: Seleção/Exportando),
+  `PerfilEditSheet`, `SimpleInfoSheet`, `DiagnosticoSheet`, `DadosLocaisSheet`,
+  `DiagnosticoAppSheet`, `MinhaConexaoSheet` (nome real do Kotlin é
+  `MinhaConexaoScreen`, mesmo raciocínio do `PingScreenSheet`).
+
+Helpers internos não exportados no barrel público (`src/sheets/_shared.tsx`):
+`SheetInfoRow`, `SheetTitle`, `StatePillSwitcher` (o seletor de pills usado pra
+prototipar múltiplos estados dentro de um único componente — mesmo padrão já usado em
+`DispositivosScreen`/`FibraModemScreen` na Fase 1).
+
+Total do design system após a Fase 2: **51 componentes publicados** (19 primitivos/
+layout/animação + 6 telas antigas + 7 telas da Fase 1 + 24 sheets da Fase 2 - contando
+`SheetFrame` como layout).
 
 ## Deliberadamente fora de escopo
 
