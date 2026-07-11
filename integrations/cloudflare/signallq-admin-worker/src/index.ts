@@ -11,6 +11,8 @@ export interface Env {
   ALLOWED_ORIGIN: string;
   FIREBASE_PROJECT_ID: string;
   FIREBASE_GA4_PROPERTY_ID: string;
+  /** "true"/"false" — ver comentário em wrangler.toml (decisão 2026-07-11, GH#877/#878). */
+  FIREBASE_SYNC_ENABLED: string;
   /** Mantido apenas para /health (retrocompat). NÃO protege mais /admin/*. */
   ADMIN_SECRET: string;
   /** Chave separada para ingest do app Android. Scope: POST /ingest/* apenas. */
@@ -1902,6 +1904,20 @@ async function handleFirebaseCrashIssues(_req: Request, env: Env): Promise<Respo
 }
 
 async function handleFirebaseSync(_req: Request, env: Env): Promise<Response> {
+  // Decisao 2026-07-11 (GH#877/#878): dataset `analytics_${FIREBASE_GA4_PROPERTY_ID}`
+  // nao existe — export GA4->BigQuery nunca foi criado (Sandbox sem billing, decisao do
+  // Luiz de nao assumir custo novo). Sem esta guarda, todo sync (cron 06:00 UTC e botao
+  // manual) bate em bq_error_403 garantido. Religar via FIREBASE_SYNC_ENABLED=true em
+  // wrangler.toml quando o export existir de verdade.
+  if (env.FIREBASE_SYNC_ENABLED !== 'true') {
+    console.log('[firebase-sync] pulado: FIREBASE_SYNC_ENABLED=false (export GA4->BigQuery ausente)');
+    return json({
+      ok: false,
+      source: 'disabled',
+      message: 'Firebase Analytics não configurado (export BigQuery ausente).',
+    }, 200, env);
+  }
+
   if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
     return json({ source: "no_credentials", ok: false }, 200, env);
   }
@@ -2789,6 +2805,12 @@ const INGEST_ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }
 // try/catch individual por job em vez de um Promise.all que aborta tudo no
 // primeiro reject. logError é a única forma de alguém notar que o cron parou
 // de funcionar, já que não existe nenhuma UI olhando essa execução em tempo real.
+//
+// GH#878 (decisão 2026-07-11): o job 'firebase' continua na lista de propósito —
+// handleFirebaseSync curto-circuita sozinho via FIREBASE_SYNC_ENABLED e devolve
+// source:"disabled" (não é 'error'), então o cron não grava mais 403 recorrente
+// em system_errors. Tirar o job da lista exigiria reinserir manualmente quando o
+// export existir; a guarda por flag é a forma mais fácil de religar.
 const SCHEDULED_SYNC_JOBS: Array<{
   name: string;
   run: (env: Env) => Promise<Response>;
