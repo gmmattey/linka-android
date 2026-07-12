@@ -6,6 +6,8 @@ import { ChartCard } from "../../components/ui/ChartCard";
 import { LineChart } from "../../components/charts/LineChart";
 import { systemHealthService, SystemHealthResponse, HealthStatus } from "../../services/systemHealthService";
 import { systemHealthHistoryService, DailyHealthPoint } from "../../services/systemHealthHistoryService";
+import { cloudflareUsageService, CloudflareUsageResponse } from "../../services/cloudflareUsageService";
+import { CloudflareUsagePanel } from "./components/CloudflareUsagePanel";
 import { AppEnvironment } from "../../types/admin";
 
 interface WorkerHealth {
@@ -45,6 +47,7 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
 }) => {
   const [health, setHealth] = useState<SystemHealthResponse | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
+  const [cloudflareUsage, setCloudflareUsage] = useState<CloudflareUsageResponse | null>(null);
   const [adminWorker, setAdminWorker] = useState<WorkerHealth>({
     name: "signallq-admin-worker",
     status: "loading",
@@ -96,10 +99,22 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
     }
   }, []);
 
+  // #883 — carregado à parte de `load()`: falha em consultar o uso do free tier
+  // Cloudflare não deve derrubar o resto da tela de saúde do sistema.
+  const loadCloudflareUsage = useCallback(async () => {
+    try {
+      const data = await cloudflareUsageService.getUsage();
+      setCloudflareUsage(data);
+    } catch {
+      setCloudflareUsage(null);
+    }
+  }, []);
+
   useEffect(() => {
     load();
     loadHistory();
-  }, [load, loadHistory, triggerRefreshCounter]);
+    loadCloudflareUsage();
+  }, [load, loadHistory, loadCloudflareUsage, triggerRefreshCounter]);
 
   const d1Check = health?.checks.d1;
 
@@ -237,6 +252,11 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 3. #883 — uso vs. teto do free tier Cloudflare (Workers requests/dia,
+          D1 rows lidas/escritas por dia, D1 storage total). Card próprio porque
+          é um dado de infra/custo, não um check de disponibilidade. */}
+      <CloudflareUsagePanel usage={cloudflareUsage} />
 
     </div>
   );
