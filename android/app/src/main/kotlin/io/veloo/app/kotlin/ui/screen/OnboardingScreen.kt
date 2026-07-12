@@ -272,7 +272,7 @@ private fun OnboardingTelaBemVindo(
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+                    painter = painterResource(id = R.drawable.ic_signallq_logo),
                     contentDescription = "Logo SignallQ",
                     modifier = Modifier.size(logoSizeDp * 0.72f),
                 )
