@@ -1830,6 +1830,16 @@ async function runHealthSnapshot(env: Env): Promise<void> {
   ).bind(cutoff).run();
 }
 
+// POST /admin/system-health/snapshot — dispara runHealthSnapshot sob demanda
+// (mesma auth de sessão de /admin/*). Útil pro operador forçar um ponto na série
+// sem esperar o próximo Cron Trigger (ex.: logo após o deploy, pra popular o
+// gráfico antes dos primeiros 15min), e foi assim que validei o endpoint de
+// history em produção antes de abrir a PR.
+async function handleTriggerHealthSnapshot(_req: Request, env: Env): Promise<Response> {
+  await runHealthSnapshot(env);
+  return json({ ok: true, timestamp: new Date().toISOString() }, 200, env);
+}
+
 interface DailyHealthPoint {
   date: string;        // YYYY-MM-DD (UTC)
   latencyP95Ms: number | null; // null quando não há amostra "ok" nesse dia
@@ -2897,6 +2907,7 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
     }) },
   { method: "GET",  pattern: /^\/admin\/system-health$/,                        handler: withErrorLogging('system-health', handleSystemHealth) },
   { method: "GET",  pattern: /^\/admin\/system-health\/history$/,               handler: withErrorLogging('system-health', handleSystemHealthHistory) },
+  { method: "POST", pattern: /^\/admin\/system-health\/snapshot$/,              handler: withErrorLogging('system-health', handleTriggerHealthSnapshot) },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crashlytics$/,  handler: handleFirebaseCrashlytics },
