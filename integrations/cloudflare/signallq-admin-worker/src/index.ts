@@ -820,6 +820,30 @@ async function generateAndPersistAlerts(env: Env): Promise<void> {
     });
   }
 
+  // #884: alerta de quota Gemini — só roda se algum teto do free tier estiver
+  // configurado em admin_settings.geminiFreeTierLimits (sem fabricar alerta sem dado real).
+  const GEMINI_ATTENTION_THRESHOLD = settings.geminiQuotaAttentionThreshold ?? 80;
+  const geminiQuota = await getGeminiQuotaUsage(env);
+  if (geminiQuota.source === "d1") {
+    const quotaLabels: Record<string, string> = {
+      requestsPerMinute: 'Gemini RPM',
+      tokensPerMinute:   'Gemini TPM',
+      requestsPerDay:    'Gemini RPD',
+    };
+    for (const [key, label] of Object.entries(quotaLabels)) {
+      const metric = geminiQuota.quota[key as keyof typeof geminiQuota.quota];
+      if (metric.available && metric.percentage != null && metric.percentage >= GEMINI_ATTENTION_THRESHOLD) {
+        candidates.push({
+          id:       `gemini_quota_${key}`,
+          type:     'GEMINI_QUOTA',
+          severity: metric.percentage >= 100 ? 'critical' : 'warning',
+          title:    'Uso do free tier Gemini em atenção',
+          message:  `${label}: ${metric.percentage}% do limite gratuito (${metric.used}/${metric.limit})`,
+        });
+      }
+    }
+  }
+
   // Persiste idempotente: INSERT OR IGNORE mantém o alerta original se já existir
   // (ativo ou resolvido). Não reabre alerta resolvido automaticamente.
   for (const c of candidates) {
@@ -1049,6 +1073,100 @@ async function handleAiProviders(request: Request, env: Env): Promise<Response> 
   });
 
   return json({ source: "d1", period, environment: envFilter ?? "all", items }, 200, env);
+}
+
+// #884 — modelo IA primário gravado em ai_usage.model (confirmado em produção,
+// 2026-07-12). Se o provider trocar de alias (ver GH#898 em ai-diagnosis-worker),
+// este valor precisa acompanhar.
+const GEMINI_MODEL_ID = "gemini-flash-latest";
+
+interface QuotaMetric {
+  available: boolean;
+  used: number | null;
+  limit: number | null;
+  percentage: number | null;
+  reason?: string;
+}
+
+function quotaOf(used: number, limit: number): QuotaMetric {
+  return { available: true, used, limit, percentage: Math.round((used / limit) * 100) };
+}
+
+function unavailableQuota(reason: string): QuotaMetric {
+  return { available: false, used: null, limit: null, percentage: null, reason };
+}
+
+// A API do Gemini não expõe consulta de quota em tempo real via REST — rate
+// limits (RPM/TPM/RPD) só aparecem autenticado em Google AI Studio (confirmado
+// em developers docs, 2026-07-12: "View your active rate limits in AI Studio").
+// O teto do free tier, por isso, é CONFIGURÁVEL (checado manualmente em AI Studio
+// e preenchido em admin_settings), nunca hardcoded — o valor muda por tier/conta
+// e a Cloudflare não tem como confirmá-lo sozinha. O "usado" é sempre real,
+// contado a partir de ai_usage (cada chamada do worker é registrada lá).
+function pacificMidnightUnixSec(nowMs: number): number {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles', hour12: false,
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+  const parts = fmt.formatToParts(new Date(nowMs));
+  const get = (type: string) => parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
+  const secondsSinceMidnight = get('hour') * 3600 + get('minute') * 60 + get('second');
+  return Math.floor((nowMs - secondsSinceMidnight * 1000) / 1000);
+}
+
+interface GeminiQuotaResult {
+  source: "d1" | "not_configured";
+  timestamp: string;
+  quota: {
+    requestsPerMinute: QuotaMetric;
+    tokensPerMinute: QuotaMetric;
+    requestsPerDay: QuotaMetric;
+  };
+}
+
+async function getGeminiQuotaUsage(env: Env): Promise<GeminiQuotaResult> {
+  const settingsRow = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'admin'"
+  ).first<{ value: string }>();
+  const settings = settingsRow?.value ? JSON.parse(settingsRow.value) : {};
+  const limits: { rpm?: number; tpm?: number; rpd?: number } = settings.geminiFreeTierLimits ?? {};
+
+  const now = nowSec();
+  const oneMinuteAgo = now - 60;
+  const pacificMidnight = pacificMidnightUnixSec(Date.now());
+
+  const [minuteRow, dayRow] = await Promise.all([
+    env.DB.prepare(
+      `SELECT COUNT(*) AS requests, SUM(total_tokens) AS tokens
+       FROM ai_usage WHERE model = ? AND created_at >= ?`
+    ).bind(GEMINI_MODEL_ID, oneMinuteAgo).first<{ requests: number; tokens: number | null }>(),
+
+    env.DB.prepare(
+      `SELECT COUNT(*) AS requests FROM ai_usage WHERE model = ? AND created_at >= ?`
+    ).bind(GEMINI_MODEL_ID, pacificMidnight).first<{ requests: number }>(),
+  ]);
+
+  const requestsThisMinute = minuteRow?.requests ?? 0;
+  const tokensThisMinute   = minuteRow?.tokens ?? 0;
+  const requestsToday      = dayRow?.requests ?? 0;
+
+  const reasonNotConfigured = "Teto do free tier não configurado — a API do Gemini não expõe consulta de quota em tempo real (só via login em Google AI Studio); preencher manualmente em admin_settings.geminiFreeTierLimits após checar o valor atual no AI Studio.";
+
+  return {
+    source: limits.rpm || limits.tpm || limits.rpd ? "d1" : "not_configured",
+    timestamp: new Date().toISOString(),
+    quota: {
+      requestsPerMinute: limits.rpm ? quotaOf(requestsThisMinute, limits.rpm) : unavailableQuota(reasonNotConfigured),
+      tokensPerMinute:   limits.tpm ? quotaOf(tokensThisMinute, limits.tpm)   : unavailableQuota(reasonNotConfigured),
+      requestsPerDay:    limits.rpd ? quotaOf(requestsToday, limits.rpd)      : unavailableQuota(reasonNotConfigured),
+    },
+  };
+}
+
+// GET /admin/metrics/ai-quota — #884: uso vs. teto do free tier Gemini.
+async function handleAiQuota(_req: Request, env: Env): Promise<Response> {
+  const result = await getGeminiQuotaUsage(env);
+  return json(result, 200, env);
 }
 
 async function handleAiUsageTimeline(request: Request, env: Env): Promise<Response> {
@@ -2058,6 +2176,7 @@ const ERROR_CATEGORY_BY_SOURCE: Record<string, 'app' | 'backend' | 'ia' | 'integ
   'bigquery-versions':      'integration',
   'bigquery-crash-issues':  'integration',
   'ai-usage':               'ia',
+  'ai-quota':               'ia',
 };
 
 function errorCategoryForSource(source: string): 'app' | 'backend' | 'ia' | 'integration' {
@@ -2768,6 +2887,7 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "POST", pattern: /^\/admin\/alerts\/[^/]+\/resolve$/,               handler: withErrorLogging('alerts', handleResolveAlert) },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-costs$/,                    handler: withErrorLogging('metrics', handleAiCostMetrics) },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-providers$/,                handler: withErrorLogging('metrics', handleAiProviders) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/ai-quota$/,                    handler: withErrorLogging('ai-quota', handleAiQuota) },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage\/timeline$/,          handler: withErrorLogging('metrics', handleAiUsageTimeline) },
   { method: "GET",  pattern: /^\/admin\/metrics\/ai-usage\/records$/,          handler: withErrorLogging('metrics', handleAiUsageRecords) },
   { method: "GET",  pattern: /^\/admin\/metrics\/operators$/,                   handler: withErrorLogging('metrics', handleOperators) },
