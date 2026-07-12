@@ -2651,6 +2651,52 @@ async function handleBatteryAnalytics(request: Request, env: Env): Promise<Respo
   }, 200, env);
 }
 
+// #785 — breakdown de dispositivos mais ativos (modelo + versão Android + %
+// de sessões). Fonte: diagnostic_sessions.device_model/os_version (já
+// coletado pelo app via POST /ingest/diagnostic desde SIG-138) — mais direto
+// que ir buscar no GA4/BigQuery, que não tem esse breakdown pronto sem uma
+// dimensão custom equivalente. Mesma honestidade do resto do painel: sem
+// sessão com device_model preenchido no período, no_data_yet: true.
+async function handleDeviceBreakdown(request: Request, env: Env): Promise<Response> {
+  const url       = new URL(request.url);
+  const period    = url.searchParams.get("period") ?? "30d";
+  const since     = nowSec() - periodToSeconds(period);
+  const envFilter = getEnvironmentFilter(url);
+
+  const envClause = envFilter ? " AND environment = ?" : "";
+  const envBinds  = envFilter ? [envFilter]            : [];
+
+  const rows = await env.DB.prepare(
+    `SELECT device_model, os_version, COUNT(*) AS session_count
+     FROM diagnostic_sessions
+     WHERE created_at >= ? AND device_model != ''${envClause}
+     GROUP BY device_model, os_version
+     ORDER BY session_count DESC
+     LIMIT 10`
+  ).bind(since, ...envBinds).all<{ device_model: string; os_version: string; session_count: number }>();
+
+  const results = rows.results ?? [];
+  const totalRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS total FROM diagnostic_sessions WHERE created_at >= ? AND device_model != ''${envClause}`
+  ).bind(since, ...envBinds).first<{ total: number }>();
+  const total = totalRow?.total ?? 0;
+
+  const items = results.map((r: { device_model: string; os_version: string; session_count: number }) => ({
+    deviceModel:  r.device_model,
+    osVersion:    r.os_version || "—",
+    sessionCount: r.session_count,
+    percentage:   total > 0 ? Math.round((r.session_count / total) * 10000) / 100 : 0,
+  }));
+
+  return json({
+    source: "d1",
+    period,
+    environment: envFilter ?? "all",
+    no_data_yet: total === 0,
+    items,
+  }, 200, env);
+}
+
 // --- SIG-13: feature flags ---
 
 interface FeatureFlag {
@@ -2778,6 +2824,8 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/analytics\/product$/,                   handler: withErrorLogging('analytics', handleProductAnalytics) },
   { method: "GET",  pattern: /^\/admin\/metrics\/analytics\/battery$/,          handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/analytics\/battery$/,                   handler: withErrorLogging('analytics', handleBatteryAnalytics) },
+  { method: "GET",  pattern: /^\/admin\/metrics\/analytics\/devices$/,          handler: withErrorLogging('analytics', handleDeviceBreakdown) },
+  { method: "GET",  pattern: /^\/admin\/analytics\/devices$/,                   handler: withErrorLogging('analytics', handleDeviceBreakdown) },
   { method: "GET",  pattern: /^\/admin\/metrics\/errors$/,                      handler: handleErrors },
   { method: "POST", pattern: /^\/admin\/errors\/[^/]+\/resolve$/,               handler: withErrorLogging('errors', async (req, env) => {
       const session = await authenticateSession(req, env);
