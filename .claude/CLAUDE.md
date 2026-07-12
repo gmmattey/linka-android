@@ -91,6 +91,28 @@ Referencia rapida de tokens: `.claude/skills/linka-design/HANDOFF_README.md`.
 
 **Design Context (skill impeccable):** `PRODUCT.md` e `DESIGN.md` na raiz do repo formalizam esse mesmo sistema no formato impeccable/DESIGN.md spec (register: product; North Star "The Calm Translator"). Consultar antes de rodar `/impeccable craft|critique|audit|polish` em qualquer tela.
 
+### Onde fica cada "design system" (indice, 2026-07-12)
+
+Existem varios artefatos de design no repo, cada um com escopo e finalidade proprios --
+nao sao copias redundantes umas das outras (mesmo compartilhando os mesmos tokens visuais),
+mas nunca criar um novo sem checar se o que voce precisa ja existe em algum destes:
+
+| Onde | Escopo | Finalidade |
+|---|---|---|
+| `.claude/skills/linka-design/` | Android (app real) | Skill do Claude Code -- ativa sozinha ao pedir UI Android, fonte de verdade pra gerar codigo/protótipo on-brand |
+| `packages/design-system/` | Android (app real) | "Gemeo digital" React, sincronizado com o projeto **"SignallQ Design System"** (`e77ea465-291f-4bf5-930c-a267680da04e`) no Claude Design -- unico projeto Claude Design valido, nao criar outro (ver `.design-sync/conventions.md`) |
+| `docs_ai/design-system/` | Android (app real) | Documentacao formal de tokens/componentes Android (markdown), referenciada pela skill |
+| `DESIGN.md` / `PRODUCT.md` (raiz) | Android (app real) | Spec no formato da skill `impeccable`, usado por `/impeccable craft\|critique\|audit\|polish` |
+| `SignallQ Admin/DESIGN.md` / `SignallQ Admin/PRODUCT.md` | SignallQ Console (Admin) | Mesmo formato impeccable, mas do Admin -- North Star propria ("The Operator's Console"), paleta propria; nao confundir com o par acima |
+| `.claude/design-specs/` | Prototipagem avulsa | Handoffs/protótipos pontuais por feature (ex: monetizacao nativa, diagnostico IA) -- nao e sistema reutilizavel, curar/arquivar specs velhas periodicamente |
+
+`.claude/skills/` e a fonte canonica de toda skill (inclusive `linka-design`).
+`.agents/skills/` e `.github/skills/` sao mirrors intencionais pra outros harnesses (Codex
+e hooks do GitHub respectivamente, ver `.codex/hooks.json` / `.github/hooks/*.json`) --
+existem de proposito, nao apagar, mas **sempre resincronizar a partir de `.claude/skills/`
+apos editar uma skill**, nunca editar o mirror direto (fica dessincronizado, como aconteceu
+com `.agents/skills/linka-design/` ate 2026-07-12).
+
 ---
 
 ## Release Process
