@@ -7,6 +7,19 @@
 
 import { hashPassword, verifyPassword, createSession, validateSession, revokeSession } from './auth'
 
+// #788 — tipos mínimos do Cron Trigger (workerd runtime). O projeto não tem
+// @cloudflare/workers-types instalado (gap pré-existente, mesma causa dos
+// erros de tsc em Request/Response/D1Database já presentes no arquivo antes
+// desta mudança) — declarados aqui só para não adicionar erros novos de tsc.
+interface ScheduledEvent {
+  readonly cron: string;
+  readonly scheduledTime: number;
+}
+interface ExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
+  passThroughOnException(): void;
+}
+
 export interface Env {
   ALLOWED_ORIGIN: string;
   FIREBASE_PROJECT_ID: string;
@@ -1785,6 +1798,104 @@ async function handleSystemHealth(_req: Request, env: Env): Promise<Response> {
   );
 }
 
+// #788 — snapshot periódico de latência/uptime, gravado pelo Cron Trigger
+// (ver `scheduled` no export default). Reaproveita os MESMOS checks reais já
+// usados por /admin/system-health (checkD1Health, checkFirebaseCredentialsHealth,
+// checkBigQueryHealth) — nenhum dado novo é fabricado, só passa a ser persistido.
+async function runHealthSnapshot(env: Env): Promise<void> {
+  const now = nowSec();
+  const d1 = await checkD1Health(env);
+  const firebaseCredentials = await checkFirebaseCredentialsHealth(env);
+  const bigQuery = await checkBigQueryHealth(env, firebaseCredentials.status === "ok");
+
+  const rows: Array<{ service: string; check: HealthCheckResult }> = [
+    { service: "d1", check: d1 },
+    { service: "firebase", check: firebaseCredentials },
+    { service: "bigquery", check: bigQuery },
+  ];
+
+  for (const { service, check } of rows) {
+    const id = `${service}_${now}`;
+    await env.DB.prepare(
+      `INSERT OR IGNORE INTO system_health_snapshots (id, service, status, latency_ms, created_at)
+       VALUES (?, ?, ?, ?, ?)`
+    ).bind(id, service, check.status, check.latencyMs ?? null, now).run();
+  }
+
+  // Housekeeping: mantém só os últimos 35 dias (o painel usa no máximo 30d) —
+  // evita crescimento sem limite no D1 free tier (5 GB total da conta).
+  const cutoff = now - 35 * 86400;
+  await env.DB.prepare(
+    "DELETE FROM system_health_snapshots WHERE created_at < ?"
+  ).bind(cutoff).run();
+}
+
+interface DailyHealthPoint {
+  date: string;        // YYYY-MM-DD (UTC)
+  latencyP95Ms: number | null; // null quando não há amostra "ok" nesse dia
+  uptimePercentage: number | null;
+}
+
+function percentile95(sorted: number[]): number {
+  if (sorted.length === 0) return 0;
+  const idx = Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1);
+  return sorted[Math.max(0, idx)];
+}
+
+// GET /admin/system-health/history?days=14 — #788: série diária de latência
+// P95 (proxy: checks de D1, chamado em quase toda rota) e uptime (% de
+// snapshots com status "ok" em qualquer serviço monitorado) para o gráfico
+// "Latência P95 da API · Nd" da tela Saúde do Sistema.
+async function handleSystemHealthHistory(request: Request, env: Env): Promise<Response> {
+  const url  = new URL(request.url);
+  const days = Math.min(Math.max(parseInt(url.searchParams.get("days") ?? "14", 10) || 14, 1), 30);
+  const since = nowSec() - days * 86400;
+
+  const rows = await env.DB.prepare(
+    `SELECT service, status, latency_ms, created_at
+     FROM system_health_snapshots
+     WHERE created_at >= ?
+     ORDER BY created_at ASC`
+  ).bind(since).all<{ service: string; status: string; latency_ms: number | null; created_at: number }>();
+
+  const results = rows.results ?? [];
+
+  if (results.length === 0) {
+    return json({ source: "d1", period: `${days}d`, points: [] as DailyHealthPoint[] }, 200, env);
+  }
+
+  // Agrupa por dia UTC (YYYY-MM-DD). "Latência P95 da API" usa só service='d1'
+  // (proxy mais estável — é chamado em quase toda rota do worker); uptime
+  // considera todos os serviços monitorados (d1/firebase/bigquery).
+  const byDay = new Map<string, { d1Latencies: number[]; okCount: number; totalCount: number }>();
+  for (const r of results) {
+    const date = new Date(r.created_at * 1000).toISOString().slice(0, 10);
+    if (!byDay.has(date)) byDay.set(date, { d1Latencies: [], okCount: 0, totalCount: 0 });
+    const bucket = byDay.get(date)!;
+    if (r.service === "d1" && r.status === "ok" && r.latency_ms != null) {
+      bucket.d1Latencies.push(r.latency_ms);
+    }
+    if (r.status !== "not_configured") {
+      bucket.totalCount += 1;
+      if (r.status === "ok") bucket.okCount += 1;
+    }
+  }
+
+  const points: DailyHealthPoint[] = Array.from(byDay.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, bucket]) => ({
+      date,
+      latencyP95Ms: bucket.d1Latencies.length > 0
+        ? percentile95([...bucket.d1Latencies].sort((a, b) => a - b))
+        : null,
+      uptimePercentage: bucket.totalCount > 0
+        ? Math.round((bucket.okCount / bucket.totalCount) * 10000) / 100
+        : null,
+    }));
+
+  return json({ source: "d1", period: `${days}d`, points }, 200, env);
+}
+
 async function handleFirebaseCrashlytics(_req: Request, env: Env): Promise<Response> {
   if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
     return json({ source: "no_credentials", unresolvedCrashes: 0, crashFreeUsersPercentage: 100 }, 200, env);
@@ -2785,6 +2896,7 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
       return handleResolveSystemError(req, env, session);
     }) },
   { method: "GET",  pattern: /^\/admin\/system-health$/,                        handler: withErrorLogging('system-health', handleSystemHealth) },
+  { method: "GET",  pattern: /^\/admin\/system-health\/history$/,               handler: withErrorLogging('system-health', handleSystemHealthHistory) },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crashlytics$/,  handler: handleFirebaseCrashlytics },
@@ -2880,5 +2992,12 @@ export default {
       }
     }
     return err("Not found", 404, env);
+  },
+
+  // #788 — Cron Trigger (ver [triggers] em wrangler.toml): grava um snapshot
+  // de latência/uptime a cada execução, sem custo (Workers Free inclui cron
+  // triggers; a cada 15min = 96 invocações/dia, irrelevante nos 100k/dia livres).
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(runHealthSnapshot(env));
   },
 };
