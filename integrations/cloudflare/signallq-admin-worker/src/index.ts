@@ -223,6 +223,21 @@ function nowSec(): number {
   return Math.floor(Date.now() / 1000);
 }
 
+// Achado ao validar #883 em produção: um valor corrompido em
+// admin_settings.value (ex.: escrita manual malformada) derrubava
+// generateAndPersistAlerts inteiro (500 em /admin/alerts) via JSON.parse sem
+// tratamento — settings ausentes/corrompidas devem degradar para "{}" (nenhum
+// teto configurado), nunca derrubar a rota. Tipo solto de propósito (mesmo
+// padrão já usado no resto do arquivo, ex.: `let p: any` em handleIngestAiUsage).
+function parseAdminSettings(value: string | undefined | null): any {
+  if (!value) return {};
+  try {
+    return JSON.parse(value);
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Extrai filtro de environment da query string.
  * ?environment=production → filtra por 'production'
@@ -951,7 +966,7 @@ async function generateAndPersistAlerts(env: Env): Promise<void> {
   const settingsRow = await env.DB.prepare(
     "SELECT value FROM admin_settings WHERE key = 'admin'"
   ).first<{ value: string }>();
-  const settings = settingsRow?.value ? JSON.parse(settingsRow.value) : {};
+  const settings = parseAdminSettings(settingsRow?.value);
 
   // Budget: se não configurado, não gera alerta de custo (sem fabricar).
   const AI_DAILY_BUDGET: number | null = settings.aiDailyBudgetUsd ?? null;
