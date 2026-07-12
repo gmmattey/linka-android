@@ -203,9 +203,10 @@ avatares: totalmente redondos (36–44dp típico).
 ### Densidade de ícone (manual §8)
 `24dp` conteúdo padrão · `20dp` ações compactas de TopBar · `18dp` labels inline.
 
-### Tipografia — Google Sans + Roboto, escala MD3 completa (manual §1)
-Display/Headline/Title em **Google Sans** (fallback Roboto — não disponível no Google Fonts
-público); Body/Label em **Roboto**. Classes em `colors_and_type.css`: `display-large/medium/small`
+### Tipografia — Roboto única, escala MD3 completa (manual §1)
+Todos os estilos em **Roboto** — o manual pedia Google Sans para Display/Headline/Title, mas foi
+descartada em 2026-07-12 (não é webfont público, só pré-instalada em Pixel). Classes em
+`colors_and_type.css`: `display-large/medium/small`
 (400, 57/45/36) · `headline-large/medium/small` (400, 32/28/24) · `title-large` (400, 22) ·
 `title-medium/small` (500, 16/14) · `body-large/medium/small` (400, 16/14/12) ·
 `label-large/medium/small` (500, 14/12/11) · `overline` (500/11, UPPERCASE, +0.3px, decisão de

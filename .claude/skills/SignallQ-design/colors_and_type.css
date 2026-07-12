@@ -11,19 +11,21 @@
    - Nomenclatura de tokens migrada para o padrão MD3
      `--md-sys-color-{role}` / `on-{role}` / `{role}-container` / `on-{role}-container`.
    - Tipografia: 15 estilos MD3 completos (Display/Headline/Title/Body/Label,
-     cada um Large/Medium/Small), fonte Google Sans (display/headline/title) +
-     Roboto (body/label).
+     cada um Large/Medium/Small) — escala de size/line-height/peso adotada do
+     manual. Fonte: Roboto em todos os estilos (ver EXCEÇÃO abaixo).
    - Elevação tonal (5 níveis), forma (7 tokens), state layers, motion,
      outline/outline-variant, densidade de ícone — todos novos, ver seções abaixo.
    - Tokens antigos (`--accent`, `--bg-card`, `--text-primary` etc.) são mantidos
      como ALIASES DEPRECADOS apontando para os tokens novos, só para não quebrar
      artefatos HTML/JSX ainda não migrados. Não usar em artefato novo — use
      sempre `--md-sys-color-*`.
-   FONT NOTE: 'Google Sans' não está disponível no catálogo público do Google
-   Fonts (é fonte interna do Google/Android). Declaramos como primeira opção da
-   pilha (funciona nativamente em Android/ChromeOS que já a tem instalada) com
-   fallback fiel para Roboto em qualquer outro ambiente — sem substituição por
-   terceiros.
+   EXCEÇÃO DECIDIDA 2026-07-12 (ver docs_ai/design-system/DECISAO_RENOMEACAO_
+   SIGNALLQ_DESIGN_2026-07-11.md): o manual pede Google Sans para display/
+   headline/title. Google Sans NÃO é webfont público do Google Fonts (fonte
+   interna do Google, só pré-instalada em Pixel) — não embeda via CDN e não
+   está presente na maioria dos Android (não-Pixel). Decisão do Luiz: manter
+   Roboto como única fonte do sistema, em todos os estilos MD3. Não declarar
+   'Google Sans' na pilha de nenhum artefato novo.
    ============================================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
@@ -174,7 +176,7 @@
   --space-xxl: 32px;
 
   /* ---- Type — famílias ---------------------------------------------------- */
-  --font-display: 'Google Sans', 'Roboto', system-ui, 'Segoe UI', sans-serif; /* display/headline/title */
+  --font-display: 'Roboto', system-ui, 'Segoe UI', sans-serif; /* display/headline/title — Google Sans descartada, ver EXCEÇÃO acima */
   --font-sans:    'Roboto', system-ui, 'Segoe UI', sans-serif;                /* body/label */
 
   /* ==========================================================================
@@ -245,9 +247,10 @@
 
 /* ============================================================================
    SEMANTIC TYPE — Material Design 3, escala completa (15 estilos, manual §1)
-   Sizes/line-heights em px (1sp ≈ 1px). Display/Headline/Title = Google Sans
-   (fallback Roboto). Body/Label = Roboto. Pesos: Display/Headline/Title-Large
-   400 (regular); Title Medium/Small 500; Body 400; Label 500 (todos).
+   Sizes/line-heights em px (1sp ≈ 1px). Fonte única: Roboto em todos os
+   estilos (Google Sans descartada, ver EXCEÇÃO no topo do arquivo). Pesos:
+   Display/Headline/Title-Large 400 (regular); Title Medium/Small 500; Body
+   400; Label 500 (todos).
    ============================================================================ */
 .display-large   { font: 400 57px/64px var(--font-display); letter-spacing: -0.25px; color: var(--md-sys-color-on-surface); }
 .display-medium   { font: 400 45px/52px var(--font-display); color: var(--md-sys-color-on-surface); }

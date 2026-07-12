@@ -39,6 +39,20 @@
   `standard`, state layer no flash de atualização), mas a existência do badge em si é decisão de produto,
   não do MD3, e deve ser validada antes de virar convenção fixa da skill.
 
+## Exceção decidida (2026-07-12): Google Sans descartada
+
+O manual pede Google Sans para display/headline/title, embutida via link do Google Fonts
+(`fonts.googleapis.com/css2?family=Google+Sans...`). **Google Sans não é um webfont público do Google
+Fonts** — é fonte proprietária de uso interno do Google (Pixel, apps próprios), não distribuída pra
+terceiros embutirem via CDN; esse link do manual não funciona (cai em fallback silencioso). No Android,
+Google Sans só vem pré-instalada em aparelhos Pixel — na base de usuários do SignallQ (majoritariamente
+não-Pixel), declarar essa fonte não teria efeito visual pra maioria dos usuários.
+
+**Decisão do Luiz:** manter Roboto como única fonte do sistema (já é o padrão documentado no
+`CLAUDE.md` raiz do projeto e já cobre toda a tipografia hoje). A seção 1 do manual (tipografia) é
+adotada só na parte de escala/pesos/line-height — a substituição de fonte por Google Sans fica fora de
+escopo, não é gap de conformidade a perseguir.
+
 ## Escopo desta renomeação (o que foi e não foi tocado)
 
 - Atualizado: `.claude/skills/SignallQ-design/` (conteúdo + rename), `.claude/CLAUDE.md` (seção Design
