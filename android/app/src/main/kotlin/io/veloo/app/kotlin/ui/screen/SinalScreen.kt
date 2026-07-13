@@ -106,7 +106,6 @@ import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.WifiLinkSnapshot
 import io.signallq.app.core.telephony.MovelSimSnapshot
 import io.signallq.app.core.telephony.MovelSnapshot
-import io.signallq.app.feature.devices.SnapshotScanDispositivos
 import io.signallq.app.feature.diagnostico.BandaWifi
 import io.signallq.app.feature.diagnostico.CanalStrings
 import io.signallq.app.feature.diagnostico.CanalTextGenerator
@@ -287,9 +286,6 @@ fun SinalScreen(
     fotoUri: String? = null,
     onAbrirPerfil: () -> Unit = {},
     wifiLinkSnapshot: WifiLinkSnapshot? = null,
-    snapshotDispositivos: SnapshotScanDispositivos? = null,
-    apelidos: Map<String, String> = emptyMap(),
-    onSalvarApelido: (mac: String, apelido: String) -> Unit = { _, _ -> },
     // Seam de teste (#893) — producao nunca passa isso, so os testes de auto-refresh
     // usam um intervalo curto pra nao esperar 30s reais por teste.
     autoRefreshIntervalMs: Long = SINAL_AUTO_REFRESH_INTERVAL_MS,
@@ -419,7 +415,7 @@ fun SinalScreen(
                         WifiEmptyState()
                     }
                 }
-                2 -> {
+                else -> {
                     MovelTab(
                         movelSnapshot = movelSnapshot,
                         simsAtivos = simsAtivos,
@@ -427,22 +423,6 @@ fun SinalScreen(
                         onSolicitarPermissaoTelefonia = onSolicitarPermissaoTelefonia,
                         tokens = c,
                     )
-                }
-                else -> {
-                    if (conexaoTipo == ConexaoTipo.WIFI) {
-                        val snap = snapshotDispositivos
-                        if (snap != null) {
-                            DispositivosTabContent(
-                                snapshotDevices = snap,
-                                onRefresh = onRefresh,
-                                apelidos = apelidos,
-                                onSalvarApelido = onSalvarApelido,
-                                c = c,
-                            )
-                        }
-                    } else {
-                        WifiEmptyState()
-                    }
                 }
             }
         }
@@ -538,7 +518,7 @@ private fun SinalTopTabRow(
         containerColor = c.bgPrimary,
         contentColor = LkColors.accent,
     ) {
-        listOf("Wi-Fi", "Canal", "Móvel", "Dispositivos").forEachIndexed { index, label ->
+        listOf("Wi-Fi", "Canal", "Móvel").forEachIndexed { index, label ->
             Tab(
                 selected = selectedTab == index,
                 onClick = { onTabSelected(index) },
@@ -550,7 +530,7 @@ private fun SinalTopTabRow(
                         ) {
                             Text(
                                 label,
-                                fontSize = 13.sp,
+                                style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1,
                                 softWrap = false,
                                 fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.W500,
@@ -566,7 +546,7 @@ private fun SinalTopTabRow(
                     } else {
                         Text(
                             label,
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             softWrap = false,
                             fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.W500,
