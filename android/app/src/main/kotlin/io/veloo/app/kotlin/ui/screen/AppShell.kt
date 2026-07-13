@@ -21,15 +21,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.AlertDialog
@@ -102,6 +102,22 @@ private enum class Overlay {
     ResultadoVelocidade,
     Fibra,
     Dispositivos,
+
+    // GH#930 — Fase 1 MD3 (navegação). Estrutura preparada para as fases seguintes do plano
+    // MD3 To-Be preencherem com telas reais — nenhuma delas ganha lógica final aqui.
+
+    // TODO(#934): Fase 5 — substitui Fibra por uma EquipamentoInternetScreen real. Por ora
+    // reusa o FibraModemScreen (Nokia-only) como stub.
+    EquipamentoInternet,
+
+    // TODO(#933): Fase 4 — grid real de atalhos. Por ora reusa o mesmo placeholder da tab.
+    Ferramentas,
+
+    // TODO(#935): Fase 6 — tela real de Jogos. Por ora um stub simples.
+    Jogos,
+
+    // TODO(#936): Fase 7 — reorganização 6a-6f. Por ora reusa a AjustesScreen atual inteira.
+    Perfil,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -306,6 +322,12 @@ fun AppShell(
             }
     }
 
+    // GH#930 — Fase 1 MD3: Ajustes saiu da tab bar (virou "Perfil", 5a tab agora e Ferramentas).
+    // Unico ponto de entrada agora e o avatar no TopBar das outras telas, empilhado como overlay.
+    val onAbrirPerfilOverlay: () -> Unit = {
+        if (Overlay.Perfil !in overlayStack) overlayStack.add(Overlay.Perfil)
+    }
+
     // Destino provisorio da conexao ao gateway — FibraModemScreen ja le sinal do modem, mas
     // NAO e a tela de detalhe definitiva do GPON/Roteador (isso e SIG-357, ainda nao existe).
     // Reusada por ambos entry points (nó do gateway na Home e linha do roteador em Ajustes).
@@ -334,7 +356,7 @@ fun AppShell(
     var testeAtivo by remember { mutableStateOf(false) }
     var mostrarConcluido by remember { mutableStateOf(false) }
     val primeiraHistoria = remember(historico) { historico.firstOrNull() }
-    val tabScreenNames = listOf("home", "speedtest", "sinal_wifi", "historico", "ajustes")
+    val tabScreenNames = listOf("home", "speedtest", "sinal_wifi", "historico", "ferramentas")
 
     // NAV-D: verifica IA ao entrar na tab Velocidade (índice 1)
     LaunchedEffect(selectedTab) {
@@ -462,7 +484,7 @@ fun AppShell(
                                 }
                             },
                             onAbrirHistorico = { selectedTab = 3 },
-                            onAbrirPerfil = { showPerfilSheet = true },
+                            onAbrirPerfil = onAbrirPerfilOverlay,
                             // NAV-B: Sinal agora é tab 2 — navega por tab em vez de overlay
                             onAbrirRedes = { selectedTab = 2 },
                             anatelBannerDismissed = anatelBannerDismissed,
@@ -504,10 +526,10 @@ fun AppShell(
                                 }
                             },
                             onAbrirHistorico = { selectedTab = 3 },
-                            onAbrirAjustes = { selectedTab = 4 },
+                            onAbrirAjustes = onAbrirPerfilOverlay,
                             nomeUsuario = nomeUsuario,
                             fotoUri = fotoUriUsuario,
-                            onAbrirPerfil = { showPerfilSheet = true },
+                            onAbrirPerfil = onAbrirPerfilOverlay,
                             planoInternet = planoInternet,
                             speedtestPendenteModoMovel = speedtestPendenteModoMovel,
                             onConfirmarSpeedtestMovel = onConfirmarSpeedtestMovel,
@@ -534,7 +556,7 @@ fun AppShell(
                             onVoltar = { selectedTab = 0 },
                             nomeUsuario = nomeUsuario,
                             fotoUri = fotoUriUsuario,
-                            onAbrirPerfil = { showPerfilSheet = true },
+                            onAbrirPerfil = onAbrirPerfilOverlay,
                             wifiLinkSnapshot = snapshotRede.wifiLinkSnapshot,
                             snapshotDispositivos = snapshotDevices,
                             apelidos = apelidos,
@@ -547,7 +569,7 @@ fun AppShell(
                             resumoHistorico = resumoHistorico,
                             nomeUsuario = nomeUsuario,
                             fotoUri = fotoUriUsuario,
-                            onAbrirPerfil = { showPerfilSheet = true },
+                            onAbrirPerfil = onAbrirPerfilOverlay,
                             onIniciarTeste = { selectedTab = 1 },
                             filtroConexao = filtroConexaoHistorico,
                             onFiltroConexaoChange = onFiltroConexaoHistoricoChange,
@@ -556,85 +578,13 @@ fun AppShell(
                             operadorasDisponiveis = operadorasDisponiveisHistorico,
                             adsEnabled = podeRequisitarAnuncio && adsFlags.habilitadoPara(AdSlot.HISTORICO),
                         )
-                    // Tab 4 — Ajustes
+                    // Tab 4 — Ferramentas (GH#930: substitui Ajustes; Ajustes virou overlay
+                    // "Perfil", acessado pelo avatar no TopBar — ver Overlay.Perfil abaixo)
                     else ->
-                        AjustesScreen(
-                            perfil =
-                                AjustesPerfilState(
-                                    nomeUsuario = nomeUsuario,
-                                    fotoUriUsuario = fotoUriUsuario,
-                                    deviceName = deviceName,
-                                    appVersion = BuildConfig.VERSION_NAME,
-                                    onSalvarPerfil = onSalvarPerfil,
-                                ),
-                            provedor =
-                                AjustesProvedorState(
-                                    operadora = operadora,
-                                    planoInternet = planoInternet,
-                                    regiao = regiao,
-                                    estadoUf = estadoUf,
-                                    cidadeNome = cidadeNome,
-                                    ispDetectado = ispInfoData?.isp,
-                                    ispConfirmado = ispConfirmado,
-                                    velocidadeContratadaDownMbps = velocidadeContratadaDownMbps,
-                                    velocidadeContratadaUpMbps = velocidadeContratadaUpMbps,
-                                    operadoraAutodetectada = movelSnapshot?.operadora,
-                                    onSalvarDadosProvedor = onSalvarDadosProvedor,
-                                    onSalvarEstadoCidade = onSalvarEstadoCidade,
-                                    onConfirmarIsp = onConfirmarIsp,
-                                    onDispensarBannerIsp = onDispensarBannerIsp,
-                                    onSalvarVelocidadeContratada = onSalvarVelocidadeContratada,
-                                ),
-                            monitoramento =
-                                AjustesMonitoramentoState(
-                                    monitoramentoAtivo = monitoramentoAtivo,
-                                    analiseAvancada = analiseAvancada,
-                                    notificacaoLatenciaAtiva = notificacaoLatenciaAtiva,
-                                    notificacaoDnsAtiva = notificacaoDnsAtiva,
-                                    notificacaoRssiAtiva = notificacaoRssiAtiva,
-                                    notificacaoSemInternetAtiva = notificacaoSemInternetAtiva,
-                                    onAtivarMonitoramento = onAtivarMonitoramento,
-                                    onDefinirAnaliseAvancada = onDefinirAnaliseAvancada,
-                                    onDefinirNotificacaoLatenciaAtiva = onDefinirNotificacaoLatenciaAtiva,
-                                    onDefinirNotificacaoDnsAtiva = onDefinirNotificacaoDnsAtiva,
-                                    onDefinirNotificacaoRssiAtiva = onDefinirNotificacaoRssiAtiva,
-                                    onDefinirNotificacaoSemInternetAtiva = onDefinirNotificacaoSemInternetAtiva,
-                                ),
-                            modem =
-                                AjustesModemState(
-                                    modemHost = modemHost,
-                                    modemUsername = modemUsername,
-                                    modemPassword = modemPassword,
-                                    modemPermanecerConectado = modemPermanecerConectado,
-                                    gatewayIpDetectado = gatewayIpDetectado,
-                                    onSalvarConfiguracaoModem = onSalvarConfiguracaoModem,
-                                    onConectarFibra = { host, user, pass -> onReconectarFibra(host, user, pass) },
-                                    gatewaySessaoValida = gatewaySessaoValida,
-                                    conectarGateway = gatewayConnectionServiceMock,
-                                    onGatewayConectado = onGatewayConectado,
-                                    bandasWifi = bandasWifiGateway,
-                                    dispositivosNaRede = clientesNaRedeGateway,
-                                ),
-                            temaSelecionado = temaSelecionado,
-                            onDefinirTemaSelecionado = onDefinirTemaSelecionado,
-                            limiteAlertaMbps = limiteAlertaMbps,
-                            onSalvarLimiteAlerta = onSalvarLimiteAlerta,
-                            onLimparHistorico = onLimparHistorico,
-                            onApagarDadosLocais = onApagarDadosLocais,
-                            onResetarApp = onResetarApp,
-                            onAbrirHistorico = { selectedTab = 3 },
-                            onAbrirLaudo = { if (Overlay.Laudo !in overlayStack) overlayStack.add(Overlay.Laudo) },
-                            onAbrirPerfil = { showPerfilSheet = true },
-                            onAbrirPrivacidade = { if (Overlay.Privacidade !in overlayStack) overlayStack.add(Overlay.Privacidade) },
-                            onAbrirNovidades = { if (Overlay.Novidades !in overlayStack) overlayStack.add(Overlay.Novidades) },
-                            // GH#530 — mesmo destino provisório usado pelo nó do gateway na Home.
-                            onAbrirFibra = onAbrirGatewayDetalhe,
-                            dadosMoveis =
-                                AjustesDadosMoveisState(
-                                    speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
-                                    speedtestMbConsumidosMes = speedtestMbConsumidosMes,
-                                    onSetSpeedtestPermiteHeavyMovel = onSetSpeedtestPermiteHeavyMovel,
-                                ),
+                        FerramentasScreen(
+                            nomeUsuario = nomeUsuario,
+                            fotoUri = fotoUriUsuario,
+                            onAbrirPerfil = onAbrirPerfilOverlay,
                         )
                 }
             }
@@ -783,7 +733,7 @@ fun AppShell(
                 snapshotFibra = snapshotFibra,
                 onVoltar = { overlayStack.remove(Overlay.Fibra) },
                 onRetentar = { onReconectarFibra(modemHost ?: "", modemUsername, modemPassword) },
-                onAbrirAjustes = { selectedTab = 4 },
+                onAbrirAjustes = onAbrirPerfilOverlay,
             )
         }
 
@@ -803,6 +753,136 @@ fun AppShell(
                 onVoltar = { overlayStack.remove(Overlay.Dispositivos) },
                 bandasWifi = bandasWifiGateway,
                 adsEnabled = podeRequisitarAnuncio && adsFlags.habilitadoPara(AdSlot.DISPOSITIVOS),
+            )
+        }
+
+        // TODO(#934): Fase 5 — EquipamentoInternetScreen real (composição por capacidade,
+        // engine plugável Nokia). Por ora reusa o FibraModemScreen como stub estrutural.
+        AnimatedVisibility(
+            visible = Overlay.EquipamentoInternet in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            FibraModemScreen(
+                snapshotFibra = snapshotFibra,
+                onVoltar = { overlayStack.remove(Overlay.EquipamentoInternet) },
+                onRetentar = { onReconectarFibra(modemHost ?: "", modemUsername, modemPassword) },
+                onAbrirAjustes = onAbrirPerfilOverlay,
+            )
+        }
+
+        // TODO(#933): Fase 4 — grid real de atalhos (5a-5g). Overlay.Ferramentas existe como
+        // estrutura para futuros pontos de entrada fora da tab bar (ex.: atalho na Home);
+        // hoje reusa o mesmo placeholder da tab.
+        AnimatedVisibility(
+            visible = Overlay.Ferramentas in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            FerramentasScreen(
+                nomeUsuario = nomeUsuario,
+                fotoUri = fotoUriUsuario,
+                onAbrirPerfil = onAbrirPerfilOverlay,
+            )
+        }
+
+        // TODO(#935): Fase 6 — tela real de Jogos.
+        AnimatedVisibility(
+            visible = Overlay.Jogos in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            JogosScreen(onVoltar = { overlayStack.remove(Overlay.Jogos) })
+        }
+
+        // TODO(#936): Fase 7 — reorganização 6a-6f (split de AjustesScreen). Por ora reusa a
+        // AjustesScreen atual inteira, alcançada pelo avatar no TopBar em vez da antiga tab 4.
+        AnimatedVisibility(
+            visible = Overlay.Perfil in overlayStack,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            AjustesScreen(
+                perfil =
+                    AjustesPerfilState(
+                        nomeUsuario = nomeUsuario,
+                        fotoUriUsuario = fotoUriUsuario,
+                        deviceName = deviceName,
+                        appVersion = BuildConfig.VERSION_NAME,
+                        onSalvarPerfil = onSalvarPerfil,
+                    ),
+                provedor =
+                    AjustesProvedorState(
+                        operadora = operadora,
+                        planoInternet = planoInternet,
+                        regiao = regiao,
+                        estadoUf = estadoUf,
+                        cidadeNome = cidadeNome,
+                        ispDetectado = ispInfoData?.isp,
+                        ispConfirmado = ispConfirmado,
+                        velocidadeContratadaDownMbps = velocidadeContratadaDownMbps,
+                        velocidadeContratadaUpMbps = velocidadeContratadaUpMbps,
+                        operadoraAutodetectada = movelSnapshot?.operadora,
+                        onSalvarDadosProvedor = onSalvarDadosProvedor,
+                        onSalvarEstadoCidade = onSalvarEstadoCidade,
+                        onConfirmarIsp = onConfirmarIsp,
+                        onDispensarBannerIsp = onDispensarBannerIsp,
+                        onSalvarVelocidadeContratada = onSalvarVelocidadeContratada,
+                    ),
+                monitoramento =
+                    AjustesMonitoramentoState(
+                        monitoramentoAtivo = monitoramentoAtivo,
+                        analiseAvancada = analiseAvancada,
+                        notificacaoLatenciaAtiva = notificacaoLatenciaAtiva,
+                        notificacaoDnsAtiva = notificacaoDnsAtiva,
+                        notificacaoRssiAtiva = notificacaoRssiAtiva,
+                        notificacaoSemInternetAtiva = notificacaoSemInternetAtiva,
+                        onAtivarMonitoramento = onAtivarMonitoramento,
+                        onDefinirAnaliseAvancada = onDefinirAnaliseAvancada,
+                        onDefinirNotificacaoLatenciaAtiva = onDefinirNotificacaoLatenciaAtiva,
+                        onDefinirNotificacaoDnsAtiva = onDefinirNotificacaoDnsAtiva,
+                        onDefinirNotificacaoRssiAtiva = onDefinirNotificacaoRssiAtiva,
+                        onDefinirNotificacaoSemInternetAtiva = onDefinirNotificacaoSemInternetAtiva,
+                    ),
+                modem =
+                    AjustesModemState(
+                        modemHost = modemHost,
+                        modemUsername = modemUsername,
+                        modemPassword = modemPassword,
+                        modemPermanecerConectado = modemPermanecerConectado,
+                        gatewayIpDetectado = gatewayIpDetectado,
+                        onSalvarConfiguracaoModem = onSalvarConfiguracaoModem,
+                        onConectarFibra = { host, user, pass -> onReconectarFibra(host, user, pass) },
+                        gatewaySessaoValida = gatewaySessaoValida,
+                        conectarGateway = gatewayConnectionServiceMock,
+                        onGatewayConectado = onGatewayConectado,
+                        bandasWifi = bandasWifiGateway,
+                        dispositivosNaRede = clientesNaRedeGateway,
+                    ),
+                temaSelecionado = temaSelecionado,
+                onDefinirTemaSelecionado = onDefinirTemaSelecionado,
+                limiteAlertaMbps = limiteAlertaMbps,
+                onSalvarLimiteAlerta = onSalvarLimiteAlerta,
+                onLimparHistorico = onLimparHistorico,
+                onApagarDadosLocais = onApagarDadosLocais,
+                onResetarApp = onResetarApp,
+                onAbrirHistorico = {
+                    overlayStack.remove(Overlay.Perfil)
+                    selectedTab = 3
+                },
+                onAbrirLaudo = { if (Overlay.Laudo !in overlayStack) overlayStack.add(Overlay.Laudo) },
+                onAbrirPerfil = { showPerfilSheet = true },
+                onAbrirPrivacidade = { if (Overlay.Privacidade !in overlayStack) overlayStack.add(Overlay.Privacidade) },
+                onAbrirNovidades = { if (Overlay.Novidades !in overlayStack) overlayStack.add(Overlay.Novidades) },
+                // GH#530 — mesmo destino provisório usado pelo nó do gateway na Home.
+                onAbrirFibra = onAbrirGatewayDetalhe,
+                dadosMoveis =
+                    AjustesDadosMoveisState(
+                        speedtestPermiteHeavyMovel = speedtestPermiteHeavyMovel,
+                        speedtestMbConsumidosMes = speedtestMbConsumidosMes,
+                        onSetSpeedtestPermiteHeavyMovel = onSetSpeedtestPermiteHeavyMovel,
+                    ),
+                onVoltar = { overlayStack.remove(Overlay.Perfil) },
             )
         }
 
@@ -881,7 +961,7 @@ private fun AppBottomNavBar(
             AppNavItem(c, selectedTab, 1, "Velocidade", Icons.Outlined.Speed, Icons.Filled.Speed, onTabSelected, showBadge = testeAtivo)
             AppNavItem(c, selectedTab, 2, "Sinal", Icons.Outlined.Wifi, Icons.Filled.Wifi, onTabSelected)
             AppNavItem(c, selectedTab, 3, "Histórico", Icons.Outlined.History, Icons.Filled.History, onTabSelected)
-            AppNavItem(c, selectedTab, 4, "Ajustes", Icons.Outlined.Settings, Icons.Filled.Settings, onTabSelected)
+            AppNavItem(c, selectedTab, 4, "Ferramentas", Icons.Outlined.Build, Icons.Filled.Build, onTabSelected)
         }
     }
 }
