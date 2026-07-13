@@ -33,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.outlined.Article
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.DarkMode
@@ -64,6 +65,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
@@ -134,6 +136,9 @@ fun AjustesScreen(
     onAbrirPrivacidade: () -> Unit = {},
     onAbrirNovidades: () -> Unit = {},
     onAbrirFibra: () -> Unit = {},
+    // GH#930 — Fase 1 MD3: Ajustes deixou de ser tab (agora "Perfil" via overlay, acessado
+    // pelo avatar no TopBar das outras telas). Quando não-nulo, mostra botão de fechar.
+    onVoltar: (() -> Unit)? = null,
     dadosMoveis: AjustesDadosMoveisState =
         AjustesDadosMoveisState(
             speedtestPermiteHeavyMovel = false,
@@ -229,6 +234,17 @@ fun AjustesScreen(
                         fotoUri = fotoUriUsuario,
                         onClick = onAbrirPerfil,
                     )
+                },
+                actions = {
+                    if (onVoltar != null) {
+                        IconButton(onClick = onVoltar) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Fechar",
+                                tint = c.textPrimary,
+                            )
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
             )
