@@ -9,11 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -212,18 +210,17 @@ fun SignallQTheme(
     }
 }
 
-// Roboto Flex (GH#929) — fonte variável OFL, decisão do Luiz em substituição a Google Sans Flex
-// (sem licença de redistribuição confirmada). Fonte: github.com/google/fonts/tree/main/ofl/robotoflex
-// (SIL OFL 1.1 — texto completo em android/app/src/main/assets/licenses/roboto_flex_OFL.txt).
-// Uma entrada por peso usado na escala abaixo, instanciando o eixo `wght` da fonte variável —
-// evita depender do named instance default (Regular) em toda a tipografia.
-@OptIn(ExperimentalTextApi::class)
+// Google Sans Flex (GH#929) — fonte do protótipo MD3 To-Be. Licença SIL OFL 1.1 confirmada via
+// catálogo ao vivo do Google Fonts (fonts.google.com/metadata/fonts, isOpenSource=true) e servida
+// pelo CDN oficial (fonts.gstatic.com) — texto completo da licença em
+// android/app/src/main/assets/licenses/google_sans_flex_OFL.txt. Instâncias estáticas (não a
+// variable font completa) baixadas direto do CDN oficial, uma por peso usado na escala abaixo.
 private val signallQFontFamily =
     FontFamily(
-        Font(R.font.roboto_flex, weight = FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
-        Font(R.font.roboto_flex, weight = FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
-        Font(R.font.roboto_flex, weight = FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
-        Font(R.font.roboto_flex, weight = FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
+        Font(R.font.google_sans_flex_regular, weight = FontWeight.Normal),
+        Font(R.font.google_sans_flex_medium, weight = FontWeight.Medium),
+        Font(R.font.google_sans_flex_semibold, weight = FontWeight.SemiBold),
+        Font(R.font.google_sans_flex_bold, weight = FontWeight.Bold),
     )
 
 // Escala tipográfica SignallQ — Material 3 / WCAG 2.2 AA.
