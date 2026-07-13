@@ -118,7 +118,7 @@ private enum class Overlay {
     // TODO(#935): Fase 6 — tela real de Jogos. Por ora um stub simples.
     Jogos,
 
-    // TODO(#936): Fase 7 — reorganização 6a-6f. Por ora reusa a AjustesScreen atual inteira.
+    // GH#936 — Fase 7: reorganização 6a-6f concluída (ver AjustesScreen.kt).
     Perfil,
 }
 
@@ -329,6 +329,12 @@ fun AppShell(
     val onAbrirPerfilOverlay: () -> Unit = {
         if (Overlay.Perfil !in overlayStack) overlayStack.add(Overlay.Perfil)
     }
+
+    // GH#936 — Fase 7 MD3 (5f): "Monitoramento" agora é sheet dedicado (MonitoramentoSheet.kt),
+    // hoisted aqui pra ser destino único do atalho no hub Ferramentas e da linha equivalente
+    // dentro de Perfil/Ajustes — nenhum dos dois reimplementa os toggles.
+    var showMonitoramentoSheet by remember { mutableStateOf(false) }
+    val onAbrirMonitoramentoOverlay: () -> Unit = { showMonitoramentoSheet = true }
 
     // Destino provisorio da conexao ao gateway — FibraModemScreen ja le sinal do modem, mas
     // NAO e a tela de detalhe definitiva do GPON/Roteador (isso e SIG-357, ainda nao existe).
@@ -606,7 +612,7 @@ fun AppShell(
                             onAbrirPing = onAbrirPingOverlay,
                             onAbrirDns = if (FeatureFlags.DNS_SCREEN) onAbrirDnsOverlay else null,
                             onAbrirLaudo = onAbrirLaudoOverlay,
-                            onAbrirMonitoramento = onAbrirPerfilOverlay,
+                            onAbrirMonitoramento = onAbrirMonitoramentoOverlay,
                             onAbrirJogos = onAbrirJogosOverlay,
                         )
                 }
@@ -811,7 +817,7 @@ fun AppShell(
                 onAbrirPing = onAbrirPingOverlay,
                 onAbrirDns = if (FeatureFlags.DNS_SCREEN) onAbrirDnsOverlay else null,
                 onAbrirLaudo = onAbrirLaudoOverlay,
-                onAbrirMonitoramento = onAbrirPerfilOverlay,
+                onAbrirMonitoramento = onAbrirMonitoramentoOverlay,
                 onAbrirJogos = onAbrirJogosOverlay,
             )
         }
@@ -841,8 +847,10 @@ fun AppShell(
             JogosScreen(onVoltar = { overlayStack.remove(Overlay.Jogos) })
         }
 
-        // TODO(#936): Fase 7 — reorganização 6a-6f (split de AjustesScreen). Por ora reusa a
-        // AjustesScreen atual inteira, alcançada pelo avatar no TopBar em vez da antiga tab 4.
+        // GH#936 — Fase 7: AjustesScreen.kt virou lista de entradas pras 6 sub-telas
+        // (6a PerfilEditSheet, 6b MinhaConexaoSheet, 6c DadosLocaisSheet, 6d Privacidade,
+        // 6e Novidades, 6f SobreSheet) em vez de formulário monolítico — alcançada pelo
+        // avatar no TopBar em vez da antiga tab 4.
         AnimatedVisibility(
             visible = Overlay.Perfil in overlayStack,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -918,6 +926,7 @@ fun AppShell(
                 },
                 onAbrirLaudo = onAbrirLaudoOverlay,
                 onAbrirPerfil = { showPerfilSheet = true },
+                onAbrirMonitoramento = onAbrirMonitoramentoOverlay,
                 onAbrirPrivacidade = { if (Overlay.Privacidade !in overlayStack) overlayStack.add(Overlay.Privacidade) },
                 onAbrirNovidades = { if (Overlay.Novidades !in overlayStack) overlayStack.add(Overlay.Novidades) },
                 // GH#530 — mesmo destino provisório usado pelo nó do gateway na Home.
@@ -968,6 +977,25 @@ fun AppShell(
                 onLimparHistorico = onLimparHistorico,
                 onApagarDadosLocais = onApagarDadosLocais,
                 onResetarApp = onResetarApp,
+            )
+        }
+
+        if (showMonitoramentoSheet) {
+            MonitoramentoSheet(
+                c = c,
+                analiseAvancada = analiseAvancada,
+                monitoramentoAtivo = monitoramentoAtivo,
+                notificacaoLatenciaAtiva = notificacaoLatenciaAtiva,
+                notificacaoDnsAtiva = notificacaoDnsAtiva,
+                notificacaoRssiAtiva = notificacaoRssiAtiva,
+                notificacaoSemInternetAtiva = notificacaoSemInternetAtiva,
+                onDismiss = { showMonitoramentoSheet = false },
+                onDefinirAnaliseAvancada = onDefinirAnaliseAvancada,
+                onAtivarMonitoramento = onAtivarMonitoramento,
+                onDefinirNotificacaoLatenciaAtiva = onDefinirNotificacaoLatenciaAtiva,
+                onDefinirNotificacaoDnsAtiva = onDefinirNotificacaoDnsAtiva,
+                onDefinirNotificacaoRssiAtiva = onDefinirNotificacaoRssiAtiva,
+                onDefinirNotificacaoSemInternetAtiva = onDefinirNotificacaoSemInternetAtiva,
             )
         }
     }
