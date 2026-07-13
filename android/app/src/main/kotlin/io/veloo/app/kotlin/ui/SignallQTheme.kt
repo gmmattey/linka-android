@@ -10,10 +10,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.signallq.app.R
 
 object LkColors {
     val accent = Color(0xFF6C2BFF)
@@ -207,22 +210,35 @@ fun SignallQTheme(
     }
 }
 
+// Google Sans Flex (GH#929) — fonte do protótipo MD3 To-Be. Licença SIL OFL 1.1 confirmada via
+// catálogo ao vivo do Google Fonts (fonts.google.com/metadata/fonts, isOpenSource=true) e servida
+// pelo CDN oficial (fonts.gstatic.com) — texto completo da licença em
+// android/app/src/main/assets/licenses/google_sans_flex_OFL.txt. Instâncias estáticas (não a
+// variable font completa) baixadas direto do CDN oficial, uma por peso usado na escala abaixo.
+private val signallQFontFamily =
+    FontFamily(
+        Font(R.font.google_sans_flex_regular, weight = FontWeight.Normal),
+        Font(R.font.google_sans_flex_medium, weight = FontWeight.Medium),
+        Font(R.font.google_sans_flex_semibold, weight = FontWeight.SemiBold),
+        Font(R.font.google_sans_flex_bold, weight = FontWeight.Bold),
+    )
+
 // Escala tipográfica SignallQ — Material 3 / WCAG 2.2 AA.
 // Todos os tamanhos em sp para respeitar fontScale do sistema.
 // bodyMedium≥14sp, bodyLarge=16sp (telas principais), botões/labels≥14sp.
 private val signallQTypography =
     Typography(
-        displayLarge = TextStyle(fontSize = 34.sp, fontWeight = FontWeight.Bold),
-        headlineLarge = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.SemiBold),
-        headlineMedium = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold),
-        headlineSmall = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-        titleLarge = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
-        titleMedium = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-        titleSmall = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-        bodyLarge = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal),
-        bodyMedium = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
-        bodySmall = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
-        labelLarge = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-        labelMedium = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
-        labelSmall = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Normal),
+        displayLarge = TextStyle(fontFamily = signallQFontFamily, fontSize = 34.sp, fontWeight = FontWeight.Bold),
+        headlineLarge = TextStyle(fontFamily = signallQFontFamily, fontSize = 24.sp, fontWeight = FontWeight.SemiBold),
+        headlineMedium = TextStyle(fontFamily = signallQFontFamily, fontSize = 20.sp, fontWeight = FontWeight.SemiBold),
+        headlineSmall = TextStyle(fontFamily = signallQFontFamily, fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
+        titleLarge = TextStyle(fontFamily = signallQFontFamily, fontSize = 16.sp, fontWeight = FontWeight.Medium),
+        titleMedium = TextStyle(fontFamily = signallQFontFamily, fontSize = 15.sp, fontWeight = FontWeight.Medium),
+        titleSmall = TextStyle(fontFamily = signallQFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Medium),
+        bodyLarge = TextStyle(fontFamily = signallQFontFamily, fontSize = 16.sp, fontWeight = FontWeight.Normal),
+        bodyMedium = TextStyle(fontFamily = signallQFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Normal),
+        bodySmall = TextStyle(fontFamily = signallQFontFamily, fontSize = 12.sp, fontWeight = FontWeight.Normal),
+        labelLarge = TextStyle(fontFamily = signallQFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Medium),
+        labelMedium = TextStyle(fontFamily = signallQFontFamily, fontSize = 12.sp, fontWeight = FontWeight.Normal),
+        labelSmall = TextStyle(fontFamily = signallQFontFamily, fontSize = 11.sp, fontWeight = FontWeight.Normal),
     )
