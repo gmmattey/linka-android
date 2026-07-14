@@ -292,6 +292,40 @@ class MainViewModel
             viewModelScope.launch { preferenciasAppRepository.definirAnatelBannerDismissed(true) }
         }
 
+        // Auditoria design To-Be 2026-07-13 — dismiss persistido das sheets contextuais de
+        // permissao (localizacao/telefonia), pra nao reabrir sozinha em toda nova sessao.
+        val localizacaoSheetDismissed: StateFlow<Boolean> by lazy {
+            preferenciasAppRepository.localizacaoSheetDismissedFlow
+                .distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        }
+
+        val telefoniaSheetDismissed: StateFlow<Boolean> by lazy {
+            preferenciasAppRepository.telefoniaSheetDismissedFlow
+                .distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        }
+
+        fun dispensarSheetLocalizacao() {
+            viewModelScope.launch { preferenciasAppRepository.definirLocalizacaoSheetDismissed(true) }
+        }
+
+        fun dispensarSheetTelefonia() {
+            viewModelScope.launch { preferenciasAppRepository.definirTelefoniaSheetDismissed(true) }
+        }
+
+        // Rastreia se READ_PHONE_STATE ja foi solicitada alguma vez (onboarding ou lazy) --
+        // distingue "nunca pedimos" de "negada permanentemente" pra gate de reabertura da sheet.
+        val telefoniaPermissaoJaSolicitada: StateFlow<Boolean> by lazy {
+            preferenciasAppRepository.telefoniaPermissaoJaSolicitadaFlow
+                .distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        }
+
+        fun marcarTelefoniaPermissaoJaSolicitada() {
+            viewModelScope.launch { preferenciasAppRepository.definirTelefoniaPermissaoJaSolicitada() }
+        }
+
         fun marcarOnboardingConcluido() {
             viewModelScope.launch { preferenciasAppRepository.definirOnboardingConcluido(true) }
         }

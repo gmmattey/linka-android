@@ -109,6 +109,10 @@ class MainActivity : ComponentActivity() {
     // #155/9.3: permissão negada permanentemente (shouldShowRequestPermissionRationale = false E não concedida)
     private var localizacaoBloqueadaPermanentemente by mutableStateOf(false)
 
+    // Auditoria design To-Be 2026-07-13 — mesmo sinal para READ_PHONE_STATE, usado pra
+    // parar de reabrir a sheet contextual de telefonia sozinha quando negada permanentemente.
+    private var telefoniaBloqueadaPermanentemente by mutableStateOf(false)
+
     // Issue #555 -- gate de consentimento UMP para anuncio nativo AdMob. Comeca false:
     // nenhuma tela pede anuncio ate a UMP responder (mesmo que a resposta seja "nao
     // exigido nesta regiao", ainda precisa do callback pra saber disso).
@@ -261,6 +265,13 @@ class MainActivity : ComponentActivity() {
             val recommendationFeedback by viewModel.recommendationFeedback.collectAsStateWithLifecycle()
             // #82 — Banner Anatel dismissível
             val anatelBannerDismissed = viewModel.anatelBannerDismissed.collectAsStateWithLifecycle().value
+            // Auditoria design To-Be 2026-07-13 — dismiss persistido das sheets contextuais
+            // de permissao (localizacao/telefonia).
+            val localizacaoSheetDismissed = viewModel.localizacaoSheetDismissed.collectAsStateWithLifecycle().value
+            val telefoniaSheetDismissed = viewModel.telefoniaSheetDismissed.collectAsStateWithLifecycle().value
+            // Mantem o StateFlow "quente" pra onResume conseguir ler .value com dado real do
+            // DataStore (nao so o valor inicial default).
+            val telefoniaPermissaoJaSolicitada = viewModel.telefoniaPermissaoJaSolicitada.collectAsStateWithLifecycle().value
             // Issue #555 -- toggle remoto (Firebase Remote Config) de anuncios nativos.
             val adsFlags by adsFlagsManager.flags.collectAsStateWithLifecycle()
 
@@ -493,6 +504,11 @@ class MainActivity : ComponentActivity() {
                         temPermissaoLocalizacao = temPermissaoLocalizacao,
                         localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                         onSolicitarPermissaoLocalizacao = { solicitarPermissaoLocalizacaoContextual() },
+                        telefoniaBloqueadaPermanentemente = telefoniaBloqueadaPermanentemente,
+                        localizacaoSheetDismissed = localizacaoSheetDismissed,
+                        onDispensarSheetLocalizacao = { viewModel.dispensarSheetLocalizacao() },
+                        telefoniaSheetDismissed = telefoniaSheetDismissed,
+                        onDispensarSheetTelefonia = { viewModel.dispensarSheetTelefonia() },
                         velocidadeContratadaDownMbps = perfilProvedor.velocidadeContratadaDownMbps,
                         velocidadeContratadaUpMbps = perfilProvedor.velocidadeContratadaUpMbps,
                         onSalvarVelocidadeContratada = { down, up ->
@@ -546,6 +562,12 @@ class MainActivity : ComponentActivity() {
         // #155/9.3: bloqueada = não concedida E não pode mais mostrar rationale
         localizacaoBloqueadaPermanentemente = !temPermissaoLocalizacao &&
             !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
+        // READ_PHONE_STATE so conta como "bloqueada permanentemente" se ja foi solicitada
+        // alguma vez -- senao "nunca pedimos" (rationale tambem false) seria confundido com
+        // negacao permanente e a sheet contextual nunca abriria na primeira visita.
+        telefoniaBloqueadaPermanentemente = !temPermissaoTelefonia &&
+            viewModel.telefoniaPermissaoJaSolicitada.value &&
+            !shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE)
         val emWifi = viewModel.monitorRede.snapshotFlow.value.estadoConexao == EstadoConexao.wifi
         // Usa DevicesViewModel para verificar novos dispositivos (etapa A do refactor).
         // O MainViewModel.verificarDispositivosNovos() ainda existe mas nao e mais chamado aqui.
@@ -625,6 +647,7 @@ class MainActivity : ComponentActivity() {
         }
         if (jaSolicitouTelefoniaNestaSessao) return
         jaSolicitouTelefoniaNestaSessao = true
+        viewModel.marcarTelefoniaPermissaoJaSolicitada()
         solicitacaoPermissaoTelefonia.launch(Manifest.permission.READ_PHONE_STATE)
     }
 
@@ -639,6 +662,7 @@ class MainActivity : ComponentActivity() {
             viewModel.iniciarMonitorTelefoniaSeMovel()
             return
         }
+        viewModel.marcarTelefoniaPermissaoJaSolicitada()
         solicitacaoPermissaoTelefonia.launch(Manifest.permission.READ_PHONE_STATE)
     }
 

@@ -280,6 +280,15 @@ fun SinalScreen(
     temPermissaoLocalizacao: Boolean = true,
     localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
+    telefoniaBloqueadaPermanentemente: Boolean = false,
+    // Auditoria design To-Be 2026-07-13 — dismiss persistido (DataStore, sobrevive a
+    // reinicio de processo) das sheets contextuais de permissao desta tela. Antes eram
+    // remember{} (so-sessao), o que fazia a sheet reabrir sozinha a cada nova sessao mesmo
+    // com a permissao negada permanentemente.
+    localizacaoSheetDismissed: Boolean = false,
+    onDispensarSheetLocalizacao: () -> Unit = {},
+    telefoniaSheetDismissed: Boolean = false,
+    onDispensarSheetTelefonia: () -> Unit = {},
     onRefresh: () -> Unit,
     onVoltar: () -> Unit,
     nomeUsuario: String = "",
@@ -296,21 +305,30 @@ fun SinalScreen(
     val conexaoTipo = estadoConexao.toConexaoTipo()
 
     var showLocalizacaoSheet by remember { mutableStateOf(false) }
-    var localizacaoSheetDismissed by remember { mutableStateOf(false) }
     var showTelefoniaSheet by remember { mutableStateOf(false) }
-    var telefoniaSheetDismissed by remember { mutableStateOf(false) }
 
     val locSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val telSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    LaunchedEffect(conexaoTipo, temPermissaoLocalizacao, localizacaoSheetDismissed) {
-        if (conexaoTipo == ConexaoTipo.WIFI && !temPermissaoLocalizacao && !localizacaoSheetDismissed) {
+    // Regra: so reabre sozinha se a permissao esta ausente E o Android ainda permite pedir
+    // de novo (nao esta negada permanentemente). Negacao permanente nao dispara popup —
+    // usuario aciona manualmente via LocPermissaoBanner.
+    LaunchedEffect(conexaoTipo, temPermissaoLocalizacao, localizacaoSheetDismissed, localizacaoBloqueadaPermanentemente) {
+        if (conexaoTipo == ConexaoTipo.WIFI &&
+            !temPermissaoLocalizacao &&
+            !localizacaoSheetDismissed &&
+            !localizacaoBloqueadaPermanentemente
+        ) {
             showLocalizacaoSheet = true
         }
     }
 
-    LaunchedEffect(conexaoTipo, temPermissaoTelefonia, telefoniaSheetDismissed) {
-        if (conexaoTipo == ConexaoTipo.MOBILE && !temPermissaoTelefonia && !telefoniaSheetDismissed) {
+    LaunchedEffect(conexaoTipo, temPermissaoTelefonia, telefoniaSheetDismissed, telefoniaBloqueadaPermanentemente) {
+        if (conexaoTipo == ConexaoTipo.MOBILE &&
+            !temPermissaoTelefonia &&
+            !telefoniaSheetDismissed &&
+            !telefoniaBloqueadaPermanentemente
+        ) {
             showTelefoniaSheet = true
         }
     }
@@ -432,9 +450,10 @@ fun SinalScreen(
         ModalBottomSheet(
             onDismissRequest = {
                 showLocalizacaoSheet = false
-                localizacaoSheetDismissed = true
+                onDispensarSheetLocalizacao()
             },
             sheetState = locSheetState,
+            dragHandle = {},
         ) {
             PermissaoLocalizacaoContextoSheet(
                 bloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
@@ -444,7 +463,7 @@ fun SinalScreen(
                 },
                 onAgoraNao = {
                     showLocalizacaoSheet = false
-                    localizacaoSheetDismissed = true
+                    onDispensarSheetLocalizacao()
                 },
             )
         }
@@ -454,9 +473,10 @@ fun SinalScreen(
         ModalBottomSheet(
             onDismissRequest = {
                 showTelefoniaSheet = false
-                telefoniaSheetDismissed = true
+                onDispensarSheetTelefonia()
             },
             sheetState = telSheetState,
+            dragHandle = {},
         ) {
             PermissaoTelefoniaContextoSheet(
                 onConceder = {
@@ -465,7 +485,7 @@ fun SinalScreen(
                 },
                 onAgoraNao = {
                     showTelefoniaSheet = false
-                    telefoniaSheetDismissed = true
+                    onDispensarSheetTelefonia()
                 },
             )
         }

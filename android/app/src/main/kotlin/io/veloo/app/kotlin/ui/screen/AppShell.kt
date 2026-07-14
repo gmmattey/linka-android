@@ -209,6 +209,13 @@ fun AppShell(
     temPermissaoLocalizacao: Boolean = true,
     localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
+    telefoniaBloqueadaPermanentemente: Boolean = false,
+    // Auditoria design To-Be 2026-07-13 — dismiss persistido (DataStore) das sheets
+    // contextuais de permissao de Sinal, pra nao reabrir sozinha em toda nova sessao.
+    localizacaoSheetDismissed: Boolean = false,
+    onDispensarSheetLocalizacao: () -> Unit = {},
+    telefoniaSheetDismissed: Boolean = false,
+    onDispensarSheetTelefonia: () -> Unit = {},
     // Issue #85 — Minha Conexão
     velocidadeContratadaDownMbps: Int = 0,
     velocidadeContratadaUpMbps: Int = 0,
@@ -584,6 +591,11 @@ fun AppShell(
                             temPermissaoLocalizacao = temPermissaoLocalizacao,
                             localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                             onSolicitarPermissaoLocalizacao = onSolicitarPermissaoLocalizacao,
+                            telefoniaBloqueadaPermanentemente = telefoniaBloqueadaPermanentemente,
+                            localizacaoSheetDismissed = localizacaoSheetDismissed,
+                            onDispensarSheetLocalizacao = onDispensarSheetLocalizacao,
+                            telefoniaSheetDismissed = telefoniaSheetDismissed,
+                            onDispensarSheetTelefonia = onDispensarSheetTelefonia,
                             onRefresh = onRefreshSinal,
                             onVoltar = { selectedTab = 0 },
                             nomeUsuario = nomeUsuario,

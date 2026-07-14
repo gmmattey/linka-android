@@ -54,6 +54,18 @@ class PreferenciasAppRepository(
     private val chaveConsentimentoLgpd = booleanPreferencesKey("consentimento_lgpd")
     private val chaveAnatelBannerDismissed = booleanPreferencesKey("anatelBannerDismissed")
 
+    // Auditoria design To-Be 2026-07-13 — persiste o dismiss das sheets contextuais de
+    // permissao (localizacao/telefonia) alem da sessao atual, pra nao reabrir sozinha em
+    // toda nova sessao do app (antes era remember{}, resetava a cada processo).
+    private val chaveLocalizacaoSheetDismissed = booleanPreferencesKey("localizacaoSheetDismissed")
+    private val chaveTelefoniaSheetDismissed = booleanPreferencesKey("telefoniaSheetDismissed")
+
+    // READ_PHONE_STATE (diferente de ACCESS_FINE_LOCATION) nao e re-solicitada automaticamente
+    // a cada onStart -- so via onboarding opcional ou lazy ao entrar em diagnostico/rede movel.
+    // Sem rastrear "ja foi pedida alguma vez" nao da pra distinguir "nunca pedimos" (deve reabrir)
+    // de "negada permanentemente" (nao deve reabrir) so com shouldShowRequestPermissionRationale.
+    private val chaveTelefoniaPermissaoJaSolicitada = booleanPreferencesKey("telefoniaPermissaoJaSolicitada")
+
     // Velocidade contratada — MinhaConexaoScreen / Laudo (#85)
     private val chaveVelocidadeContratadaDownMbps = intPreferencesKey("velocidadeContratadaDownMbps")
     private val chaveVelocidadeContratadaUpMbps = intPreferencesKey("velocidadeContratadaUpMbps")
@@ -192,6 +204,15 @@ class PreferenciasAppRepository(
 
     val anatelBannerDismissedFlow: Flow<Boolean> =
         context.dataStore.data.map { it[chaveAnatelBannerDismissed] ?: false }
+
+    val localizacaoSheetDismissedFlow: Flow<Boolean> =
+        context.dataStore.data.map { it[chaveLocalizacaoSheetDismissed] ?: false }
+
+    val telefoniaSheetDismissedFlow: Flow<Boolean> =
+        context.dataStore.data.map { it[chaveTelefoniaSheetDismissed] ?: false }
+
+    val telefoniaPermissaoJaSolicitadaFlow: Flow<Boolean> =
+        context.dataStore.data.map { it[chaveTelefoniaPermissaoJaSolicitada] ?: false }
 
     // null = nao respondido, true = aceito, false = recusado
     val consentimentoLgpdFlow: Flow<Boolean?> =
@@ -351,6 +372,18 @@ class PreferenciasAppRepository(
 
     suspend fun definirAnatelBannerDismissed(dismissed: Boolean) {
         withContext(ioDispatcher) { context.dataStore.edit { it[chaveAnatelBannerDismissed] = dismissed } }
+    }
+
+    suspend fun definirLocalizacaoSheetDismissed(dismissed: Boolean) {
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveLocalizacaoSheetDismissed] = dismissed } }
+    }
+
+    suspend fun definirTelefoniaSheetDismissed(dismissed: Boolean) {
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveTelefoniaSheetDismissed] = dismissed } }
+    }
+
+    suspend fun definirTelefoniaPermissaoJaSolicitada() {
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveTelefoniaPermissaoJaSolicitada] = true } }
     }
 
     suspend fun definirConsentimentoLgpd(aceito: Boolean) {
