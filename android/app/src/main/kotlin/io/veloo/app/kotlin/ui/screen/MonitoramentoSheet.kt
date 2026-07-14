@@ -100,7 +100,7 @@ internal fun MonitoramentoSheet(
             )
             Spacer(Modifier.height(LkSpacing.md))
             Text(
-                text = "Monitoramento",
+                text = "Diagnóstico avançado",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = c.textPrimary,
@@ -150,7 +150,7 @@ internal fun MonitoramentoSheet(
                 )
                 Text(
                     text = "Notificações",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     color = c.textSecondary,
                     modifier = Modifier.padding(horizontal = LkSpacing.lg, vertical = LkSpacing.xs),
                 )
