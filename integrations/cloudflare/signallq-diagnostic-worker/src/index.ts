@@ -23,6 +23,7 @@ import {
   enqueuePendingProviderReviews,
   getProviderByAsn,
   getProviderById,
+  getProviderLogoBinary,
   listProviderReviewQueue,
   listStaleProviders,
   registerProviderDetection,
@@ -47,9 +48,10 @@ type Env = {
   // signallq-admin-worker). Sem esta var, Access-Control-Allow-Origin fica
   // vazio (nenhuma origem liberada) em vez de quebrar o worker.
   ALLOWED_ORIGIN?: string;
-  // GH#965 — binding R2 opcional (ver nota em provider-directory.ts e
-  // wrangler.toml: R2 ainda nao habilitado na conta Cloudflare em 2026-07-14).
-  PROVIDER_LOGOS?: R2Bucket;
+  // GH#965 (revisado) — base publica pra montar `ProviderLogo.url` (o proprio
+  // worker serve o binario via `GET /providers/:id/logo`, gravado como BLOB
+  // base64 no D1 — ver provider-directory.ts). R2 descartado por decisao de
+  // produto (Cloudflare exige cartao mesmo no tier gratis).
   PROVIDER_LOGO_PUBLIC_BASE_URL?: string;
 };
 
@@ -460,6 +462,22 @@ async function handleProviderLogoUpload(request: Request, env: Env, providerId: 
   return json({ ok: true, url: result.url, version: result.version }, 201);
 }
 
+// GH#965 — rota publica que serve o binario da logo gravado no D1 (BLOB
+// base64) diretamente, com o content-type real de upload. 404 tratado quando
+// o provedor nao tem logo com blob (seeded local via sourceUrl, ou nunca
+// enviado) — nunca 500 cru.
+async function handleProviderLogoGet(providerId: string, env: Env): Promise<Response> {
+  const asset = await getProviderLogoBinary(env, providerId);
+  if (!asset) return json({ error: "Logo not found." }, 404);
+  return new Response(asset.bytes, {
+    status: 200,
+    headers: {
+      "content-type": asset.contentType,
+      "cache-control": "public, max-age=86400",
+    },
+  });
+}
+
 async function handleGameCatalogList(url: URL, env: Env): Promise<Response> {
   const platform = url.searchParams.get("platform");
   return json({ items: await listGameCatalog(env, platform) });
@@ -686,6 +704,7 @@ async function route(request: Request, env: Env): Promise<Response> {
         "/providers/by-asn/:asn",
         "/providers/:providerId",
         "/providers/:providerId/support",
+        "/providers/:providerId/logo",
         "/providers/search",
         "/ingest/provider-detection",
       ],
@@ -823,9 +842,12 @@ async function route(request: Request, env: Env): Promise<Response> {
     const segments = url.pathname.split("/").filter(Boolean);
     const providerId = segments[1] === "api" ? segments[2] : segments[1];
     if (!providerId) return json({ error: "Provider id is required." }, 400);
-    const supportSegment = segments[1] === "api" ? segments[3] : segments[2];
-    if (supportSegment === "support") {
+    const subSegment = segments[1] === "api" ? segments[3] : segments[2];
+    if (subSegment === "support") {
       return handleProviderSupport(providerId, env);
+    }
+    if (subSegment === "logo") {
+      return handleProviderLogoGet(providerId, env);
     }
     return handleProviderById(providerId, env);
   }

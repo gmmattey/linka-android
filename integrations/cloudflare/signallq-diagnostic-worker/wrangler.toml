@@ -27,12 +27,14 @@ GAME_PROFILE_SEED_JSON = "[]"
 # Access-Control-Allow-Origin fica vazio (nenhuma origem liberada).
 ALLOWED_ORIGIN = "https://signallq-admin-panel.pages.dev"
 
-# GH#965 — dominio publico do bucket R2 usado para montar ProviderLogo.url
-# (ex.: "https://assets.signallq.com" ou o dominio r2.dev). PENDENTE: so tem
-# efeito depois que o bucket [[r2_buckets]] acima for criado e descomentado.
-# Sem esta var, uploadProviderLogo grava a URL como o proprio r2_key relativo
-# (nao quebra, mas nao resolve pra um link publico de verdade).
-PROVIDER_LOGO_PUBLIC_BASE_URL = ""
+# GH#965 (revisado 2026-07-14) — base publica usada para montar ProviderLogo.url.
+# R2 foi descartado por decisao de produto (Cloudflare exige cartao de credito
+# cadastrado mesmo no tier gratis). A logo agora fica como BLOB base64 direto
+# no D1 (`provider_assets.data_base64`, migration 006) e e servida pelo proprio
+# worker via `GET /providers/:id/logo` — esta var so precisa apontar pra URL
+# publica de deploy deste worker. Sem esta var, ProviderLogo.url fica um path
+# relativo (nao quebra, mas nao resolve pra um link absoluto de verdade).
+PROVIDER_LOGO_PUBLIC_BASE_URL = "https://signallq-diagnostic.giammattey-luiz.workers.dev"
 
 [triggers]
 crons = ["0 * * * *"]
@@ -42,20 +44,12 @@ binding = "DB"
 database_name = "signallq-diagnostic-db"
 database_id = "00000000-0000-0000-0000-000000000000"
 
-# GH#965 — bucket R2 para hospedar logo real de provedor (ProviderLogo.url).
-# PENDENTE: R2 ainda NAO esta habilitado nesta conta Cloudflare. Verificado em
-# 2026-07-14 via `wrangler r2 bucket list`:
-#   "Please enable R2 through the Cloudflare Dashboard. [code: 10042]"
-# Passos para ativar (manual, feito por humano com acesso ao dashboard):
-#   1. Habilitar R2 em https://dash.cloudflare.com -> conta -> R2
-#   2. `npx wrangler r2 bucket create signallq-provider-logos`
-#   3. Descomentar o bloco [[r2_buckets]] abaixo
-#   4. Configurar PROVIDER_LOGO_PUBLIC_BASE_URL (dominio publico do bucket ou
-#      dominio customizado) em [vars] ou via `wrangler secret put`
-# Ate la, `uploadProviderLogo` (src/provider-directory.ts) retorna erro 501
-# tratado — nunca finge sucesso nem quebra o worker.
-#
-# [[r2_buckets]]
-# binding = "PROVIDER_LOGOS"
-# bucket_name = "signallq-provider-logos"
+# GH#965 — R2 descartado por decisao de produto (2026-07-14). A ideia original
+# era hospedar a logo de operadora de cauda longa em R2, mas a Cloudflare exige
+# cartao de credito cadastrado pra habilitar R2 mesmo no tier gratis
+# (`wrangler r2 bucket list` -> "Please enable R2 through the Cloudflare
+# Dashboard", code 10042) — fricção que o Luiz decidiu nao pagar agora. A logo
+# agora fica como BLOB base64 direto no D1 ja usado por este worker
+# (`provider_assets.data_base64`, migration 006_gh965_provider_logo_d1.sql),
+# servida por `GET /providers/:id/logo`. Sem binding R2 nesta config.
 

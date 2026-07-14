@@ -5,7 +5,6 @@ import worker from "../src/index.ts";
 import { getBundledRuleset } from "../src/bundled-ruleset.ts";
 import { validateRuleset } from "../src/diagnostic-engine.ts";
 import { FakeD1Database } from "./fake-d1.ts";
-import { FakeR2Bucket } from "./fake-r2.ts";
 
 function jsonRequest(url: string, body: unknown, method = "POST"): Request {
   return new Request(url, {
@@ -1545,40 +1544,13 @@ test("provider support: sem cookie de sessao retorna 401", async () => {
   assert.equal(response.status, 401);
 });
 
-test("provider logo upload: sem binding PROVIDER_LOGOS retorna 501 tratado (nunca 500 cru, nunca finge sucesso)", async () => {
+test("provider logo upload: grava BLOB base64 no D1 (sem R2) e ProviderLogo.url resolve pra rota propria do worker", async () => {
   const db = new FakeD1Database();
-  const cookie = await loginAsAdmin(db);
-  await worker.fetch(
-    new Request("https://example.com/admin/providers", {
-      method: "POST",
-      headers: { "content-type": "application/json", Cookie: cookie },
-      body: JSON.stringify({ provider: { id: "regional_teste3", displayName: "Regional Teste 3" } }),
-    }),
-    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
-  );
-
-  const response = await worker.fetch(
-    new Request("https://example.com/admin/providers/regional_teste3/logo", {
-      method: "POST",
-      headers: { "content-type": "image/webp", Cookie: cookie },
-      body: new Uint8Array([1, 2, 3, 4]),
-    }),
-    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
-  );
-  assert.equal(response.status, 501);
-  const payload = await response.json() as { error: string };
-  assert.ok(payload.error.includes("R2"));
-});
-
-test("provider logo upload: com R2 configurado, grava o objeto e ProviderLogo.url resolve pro asset real", async () => {
-  const db = new FakeD1Database();
-  const r2 = new FakeR2Bucket();
   const cookie = await loginAsAdmin(db);
   const env = {
     DB: db as unknown as D1Database,
     ADMIN_AUTH_PEPPER: "pepper-test",
-    PROVIDER_LOGOS: r2 as unknown as R2Bucket,
-    PROVIDER_LOGO_PUBLIC_BASE_URL: "https://assets.signallq.com",
+    PROVIDER_LOGO_PUBLIC_BASE_URL: "https://signallq-diagnostic.example.workers.dev",
   };
 
   await worker.fetch(
@@ -1602,18 +1574,80 @@ test("provider logo upload: com R2 configurado, grava o objeto e ProviderLogo.ur
   const uploadPayload = await uploadResponse.json() as { ok: boolean; url: string; version: number };
   assert.equal(uploadPayload.ok, true);
   assert.equal(uploadPayload.version, 1);
-  assert.equal(uploadPayload.url, "https://assets.signallq.com/providers/regional_teste4/logo-square-v1.webp");
-  assert.ok(r2.objects.has("providers/regional_teste4/logo-square-v1.webp"));
+  assert.equal(uploadPayload.url, "https://signallq-diagnostic.example.workers.dev/providers/regional_teste4/logo");
 
   const providerResponse = await worker.fetch(new Request("https://example.com/providers/regional_teste4"), env);
   const providerPayload = await providerResponse.json() as { logo: { url: string; version: number } | null };
-  assert.equal(providerPayload.logo?.url, "https://assets.signallq.com/providers/regional_teste4/logo-square-v1.webp");
+  assert.equal(providerPayload.logo?.url, "https://signallq-diagnostic.example.workers.dev/providers/regional_teste4/logo");
   assert.equal(providerPayload.logo?.version, 1);
 });
 
-test("provider logo upload: provedor inexistente retorna 404 mesmo com R2 configurado", async () => {
+test("GET /providers/:id/logo serve o binario gravado no D1 com o content-type real do upload", async () => {
   const db = new FakeD1Database();
-  const r2 = new FakeR2Bucket();
+  const cookie = await loginAsAdmin(db);
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+
+  await worker.fetch(
+    new Request("https://example.com/admin/providers", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ provider: { id: "regional_teste5", displayName: "Regional Teste 5" } }),
+    }),
+    env,
+  );
+  const originalBytes = new Uint8Array([137, 80, 78, 71, 1, 2, 3, 4, 5]);
+  await worker.fetch(
+    new Request("https://example.com/admin/providers/regional_teste5/logo", {
+      method: "POST",
+      headers: { "content-type": "image/png", Cookie: cookie },
+      body: originalBytes,
+    }),
+    env,
+  );
+
+  const logoResponse = await worker.fetch(new Request("https://example.com/providers/regional_teste5/logo"), env);
+  assert.equal(logoResponse.status, 200);
+  assert.equal(logoResponse.headers.get("content-type"), "image/png");
+  const returnedBytes = new Uint8Array(await logoResponse.arrayBuffer());
+  assert.deepEqual([...returnedBytes], [...originalBytes]);
+});
+
+test("GET /providers/:id/logo de provedor sem logo com blob retorna 404 (nunca 500 cru)", async () => {
+  const db = new FakeD1Database();
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+  const response = await worker.fetch(new Request("https://example.com/providers/regional_sem_logo/logo"), env);
+  assert.equal(response.status, 404);
+});
+
+test("provider logo upload: acima de 500KB retorna 413 tratado (nunca 500 cru, nunca finge sucesso)", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+  await worker.fetch(
+    new Request("https://example.com/admin/providers", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ provider: { id: "regional_teste6", displayName: "Regional Teste 6" } }),
+    }),
+    env,
+  );
+
+  const oversized = new Uint8Array(501 * 1024);
+  const response = await worker.fetch(
+    new Request("https://example.com/admin/providers/regional_teste6/logo", {
+      method: "POST",
+      headers: { "content-type": "image/webp", Cookie: cookie },
+      body: oversized,
+    }),
+    env,
+  );
+  assert.equal(response.status, 413);
+  const payload = await response.json() as { error: string };
+  assert.ok(payload.error.includes("500KB"));
+});
+
+test("provider logo upload: provedor inexistente retorna 404", async () => {
+  const db = new FakeD1Database();
   const cookie = await loginAsAdmin(db);
   const response = await worker.fetch(
     new Request("https://example.com/admin/providers/nao_existe/logo", {
@@ -1621,14 +1655,13 @@ test("provider logo upload: provedor inexistente retorna 404 mesmo com R2 config
       headers: { "content-type": "image/webp", Cookie: cookie },
       body: new Uint8Array([1, 2, 3, 4]),
     }),
-    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test", PROVIDER_LOGOS: r2 as unknown as R2Bucket },
+    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
   );
   assert.equal(response.status, 404);
 });
 
 test("provider logo upload: Content-Type que nao e image/* retorna 400", async () => {
   const db = new FakeD1Database();
-  const r2 = new FakeR2Bucket();
   const cookie = await loginAsAdmin(db);
   const response = await worker.fetch(
     new Request("https://example.com/admin/providers/qualquer/logo", {
@@ -1636,7 +1669,7 @@ test("provider logo upload: Content-Type que nao e image/* retorna 400", async (
       headers: { "content-type": "application/json", Cookie: cookie },
       body: new Uint8Array([1, 2, 3, 4]),
     }),
-    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test", PROVIDER_LOGOS: r2 as unknown as R2Bucket },
+    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
   );
   assert.equal(response.status, 400);
 });

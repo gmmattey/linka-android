@@ -3,18 +3,41 @@ import type { ProviderDetectionInput, ProviderRecord, ProviderSupport } from "./
 type SeedEnv = {
   DB?: D1Database;
   PROVIDER_DIRECTORY_SEED_JSON?: string;
-};
-
-// GH#965 — binding R2 opcional para armazenar o asset real de logo por provedor.
-// Ver nota em wrangler.toml: R2 ainda nao esta habilitado na conta Cloudflare
-// (`Please enable R2 through the Cloudflare Dashboard`, code 10042, checado em
-// 2026-07-14 via `wrangler r2 bucket list`) — o binding fica comentado ate a
-// habilitacao manual. `uploadProviderLogo` degrada para erro tratado (nao 500 cru)
-// quando `PROVIDER_LOGOS` esta ausente, em vez de fingir sucesso.
-type ProviderLogoEnv = SeedEnv & {
-  PROVIDER_LOGOS?: R2Bucket;
+  // GH#965 (revisado) — base publica usada pra montar a URL absoluta de
+  // `GET /providers/:id/logo` (a propria rota deste worker serve o binario
+  // gravado no D1 — ver `uploadProviderLogo`/`getProviderLogoBinary`). R2 foi
+  // descartado por decisao de produto (Cloudflare exige cartao mesmo no tier
+  // gratis). Sem esta var, `logo.url` fica so o path relativo.
   PROVIDER_LOGO_PUBLIC_BASE_URL?: string;
 };
+
+type ProviderLogoEnv = SeedEnv;
+
+const MAX_LOGO_BYTES = 500 * 1024;
+
+function buildLogoUrl(env: SeedEnv, providerId: string): string {
+  const base = (env.PROVIDER_LOGO_PUBLIC_BASE_URL ?? "").replace(/\/$/, "");
+  return `${base}/providers/${providerId}/logo`;
+}
+
+function bytesToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
 
 type ProviderAdminInput = {
   id: string;
@@ -259,7 +282,7 @@ function mapChannelsToSupport(channels: ProviderChannelRow[]): ProviderSupport {
   };
 }
 
-async function loadProviderFromDb(db: D1Database, providerId: string): Promise<ProviderRecord | null> {
+async function loadProviderFromDb(db: D1Database, providerId: string, env: SeedEnv): Promise<ProviderRecord | null> {
   const row = await db.prepare(
     `SELECT id, display_name, legal_name, cnpj, provider_type, status, official_domain,
             logo_version, last_verified_at, next_review_at
@@ -295,7 +318,7 @@ async function loadProviderFromDb(db: D1Database, providerId: string): Promise<P
     .filter((value) => Number.isFinite(value));
   const logo = assets.results[0]
     ? {
-        url: assets.results[0].source_url ?? assets.results[0].r2_key,
+        url: assets.results[0].source_url ?? buildLogoUrl(env, providerId),
         version: assets.results[0].version,
         updatedAt: assets.results[0].created_at,
       }
@@ -338,14 +361,14 @@ async function queryProviderIdsBySearch(db: D1Database, query: string): Promise<
   return [...new Set([...direct.results, ...identifiers.results].map((row) => row.id))];
 }
 
-async function findProviderByAsnInDb(db: D1Database, asn: number): Promise<ProviderRecord | null> {
+async function findProviderByAsnInDb(db: D1Database, asn: number, env: SeedEnv): Promise<ProviderRecord | null> {
   const identifier = await db.prepare(
     `SELECT provider_id
      FROM provider_identifiers
      WHERE identifier_type = 'ASN' AND is_active = 1 AND original_value = ?
      LIMIT 1`,
   ).bind(String(asn)).first<{ provider_id: string }>();
-  return identifier ? loadProviderFromDb(db, identifier.provider_id) : null;
+  return identifier ? loadProviderFromDb(db, identifier.provider_id, env) : null;
 }
 
 function toProviderAdminInput(provider: ProviderRecord): ProviderAdminInput {
@@ -374,7 +397,7 @@ function toProviderAdminInput(provider: ProviderRecord): ProviderAdminInput {
 
 export async function getProviderById(env: SeedEnv, providerId: string): Promise<ProviderRecord | null> {
   if (env.DB) {
-    const record = await loadProviderFromDb(env.DB, providerId);
+    const record = await loadProviderFromDb(env.DB, providerId, env);
     if (record) return record;
   }
   const providers = await loadSeedProviders(env);
@@ -387,7 +410,7 @@ export async function searchProviders(env: SeedEnv, query: string): Promise<Prov
 
   if (env.DB) {
     const ids = await queryProviderIdsBySearch(env.DB, normalizedQuery);
-    const found = await Promise.all(ids.map((id) => loadProviderFromDb(env.DB!, id)));
+    const found = await Promise.all(ids.map((id) => loadProviderFromDb(env.DB!, id, env)));
     if (found.length > 0) {
       return found.filter((provider): provider is ProviderRecord => Boolean(provider));
     }
@@ -403,7 +426,7 @@ export async function searchProviders(env: SeedEnv, query: string): Promise<Prov
 
 export async function getProviderByAsn(env: SeedEnv, asn: number): Promise<ProviderRecord | null> {
   if (env.DB) {
-    const record = await findProviderByAsnInDb(env.DB, asn);
+    const record = await findProviderByAsnInDb(env.DB, asn, env);
     if (record) return record;
   }
   const providers = await loadSeedProviders(env);
@@ -505,8 +528,8 @@ export async function upsertProvider(env: SeedEnv, input: ProviderAdminInput): P
   if (input.logo?.sourceUrl || input.logo?.r2Key) {
     await env.DB.prepare(
       `INSERT INTO provider_assets (
-        provider_id, asset_type, r2_key, source_url, file_hash, version, verification_status, created_at
-      ) VALUES (?, 'LOGO_SQUARE', ?, ?, NULL, ?, 'VERIFIED', ?)`,
+        provider_id, asset_type, r2_key, source_url, file_hash, version, verification_status, data_base64, content_type, created_at
+      ) VALUES (?, 'LOGO_SQUARE', ?, ?, NULL, ?, 'VERIFIED', NULL, NULL, ?)`,
     ).bind(
       input.id,
       input.logo.r2Key ?? `manual://${input.id}/logo-square-v${input.logo.version ?? 1}`,
@@ -587,7 +610,7 @@ export async function listStaleProviders(env: SeedEnv): Promise<ProviderRecord[]
      ORDER BY updated_at DESC
      LIMIT 100`,
   ).bind(nowIso()).all<{ id: string }>();
-  const providers = await Promise.all(results.map((row) => loadProviderFromDb(env.DB!, row.id)));
+  const providers = await Promise.all(results.map((row) => loadProviderFromDb(env.DB!, row.id, env)));
   return providers.filter((provider): provider is ProviderRecord => Boolean(provider));
 }
 
@@ -823,14 +846,14 @@ export async function updateProviderSupport(
 }
 
 /**
- * GH#965 — upload de logo por `providerId`, hospedado em R2.
+ * GH#965 (revisado 2026-07-14) — upload de logo por `providerId`, gravado
+ * como BLOB base64 direto no D1 (`provider_assets.data_base64`).
  *
- * R2 ainda NAO esta habilitado na conta Cloudflare usada por este projeto
- * (`wrangler r2 bucket list` -> "Please enable R2 through the Cloudflare
- * Dashboard", code 10042, verificado em 2026-07-14). Ate a habilitacao manual
- * + `wrangler r2 bucket create` + descomentar o binding em wrangler.toml,
- * `env.PROVIDER_LOGOS` fica `undefined` e esta funcao retorna erro tratado
- * (nunca 500 cru, nunca finge sucesso).
+ * R2 foi descartado por decisao de produto: a Cloudflare exige cartao de
+ * credito cadastrado pra habilitar R2 mesmo no tier gratis, fricção que o
+ * Luiz decidiu nao pagar agora (logos de operadora sao pequenas, poucos KB,
+ * volume baixo — D1 aguenta). `GET /providers/:id/logo` (`index.ts`) serve o
+ * binario de volta a partir daqui.
  */
 export async function uploadProviderLogo(
   env: ProviderLogoEnv,
@@ -841,11 +864,11 @@ export async function uploadProviderLogo(
   if (!env.DB) {
     return { ok: false, status: 500, error: "DB binding not configured." };
   }
-  if (!env.PROVIDER_LOGOS) {
+  if (bytes.byteLength > MAX_LOGO_BYTES) {
     return {
       ok: false,
-      status: 501,
-      error: "R2 bucket not configured. Set the PROVIDER_LOGOS binding in wrangler.toml after enabling R2 on the Cloudflare account.",
+      status: 413,
+      error: `Logo too large. Max ${MAX_LOGO_BYTES / 1024}KB, got ${Math.ceil(bytes.byteLength / 1024)}KB.`,
     };
   }
 
@@ -862,23 +885,44 @@ export async function uploadProviderLogo(
     ? "jpg"
     : "webp";
   const nextVersion = (provider.logo?.version ?? 0) + 1;
-  const r2Key = `providers/${providerId}/logo-square-v${nextVersion}.${extension}`;
+  // Vestigial: nao e mais um path de R2, so um identificador descritivo do
+  // asset (coluna `r2_key` continua NOT NULL no schema, ver migration 006).
+  const assetKey = `providers/${providerId}/logo-square-v${nextVersion}.${extension}`;
   const timestamp = nowIso();
-
-  await env.PROVIDER_LOGOS.put(r2Key, bytes, { httpMetadata: { contentType } });
-
-  const publicBase = (env.PROVIDER_LOGO_PUBLIC_BASE_URL ?? "").replace(/\/$/, "");
-  const url = publicBase ? `${publicBase}/${r2Key}` : r2Key;
+  const dataBase64 = bytesToBase64(bytes);
+  const url = buildLogoUrl(env, providerId);
 
   await env.DB.prepare(
     `INSERT INTO provider_assets (
-      provider_id, asset_type, r2_key, source_url, file_hash, version, verification_status, created_at
-    ) VALUES (?, 'LOGO_SQUARE', ?, ?, NULL, ?, 'VERIFIED', ?)`,
-  ).bind(providerId, r2Key, url, nextVersion, timestamp).run();
+      provider_id, asset_type, r2_key, source_url, file_hash, version, verification_status, data_base64, content_type, created_at
+    ) VALUES (?, 'LOGO_SQUARE', ?, NULL, NULL, ?, 'VERIFIED', ?, ?, ?)`,
+  ).bind(providerId, assetKey, nextVersion, dataBase64, contentType, timestamp).run();
 
   await env.DB.prepare(
     "UPDATE providers SET logo_version = ?, updated_at = ? WHERE id = ?",
   ).bind(nextVersion, timestamp, providerId).run();
 
   return { ok: true, url, version: nextVersion };
+}
+
+/**
+ * GH#965 — busca o binario da logo mais recente de `providerId` gravado via
+ * [uploadProviderLogo], pra `GET /providers/:id/logo` (`index.ts`) servir de
+ * volta. `null` quando o provedor nao tem logo com blob no D1 (ex.: logo
+ * seeded local, ou aponta pra `sourceUrl` externo via `upsertProvider`).
+ */
+export async function getProviderLogoBinary(
+  env: SeedEnv,
+  providerId: string,
+): Promise<{ bytes: Uint8Array; contentType: string } | null> {
+  if (!env.DB) return null;
+  const row = await env.DB.prepare(
+    `SELECT data_base64, content_type
+     FROM provider_assets
+     WHERE provider_id = ? AND asset_type = 'LOGO_SQUARE' AND data_base64 IS NOT NULL
+     ORDER BY version DESC, id DESC
+     LIMIT 1`,
+  ).bind(providerId).first<{ data_base64: string; content_type: string | null }>();
+  if (!row) return null;
+  return { bytes: base64ToBytes(row.data_base64), contentType: row.content_type ?? "application/octet-stream" };
 }

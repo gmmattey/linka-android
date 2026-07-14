@@ -23,6 +23,8 @@ type ProviderAssetRow = {
   r2_key: string;
   source_url: string | null;
   version: number;
+  data_base64: string | null;
+  content_type: string | null;
   created_at: string;
 };
 
@@ -376,6 +378,22 @@ export class FakeD1Database {
     }
 
     if (q.startsWith("insert into provider_assets")) {
+      if (bindings.length === 6) {
+        // GH#965 (D1 direto) — uploadProviderLogo: providerId, assetKey, version, dataBase64, contentType, createdAt
+        const [providerId, r2Key, version, dataBase64, contentType, createdAt] = bindings;
+        this.providerAssets.push({
+          provider_id: String(providerId),
+          asset_type: "LOGO_SQUARE",
+          r2_key: String(r2Key),
+          source_url: null,
+          version: Number(version),
+          data_base64: String(dataBase64),
+          content_type: String(contentType),
+          created_at: String(createdAt),
+        });
+        return;
+      }
+      // upsertProvider — ponteiro manual de logo externo: providerId, r2Key, sourceUrl, version, createdAt
       const [providerId, r2Key, sourceUrl, version, createdAt] = bindings;
       this.providerAssets.push({
         provider_id: String(providerId),
@@ -383,6 +401,8 @@ export class FakeD1Database {
         r2_key: String(r2Key),
         source_url: (sourceUrl as string | null) ?? null,
         version: Number(version),
+        data_base64: null,
+        content_type: null,
         created_at: String(createdAt),
       });
       return;
@@ -621,6 +641,14 @@ export class FakeD1Database {
 
   first(sql: string, bindings: unknown[]): Row | null {
     const q = normalize(sql);
+
+    if (q.startsWith("select data_base64, content_type from provider_assets")) {
+      const [providerId] = bindings;
+      const row = this.providerAssets
+        .filter((entry) => entry.provider_id === String(providerId) && entry.asset_type === "LOGO_SQUARE" && entry.data_base64 != null)
+        .sort((left, right) => right.version - left.version)[0];
+      return row ? { data_base64: row.data_base64, content_type: row.content_type } : null;
+    }
 
     if (q.startsWith("select count, window_start from auth_rate_limit")) {
       const [ip] = bindings;

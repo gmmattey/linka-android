@@ -141,8 +141,9 @@ Ambiente derrubado (`Stop-Process`) e `.wrangler/`/`.dev.vars` removidos ao fina
 
 PR empilhada sobre `feat/953-worker-diagnostico-integracao` (depende do merge da #964 antes).
 Cobre client Android novo (`RemoteDiagnosticRepository`, `ProviderDirectoryRepository`,
-`OperadoraDirectoryResolver`) e os dois endpoints admin novos do worker (upload de logo via R2,
-edição parcial de `ProviderSupport`).
+`OperadoraDirectoryResolver`) e os dois endpoints admin novos do worker (upload de logo como BLOB
+base64 direto no D1 — R2 descartado por decisão de produto em 2026-07-14, ver seção "Decisões de
+arquitetura" abaixo —, edição parcial de `ProviderSupport`).
 
 ## Suíte automatizada do worker
 
@@ -150,7 +151,7 @@ edição parcial de `ProviderSupport`).
 npm run verify
 ```
 
-Resultado: **64/64 testes passando** (55 pré-existentes + 9 novos desta PR), `tsc --noEmit` limpo.
+Resultado: **65/65 testes passando** (55 pré-existentes + 10 novos desta PR), `tsc --noEmit` limpo.
 
 Novos testes (`test/index.test.ts`):
 
@@ -160,11 +161,13 @@ Novos testes (`test/index.test.ts`):
 | 2 | Edição de `support` com valor `null` explícito | remove o canal (não só ignora) | ✅ |
 | 3 | Edição de `support` de provedor inexistente | 404 tratado | ✅ |
 | 4 | Edição de `support` sem cookie de sessão | 401 | ✅ |
-| 5 | Upload de logo sem binding `PROVIDER_LOGOS` | 501 tratado, nunca 500 cru, nunca finge sucesso | ✅ |
-| 6 | Upload de logo com R2 (`FakeR2Bucket`) configurado | grava objeto, `ProviderLogo.url` resolve pro asset real | ✅ |
-| 7 | Upload de logo de provedor inexistente (com R2 configurado) | 404 | ✅ |
-| 8 | Upload de logo com Content-Type não-`image/*` | 400 | ✅ |
-| 9 | (suíte pré-existente) nenhuma regressão | 55/55 mantidos | ✅ |
+| 5 | Upload de logo grava BLOB base64 no D1 (sem R2) | 201, `ProviderLogo.url` resolve pra rota própria do worker (`GET /providers/:id/logo`) | ✅ |
+| 6 | `GET /providers/:id/logo` serve o binário gravado no D1 | 200, bytes idênticos aos enviados no upload, `content-type` = o mesmo do upload (`image/png`) | ✅ |
+| 7 | `GET /providers/:id/logo` de provedor sem logo com blob | 404 tratado, nunca 500 cru | ✅ |
+| 8 | Upload de logo acima de 500KB (tamanho razoável de logo aceito) | 413 tratado, nunca 500 cru, nunca finge sucesso | ✅ |
+| 9 | Upload de logo de provedor inexistente | 404 | ✅ |
+| 10 | Upload de logo com Content-Type não-`image/*` | 400 | ✅ |
+| 11 | (suíte pré-existente) nenhuma regressão | 55/55 mantidos | ✅ |
 
 ## Suíte automatizada do Android (JVM/Robolectric)
 
@@ -207,6 +210,27 @@ as chamadas abaixo foram feitas com `curl` contra o worker real rodando localmen
 Ambiente derrubado (`Stop-Process` nos processos `workerd`) e `.wrangler/`/`.dev.vars` removidos ao
 final — não commitados.
 
+## Validação manual via HTTP real — GH#965 revisado (BLOB D1, sem R2), 2026-07-14
+
+R2 foi descartado por decisão de produto (Cloudflare exige cartão mesmo no tier grátis) enquanto a
+PR #966 ainda estava com CI vermelho de Ktlint. Este round reaplica as 6 migrations (incluindo a
+nova `006_gh965_provider_logo_d1.sql`) em D1 local e valida o fluxo de logo ponta a ponta contra o
+worker real via `npx wrangler dev --local` — não só a suíte `node --test` com `FakeD1Database`.
+
+| Chamada | Resultado |
+|---|---|
+| `npx wrangler d1 execute signallq-diagnostic-db --local --file=migrations/006_gh965_provider_logo_d1.sql` | Aplicada sem erro sobre as 5 migrations anteriores |
+| `POST /admin/auth/bootstrap` + `/admin/auth/login` | 201 / 200 + `Set-Cookie` |
+| `POST /admin/providers` (cria `regional_manual_teste`) | 201 |
+| `POST /admin/providers/regional_manual_teste/logo` com 13 bytes reais (`Content-Type: image/png`) | 201, `url` = `https://signallq-diagnostic.giammattey-luiz.workers.dev/providers/regional_manual_teste/logo` (URL absoluta, sem R2) |
+| `GET /providers/regional_manual_teste/logo` | 200, `content-type: image/png`, `content-length: 13` — bytes comparados via `cmp` contra o arquivo original enviado: **idênticos** |
+| `GET /providers/regional_manual_teste` | 200, `logo.url` aponta pra própria rota do worker, `logo.version=1` |
+| `POST /admin/providers/regional_manual_teste/logo` com 586KB (`/dev/urandom`) | 413, `{"error":"Logo too large. Max 500KB, got 586KB."}` — nunca 500 cru |
+| `GET /providers/nao_tem_logo_nenhuma/logo` (provedor sem blob no D1) | 404 |
+
+Ambiente derrubado (processo `wrangler dev` finalizado por PID) e `.wrangler/`/`.dev.vars` removidos
+ao final — não commitados.
+
 ## Decisões de arquitetura registradas nesta PR
 
 - **Estratégia local vs. remoto (#962)**: `RemoteDiagnosticRepository.evaluate()` tenta o worker com
@@ -228,12 +252,17 @@ final — não commitados.
   `scoreEngineResultado.dimensoes` usam ids simplificados ("internet"/"wifi"/"dns"/...) diferentes da
   taxonomia interna do `ScoreEngine.kt` local ("estabilidade"/"wifiRedeLocal"/...). O `score` final já
   vem pronto do worker; as dimensões viram `EvidenceScore` só informativo.
-- **R2 pendente (#965)**: a conta Cloudflare usada neste projeto ainda não tem R2 habilitado
-  (`wrangler r2 bucket list` → "Please enable R2 through the Cloudflare Dashboard", code 10042,
-  verificado em 2026-07-14). O binding `[[r2_buckets]]` fica comentado em `wrangler.toml` com o
-  passo a passo de ativação manual. `uploadProviderLogo` retorna 501 tratado enquanto isso — nunca
-  finge sucesso. **Ação humana pendente**: habilitar R2 no dashboard + `wrangler r2 bucket create
-  signallq-provider-logos` + descomentar o binding + configurar `PROVIDER_LOGO_PUBLIC_BASE_URL`.
+- **R2 descartado, logo vive no D1 (#965, decisão revisada 2026-07-14)**: a ideia original desta PR
+  era hospedar a logo em R2 (a conta Cloudflare usada neste projeto não tinha R2 habilitado —
+  `wrangler r2 bucket list` → "Please enable R2 through the Cloudflare Dashboard", code 10042). Antes
+  de habilitar R2, o Luiz decidiu descartar essa rota: a Cloudflare exige cartão de crédito
+  cadastrado pra habilitar R2 mesmo no tier grátis, fricção que não vale a pena pagar agora pra um
+  asset pequeno (poucos KB, volume baixo de operadoras de cauda longa). A logo agora é gravada como
+  BLOB base64 direto no D1 já usado pelo worker (`provider_assets.data_base64`/`content_type`,
+  migration `006_gh965_provider_logo_d1.sql` — só 2 colunas nullable adicionadas, menor migration
+  possível) e servida pela própria rota `GET /providers/:id/logo` do worker. Sem binding R2 em
+  `wrangler.toml`. Upload limitado a 500KB (`MAX_LOGO_BYTES`) — retorna 413 tratado acima disso,
+  nunca 500 cru. `test/fake-r2.ts` foi removido (sem mais nenhum uso de R2 no projeto).
 - **Endpoint de edição de `support` é parcial, não substitui `upsertProvider`**: `PUT
   /admin/providers/:id/support` só edita os campos de contato presentes no payload — chave ausente
   não mexe em nada, chave com valor `null`/vazio remove o canal. Criado como endpoint dedicado (em
