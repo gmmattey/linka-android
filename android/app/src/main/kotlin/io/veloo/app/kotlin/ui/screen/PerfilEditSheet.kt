@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,10 +24,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -120,17 +124,39 @@ internal fun PerfilEditSheet(
             Spacer(Modifier.height(LkSpacing.sm))
             Text("Meu perfil", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = c.textPrimary)
 
-            // Avatar
+            // Avatar (6a To-Be): 80dp + botao de camera 26dp sobreposto (fundo primary,
+            // borda 2px surfaceContainerLow) — clique funciona tanto no avatar quanto no
+            // botao, ambos abrem o mesmo picker de foto.
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
-                UserAvatar(
-                    fotoUri = fotoUriInput,
-                    fallbackInitial = nomeInput.firstOrNull() ?: deviceName.firstOrNull(),
-                    size = 80.dp,
-                    onClick = { pickerFoto.launch("image/*") },
-                )
+                Box {
+                    UserAvatar(
+                        fotoUri = fotoUriInput,
+                        fallbackInitial = nomeInput.firstOrNull() ?: deviceName.firstOrNull(),
+                        size = 80.dp,
+                        onClick = { pickerFoto.launch("image/*") },
+                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .align(Alignment.BottomEnd)
+                                .size(26.dp)
+                                .clip(CircleShape)
+                                .background(LkColors.accent)
+                                .border(2.dp, MaterialTheme.colorScheme.surfaceContainerLow, CircleShape)
+                                .clickable { pickerFoto.launch("image/*") },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.PhotoCamera,
+                            contentDescription = "Alterar foto de perfil",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
             }
             Text(
                 "Toque no avatar para alterar a foto",
