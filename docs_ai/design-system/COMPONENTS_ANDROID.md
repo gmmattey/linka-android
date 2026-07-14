@@ -1,15 +1,20 @@
 # Componentes Android — SignallQ
 
 **Versão:** v0.23.0 | **Localização:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/`  
-**Última atualização:** 2026-07-12
+**Última atualização:** 2026-07-13 (nota de descontinuação da superfície SignallQ AI, ver
+`docs_ai/design-system/DECISAO_ALINHAMENTO_TOBE_2026-07-13.md`)
 
 25+ componentes custom agrupados por domínio.
 
 > Nota de rebranding (v0.15.0): componentes `Orbit*` foram renomeados para `SignallQ*`. Qualquer referência a `OrbitTopBar`, `OrbitInputArea`, etc. deve ser lida como `SignallQTopBar`, `SignallQInputArea`, etc.
+>
+> **Nota 2026-07-13:** o Fluxo de Telas To-Be marca a superfície de chat IA (tela 7) como
+> **DESCONTINUADA** — "remover rota, tab e toda referência de navegação no app real; existe [na
+> spec] só como registro histórico da decisão de descontinuar". A tabela abaixo permanece como
+> inventário do código atual (As-Is); remoção efetiva desses componentes é decisão de produto
+> separada, fora do escopo desta correção de documentação.
 
----
-
-## SignallQ — Chat IA (10)
+## SignallQ — Chat IA (10, DESCONTINUADA no To-Be — ver nota acima)
 
 Componentes exclusivos da superfície de IA. Mantêm paleta escura (`#0D0D1A`/`#1A0B2E`/`#1E1130`) independente do tema do app.
 
