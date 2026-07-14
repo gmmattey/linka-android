@@ -2675,7 +2675,6 @@ private fun InternetInfoSheet(
         Text(
             stringResource(R.string.home_sheet_internet),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.W700,
             color = c.textPrimary,
         )
         Spacer(modifier = Modifier.height(LkSpacing.lg))
