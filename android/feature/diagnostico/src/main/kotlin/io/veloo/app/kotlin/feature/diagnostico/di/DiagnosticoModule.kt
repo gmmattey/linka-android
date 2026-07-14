@@ -9,6 +9,8 @@ import dagger.hilt.components.SingletonComponent
 import io.signallq.app.feature.diagnostico.BuildConfig
 import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
 import io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository
+import io.signallq.app.feature.diagnostico.remote.ProviderDirectoryRepository
+import io.signallq.app.feature.diagnostico.remote.RemoteDiagnosticRepository
 import io.signallq.app.core.database.SignallQDatabase
 import io.signallq.app.core.database.recommendation.RecommendationHistoryDao
 import io.signallq.app.core.datastore.PreferenciasAppRepository
@@ -54,6 +56,30 @@ object DiagnosticoModule {
             baseUrl = BuildConfig.AI_WORKER_URL,
             isAuthorized = { true },
         )
+
+    /**
+     * Provê RemoteDiagnosticRepository no grafo Hilt (GH#962).
+     *
+     * Nao esta wireada no [io.signallq.app.feature.diagnostico.DiagnosticOrchestrator]
+     * ainda (decisao desta issue: so a camada de dados, sem tocar em Composable/
+     * ViewModel) — fica disponivel para injecao quando uma issue futura decidir
+     * adotar o fluxo remoto-primeiro no orquestrador principal.
+     */
+    @Provides
+    @Singleton
+    fun provideRemoteDiagnosticRepository(): RemoteDiagnosticRepository =
+        RemoteDiagnosticRepository(baseUrl = BuildConfig.DIAGNOSTIC_WORKER_URL)
+
+    /**
+     * Provê ProviderDirectoryRepository no grafo Hilt (GH#965) — diretorio remoto
+     * de provedores de cauda longa (logo + contato). Consumido pelo resolver de
+     * identidade de operadora em `:app` (catalogo local -> este repository ->
+     * fallback generico), nunca direto por Composable.
+     */
+    @Provides
+    @Singleton
+    fun provideProviderDirectoryRepository(): ProviderDirectoryRepository =
+        ProviderDirectoryRepository(baseUrl = BuildConfig.DIAGNOSTIC_WORKER_URL)
 
     /**
      * Provê TopologyDiagnostic no grafo Hilt.
