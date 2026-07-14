@@ -1,22 +1,21 @@
 package io.signallq.app.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.Dns
@@ -166,43 +165,40 @@ fun FerramentasScreen(
             )
         },
     ) { padding ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        LazyColumn(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(padding),
             contentPadding = PaddingValues(LkSpacing.lg),
-            horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
         ) {
-            items(itens) { item -> FerramentaCard(item = item, c = c) }
+            items(itens) { item -> FerramentaRow(item = item, c = c) }
         }
     }
 }
 
 @Composable
-private fun FerramentaCard(
+private fun FerramentaRow(
     item: FerramentaItem,
     c: LkTokens,
 ) {
-    Column(
+    Row(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .clickable(onClick = item.onClick)
                 .padding(LkSpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier =
                 Modifier
                     .size(40.dp)
-                    .clip(CircleShape)
-                    .background(LkColors.accent.copy(alpha = 0.12f)),
+                    .clip(RoundedCornerShape(LkRadius.button))
+                    .background(LkColors.accent.copy(alpha = 0.14f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -212,16 +208,29 @@ private fun FerramentaCard(
                 modifier = Modifier.size(22.dp),
             )
         }
-        Text(
-            text = item.titulo,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.W600,
-            color = c.textPrimary,
-        )
-        Text(
-            text = item.descricao,
-            style = MaterialTheme.typography.bodySmall,
-            color = c.textSecondary,
+        Column(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(horizontal = LkSpacing.md),
+        ) {
+            Text(
+                text = item.titulo,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.W600,
+                color = c.textPrimary,
+            )
+            Text(
+                text = item.descricao,
+                style = MaterialTheme.typography.bodySmall,
+                color = c.onSurfaceVariant,
+            )
+        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+            contentDescription = null,
+            tint = c.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
         )
     }
 }
