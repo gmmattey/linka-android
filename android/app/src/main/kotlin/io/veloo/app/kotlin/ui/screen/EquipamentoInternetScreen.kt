@@ -144,7 +144,9 @@ fun EquipamentoInternetScreen(
                         Text(
                             acessoLabel(acesso),
                             fontSize = 12.sp,
-                            color = c.textTertiary,
+                            // GH#937: textTertiary (#9CA3AF) sobre branco dava ~2.5:1 (fail AA).
+                            // textSecondary fica ~4.8:1 (AA).
+                            color = c.textSecondary,
                         )
                     }
                 },
@@ -346,7 +348,8 @@ private fun ReiniciarEquipamentoRow(
             Text(
                 "O equipamento fica indisponível por alguns minutos após reiniciar.",
                 fontSize = 11.sp,
-                color = c.textTertiary,
+                // GH#937: mesma correção de contraste (ver acessoLabel acima).
+                color = c.textSecondary,
             )
         }
         TextButton(onClick = onClick) { Text("Reiniciar", color = LkColors.warning) }

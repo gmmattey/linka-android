@@ -127,7 +127,8 @@ internal fun PreferenciasSheet(
                 Text(
                     "Deixe em branco para desativar os alertas.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = c.textTertiary,
+                    // GH#937: textTertiary sobre branco ~2.5:1 (fail AA). textSecondary ~4.8:1.
+                    color = c.textSecondary,
                 )
             }
             Button(
