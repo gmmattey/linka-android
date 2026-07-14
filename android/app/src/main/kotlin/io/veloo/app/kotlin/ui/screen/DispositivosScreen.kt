@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.CellTower
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.DevicesOther
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Laptop
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Print
@@ -663,7 +664,7 @@ private fun DeviceDetailSheet(
                     modifier =
                         Modifier
                             .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(CircleShape)
                             .background(iconBg),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -1116,7 +1117,8 @@ private fun SheetSectionHeader(
 }
 
 // ---------------------------------------------------------------------------
-// Alert banner
+// Alert banner — aviso informativo neutro (3c: limitação de varredura passiva
+// não é um alerta, spec pede tom neutro surfaceContainer + ícone info).
 // ---------------------------------------------------------------------------
 
 @Composable
@@ -1128,20 +1130,19 @@ private fun AlertBanner(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.button))
-                .background(LkColors.warning.copy(alpha = 0.10f))
-                .border(1.dp, LkColors.warning.copy(alpha = 0.35f), RoundedCornerShape(LkRadius.button))
+                .clip(RoundedCornerShape(LkRadius.card))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .padding(12.dp),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(
-            imageVector = Icons.Outlined.WarningAmber,
+            imageVector = Icons.Outlined.Info,
             contentDescription = null,
-            tint = LkColors.warning,
+            tint = c.onSurfaceVariant,
             modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
-        Text(text = text, style = MaterialTheme.typography.labelSmall, color = c.textPrimary, lineHeight = 16.sp)
+        Text(text = text, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant, lineHeight = 16.sp)
     }
 }
 
