@@ -264,7 +264,9 @@ async function loadSeedProviders(env: { PROVIDER_DIRECTORY_SEED_JSON?: string })
   }
   try {
     const parsed = JSON.parse(env.PROVIDER_DIRECTORY_SEED_JSON) as ProviderRecord[];
-    return Array.isArray(parsed) ? parsed : SEEDED_PROVIDERS;
+    // GH#971: array vazio (ex.: var configurada como "[]") não conta como seed
+    // real — cai no catálogo embutido em vez de subir o diretório vazio.
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEEDED_PROVIDERS;
   } catch {
     return SEEDED_PROVIDERS;
   }

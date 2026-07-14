@@ -136,7 +136,7 @@ Uso:
 Uso recomendado:
 
 - deixe `DIAGNOSTIC_RULESET_JSON = ""` para usar D1 publicado ou bundled
-- **cuidado**: `PROVIDER_DIRECTORY_SEED_JSON = "[]"` e `GAME_CATALOG_SEED_JSON = "[]"`/`GAME_PROFILE_SEED_JSON = "[]"` sao um array JSON valido e vazio — o worker os interpreta como "use este array vazio", **nao** como "sem var, caia no seed embutido do codigo" (esse fallback so acontece quando a var esta genuinamente ausente/undefined). Se a intencao e usar os seeds embutidos (`SEEDED_PROVIDERS`/`BUILTIN_GAME_CATALOG`/`BUILTIN_GAME_PROFILES`), remova a linha da var em vez de deixar `"[]"`. Achado durante a validacao manual da GH#953 — nao corrigido nesta PR (fora do escopo das issues #954-#961), registrar issue de follow-up antes do proximo deploy real.
+- deixe `PROVIDER_DIRECTORY_SEED_JSON`/`GAME_CATALOG_SEED_JSON`/`GAME_PROFILE_SEED_JSON = ""` (vazias) para usar os seeds embutidos no codigo (`SEEDED_PROVIDERS`/`BUILTIN_GAME_CATALOG`/`BUILTIN_GAME_PROFILES`) — **nunca deixe essas 3 vars como `"[]"`** (array JSON valido e vazio): antes do GH#971, `"[]"` sobrescrevia silenciosamente o fallback com um diretorio/catalogo vazio (achado durante a validacao manual da GH#953, corrigido no GH#971 com defesa em profundidade tanto no `wrangler.toml` quanto no `loadSeedProviders` de `provider-directory.ts`, que agora trata array vazio parseado como "sem seed real" tambem)
 - `ALLOWED_ORIGIN` default aponta pro mesmo dominio do SignallQ Console usado pelo `signallq-admin-worker`
 - so preencha as demais vars se quiser override remoto em JSON
 
