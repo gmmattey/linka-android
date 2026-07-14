@@ -109,7 +109,7 @@ fun OperadoraBottomSheet(
             ) {
                 Text(
                     text = "Falar com a operadora",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = c.textPrimary,
                     modifier = Modifier.weight(1f),
@@ -229,7 +229,7 @@ private fun OperadoraDetectadaSection(
             Column {
                 Text(
                     text = operadora.nome,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = c.textPrimary,
                 )
