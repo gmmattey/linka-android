@@ -1,55 +1,64 @@
 # Auditoria — App Android SignallQ × Spec To-Be (Fluxo de Telas)
 
-**Data:** 2026-07-13
-**Referência de design:** `SignallQ App - Fluxo de Telas.dc.html` (Claude Design, projeto "SignallQ Design System")
-**Código auditado:** `android/app/src/main/kotlin/io/veloo/app/kotlin/` (app Android nativo, Kotlin/Compose) — branch `design-system/fase-2-bottom-sheets`
-**Método:** 7 agentes paralelos, cada um cobrindo um bloco de telas, comparando hex/tipografia/espaçamento/estrutura de componente contra a spec extraída, com citação de arquivo:linha. Auditoria somente leitura — nenhum código foi alterado.
-**Telas cobertas:** 0, 1, 1a, 1b, 2, 2a, 2b, 2b-i, 2b-ii, 2b-iii, 2c, 2d, 2e, 3, 3a–3f, 4, 4a, 4b, 5, 5a–5g, 6, 6a–6f, 7.
+**Data original:** 2026-07-13 · **Reauditoria (v2, esta versão):** 2026-07-13
+**Referência de design:** `SignallQ App - Fluxo de Telas.dc.html` (Claude Design, projeto "SignallQ Design System", `e77ea465-291f-4bf5-930c-a267680da04e`)
+**Código auditado:** `android/app/src/main/kotlin/io/signallq/app/ui/` — worktree `fix/design-tobe-alinhamento`, baseado em `origin/main` (commit `2957f054` + correções de paleta/skill desta branch)
+**Método:** 7 agentes paralelos, cada um cobrindo um bloco de telas, comparando hex/tipografia/espaçamento/estrutura contra a spec extraída, com citação de arquivo:linha. Auditoria somente leitura.
+
+## ⚠️ Nota sobre a v1 deste documento (correção de erro de processo)
+
+A primeira versão desta auditoria (mesma data) foi rodada contra a branch `design-system/fase-2-bottom-sheets`, que estava **120 commits atrás de `origin/main`** — sem que isso fosse verificado antes de disparar os agentes. Boa parte dos achados "estruturais" da v1 relatava como **ausente** algo que já tinha sido implementado em `main` nas últimas semanas: hub Ferramentas, tela universal de Equipamento de internet, fluxo completo de Jogos, NativeAd em várias telas, remoção do código morto da IA conversacional, e até o rename de pacote pra `io.signallq.app`. Essa versão (v2) foi reauditada do zero contra a base correta e **substitui integralmente a v1** — nenhum achado da v1 deve ser usado sem reconferência aqui.
 
 ---
 
 ## Resumo executivo
 
-A spec To-Be define um design system MD3 completo (paleta violeta `primary=#5B21D6`, 5 níveis de `surfaceContainer`, escala tipográfica de 11 tokens, componentes base nomeados — Card/Button/SheetFrame/Segmented/etc.). O app real implementa sua **própria** paleta e tokens (`LkColors`/`LkTokens` em `SignallQTheme.kt`), estruturalmente diferentes da spec — isso não é um desvio pontual de uma tela, é a fundação de tema inteira. Por isso quase toda tela auditada carrega a mesma divergência de cor/tipografia; ela é reportada uma vez aqui e não repetida em cada seção.
+O gap real de hoje contra a spec To-Be tem três naturezas bem diferentes, e cada uma pede um tipo de correção diferente:
 
-Além da divergência sistêmica de tema, 3 achados são estruturais/de produto e merecem atenção antes de qualquer decisão de correção visual:
+**1. Divergência sistêmica de tema (afeta praticamente todas as telas).** `SignallQTheme.kt` (`LkColors`/`LkTokens`/`signallQTypography`) usa paleta e escala tipográfica próprias, não os tokens MD3 da spec — mesmo depois da skill/CLAUDE.md já terem sido corrigidos nesta branch para `primary=#5B21D6`. O código continua em `#6C2BFF`. Essa é a Fase 0 natural: migrar `SignallQTheme.kt` uma vez resolve a maior parte das divergências de cor/tipografia relatadas tela a tela abaixo (não repetidas por tela neste documento).
 
-1. **Hub "Ferramentas" (tela 5) não existe.** A 5ª aba do app é "Ajustes", não "Ferramentas" — condizente com o que o `CLAUDE.md` do projeto já documenta como estado atual (5 abas: Início/Velocidade/Sinal/Histórico/Ajustes). Os destinos 5a–5g estão espalhados sem grade central, alguns atrás de feature flags.
-2. **5b "Equipamento de internet" (tela única universal GPON/ONT + roteador Wi-Fi) não existe.** O código tem `FibraModemScreen.kt`, que é **só fibra** — exatamente o padrão que a spec pede para substituir. Sem enum único de "Acesso ao equipamento", sem diálogo de confirmação de reinício, sem topologia/Double NAT.
-3. **Tela 7 (SignallQ AI) — remoção incompleta e um flag de release incorreto.** Nenhuma rota leva o usuário até as telas de chat/IA (isso está correto), mas as 5 telas, 12+ componentes, entidades Room de chat e os ViewModels continuam no código, **instanciados e conectados em `MainActivity.kt` a cada abertura do app**, mesmo sem UI. Mais grave: `app/build.gradle.kts:191` define `FEATURE_DIAGNOSTICO_CHAT = true` no flavor de **release**, com um comentário no próprio código dizendo que deveria estar desligado. Recomendo tratar este item como prioridade técnica separada da auditoria de design — impacta build de produção.
+**2. Bugs de regra de negócio reais, específicos e ainda presentes:**
+- **3e/3f (permissão de localização/telefonia):** o dismissal do sheet é `remember{}` — só de sessão. Reabre a cada nova sessão do app mesmo com negação permanente do Android. Confirmado por dois agentes independentes (v1 e v2).
+- **2b-i (Conectar ao roteador):** segue sem validação de formato de IP/alcançabilidade antes de autenticar, e sem o botão "Ver modelos compatíveis".
+- **2b-iii (Modelos compatíveis):** tela inteira ainda ausente — só existe o modelo de dados (`PublicCompatibilityCatalog.kt`), sem UI nem botão de entrada.
+- **2b (Roteador):** para o caso comum (roteador Wi-Fi comum, não mesh/extensor), o tap nunca abre o sheet somente-leitura "Roteador da casa" da spec — vai direto para conectar ou para Equipamento de internet. Pode ser decisão de produto deliberada (fusão com 2b-i/5b); precisa confirmação antes de "corrigir".
+- **5g (Jogos):** `NativeAd` está **completamente ausente** da tela de Resultado — a spec é explícita que essa é a única superfície onde publicidade nativa deveria aparecer.
+- **6e (Novidades):** changelog carregado de asset local embutido no APK, não de CMS/JSON remoto versionado como a spec exige.
 
-Outros achados recorrentes de menor severidade, mas repetidos em várias telas:
-- **Grabber duplicado** em vários `ModalBottomSheet` (`HomeScreen.kt`, `GatewayConnectionSheet.kt`, `GatewayCredentialsGuideSheet.kt`) — falta `dragHandle = {}`, causando dois indicadores de arraste empilhados. Bug visual real, não só divergência de spec (outras sheets do app já usam o padrão correto).
-- **5g (Jogos)** tem 0% de UI implementada — só existe a spec funcional (`docs_ai/functional/JOGOS_TESTE_CONEXAO_SPEC.md`) e um classificador de domínio isolado (`GameReadinessClassifier`), sem nenhuma tela conectada.
-- **5f (Monitoramento)** só existe como sheet dentro de Ajustes, atrás de feature flag — não é uma tela própria.
-- **Regra de negócio violada em 3e/3f (permissões):** os sheets de permissão de localização/telefonia reabrem a cada sessão mesmo após negação permanente do usuário — a spec exige não repetir o prompt nesse caso; o estado de dismissal é só de sessão (`SinalScreen.kt`).
-- **Regra de negócio violada em 2b-i (conectar ao roteador):** não há validação de formato de IP nem checagem de alcançabilidade antes de tentar autenticar, como a spec exige.
-- **2b-iii (Modelos compatíveis)** não tem UI — só o modelo de dados (`PublicCompatibilityCatalog.kt`) existe, sem Composable consumidor.
+**3. Divergências de estrutura visual/componente (telas já existem e funcionam, mas não seguem o desenho exato da spec)** — a maior parte do restante deste documento. Grande parte é "componente existe mas usa forma/token diferente" (badges com `radius 4dp` em vez de pílula, Segmented virando `FilterChip` sem borda, ícones quadrados em vez de circulares, etc.) — mecânico de corrigir, mas extenso.
+
+**Achado à parte, não descoberto na v1:** a tela **1a (Análise detalhada)** não existe mais como componente único — o app foi deliberadamente reestruturado em dois sheets diferentes (`DiagnosticoDetalhadoSheet` + `AnaliseDetalhadaBottomSheet`), com comentários no código referenciando decisões de produto (GH#536/#931/#833). Antes de "corrigir" essa tela para bater com o protótipo, vale confirmar se a spec está desatualizada em relação a essa decisão, não o inverso.
+
+**Achado positivo:** a remoção da IA conversacional (tela 7) já aconteceu de verdade (PR #912) — telas, rotas e write-path do banco de chat estão mortos, não só escondidos. Sobra limpeza residual pequena: 11 componentes órfãos, uma segunda via de chat morta em `MainViewModel`/`DiagnosticoViewModel`, e o flag `FEATURE_DIAGNOSTICO_CHAT=true` em release (inofensivo hoje — nada lê `FeatureFlags.DIAGNOSTICO_CHAT` — mas deveria ser removido, não deixado "true" por engano).
 
 ---
 
-## Achados transversais (aplicam-se a praticamente todas as telas)
+## Achados transversais (não repetidos por tela)
 
-### Paleta de cores — hex não bate com a spec MD3
+### Paleta — hex não bate com a spec (mesmo já corrigida na skill/CLAUDE.md desta branch)
 
-| Token | Spec (claro) | Spec (escuro) | App (`LkColors`) |
-|---|---|---|---|
-| primary / accent | `#5B21D6` | `#D0BCFF` | `#6C2BFF` |
-| success | `#146C2E` | `#83DA99` | `#22C55E` |
-| warning | `#8A5000` | `#FFB870` | `#F5A623` |
-| error | `#BA1A1A` | `#FFB4AB` | `#FF4D4F` |
-| secondary | `#2851B8` | `#AAC7FF` | não existe token equivalente (`bgSecondary` é neutro) |
-| surfaceContainer (5 níveis) | `#F8F5FB`…`#E6DDF2` | `#1D1B20`…`#36343B` | só 2–3 níveis (`bgPrimary`/`bgCard`/`bgSecondary`), sem granularidade de 5 |
+| Token | Spec (claro) | `SignallQTheme.kt` |
+|---|---|---|
+| primary | `#5B21D6` | `LkColors.accent = #6C2BFF` |
+| success | `#146C2E` | `#22C55E` |
+| warning | `#8A5000` | `#F5A623` |
+| error | `#BA1A1A` | `#FF4D4F` |
+| onSurface | `#1C1B1F` | `#0D0D1A` |
+| onSurfaceVariant | `#49454F` | `#6B7280` |
+| outline / outlineVariant | `#79747E` / `#CAC4D0` | um único token `border = #E5E7EB` |
+| surfaceContainer (5 níveis) | `#F8F5FB`…`#E6DDF2` | 2-3 níveis (`bgPrimary`/`bgCard`/`bgSecondary`), sem granularidade |
 
-`MaterialTheme.colorScheme.error/errorContainer/surfaceContainer/tertiary` não são sobrescritos em `SignallQTheme.kt:138-160` — continuam no roxo MD3 baseline do Compose, então qualquer código que use esses tokens diretamente (em vez de `LkColors`) sai com cor diferente tanto da spec quanto do `LkColors` do app.
+### Tipografia — escala não bate, e nem sempre os próprios tokens do app são usados
 
-### Tipografia — escala não bate e uso inconsistente até dos próprios tokens do app
+`headlineLarge` 24sp/SemiBold (spec: 26/32/700), `headlineSmall` 18sp/SemiBold (spec: 22/28/600), `titleLarge` 16sp/Medium (spec: 20/26/600), `titleMedium` 15sp (spec: 16px), `labelMedium`/`labelSmall` peso 400 (spec: peso 500). Muitas telas (Privacidade, Novidades, Laudo, Histórico, Ferramentas, Jogos) usam `fontSize`/`fontWeight` **hardcoded** em vez de `MaterialTheme.typography.*` — nem a escala própria do app é seguida de forma consistente.
 
-`signallQTypography` (`SignallQTheme.kt:213-228`) tem tamanhos/pesos que não batem ponto a ponto com a escala MD3 da spec (ex.: `headlineLarge` spec=26/32/700 vs app=24sp/SemiBold; `titleLarge` spec=20/26/600 vs app=16sp/Medium; `headlineSmall` spec=22/28/600 vs app=18sp/SemiBold). Além disso, muitas telas (Privacidade, Novidades, CellularInfoSheet, MedicaoTipoSheet, sheets de operadora) usam `fontSize`/`fontWeight` **hardcoded** em vez de `MaterialTheme.typography.*`, quebrando a aderência mesmo à escala própria do app, não só à da spec.
+### Forma — Badge/Chip não são pílula em quase nenhuma tela
 
-### Grabber duplicado em ModalBottomSheet
+Spec pede `radius 999px` para Badge/Chip. Implementado consistentemente com `RoundedCornerShape(4-6dp)` em Sinal, Dispositivos, Ferramentas, DNS — parece convenção deliberada do design system atual do app, não acidente pontual, mas diverge do documento de referência em praticamente toda tela com badge.
 
-Sheets em `HomeScreen.kt`, `GatewayConnectionSheet.kt`, `GatewayCredentialsGuideSheet.kt` não passam `dragHandle = {}` ao `ModalBottomSheet`, então o handle padrão do M3 é desenhado **junto** com o `SheetDragHandle()` customizado do app — dois indicadores de arraste empilhados. Padrão correto já existe em outras sheets (`AjustesScreen.kt`, `HistoricoScreen.kt`, `MinhaConexaoScreen.kt`, `PingScreen.kt`, `SinalScreen.kt`) — é inconsistência de implementação, corrigível célula a célula.
+### Grabber duplicado (suspeita, checar visualmente)
+
+Vários `ModalBottomSheet` (sheets de permissão 3e/3f, sheets em `HomeScreen.kt`) não passam `dragHandle = {}`, então o handle padrão do M3 pode estar sendo desenhado **junto** com o `SheetDragHandle()` customizado do app. Outras sheets do app (`NetworkDetailSheet`, `ChannelDetailSheet`) já usam o padrão correto — inconsistência pontual, fácil de confirmar com um build.
 
 ---
 
@@ -57,202 +66,173 @@ Sheets em `HomeScreen.kt`, `GatewayConnectionSheet.kt`, `GatewayCredentialsGuide
 
 ### 0 · Onboarding
 `OnboardingScreen.kt`
-- ✅ CTA desabilitado até termos aceitos; cartão de termos com radius 16dp; fundo full-bleed sem chrome.
-- ⚠️ 3 slides em vez de 2 (spec pede boas-vindas+termos / permissões); círculo do passo 1 é 180dp com mockup de velocímetro, não 120dp com logo; permissões mostradas como 2 `PermissaoCard` com botão "Permitir" em vez de 4 linhas com `Switch` + estado Permitido/Não permitido.
-- ❌ Ícone shield 48px; checkbox "Permitir todas"; CTA final rotulado "Concluir" (app usa "Começar").
+- ✅ Fonte Google Sans Flex conforme; fluxo de 2 páginas via `HorizontalPager` bate estruturalmente com a spec.
+- ⚠️ CTA da página 1 chama-se "Continuar" (spec pede "Começar"); CTA final da página 2 também "Continuar" (spec pede "Concluir"). Círculo do logo usa `Color.White` fixo em vez do token de superfície do tema (quebra em dark mode). Estados de permissão usam "Autorizado"/"Pendente" em vez de "Permitido"/"Não permitido". Ícones via Material Icons padrão, não Material Symbols Outlined (variable font) como a spec pede.
+- Dialog extra "Seguir sem permissões?" não previsto na spec — aditivo, não regressão.
 
 ### 1 · Velocidade (Speed Test)
 `SpeedTestScreen.kt`, `VelocidadeScreen.kt`, `ResultadoVelocidadeScreen.kt`, `GaugeCircular.kt`
-- ✅ Cores de fase (latência/download/upload) mapeadas corretamente; Segmented Rápido/Completo/Triplo presente; cartão "Último resultado" com 3 colunas.
-- ⚠️ Botão idle 210dp real (spec pede 230px); anel running com `strokeWidth=8dp` (spec pede 14); valor central do gauge em 72sp hardcoded (comentado no código como "exceção intencional"); Segmented sem borda `outline`; 3 pílulas de fase em vez de 4; bloco "Experiência de uso" virou chips horizontais em vez de 3 linhas verticais (decisão documentada em issue #833); botões finais são 2 (filled+outlined), spec pede 3 (+text).
-- ❌ `NativeAd` no estado idle; toggle "Ver métricas detalhadas" na própria tela de Resultado (as métricas extras só existem dentro do sheet 1a).
+- ✅ NativeAd presente e corretamente restrito ao estado idle (`NativeAdRow`); cartão "Último resultado" com 3 colunas bate estruturalmente; motor de teste compartilhado corretamente.
+- ⚠️ Botão idle 210dp real (spec pede 230px); anel running 220dp/stroke 8dp (spec pede 240px/14dp); 3 pílulas de fase em vez de 4; Segmented de modo é visualmente um pill com sombra, não borda 1px MD3; 3ª opção chama-se "Triplo" (spec: "3 testes"). Cores de fase fixas (`#60A5FA`/`#34D399`/`#FBBF24`) não trocam claro/escuro e divergem do hex da spec.
+- ❌ Bloco "Experiência de uso" (3 linhas Verdict) não existe na tela de Resultado — foi movido para dentro do sheet de diagnóstico; toggle "Ver métricas detalhadas" não existe na tela principal (5 MetricCards são mostrados direto).
 
 ### 1a · Análise detalhada
-Embutido em `ResultadoVelocidadeScreen.kt` (`DiagnosticoDetalhadoSheet`) — não é arquivo/tela própria.
-- ✅ Cabeçalho com ícone `AutoAwesome`; seção "Recomendações"; rodapé com cartão de operadora + "Falar com a operadora"; acordeão "Detalhes técnicos".
-- ⚠️ Título "Diagnóstico detalhado" (spec pede "Análise detalhada"); container do sheet é branco puro, sem tingimento de `surfaceContainerLow`; botões de feedback são `TextButton` retos, não pílulas.
-- ❌ Banner de veredito colorido (`successContainer`/`errorContainer`); estado loading com skeleton; timeout com fallback de erro; seção "Configurações" separada de "Recomendações".
+**Não existe como componente único.** Ver achado destacado no resumo executivo — o app tem `DiagnosticoDetalhadoSheet` (título "Diagnóstico detalhado", sem banner de veredito colorido, sem skeleton loading, sem seção "Configurações" separada) e `AnaliseDetalhadaBottomSheet` (fluxo de sintoma escolhido pelo usuário, conceito diferente do da spec). Recomendo decisão de produto antes de tratar como bug.
 
 ### 1b · Falar com a operadora
 `OperadoraBottomSheet.kt`
-- ✅ Botão WhatsApp `#25D366` peso 700 — bate exatamente com a spec; botões outlined lado a lado; lista nacional/regional com selo correto.
-- ⚠️ Título 20sp/700 hardcoded (nem bate com a spec nem com o `headlineSmall` do próprio tema); overlines em 10–10.5sp (fora de qualquer degrau da escala).
-- ❌ Nenhum componente `SheetTitle`/`Overline` reutilizável — tudo reimplementado ad-hoc por sheet.
+- ✅ Botão WhatsApp `#25D366`/peso 700 exatamente conforme; botões outlined lado a lado; lista nacional/regional com selo correto; persistência de senha de roteador via Keystore (nota: essa parte é de 2b-i, citada aqui por engano do agente — confirmar).
+- ⚠️ Título em `headlineMedium` (spec pede `headlineSmall`); nome da operadora em `titleLarge` (spec pede `titleMedium`).
 
 ### 2 · Início
 `HomeScreen.kt`
-- ✅ Padding/gap 16dp; nós clicáveis abrem os sheets corretos; "Medir agora" delega ao mesmo motor de teste da tela 1; card "Última medição" com sparkline.
-- ⚠️ Card "Caminho da sua internet" sem fundo/borda/Overline/legenda (renderizado solto na lista); nós da trilha sem preenchimento colorido (só ícone); Download/Upload com cores trocadas em relação à spec (Download=accent roxo, Upload=success verde — spec pede o oposto); valor usa `displayLarge` (34sp) em vez de `headlineLarge` (26px); cartão "Chip móvel" sem placeholder de listras diagonais.
-- ❌ Texto/legenda "Caminho da sua internet" visível; gradiente success→primary na linha de conexão (usa cor sólida).
+- ✅ Trilha clicável abre os sheets corretos; "Medir agora" reaproveita o motor de teste da tela 1; cartão "Última medição" com sparkline.
+- ⚠️ Nós da trilha 56dp (spec pede 52px); TopBar customizada mais rica que a spec (não é regressão, é extensão de produto); banners de CGNAT/Anatel não previstos na spec.
 
 ### 2a · Meu dispositivo
-`HomeScreen.kt:2434-2460`
 - ✅ 4 campos na ordem certa; não depende do gateway.
-- ⚠️ Valor em `bodyMedium`+W600 em vez de `titleSmall`; grabber duplicado (bug real); "Sistema" hardcoded como `"Android"` em vez de vir de `Build.VERSION`.
+- ⚠️ Título com peso 700 forçado (spec pede 600); valor em `bodyMedium`+W600 em vez de `titleSmall`; sem `SheetDivider` entre linhas.
 
 ### 2b · Roteador (Gateway)
-`HomeScreen.kt:2485-2523`
-- ✅ 9 campos na ordem certa; reaproveita conceito de tipo de nó (WifiRouter/Mesh/Extensor).
-- ⚠️ Título dinâmico (`gateway.name`) em vez do texto fixo "Roteador da casa"; mesmos problemas de tema/grabber.
-- **Achado de higiene:** existe uma segunda função `SignalQualitySheet` (`HomeScreen.kt:2583-2626`) com campos quase duplicados que não parece ser chamada de lugar nenhum visível — candidata a código morto, verificar com Camilo antes de remover.
+- ⚠️/❌ Ver achado no resumo executivo — sheet somente-leitura existe mas não é o destino do tap para roteador Wi-Fi comum (caso principal da spec).
 
 ### 2b-i · Conectar ao roteador
-`GatewayConnectionSheet.kt`
-- ✅ 3 estados internos com label de botão dinâmico; campo Senha com toggle de visibilidade; 2 ToggleRow com a regra "Manter conectado força Lembrar senha"; **senha via `EncryptedSharedPreferences`/AndroidKeyStore — não texto puro, conforme exigido**.
-- ⚠️ Nenhum `Segmented` visual de estado renderizado (só estado interno); banner de erro por alpha, não container dedicado.
-- ❌ **Validação de formato de IP e alcançabilidade antes de autenticar — ausente** (regra de negócio explícita da spec, violada); botão "Ver modelos compatíveis" não existe.
+- ✅ 3 estados internos, toggle de visibilidade de senha, "Manter conectado" força "Lembrar senha", senha via `EncryptedSharedPreferences`/Keystore (`CredenciaisModemStore.kt`) — confirmado, não texto puro.
+- ❌ Sem Segmented visual de estado; sem botão "Ver modelos compatíveis"; **sem validação de formato de IP/alcançabilidade antes de autenticar** (regra de negócio da spec, ainda violada).
 
 ### 2b-ii · Guia de credenciais
-`GatewayCredentialsGuideSheet.kt`
-- ✅ Título exato; 4 passos com círculo 44dp + ícone + "Passo N"; conteúdo estático sem dependência de rede.
-- ⚠️ Gap de 16dp entre passos (spec pede 24px); título do passo em `bodyLarge`+W600 em vez de `titleSmall`.
-- ❌ Conteúdo diferenciado por fabricante (só existe o fallback genérico).
+- ✅ 4 passos com círculo 44px + ícone + "Passo N"; conteúdo estático com fallback genérico.
+- ⚠️ Gap de 16dp entre passos (spec pede 24px); "Passo N" em `labelSmall` (spec pede `labelMedium`).
 
 ### 2b-iii · Modelos compatíveis
-- ❌ **Tela inteira ausente.** Só existe o modelo de dados (`PublicCompatibilityCatalog.kt`, em `core/network`), sem nenhum Composable consumidor. O botão que deveria abrir essa tela (em 2b-i) também não existe.
+- ❌ Continua totalmente ausente — nenhum Composable, nenhuma referência textual, nenhum botão de entrada.
 
 ### 2c · Internet / Provedor
-`HomeScreen.kt:2527-2579`
-- ✅ 5 campos na ordem certa; "DNS Privado" corretamente colorido quando ativo; detecção de CGNAT (RFC 6598) implementada de fato, não decorativa.
+- ✅ 5 linhas na ordem certa; DNS Privado colorido corretamente quando ativo; detecção de CGNAT real (RFC 6598), não decorativa.
 
 ### 2d · Rede móvel (chip)
-`HomeScreen.kt:2697-2837`
-- ✅ 8 campos completos; ASU calculado corretamente (RSRP+140); SINR colorido por faixa; nota de consumo de dados.
-- ⚠️ Vários textos com `fontSize` hardcoded em vez dos tokens do tema.
-- ❌ **Sem fluxo de redirecionamento para permissão de telefonia ausente** — a sheet só mostra "Sem dados" em texto, não direciona ao fluxo de permissão (tela 3f) como a spec exige.
+- ✅ 8 campos completos; ASU/SINR calculados corretamente.
+- ⚠️ Título em `headlineMedium` (spec pede `headlineSmall`).
+- ❌ Sem redirecionamento para fluxo de permissão quando `READ_PHONE_STATE` ausente — não confirmado dentro do sheet (pode estar upstream, checar com Camilo).
 
 ### 2e · Medir agora
-`HomeScreen.kt:3377-3473`
-- ✅ 3 opções com badge "Recomendado"/"Só Wi-Fi"; regra de negócio correta (Triplo só habilitado em Wi-Fi); botão Cancelar.
-- ⚠️ Ícone em bloco quadrado arredondado (10dp), não círculo; título em `titleLarge` do tema (16sp) em vez de `headlineSmall`.
+- ✅ 3 opções com badges corretos; regra "Triplo só em Wi-Fi" implementada; botão Cancelar.
+- ⚠️ Ícone em bloco quadrado arredondado, não círculo; título em token diferente do `headlineSmall` esperado.
 
 ### 3 · Sinal
 `SinalScreen.kt`
-- ⚠️ 4ª tab "Dispositivos" não prevista na spec (só Wi-Fi/Canal/Móvel); Segmented de banda implementado como chips soltos sem container/borda; Badges com `radius 4dp` em vez de pílula 999px; SignalBars com 4dp de largura (spec pede 3px).
-- ❌ Aba Móvel sem botão "Falar com a operadora" por chip, exigido pela spec.
-- **Regra de negócio violada:** sheets de permissão (3e/3f) usam estado de dismissal só de sessão — reabrem a cada nova sessão mesmo após negação permanente, contrariando a spec explicitamente.
+- ✅ **4ª tab "Dispositivos" duplicada já foi removida** (achado da v1 não se aplica mais — confirmado, `SinalTopTabRow` só lista Wi-Fi/Canal/Móvel).
+- ⚠️ Segmented de banda é na prática uma linha de Chips, não o componente Segmented com borda; badges não são pílula.
+- ❌ Botão "Falar com a [operadora]" ausente na aba Móvel.
 
 ### 3a · Rede vizinha
-`SinalScreen.kt:1781-1921`
-- ✅ Estrutura de 6 linhas + divisores; não dispara novo scan ao abrir.
-- ⚠️ **Os cartões de alerta/dica (canal congestionado / trocar de canal) só aparecem para a própria rede conectada, nunca para uma rede de terceiros** — contradiz o propósito da tela, que é justamente mostrar detalhe de "rede vizinha".
+- ✅ Estrutura de 6 linhas + divisores; cartões de alerta/dica condicionais presentes.
+- ⚠️ Valor em `bodyMedium` em vez de `titleSmall`; opacidades de fundo diferentes das especificadas.
 
 ### 3b · Canal Wi-Fi
-`SinalScreen.kt:2913-3120`
-- ✅ Estrutura completa (Badge, Status, Análise, Detalhes Técnicos) bate bem com a spec; reaproveita o mesmo engine de diagnóstico da aba Canal.
-- ⚠️ Título em `headlineMedium` em vez de `headlineLarge`; espaçamento de divisores 16px em vez de 20px.
+- ✅ Estrutura completa (badges, Status, Análise, Detalhes Técnicos) bate bem com a spec.
+- ⚠️ Título em `headlineMedium` em vez de `headlineLarge`.
 
 ### 3c · Ponto de acesso / mesh
-`DispositivosScreen.kt:797-941`
-- ✅ Estrutura completa (cabeçalho, aviso, campo de apelido, seção Rede) bate bem com a spec.
+- ✅ Estrutura quase idêntica à spec (cabeçalho, campo de apelido, seção Rede).
+- ⚠️ Aviso informativo usa tom de warning/âmbar em vez do neutro que a spec pede.
 
 ### 3d · Dispositivo cliente
-`DispositivosScreen.kt:629-791`
-- ✅ Estrutura completa, incluindo "Descoberto via" com cor `primary` condicional — bate exatamente com a spec.
+- ✅ Estrutura completa, incluindo "Descoberto via" com cor condicional correta.
+- ⚠️ Container do ícone é quadrado (12dp radius) em vez do círculo que a spec pede especificamente para esta tela.
 
 ### 3e · Permissão de localização / 3f · Permissão de telefonia
-`PermissaoLocalizacaoContextoSheet.kt`, `PermissaoTelefoniaContextoSheet.kt`
-- ✅ Ícones e CTAs corretos; 3f corretamente sem estado "bloqueada" alternável.
-- ⚠️ Título em `titleLarge` em vez de `headlineSmall`; corpo em `bodyMedium` em vez de `bodyLarge`; botões lado a lado em vez de empilhados (decisão intencional de acessibilidade documentada no código, referência a issue própria).
-- ❌ **Regra "não repetir se negado permanentemente" violada** (ver achado transversal acima).
+- ✅ Ícones/CTAs corretos; 3f corretamente sem estado "bloqueada" alternável.
+- ❌ **Regra "não repetir se negado permanentemente" segue violada** — dismissal é `remember{}` de sessão, não persistido (`localizacaoSheetDismissed`/`telefoniaSheetDismissed`, `SinalScreen.kt`). Grabber duplicado suspeito (falta `dragHandle = {}`).
 
 ### 4 · Histórico
 `HistoricoScreen.kt`
-- ✅ Persistência local via Room; radius/espaçamento de card conforme.
-- ⚠️ Segmented Todos/Wi-Fi/Celular implementado como `FilterChip`s sem largura fixa de 220px; cards de lista muito mais ricos que o especificado (gráfico de linha, médias, tendência — superset funcional, não previsto na spec).
-- ❌ `NativeAd` no topo da lista; overline "Medições recentes".
+- ✅ Persistência local via Room; NativeAd presente (via #555).
+- ⚠️ NativeAd não é o primeiro item da lista (é o 4º, decisão documentada em comentário referenciando #555 — confirmar se foi aprovada); Segmented Todos/Wi-Fi/Celular é `FilterChip`, não o componente pílula da spec; cards de item mais ricos que o especificado (gráfico, médias, tendência — extensão de produto).
+- ❌ Overline "Medições recentes" ausente.
 
 ### 4a · Detalhe de teste
-`HistoricoScreen.kt:1110-1367`
-- ✅ Lista de linhas rotuladas completa com cor condicional; bloco "Diagnóstico" com rótulo "Gerado por IA".
-- ⚠️ Título em `bodyLarge`+W600 em vez de `titleLarge`; valor da métrica primária em `displaySmall` (34px) em vez de `headlineLarge` (26px); grabber 36×4 (spec pede 32×4).
+- ✅ Todos os blocos da spec presentes (cabeçalho, métricas primárias/secundárias, linhas rotuladas, diagnóstico) — só tokens de tamanho/raio divergentes (título em 16sp em vez de 20px, métrica primária em 34sp em vez de 26px).
 
 ### 4b · Exportar histórico
-`ExportHistoricoBottomSheet.kt`
-- ✅ **Exportação real** — CSV/PDF gerados localmente (`PdfDocument`/`WebView`), share sheet nativo acionado via `Intent.ACTION_SEND`+`FileProvider`; filtro de período aplicado de fato, não decorativo.
-- ⚠️ Chips de período/formato usam cor `accent` em vez de `secondary`/`secondaryContainer` (família de cor errada, não só hex); Segmented de estado "Seleção/Exportando" ausente como componente visual (só texto do botão muda).
+- ✅ **Exportação real** (CSV/PDF locais, share sheet nativo, filtro de período de fato aplicado — nada placeholder).
+- ❌ Segmented de estado "Seleção/Exportando" ausente como componente visual (só texto do botão + barra de progresso indicam o estado).
 
 ### 5 · Ferramentas (hub)
-- ❌ **Não existe.** 5ª aba é "Ajustes". Destinos 5a–5g acessados de forma dispersa (cards em Home/Sinal, itens dentro de Ajustes, alguns atrás de feature flag) — sem grade central de 7 atalhos.
+`FerramentasScreen.kt` — **já existe** (achado da v1 estava errado).
+- ✅ 7 itens corretos (Dispositivos, Equipamento de internet, Ping, DNS, Laudo, Monitoramento, Jogos).
+- ⚠️ Layout é grade 2 colunas, spec pede lista vertical full-width; ícone circular em vez de quadrado arredondado 12px; sem chevron trailing.
 
 ### 5a · Dispositivos
-`DispositivosScreen.kt`
-- ✅ Estrutura de cabeçalho, seções por grupo, estados vazio/erro bem alinhados com a spec.
-- ⚠️ Badge com `radius 4dp` em vez de pílula; cards sem fundo/radius por item.
-- ❌ `NativeAd` no meio da lista.
+- ✅ Estrutura geral, DeviceRow com ícone/badge/IP na maioria dos casos.
+- ⚠️ Sem Segmented Lista/Vazio/Erro visível; sem borda inferior no cabeçalho; badges com radius 4dp; NativeAd na última posição da seção "Dispositivos", não em `floor(total/2)` da lista completa — decisão documentada (issue #555/feedback do Luiz 2026-07-12), não bug.
 
 ### 5b · Equipamento de internet
-`FibraModemScreen.kt` — **achado estrutural mais relevante da auditoria de Ferramentas**
-- ❌ Tela é **só fibra**, não a versão universal (fibra+Wi-Fi) que a spec pede. Sem `DeviceSelector`, sem `WifiModule`, sem enum único de 6 estados de "Acesso ao equipamento" (só 4 estados de fibra), sem ação "Reiniciar equipamento" com diálogo de confirmação, sem `Topology`/alerta de Double NAT.
-- ✅ O que existe (cards de sinal/ruído/conexão, acordeão de detalhes técnicos) está estruturado de forma razoável, mas é um subconjunto do escopo pedido.
+`EquipamentoInternetScreen.kt` — **já existe como tela universal** (achado estrutural mais grave da v1 estava errado — isso já foi construído).
+- ✅ **Regras de negócio corretas**: enum único "Acesso ao equipamento" com os 6 valores exatos da spec (`AcessoEquipamento.kt`, reutilizável mas hoje só consumido aqui); diálogo de confirmação antes de reiniciar; detecção de Double NAT cruzando UPnP IGD real com modo da ONT (não decorativa).
+- ⚠️ Visual: `StatusCard`/`DeviceSelector`/`Topology` da spec não existem como componentes nomeados — o corpo reaproveita `LocalDeviceSection` (lista plana) em vez da estrutura visual detalhada da spec. Loading é spinner central, não skeleton pulsante.
 
 ### 5c · Ping
-`PingScreen.kt`
-- ✅ Estrutura completa, incluindo ~20 amostras conforme a nota de implementação.
+- ✅ ~20 amostras conforme a nota de implementação; 3 PingMetricCard lado a lado.
+- ⚠️ Continua como `ModalBottomSheet`, não migrou para tela cheia como 5b/5d já fizeram (comentário no próprio `DnsScreen.kt` confirma que Ping ficou pra trás dessa migração); sem Segmented Coletando/Resultado.
 
 ### 5d · DNS
-`DnsScreen.kt` (`DnsSheetContent`)
-- ✅ Estrutura muito próxima da spec (comparativo, grade A-D, guia com tabs Dispositivo/Roteador).
-- ⚠️ Existe atrás de feature flag (`FeatureFlags.DNS_SCREEN`) e como sheet, não como tela própria navegável de um hub; usa `TabRow` M3 padrão em vez do componente `Tabs` customizado da spec.
+`DnsScreen.kt`
+- ✅ Estrutura muito próxima da spec; acordeão "Quando vale a pena trocar DNS?" com marcador circular 5px exato; guia é só instrucional (não altera DNS via API), conforme a nota de implementação; Tabs Dispositivo/Roteador conforme.
+- ⚠️ Cores/tamanhos hardcoded, próximos mas não exatos aos tokens.
 
 ### 5e · Laudo
-`LaudoScreen.kt`
-- ✅ Estrutura de TopBar/banner/metadados/seções presente e funcional; PDF real com seção extra de conformidade ANATEL (fora do escopo da spec, mas extensão de produto válida).
-- ⚠️ Grade de métricas é 3 pares empilhados, não grid 2×3 solto como a spec pede.
-- ❌ Botão "Compartilhar laudo em PDF" no rodapé — ação só existe no ícone da TopBar.
+- ✅ Estrutura de TopBar/banner/metadados/seções completa; grade de 6 métricas em 2 colunas × 3 linhas bate exatamente com a spec.
+- ❌ Botão "Compartilhar laudo em PDF" no rodapé ausente — a única ação de compartilhar é o ícone da TopBar.
 
 ### 5f · Monitoramento
-`AjustesScreen.kt:1799-1991` (`DiagnosticoSheet`)
-- ❌ Não é tela própria — existe só como sheet dentro de Ajustes, atrás de `BuildConfig.FEATURE_LINKPULSE_ATIVO`.
-- ⚠️ Exige diálogo de confirmação antes de ativar (regra extra não prevista na spec, mas não necessariamente ruim); nota de bateria condicionada a fabricante de risco, não incondicional como a spec sugere.
+`MonitoramentoSheet.kt`
+- ✅ InlineToggleRow com diálogo de confirmação antes de ativar (opt-in explícito, correto); sub-lista de notificações condicional presente.
+- ❌ **Continua sendo sheet compartilhado**, não tela dedicada — apesar de um comentário no código dizer "Fase 7 MD3 (5f) destino único" (comentário desatualizado em relação à implementação real). Nota de bateria só aparece condicionalmente por fabricante, não incondicional como a spec sugere.
 
 ### 5g · Jogos
-- ❌ **0% de UI implementada.** Só existe a spec funcional (`docs_ai/functional/JOGOS_TESTE_CONEXAO_SPEC.md`) e o classificador de domínio isolado `GameReadinessClassifier` (com testes), sem nenhum dos 5 passos de fluxo conectados a uma tela.
+`JogosScreen.kt`, `JogosViewModel.kt`, `JogoConexaoEngine.kt`, `GameCatalog.kt` — **fluxo completo já existe** (achado da v1 de "0% implementado" estava errado).
+- ✅ **Regras de negócio corretas e bem verificadas**: 5 etapas reais (Plataforma→Jogo→Confirmar→Progresso→Resultado); teste nunca inicia automaticamente; troca de jogo sempre descarta resultado anterior; avaliação pondera perda>jitter>estabilidade>latência (nunca por download isolado); nunca pinga site institucional do jogo (usa `REGIONAL_ESTIMATE` de fato, mesmo quando o jogo declara `PROVIDER_NETWORK`).
+- ❌ **NativeAd completamente ausente na tela de Resultado** — a spec é explícita que essa é a única superfície onde publicidade nativa é permitida em todo o fluxo de Jogos.
+- ⚠️ Visual diverge bastante do desenho da spec em quase toda etapa: Passo 1 sem indicador de seleção persistente; Passo 2 sem sigla monoespaçada/badge de plataforma; Passo 4 mostra 1 spinner em vez das 4 linhas de etapa com check_circle (intervalo real 3000ms, spec sugere ~800ms); Passo 5 sem banner colorido por veredito, métricas em lista em vez de grade, sem métrica "Estabilidade" explícita.
 
 ### 6 · Perfil / Ajustes
 `AjustesScreen.kt`
-- ⚠️ Estrutura real tem 7 seções (Minha conexão/Aparência/Notificações/Histórico e dados/Avançado/Informações) em vez das 4 da spec — mais granular, com itens extras (Comprovante Anatel, Fale conosco, Diagnóstico do app) não previstos.
-- ⚠️ Avatar 56dp (spec pede 52px); rótulo "Ver perfil" ausente (card leva direto ao editor).
+- ⚠️ Estrutura ainda diverge da spec: 6 seções em lista plana sem cartão de fundo (spec pede 4 Sections agrupadas em cartão `surfaceContainer`); "Dados e privacidade" fragmentado em duas linhas espalhadas por seções diferentes, não uma seção própria.
+- ⚠️ Avatar do cabeçalho 56dp (spec pede 52px).
 
 ### 6a · Meu perfil
-`AjustesScreen.kt:1182-1312` (sheet, não tela própria)
-- ✅ Avatar editável 80dp correto; campo de nome; botão "Salvar perfil".
-- ❌ Botão de câmera sobreposto ao avatar — ausente (clique é direto no avatar inteiro).
+- ✅ Avatar editável 80dp correto.
+- ❌ Botão de câmera sobreposto ao avatar ausente.
+- ⚠️ Conteúdo extra (Operadora/IP/Conexão/Localização/Versão) não previsto na spec para esta tela.
 
 ### 6b · Minha conexão
-`MinhaConexaoScreen.kt`
 - ✅ Estrutura completa (3 SectionCard + botão Salvar) bate bem com a spec.
-- ⚠️ Botão "Salvar" com 48dp de altura (spec pede 40px).
 
 ### 6c · Dados e privacidade
-`AjustesScreen.kt:2002-2125` (`DadosLocaisSheet`)
-- ✅ **Estrutura e regra de negócio corretas** — 3 ActionButton na gravidade certa (warning outline / error outline / error preenchido), cada ação passa por diálogo de confirmação, e **efeito real confirmado**: liga a `viewModel.limparHistorico()`/`apagarDadosLocais()`/`resetarApp()` em `MainActivity.kt`, não é decorativo.
+- ✅ **O ponto crítico está correto**: 3 ActionButton em gravidade crescente (warning outline → error outline → error preenchido), cada um com diálogo de confirmação, efeito real confirmado no ViewModel.
 
 ### 6d · Privacidade
-`PrivacidadeScreen.kt`
-- ✅ Estrutura completa (TopBar, bloco de destaque, 3 seções de texto, linha final de gerenciar dados) bate bem com a spec; textos parecem refletir o comportamento real (localização para Wi-Fi scan, telefonia para 4G/5G).
+- ✅ Estrutura completa (TopBar, bloco de destaque, 3 seções, linha final de gerenciar dados).
+- ⚠️ Vários textos com `fontSize` hardcoded, nem batendo com os próprios tokens do app.
 
 ### 6e · Novidades
-`NovidadesScreen.kt`
-- ✅ Estrutura completa (cabeçalho, lista com selos NOVO/MELHORIA/CORREÇÃO, separadores).
-- ❌ **Fonte de dados é asset local embarcado no APK (`changelog.json`), não CMS/JSON remoto versionado** como a nota de implementação da spec pede — mudar o changelog exige novo release do app.
+- ✅ Estrutura completa (cabeçalho, lista com selos, separadores).
+- ❌ **Changelog continua vindo de asset local embutido no APK** (`context.assets.open("changelog.json")`), não de CMS/JSON remoto versionado — regra de negócio da spec ainda violada.
 
 ### 6f · Sobre o SignallQ
-`AjustesScreen.kt:701-715` (`SimpleInfoSheet`, reaproveitado)
-- ⚠️ 4 linhas em vez das 3 pedidas (inclui "Plataforma" extra).
-- ⚠️ **Duplicação de conteúdo:** existe uma segunda sheet "Diagnóstico do app" (`AjustesScreen.kt:2131-2203`) com informação sobreposta de versão/plataforma — candidato a consolidação.
+- ⚠️ 5 linhas em vez das 3 pedidas (Versão, Plataforma, Desenvolvido por, Suporte, Licenças de terceiros) — extensão de conteúdo, não regressão.
 
 ### 7 · SignallQ AI (descontinuada)
-- ✅ **Nenhuma rota de navegação leva à funcionalidade** — confirmado por grep completo em `AppShell.kt`: nenhuma das 5 telas de chat/IA é chamada a partir de navegação real.
-- ⚠️ **Código morto extenso ainda no repo:** 5 telas (`SignallQScreen.kt`, `SignallQPulseScreen.kt`, `ChatScreen.kt`, `LLMChatScreen.kt`, `ChatDiagnosticoIaScreen.kt`), 12+ componentes de UI, entidades Room de chat (`ChatMessageEntity`, `ChatSessionEntity`/`Dao`), e as classes de domínio (`SignallQOrchestrator`, `SignallQState`, `ChatDiagnosticoIaRepository`).
-- ❌ **A spec exige remoção total ("nenhuma rota, componente ou dado deve existir") — não cumprida.** O `ChatDiagnosticoIaViewModel` é instanciado em `MainActivity.kt:52` e conectado com handlers completos (`MainActivity.kt:348-381`) a cada abertura do app, mesmo sem UI que os consuma — potencial I/O real (Room, chamada de rede via `AI_WORKER_URL`) sem que a feature seja jamais vista pelo usuário.
-- **🔴 Achado crítico separado de design:** `app/build.gradle.kts:191` define `FEATURE_DIAGNOSTICO_CHAT = true` no flavor de **release**, com comentário no código indicando que deveria estar `false` (padrão correto já usado em `FEATURE_LINKPULSE_CHAT`, linha 197). Precisa de correção e verificação antes do próximo release candidate — risco de a IA conversacional descontinuada reaparecer em produção se algum gate condicional depender desse flag.
+- ✅ **Remoção principal já aconteceu de verdade** (PR #912): telas de chat, rotas e write-path do banco de dados de chat estão mortos, não só inacessíveis — confirmado por grep completo.
+- ⚠️ Resíduo de limpeza: 11 componentes de UI órfãos (`SignallQAiMessageBubble.kt` e afins), uma segunda via de chat morta conectada mas nunca renderizada (`DiagChatEntry`/lógica em `MainViewModel`/`DiagnosticoViewModel`), entidades Room de chat ainda no schema sem write-path real.
+- ❌ `FEATURE_DIAGNOSTICO_CHAT=true` continua no flavor de release (`app/build.gradle.kts:198`) com comentário no código dizendo que deveria estar desligado. Mitigante: nada lê `FeatureFlags.DIAGNOSTICO_CHAT` hoje, então não liga nenhuma UI — mas é um flag órfão e enganoso que deveria ser removido junto com o resto da limpeza.
 
 ---
 
-## Recomendação
+## Decisões que precisam de confirmação antes de "corrigir" (não são bugs óbvios)
 
-Este documento é só o registro da auditoria (nenhum código foi alterado). Próximo passo natural: decidir prioridade de correção — separaria em 3 frentes:
-1. **Risco técnico/release** (flag `FEATURE_DIAGNOSTICO_CHAT` em release, remoção de código morto da IA) — Camilo, antes do próximo release candidate.
-2. **Regras de negócio violadas** (permissão reabrindo sempre, validação de IP ausente em 2b-i, alerta de canal só na própria rede em 3a) — bugs funcionais, não só visuais.
-3. **Divergência de design system** (paleta/tipografia/componentes) — decisão de produto: alinhar o app à spec To-Be (retrofit de tema) ou atualizar a spec para refletir o `LkColors` já em produção. Isso é decisão de escopo maior, não uma correção pontual.
+1. **1a (Análise detalhada)** — app reestruturado deliberadamente em 2 sheets diferentes, documentado no código. A spec pode estar desatualizada.
+2. **2b (Roteador)** — tap no roteador Wi-Fi comum nunca abre o sheet somente-leitura da spec; pode ser fusão intencional com 2b-i/5b.
+3. **4 (Histórico)** — posição do NativeAd (4º item, não o primeiro) tem decisão documentada referenciando #555; confirmar se foi aprovação formal.
+4. **5a (Dispositivos)** — posição do NativeAd (fim da seção, não `floor(total/2)` da lista completa) também tem decisão documentada (issue #555 + feedback do Luiz em 2026-07-12).
