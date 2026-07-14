@@ -18,9 +18,8 @@ android {
             "\"https://linka-ai-diagnosis-worker.giammattey-luiz.workers.dev\"",
         )
         // GH#962/#965 — worker signallq-diagnostic (motor de diagnostico remoto +
-        // diretorio de provedores). Ainda nao deployado em producao (PR #964, base
-        // desta branch, corrige o worker mas nao foi mergeada ainda) — URL de
-        // producao a confirmar quando o deploy acontecer.
+        // diretorio de provedores). Deployado em producao em 2026-07-14 (GH#967) —
+        // URL abaixo confirmada contra o deploy real via GET /health (200).
         buildConfigField(
             "String",
             "DIAGNOSTIC_WORKER_URL",

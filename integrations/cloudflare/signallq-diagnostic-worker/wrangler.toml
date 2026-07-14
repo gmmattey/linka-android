@@ -48,7 +48,7 @@ crons = ["0 * * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "signallq-diagnostic-db"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "495c8b96-8daf-46b7-b6f2-ba41ae4bd1af"
 
 # GH#965 — R2 descartado por decisao de produto (2026-07-14). A ideia original
 # era hospedar a logo de operadora de cauda longa em R2, mas a Cloudflare exige
