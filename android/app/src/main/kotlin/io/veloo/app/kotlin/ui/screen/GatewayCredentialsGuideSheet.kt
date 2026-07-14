@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkSpacing
@@ -109,7 +108,6 @@ internal fun GatewayCredentialsGuideSheetContent(c: LkTokens) {
         Text(
             text = "Como encontrar usuário e senha do roteador",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.W700,
             color = c.textPrimary,
         )
         Text(
@@ -118,7 +116,7 @@ internal fun GatewayCredentialsGuideSheetContent(c: LkTokens) {
             color = c.textSecondary,
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.lg)) {
+        Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.xl)) {
             passosCredenciais.forEachIndexed { index, passo ->
                 PassoCredencialRow(numero = index + 1, passo = passo, c = c)
             }
@@ -161,14 +159,12 @@ private fun PassoCredencialRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "Passo $numero",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.W600,
+                style = MaterialTheme.typography.labelMedium,
                 color = LkColors.accent,
             )
             Text(
                 text = passo.titulo,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.W600,
+                style = MaterialTheme.typography.titleSmall,
                 color = c.textPrimary,
             )
             Text(
