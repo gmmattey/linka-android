@@ -156,6 +156,7 @@ fun MinhaConexaoSheet(
                     onValueChange = { operadoraEdit = it },
                     label = { Text("Operadora / ISP") },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
                     colors =
                         OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = LkColors.accent,
@@ -173,6 +174,7 @@ fun MinhaConexaoSheet(
                         onValueChange = { downMbpsEdit = it.filter { ch -> ch.isDigit() } },
                         label = { Text("Download (Mbps)") },
                         modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors =
                             OutlinedTextFieldDefaults.colors(
@@ -186,6 +188,7 @@ fun MinhaConexaoSheet(
                         onValueChange = { upMbpsEdit = it.filter { ch -> ch.isDigit() } },
                         label = { Text("Upload (Mbps)") },
                         modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors =
                             OutlinedTextFieldDefaults.colors(
@@ -210,6 +213,7 @@ fun MinhaConexaoSheet(
                     onValueChange = { cidadeEdit = it },
                     label = { Text("Cidade") },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
                     colors =
                         OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = LkColors.accent,
@@ -261,15 +265,14 @@ private fun MinhaConexaoSectionCard(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgSecondary)
+                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .padding(LkSpacing.lg),
         verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.W600,
-            color = c.textSecondary,
+            style = MaterialTheme.typography.labelLarge,
+            color = c.onSurfaceVariant,
             modifier = Modifier.padding(bottom = LkSpacing.xs),
         )
         content()
@@ -327,6 +330,7 @@ private fun EstadoUfDropdown(
                 Modifier
                     .fillMaxWidth()
                     .menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
+            shape = RoundedCornerShape(12.dp),
             colors =
                 OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = LkColors.accent,

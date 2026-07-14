@@ -101,7 +101,7 @@ internal fun DadosLocaisSheet(
             )
             Text(
                 text = "Estas ações são irreversíveis. Os dados serão removidos permanentemente do dispositivo.",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = c.textSecondary,
                 lineHeight = 18.sp,
             )
