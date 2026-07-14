@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,15 +30,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Business
+import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Sensors
@@ -223,78 +225,56 @@ fun AjustesScreen(
                     .padding(padding)
                     .background(c.bgPrimary),
         ) {
-            // ── HERO CARD ────────────────────────────────────────────────────────────
+            // ── HERO CARD (6 · Perfil): cabeçalho clicável avatar 52dp + "Ver perfil" ──
             item {
-                // #224: nome do device não deve ocupar o campo de identidade do usuário
                 val temNome = nomeUsuario.isNotBlank()
                 val nomeDisplay = if (temNome) nomeUsuario else "Adicionar nome"
-                val (subtituloBase, isRealData) = buildHeroSubtitle(nomeUsuario, operadora, planoInternet)
-                // Quando sem nome, mostra device como dado secundário no subtítulo
-                val subtitulo =
-                    if (!temNome && deviceName.isNotBlank()) {
-                        if (isRealData) "$subtituloBase · $deviceName" else deviceName
-                    } else {
-                        subtituloBase
-                    }
-                val subtituloIsRealData = isRealData || (!temNome && deviceName.isNotBlank())
                 val cdPerfil = stringResource(R.string.ajustes_cd_perfil)
-                Box(
+                Row(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = LkSpacing.lg)
-                            .padding(top = LkSpacing.xl, bottom = LkSpacing.lg)
+                            .padding(top = LkSpacing.lg, bottom = LkSpacing.lg)
                             .semantics {
                                 contentDescription = cdPerfil
                             }.clip(RoundedCornerShape(LkRadius.card))
                             .background(c.bgSecondary)
                             .clickable { showPerfilSheet = true }
                             .padding(LkSpacing.lg),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        UserAvatar(
-                            fotoUri = fotoUriUsuario,
-                            fallbackInitial = nomeUsuario.firstOrNull(),
-                            size = 56.dp,
+                    UserAvatar(
+                        fotoUri = fotoUriUsuario,
+                        fallbackInitial = nomeUsuario.firstOrNull(),
+                        size = 52.dp,
+                    )
+                    Spacer(Modifier.width(LkSpacing.md))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = nomeDisplay,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.W600,
+                            color = if (temNome) c.textPrimary else c.textTertiary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                        Spacer(Modifier.width(LkSpacing.md))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = nomeDisplay,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.W600,
-                                color = if (temNome) c.textPrimary else c.textTertiary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Text(
-                                text = subtitulo,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (subtituloIsRealData) c.textSecondary else c.textTertiary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+                        Text(
+                            text = "Ver perfil",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = c.textSecondary,
+                        )
                     }
                     Icon(
-                        imageVector = Icons.Outlined.Edit,
-                        contentDescription = stringResource(R.string.ajustes_cd_editar_perfil),
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                        contentDescription = null,
                         tint = c.textTertiary,
-                        modifier =
-                            Modifier
-                                .size(16.dp)
-                                .align(Alignment.TopEnd),
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
 
-            // ── MINHA CONEXÃO ────────────────────────────────────────────────────────
-            item { SectionHeader(stringResource(R.string.ajustes_minha_conexao), c) }
-
-            // Banner de confirmação de ISP auto-detectado
+            // Banner de confirmação de ISP auto-detectado (fora do card, acima da seção)
             if (!ispConfirmado && !ispDetectado.isNullOrBlank() && operadora.isBlank()) {
                 item {
                     Box(
@@ -302,7 +282,7 @@ fun AjustesScreen(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = LkSpacing.lg)
-                                .padding(bottom = LkSpacing.sm)
+                                .padding(bottom = LkSpacing.md)
                                 .clip(RoundedCornerShape(LkRadius.card))
                                 .background(LkColors.accent.copy(alpha = 0.08f))
                                 .border(1.dp, LkColors.accent.copy(alpha = 0.30f), RoundedCornerShape(LkRadius.card))
@@ -349,302 +329,192 @@ fun AjustesScreen(
                 }
             }
 
+            // ── MINHA CONEXÃO (Section 1/4) ──────────────────────────────────────────
             item {
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .semantics {
-                                contentDescription = "Minha conexão. ${
-                                    if (operadora.isNotBlank()) "Operadora: $operadora." else ""
-                                } Toque para editar."
-                            }.clickable { showMinhaConexaoSheet = true }
-                            .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.sm),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
-                ) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(LkColors.accent.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Business,
-                            contentDescription = null,
-                            tint = LkColors.accent,
-                            modifier = Modifier.size(18.dp),
-                        )
+                // #225/#849: plano/local vazios exibem call-to-action em vez de "—";
+                // "Plano" reflete velocidade contratada (down/up Mbps) persistida por
+                // MinhaConexaoSheet, não o campo "planoInternet" legado (texto livre da
+                // extinta ProvedorSheet, nunca atualizado por este fluxo).
+                val temVelocidadeContratada = velocidadeContratadaDownMbps > 0 || velocidadeContratadaUpMbps > 0
+                val planoValue =
+                    if (temVelocidadeContratada) {
+                        "$velocidadeContratadaDownMbps/$velocidadeContratadaUpMbps Mbps"
+                    } else {
+                        "Adicionar"
                     }
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = "Minha conexão",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = c.textPrimary,
-                        )
-                        val tudoVazio =
-                            operadora.isBlank() &&
-                                velocidadeContratadaDownMbps <= 0 &&
-                                velocidadeContratadaUpMbps <= 0 &&
-                                regiao.isBlank() &&
-                                cidadeNome.isBlank() &&
-                                estadoUf.isBlank()
-                        if (tudoVazio) {
-                            Text(
-                                text = "Toque para configurar sua conexão",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = c.textTertiary,
-                            )
-                        } else {
-                            Text(
-                                text = "Operadora: ${if (operadora.isNotBlank()) operadora else "—"}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = c.textSecondary,
-                            )
-                            // #225: plano vazio exibe call-to-action em vez de "—"
-                            // #849: resumo deve refletir a velocidade contratada (down/up Mbps)
-                            // persistida por MinhaConexaoSheet, e nao o campo "planoInternet" legado
-                            // (texto livre da extinta ProvedorSheet, nunca atualizado por este fluxo).
-                            val temVelocidadeContratada = velocidadeContratadaDownMbps > 0 || velocidadeContratadaUpMbps > 0
-                            val planoTexto =
-                                if (temVelocidadeContratada) {
-                                    "$velocidadeContratadaDownMbps/$velocidadeContratadaUpMbps Mbps"
-                                } else {
-                                    "Toque para informar seu plano"
-                                }
-                            val planoColor = if (temVelocidadeContratada) c.textSecondary else c.textTertiary
-                            Text(
-                                text = "Plano: $planoTexto",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = planoColor,
-                            )
-                            // #225: local vazio exibe call-to-action em vez de "—"
-                            val localTexto =
-                                when {
-                                    cidadeNome.isNotBlank() && estadoUf.isNotBlank() -> "$cidadeNome, $estadoUf"
-                                    regiao.isNotBlank() -> regiao
-                                    else -> "Toque para informar seu local"
-                                }
-                            val localColor =
-                                if (cidadeNome.isNotBlank() || regiao.isNotBlank()) c.textSecondary else c.textTertiary
-                            Text(
-                                text = "Local: $localTexto",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = localColor,
-                            )
-                        }
+                val cidadeValue =
+                    when {
+                        cidadeNome.isNotBlank() && estadoUf.isNotBlank() -> "$cidadeNome, $estadoUf"
+                        regiao.isNotBlank() -> regiao
+                        else -> "Adicionar"
                     }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = "Editar",
-                        tint = c.textTertiary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
-            }
-            if (BuildConfig.FEATURE_FIBRA_SCREEN) {
-                item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-                item {
-                    // GH#531 — rename "Fibra óptica" → "Roteador e rede": destino é o
-                    // roteador/GPON, não fibra em si; subtítulo comunica bandas Wi-Fi +
-                    // quantidade de dispositivos para dar a real dimensão do que tem lá dentro.
-                    val subtitleGateway =
-                        when {
-                            modemHost.isNullOrBlank() -> "Não configurado"
-                            bandasWifiGateway.isNullOrBlank() -> "Conectado"
-                            else -> "Conectado · $bandasWifiGateway · $dispositivosNaRedeGateway dispositivos"
-                        }
-                    SettingItem(
+                val mostrarRoteador = BuildConfig.FEATURE_FIBRA_SCREEN
+                AjustesSectionCard(title = "Minha conexão", c = c) {
+                    AjustesRow(
                         c = c,
-                        icon = Icons.Outlined.Router,
-                        label = "Roteador e rede",
-                        subtitle = subtitleGateway,
-                        onClick = {
-                            // GH#530: sessão válida (mesmo BSSID em que "manter conectado" foi
-                            // salvo) pula a sheet e vai direto ao destino provisório.
-                            if (gatewaySessaoValida) {
-                                onAbrirFibra()
-                            } else {
-                                showGatewayConnectionSheet = true
-                            }
-                        },
+                        icon = Icons.Outlined.Business,
+                        label = "Operadora",
+                        value = operadora.ifBlank { "Adicionar" },
+                        onClick = { showMinhaConexaoSheet = true },
                     )
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.Speed,
+                        label = "Plano contratado",
+                        value = planoValue,
+                        onClick = { showMinhaConexaoSheet = true },
+                    )
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.LocationOn,
+                        label = "Cidade",
+                        value = cidadeValue,
+                        onClick = { showMinhaConexaoSheet = true },
+                        last = !mostrarRoteador,
+                    )
+                    if (mostrarRoteador) {
+                        // GH#531 — rename "Fibra óptica" → "Roteador e rede": destino é o
+                        // roteador/GPON, não fibra em si.
+                        val subtitleGateway =
+                            when {
+                                modemHost.isNullOrBlank() -> "Não configurado"
+                                bandasWifiGateway.isNullOrBlank() -> "Conectado"
+                                else -> "Conectado · $dispositivosNaRedeGateway dispositivos"
+                            }
+                        AjustesRow(
+                            c = c,
+                            icon = Icons.Outlined.Router,
+                            label = "Roteador e rede",
+                            value = subtitleGateway,
+                            onClick = {
+                                // GH#530: sessão válida (mesmo BSSID em que "manter conectado"
+                                // foi salvo) pula a sheet e vai direto ao destino provisório.
+                                if (gatewaySessaoValida) {
+                                    onAbrirFibra()
+                                } else {
+                                    showGatewayConnectionSheet = true
+                                }
+                            },
+                            last = true,
+                        )
+                    }
                 }
             }
-            item { Spacer(Modifier.height(16.dp)) }
-            // ── APARÊNCIA ────────────────────────────────────────────────────────────
-            item { SectionHeader("Aparência", c) }
-            item {
-                ThemeSelector(
-                    selecionado = temaSelecionado,
-                    onSelect = onDefinirTemaSelecionado,
-                    c = c,
-                )
-            }
-            item { Spacer(Modifier.height(16.dp)) }
 
-            // ── NOTIFICAÇÕES ─────────────────────────────────────────────────────────
-            item { SectionHeader("Notificações", c) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.Notifications,
-                    label = "Notificações",
-                    subtitle = "Receba alertas quando sua conexão cair",
-                    onClick = {
-                        val intent =
-                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        context.startActivity(intent)
-                    },
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                // GH#936 — restaurado: entrada pra PreferenciasSheet.kt (limite mínimo de
-                // download que dispara alerta), tinha ficado sem ponto de acesso na UI.
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.Speed,
-                    label = "Alertas de qualidade",
-                    subtitle = if (limiteAlertaMbps > 0) "Abaixo de $limiteAlertaMbps Mbps" else "Sem limite definido",
-                    onClick = { showPreferenciasSheet = true },
-                )
-            }
-            item { Spacer(Modifier.height(16.dp)) }
-
-            // ── HISTÓRICO E DADOS ─────────────────────────────────────────────────────
-            item { SectionHeader("Histórico e dados", c) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.History,
-                    label = "Ver histórico",
-                    subtitle = "Suas medições recentes",
-                    onClick = onAbrirHistorico,
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.AutoMirrored.Outlined.Article,
-                    label = "Comprovante para a Anatel",
-                    subtitle = "Documento com suas medições para registrar reclamação",
-                    onClick = onAbrirLaudo,
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.Delete,
-                    label = "Gerenciar dados e privacidade",
-                    subtitle = "Limpar histórico, apagar dados ou resetar o app",
-                    onClick = { showDadosLocaisSheet = true },
-                )
-            }
-            item { Spacer(Modifier.height(16.dp)) }
-
-            // ── AVANÇADO (Dados móveis + monitoramento, feature-flagged) ────────────────
-            item { SectionHeader("Avançado", c) }
-            item {
-                ToggleItem(
-                    c = c,
-                    icon = Icons.Outlined.SignalCellularAlt,
-                    label = "Sempre permitir testes pesados em dados móveis",
-                    subtitle = "Não mostrar aviso para modo Completo e Triplo na próxima vez",
-                    checked = speedtestPermiteHeavyMovel,
-                    onCheckedChange = onSetSpeedtestPermiteHeavyMovel,
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
+            // ── APARÊNCIA (Section 2/4): Tema + preferências de comportamento ───────
             item {
                 val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "0 MB"
-                InfoRow(c, "Consumo em testes este mês", mbLabel)
-            }
-            if (BuildConfig.FEATURE_LINKPULSE_ATIVO) {
-                item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-                item {
-                    // GH#936 — Fase 7 (5f): unifica "Monitoramento passivo" + "Análise
-                    // avançada" numa linha só, mesmo destino do atalho "Monitoramento"
-                    // do hub Ferramentas (MonitoramentoSheet.kt) — nada de toggle
-                    // duplicado aqui.
-                    SettingItem(
+                val mostrarMonitoramento = BuildConfig.FEATURE_LINKPULSE_ATIVO
+                AjustesSectionCard(title = "Aparência", c = c) {
+                    ThemeSelector(
+                        selecionado = temaSelecionado,
+                        onSelect = onDefinirTemaSelecionado,
                         c = c,
-                        icon = Icons.Outlined.Sensors,
-                        label = "Monitoramento",
-                        subtitle =
-                            when {
-                                !monitoramentoAtivo -> "Desativado"
-                                OemKillInfo.fabricanteRiscoAlto -> "Ativo · pode ser limitado pelo sistema"
-                                else -> "Ativo"
-                            },
-                        onClick = onAbrirMonitoramento,
+                    )
+                    HorizontalDivider(color = c.border, thickness = 1.dp)
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.Notifications,
+                        label = "Notificações",
+                        onClick = {
+                            val intent =
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            context.startActivity(intent)
+                        },
+                    )
+                    // GH#936 — entrada pra PreferenciasSheet.kt (limite mínimo de download
+                    // que dispara alerta).
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.Speed,
+                        label = "Alertas de qualidade",
+                        value = if (limiteAlertaMbps > 0) "Abaixo de $limiteAlertaMbps Mbps" else "Sem limite",
+                        onClick = { showPreferenciasSheet = true },
+                    )
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.SignalCellularAlt,
+                        label = "Testes pesados em dados móveis",
+                        value = "$mbLabel/mês",
+                        checked = speedtestPermiteHeavyMovel,
+                        onCheckedChange = onSetSpeedtestPermiteHeavyMovel,
+                        last = !mostrarMonitoramento,
+                    )
+                    if (mostrarMonitoramento) {
+                        // GH#936 — Fase 7 (5f): unifica "Monitoramento passivo" + "Análise
+                        // avançada" numa linha só, mesmo destino do atalho "Monitoramento"
+                        // do hub Ferramentas (MonitoramentoSheet.kt) — nada de toggle
+                        // duplicado aqui.
+                        AjustesRow(
+                            c = c,
+                            icon = Icons.Outlined.Sensors,
+                            label = "Monitoramento",
+                            value =
+                                when {
+                                    !monitoramentoAtivo -> "Desativado"
+                                    OemKillInfo.fabricanteRiscoAlto -> "Ativo · limitado"
+                                    else -> "Ativo"
+                                },
+                            onClick = onAbrirMonitoramento,
+                            last = true,
+                        )
+                    }
+                }
+            }
+
+            // ── DADOS E PRIVACIDADE (Section 3/4) ────────────────────────────────────
+            item {
+                AjustesSectionCard(title = "Dados e privacidade", c = c) {
+                    AjustesRow(c = c, icon = Icons.Outlined.Lock, label = "Privacidade", onClick = { onAbrirPrivacidade() })
+                    AjustesRow(c = c, icon = Icons.Outlined.History, label = "Ver histórico", onClick = onAbrirHistorico)
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.AutoMirrored.Outlined.Article,
+                        label = "Comprovante para a Anatel",
+                        onClick = onAbrirLaudo,
+                    )
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.Delete,
+                        label = "Gerenciar dados",
+                        onClick = { showDadosLocaisSheet = true },
+                        last = true,
                     )
                 }
             }
-            item { Spacer(Modifier.height(16.dp)) }
 
-            // ── INFORMAÇÕES ───────────────────────────────────────────────────────────
-            item { SectionHeader("Informações", c) }
+            // ── SOBRE (Section 4/4) ──────────────────────────────────────────────────
             item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.Lock,
-                    label = "Privacidade e dados",
-                    subtitle = "Como seus dados são protegidos",
-                    onClick = { onAbrirPrivacidade() },
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.NewReleases,
-                    label = "O que há de novo",
-                    subtitle = "Confira o que mudou",
-                    onClick = { onAbrirNovidades() },
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.Email,
-                    label = "Fale conosco",
-                    subtitle = "Envie uma mensagem para o suporte",
-                    onClick = {
-                        val intent =
-                            Intent(Intent.ACTION_SENDTO).apply {
-                                data = Uri.parse("mailto:hello7agents@icloud.com")
-                            }
-                        context.startActivity(intent)
-                    },
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.VerifiedUser,
-                    label = "Diagnóstico do app",
-                    subtitle = "Integridade, binários e assinatura",
-                    onClick = { showDiagnosticoAppSheet = true },
-                )
-            }
-            item { HorizontalDivider(color = c.border, thickness = 1.dp) }
-            item {
-                SettingItem(
-                    c = c,
-                    icon = Icons.Outlined.Info,
-                    label = "Sobre o SignallQ",
-                    subtitle = "v$appVersion · Android · Kotlin",
-                    onClick = { showSobreSheet = true },
-                )
+                AjustesSectionCard(title = "Sobre", c = c) {
+                    AjustesRow(c = c, icon = Icons.Outlined.Campaign, label = "Novidades", onClick = { onAbrirNovidades() })
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.Email,
+                        label = "Fale conosco",
+                        onClick = {
+                            val intent =
+                                Intent(Intent.ACTION_SENDTO).apply {
+                                    data = Uri.parse("mailto:hello7agents@icloud.com")
+                                }
+                            context.startActivity(intent)
+                        },
+                    )
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.VerifiedUser,
+                        label = "Diagnóstico do app",
+                        onClick = { showDiagnosticoAppSheet = true },
+                    )
+                    AjustesRow(
+                        c = c,
+                        icon = Icons.Outlined.Info,
+                        label = "Sobre o SignallQ",
+                        value = "v$appVersion",
+                        onClick = { showSobreSheet = true },
+                        last = true,
+                    )
+                }
             }
             item {
                 Spacer(
@@ -742,100 +612,115 @@ fun AjustesScreen(
     }
 }
 
-private fun buildHeroSubtitle(
-    nomeUsuario: String,
-    operadora: String,
-    planoInternet: String,
-): Pair<String, Boolean> =
-    when {
-        nomeUsuario.isBlank() && operadora.isBlank() -> "Toque para configurar seu perfil" to false
-        nomeUsuario.isBlank() && operadora.isNotBlank() -> operadora to true
-        nomeUsuario.isNotBlank() && operadora.isBlank() -> "Adicione sua operadora" to false
-        operadora.isNotBlank() && planoInternet.isNotBlank() -> "$operadora · $planoInternet" to true
-        else -> operadora to true
-    }
-
+// GH#936 — Fase 7 MD3 (6 · Perfil/Ajustes): Section + Row seguem a spec To-Be
+// (Overline + cartão surfaceContainer radius 16px overflow hidden; ícone 34dp
+// circular primary 14% + rótulo bodyLarge flex:1 + valor opcional bodyMedium +
+// chevron_right ou Switch; separador 1px entre linhas exceto a última).
 @Composable
-private fun SectionHeader(
-    titulo: String,
+private fun AjustesSectionCard(
+    title: String,
     c: LkTokens,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    Text(
-        text = titulo.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.W600,
-        color = c.textTertiary,
-        letterSpacing = 0.8.sp,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).padding(top = 8.dp),
-    )
-}
-
-@Composable
-private fun SettingItem(
-    c: LkTokens,
-    icon: ImageVector,
-    label: String,
-    subtitle: String,
-    onClick: (() -> Unit)? = null,
-    badge: String? = null,
-    tintError: Boolean = false,
-) {
-    val iconTint = if (tintError) LkColors.error else LkColors.accent
-    val labelColor = if (tintError) LkColors.error else c.textPrimary
-
-    Row(
+    Column(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-                .padding(LkSpacing.lg),
-        verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = LkSpacing.lg)
+                .padding(bottom = LkSpacing.lg),
     ) {
-        Box(
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.W600,
+            color = c.textTertiary,
+            letterSpacing = 0.8.sp,
+            modifier = Modifier.padding(start = 4.dp, bottom = LkSpacing.sm),
+        )
+        Column(
             modifier =
                 Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(iconTint.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center,
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(LkRadius.card))
+                    .background(c.bgSecondary),
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun AjustesRow(
+    c: LkTokens,
+    icon: ImageVector,
+    label: String,
+    value: String? = null,
+    onClick: (() -> Unit)? = null,
+    checked: Boolean? = null,
+    onCheckedChange: ((Boolean) -> Unit)? = null,
+    last: Boolean = false,
+) {
+    Column {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                    .padding(horizontal = LkSpacing.lg, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-
-        Spacer(Modifier.width(LkSpacing.md))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = labelColor, fontWeight = FontWeight.W500)
-            Spacer(Modifier.height(2.dp))
-            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = c.textSecondary)
-        }
-
-        if (badge != null) {
             Box(
                 modifier =
                     Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(c.border)
-                        .padding(horizontal = LkSpacing.sm, vertical = 4.dp),
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(LkColors.accent.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center,
             ) {
-                // Contraste WCAG AA (GH#937): textTertiary sobre chip com fundo c.border
-                // dava ~2:1 (fail) e textSecondary ~3.9:1 (ainda abaixo do AA p/ 10sp);
-                // textPrimary garante AA/AAA. Path hoje sem call site com badge != null.
-                Text(badge, fontSize = 10.sp, fontWeight = FontWeight.W600, color = c.textPrimary)
+                Icon(imageVector = icon, contentDescription = null, tint = LkColors.accent, modifier = Modifier.size(19.dp))
             }
-        } else {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = null,
-                tint = if (onClick != null) c.textTertiary else c.border,
-                modifier = Modifier.size(14.dp),
+            Spacer(Modifier.width(LkSpacing.md))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = c.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
             )
+            if (value != null) {
+                Spacer(Modifier.width(LkSpacing.sm))
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = c.textSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (checked != null && onCheckedChange != null) {
+                Spacer(Modifier.width(LkSpacing.sm))
+                Switch(
+                    checked = checked,
+                    onCheckedChange = onCheckedChange,
+                    colors =
+                        SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = LkColors.accent,
+                            uncheckedThumbColor = c.textTertiary,
+                            uncheckedTrackColor = c.border,
+                        ),
+                )
+            } else if (onClick != null) {
+                Spacer(Modifier.width(LkSpacing.xs))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = null,
+                    tint = c.textTertiary,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
         }
+        if (!last) HorizontalDivider(color = c.border, thickness = 1.dp)
     }
 }
 
