@@ -102,6 +102,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 import timber.log.Timber
 import java.net.HttpURLConnection
@@ -1812,7 +1813,21 @@ class MainViewModel
             )
         }
 
-        fun analisarProblema(problema: String) {
+        /**
+         * Chamada de IA de diagnostico -- mecanismo UNICO (decisao do Luiz, 2026-07-14)
+         * reaproveitado tanto pela tela 1a "Analise detalhada" (spec To-Be -- acionada
+         * automaticamente ao abrir o sheet a partir do Resultado, `problema = null`)
+         * quanto pelo fluxo legado "Analisar meu problema com IA" por sintoma escolhido
+         * (`AnaliseDetalhadaBottomSheet.kt`, `problema` preenchido). Os cards da 1a
+         * (banner de veredito, Recomendacoes, Configuracoes) sao montados a partir do
+         * MESMO [AnalisadorState.Resultado] que essa funcao produz.
+         *
+         * Timeout de UI proprio (~5s, spec da 1a) por cima do timeout interno do
+         * repository (40s): se a IA nao respondeu em 5s, cai pro fallback local
+         * (`AiFallbackFactory.fromLocal`, sincrono/zero rede) em vez de deixar o usuario
+         * esperando o teto de 40s do repository -- vale pros dois gatilhos.
+         */
+        fun analisarProblema(problema: String? = null) {
             val snap = diagnosticOrchestrator.snapshotFlow.value
             val relatorio =
                 snap.relatorio ?: run {
@@ -1852,22 +1867,53 @@ class MainViewModel
                             wifiPadrao = extra.wifiPadrao,
                             wifiLinkSpeedMbps = extra.wifiLinkSpeedMbps,
                         )
-                    val resultado = diagAiRepository.explainDiagnosis(ctx) { AiFallbackFactory.fromLocal(relatorio) }
+                    val resultado =
+                        withTimeoutOrNull(5_000L) {
+                            diagAiRepository.explainDiagnosis(
+                                context = ctx,
+                                decisaoLocalStatus = relatorio.decisao.status.name,
+                            ) { AiFallbackFactory.fromLocal(relatorio) }
+                        }
                     when (resultado) {
                         is AiDiagnosisState.success -> {
                             val texto = resultado.result.textoLaudo.ifBlank { resultado.result.resumo }
                             _analisadorState.value =
-                                AnalisadorState.Resultado(texto, "ia", resultado.result.acoesRecomendadas)
+                                AnalisadorState.Resultado(
+                                    texto = texto,
+                                    origem = "ia",
+                                    acoes = resultado.result.acoesRecomendadas,
+                                    status = resultado.result.status,
+                                    titulo = resultado.result.titulo,
+                                )
                             speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
                         is AiDiagnosisState.fallback -> {
                             val texto = resultado.result.textoLaudo.ifBlank { resultado.result.resumo }
                             _analisadorState.value =
-                                AnalisadorState.Resultado(texto, "local", resultado.result.acoesRecomendadas)
+                                AnalisadorState.Resultado(
+                                    texto = texto,
+                                    origem = "local",
+                                    acoes = resultado.result.acoesRecomendadas,
+                                    status = resultado.result.status,
+                                    titulo = resultado.result.titulo,
+                                )
                             speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
+                        // Timeout de UI (5s) estourado, ou repository devolveu timeout/error/idle/loading:
+                        // cai pro fallback local sincrono em vez de erro -- o app consegue responder
+                        // sozinho a partir do relatorio ja calculado, sem depender da rede.
                         else -> {
-                            _analisadorState.value = AnalisadorState.Erro("Não foi possível analisar o problema agora.")
+                            val local = AiFallbackFactory.fromLocal(relatorio)
+                            val texto = local.textoLaudo.ifBlank { local.resumo }
+                            _analisadorState.value =
+                                AnalisadorState.Resultado(
+                                    texto = texto,
+                                    origem = "local",
+                                    acoes = local.acoesRecomendadas,
+                                    status = local.status,
+                                    titulo = local.titulo,
+                                )
+                            speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
                     }
                 } catch (e: Exception) {

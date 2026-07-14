@@ -128,6 +128,12 @@ object LkColors {
         // success (verde): fundo claro + texto escuro verde
         val successContainer = Color(0xFFD1FAE5)
         val onSuccessContainer = Color(0xFF065F46)
+
+        // error (vermelho) — NOVO par desta migração (banner de veredito da tela
+        // 1a, Análise detalhada). Valores exatos da spec (errorContainer=#FFDAD6,
+        // onErrorContainer=#410002), não os antigos (que eram so `error` flat).
+        val errorContainer = Color(0xFFFFDAD6)
+        val onErrorContainer = Color(0xFF410002)
     }
 
     object Dark {
@@ -169,6 +175,11 @@ object LkColors {
         // success dark: fundo escuro verde + texto verde claro
         val successContainer = Color(0xFF064E3B)
         val onSuccessContainer = Color(0xFF6EE7B7)
+
+        // error dark: fundo escuro vermelho + texto vermelho claro (par de
+        // Light.errorContainer/onErrorContainer acima).
+        val errorContainer = Color(0xFF93000A)
+        val onErrorContainer = Color(0xFFFFDAD6)
     }
 }
 
@@ -202,6 +213,8 @@ data class LkTokens(
     val amberSurface: Color,
     val successContainer: Color,
     val onSuccessContainer: Color,
+    val errorContainer: Color,
+    val onErrorContainer: Color,
 )
 
 val LocalLkTokens =
@@ -226,6 +239,8 @@ val LocalLkTokens =
             amberSurface = LkColors.Light.amberSurface,
             successContainer = LkColors.Light.successContainer,
             onSuccessContainer = LkColors.Light.onSuccessContainer,
+            errorContainer = LkColors.Light.errorContainer,
+            onErrorContainer = LkColors.Light.onErrorContainer,
         )
     }
 
@@ -344,6 +359,8 @@ fun SignallQTheme(
                 amberSurface = LkColors.Dark.amberSurface,
                 successContainer = LkColors.Dark.successContainer,
                 onSuccessContainer = LkColors.Dark.onSuccessContainer,
+                errorContainer = LkColors.Dark.errorContainer,
+                onErrorContainer = LkColors.Dark.onErrorContainer,
             )
         } else {
             LkTokens(
@@ -366,6 +383,8 @@ fun SignallQTheme(
                 amberSurface = LkColors.Light.amberSurface,
                 successContainer = LkColors.Light.successContainer,
                 onSuccessContainer = LkColors.Light.onSuccessContainer,
+                errorContainer = LkColors.Light.errorContainer,
+                onErrorContainer = LkColors.Light.onErrorContainer,
             )
         }
 

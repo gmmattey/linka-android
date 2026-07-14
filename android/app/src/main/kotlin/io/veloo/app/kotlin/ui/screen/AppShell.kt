@@ -262,6 +262,10 @@ fun AppShell(
 
     val snapshotDiagnostico = diagnostico.snapshotDiagnostico
     val onIniciarDiagnostico = diagnostico.onIniciarDiagnostico
+    // analisadorState/onAnalisarProblema/onResetarAnalisador -- mecanismo UNICO de
+    // chamada de IA (decisao do Luiz, 2026-07-14), reaproveitado tanto pela tela 1a
+    // reconstruida (Analise detalhada, chamada automatica com problema=null) quanto
+    // pelo fluxo legado por sintoma escolhido (AnaliseDetalhadaBottomSheet.kt).
     val analisadorState = diagnostico.analisadorState
     val onAnalisarProblema = diagnostico.onAnalisarProblema
     val onResetarAnalisador = diagnostico.onResetarAnalisador

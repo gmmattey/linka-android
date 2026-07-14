@@ -88,6 +88,8 @@ class PreferenciasAppRepository(
     // Sync retroativo para admin worker — checkpoint de progresso por tipo
     private val chaveAdminSyncMedicaoLastEpochMs = longPreferencesKey("admin_sync_medicao_last_epoch_ms")
     private val chaveAdminSyncChatLastEpochMs = longPreferencesKey("admin_sync_chat_last_epoch_ms")
+    private val chaveAdminSyncRecommendationFeedbackLastEpochMs =
+        longPreferencesKey("admin_sync_recommendation_feedback_last_epoch_ms")
 
     // Identificador anonimo permanente do dispositivo — UUID gerado na primeira execucao, sem PII
     private val chaveAnonDeviceId = stringPreferencesKey("anon_device_id")
@@ -437,6 +439,20 @@ class PreferenciasAppRepository(
     suspend fun salvarAdminSyncChatLastEpochMs(epochMs: Long) {
         withContext(ioDispatcher) {
             context.dataStore.edit { it[chaveAdminSyncChatLastEpochMs] = epochMs }
+        }
+    }
+
+    /** Leitura pontual do checkpoint de sync de feedback de recomendacao (epoch ms) --
+     *  design-tobe-alinhamento, tela 1a: feedback util/nao util/ocultar ja persistido em
+     *  Room (`recommendation_history`, issue #812), so faltava entrar no sync retroativo. */
+    suspend fun buscarAdminSyncRecommendationFeedbackLastEpochMs(): Long =
+        withContext(ioDispatcher) {
+            context.dataStore.data.first()[chaveAdminSyncRecommendationFeedbackLastEpochMs] ?: 0L
+        }
+
+    suspend fun salvarAdminSyncRecommendationFeedbackLastEpochMs(epochMs: Long) {
+        withContext(ioDispatcher) {
+            context.dataStore.edit { it[chaveAdminSyncRecommendationFeedbackLastEpochMs] = epochMs }
         }
     }
 
