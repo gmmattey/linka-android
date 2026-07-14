@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -131,6 +132,19 @@ fun PingScreen(onDismiss: () -> Unit) {
                 )
             }
 
+            val estadoAtual = state
+            val estadoResultado =
+                when (estadoAtual) {
+                    is UiState.Success -> (estadoAtual.data as? PingUiData.Concluido) != null
+                    is UiState.Error -> true
+                    else -> false
+                }
+            EstadoPingSegmented(
+                resultado = estadoResultado,
+                c = c,
+                modifier = Modifier.padding(bottom = LkSpacing.lg),
+            )
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = LkSpacing.md),
@@ -144,8 +158,7 @@ fun PingScreen(onDismiss: () -> Unit) {
                 Spacer(Modifier.width(LkSpacing.sm))
                 Text(
                     text = stringResource(R.string.ping_titulo),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.W600,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = c.textPrimary,
                 )
             }
@@ -284,6 +297,43 @@ fun PingScreen(onDismiss: () -> Unit) {
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Indicador visual do estado atual da sheet (5c To-Be) — Coletando/Resultado.
+ * Só reflete [resultado], não é selecionável — mesmo padrão de
+ * EstadoExportSegmented usado em ExportHistoricoBottomSheet.
+ */
+@Composable
+private fun EstadoPingSegmented(
+    resultado: Boolean,
+    c: LkTokens,
+    modifier: Modifier = Modifier,
+) {
+    val opcoes = listOf("Coletando" to !resultado, "Resultado" to resultado)
+    Row(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .border(1.dp, c.border, RoundedCornerShape(20.dp))
+                .padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        opcoes.forEach { (label, ativo) ->
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (ativo) c.textPrimary else c.textSecondary,
+                textAlign = TextAlign.Center,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(if (ativo) LkColors.accent.copy(alpha = 0.14f) else Color.Transparent)
+                        .padding(vertical = 9.dp),
+            )
         }
     }
 }
