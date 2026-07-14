@@ -420,6 +420,16 @@ test("provider search matches aliases", async () => {
   assert.equal(payload.items[0]?.id, "claro");
 });
 
+test("GH#971: PROVIDER_DIRECTORY_SEED_JSON=\"[]\" (config antiga do wrangler.toml) não sobrescreve o catálogo embutido", async () => {
+  const response = await worker.fetch(new Request("https://example.com/providers/by-asn/28126"), {
+    PROVIDER_DIRECTORY_SEED_JSON: "[]",
+  });
+  const payload = await response.json() as { id: string; displayName: string };
+  assert.equal(response.status, 200);
+  assert.equal(payload.id, "brisanet");
+  assert.equal(payload.displayName, "Brisanet");
+});
+
 test("public games catalog returns seeded active games and filters by platform", async () => {
   const response = await worker.fetch(new Request("https://example.com/games/catalog?platform=PC"), {});
   const payload = await response.json() as { items: Array<{ gameId: string; platforms: string[] }> };
@@ -434,6 +444,17 @@ test("public games catalog version is available", async () => {
   assert.equal(response.status, 200);
   assert.ok(payload.version.startsWith("games-"));
   assert.ok(payload.totalGames >= 1);
+});
+
+test("GH#971: GAME_CATALOG_SEED_JSON e GAME_PROFILE_SEED_JSON=\"[]\" (config antiga do wrangler.toml) não sobrescrevem o catálogo embutido de jogos", async () => {
+  const response = await worker.fetch(new Request("https://example.com/games/catalog?platform=PC"), {
+    GAME_CATALOG_SEED_JSON: "[]",
+    GAME_PROFILE_SEED_JSON: "[]",
+  });
+  const payload = await response.json() as { items: Array<{ gameId: string; platforms: string[] }> };
+  assert.equal(response.status, 200);
+  assert.ok(payload.items.some((item) => item.gameId === "valorant"));
+  assert.ok(payload.items.every((item) => item.platforms.includes("PC")));
 });
 
 test("provider detection accepts payload without DB binding", async () => {

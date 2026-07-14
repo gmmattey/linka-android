@@ -11,16 +11,22 @@ enabled = true
 DIAGNOSTIC_RULESET_JSON = ""
 
 # Seed opcional do diretório de provedores para a issue GH#951.
-# Sem esta var, o worker usa o catálogo seeded em src/provider-directory.ts.
-PROVIDER_DIRECTORY_SEED_JSON = "[]"
+# Sem esta var (string vazia), o worker usa o catálogo seeded em
+# src/provider-directory.ts. GH#971: "[]" é uma string NAO vazia, então
+# sobrescrevia o fallback com um diretório vazio — nunca deixar preenchida
+# com "[]" aqui, só com JSON real de provedores ou vazia.
+PROVIDER_DIRECTORY_SEED_JSON = ""
 
 # Seed opcional do catálogo remoto de jogos para a issue GH#935.
-# Sem esta var, o worker usa o catálogo seeded em src/game-catalog.ts.
-GAME_CATALOG_SEED_JSON = "[]"
+# Sem esta var (string vazia), o worker usa o catálogo seeded em
+# src/game-catalog.ts. GH#971: mesmo cuidado do PROVIDER_DIRECTORY_SEED_JSON —
+# nunca deixar "[]" aqui.
+GAME_CATALOG_SEED_JSON = ""
 
 # Seed opcional dos perfis de sensibilidade de jogos.
-# Sem esta var, o worker usa os perfis seeded em src/game-catalog.ts.
-GAME_PROFILE_SEED_JSON = "[]"
+# Sem esta var (string vazia), o worker usa os perfis seeded em
+# src/game-catalog.ts. GH#971: mesmo cuidado acima.
+GAME_PROFILE_SEED_JSON = ""
 
 # GH#960 — origem permitida pra CORS em /admin/* (mesmo padrao do
 # signallq-admin-worker, que serve o SignallQ Console). Sem esta var,
