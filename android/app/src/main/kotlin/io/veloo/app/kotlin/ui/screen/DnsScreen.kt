@@ -45,8 +45,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -675,27 +673,12 @@ private fun DnsGuideView(
         Spacer(Modifier.height(16.dp))
 
         val tabs = listOf("Dispositivo", "Roteador")
-        TabRow(
-            selectedTabIndex = tabSelecionada,
-            containerColor = c.bgPrimary,
-            contentColor = LkColors.accent,
-            divider = { HorizontalDivider(color = c.border, thickness = 1.dp) },
-        ) {
-            tabs.forEachIndexed { idx, label ->
-                Tab(
-                    selected = tabSelecionada == idx,
-                    onClick = { tabSelecionada = idx },
-                    text = {
-                        Text(
-                            label,
-                            fontSize = 13.sp,
-                            fontWeight = if (tabSelecionada == idx) FontWeight.W600 else FontWeight.W400,
-                            color = if (tabSelecionada == idx) LkColors.accent else c.textSecondary,
-                        )
-                    },
-                )
-            }
-        }
+        DnsUnderlineTabs(
+            tabs = tabs,
+            selectedIndex = tabSelecionada,
+            onSelect = { tabSelecionada = it },
+            c = c,
+        )
 
         Spacer(Modifier.height(20.dp))
 
@@ -731,6 +714,51 @@ private fun DnsGuideView(
                 )
             }
         }
+    }
+}
+
+// ─── Tabs sublinhadas (Dispositivo/Roteador) ─────────────────────────────────
+
+/**
+ * Tabs sublinhadas conforme spec 5d To-Be: borda inferior 1px `outlineVariant`
+ * no container + indicador 3px `primary` sob a aba ativa (componente `Tabs`
+ * customizado da spec, não o TabRow/Tab padrão do M3).
+ */
+@Composable
+private fun DnsUnderlineTabs(
+    tabs: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    c: LkTokens,
+) {
+    Column {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            tabs.forEachIndexed { idx, label ->
+                val ativo = idx == selectedIndex
+                Column(
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .clickable { onSelect(idx) },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = if (ativo) LkColors.accent else c.textSecondary,
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(3.dp)
+                                .background(if (ativo) LkColors.accent else Color.Transparent),
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = c.border, thickness = 1.dp)
     }
 }
 
