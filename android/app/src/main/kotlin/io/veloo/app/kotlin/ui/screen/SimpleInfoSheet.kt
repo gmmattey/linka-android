@@ -83,6 +83,9 @@ internal fun SimpleInfoSheet(
     }
 }
 
+// GH#936 — SheetInfoRow (spec): label bodyMedium/onSurfaceVariant (muted) + valor
+// titleSmall/onSurface (forte), alinhado a direita. Corrigido em 2026-07: estava
+// invertido (label forte, valor fraco).
 @Composable
 internal fun InfoRow(
     c: LkTokens,
@@ -96,15 +99,18 @@ internal fun InfoRow(
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = c.textPrimary, modifier = Modifier.weight(1f))
-        Text(text = value, style = MaterialTheme.typography.titleSmall, color = c.textSecondary, fontWeight = FontWeight.W500)
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = c.onSurfaceVariant, modifier = Modifier.weight(1f))
+        Text(text = value, style = MaterialTheme.typography.titleSmall, color = c.textPrimary)
     }
 }
 
 // ─── Sobre (6f) ─────────────────────────────────────────────────────────────
-// Conteudo estatico: versao do app, plataforma, contato de suporte e resumo de
-// licencas de terceiros. Fonte completa das licencas fica em
-// docs_ai/technical/THIRD_PARTY_LICENSES.md (nao duplicada aqui — so resumida).
+// Conteudo estatico: versao do app, desenvolvedor e contato de suporte, 3
+// linhas conforme spec To-Be. "Plataforma" e "Licencas de terceiros" cortados
+// daqui na reestruturacao de 2026-07 (ver decisao registrada no relatorio da
+// rodada — licencas de terceiros e questao de compliance, nao so visual,
+// pendente de confirmacao antes de remover de vez a superficie in-app).
+// Fonte completa das licencas: docs_ai/technical/THIRD_PARTY_LICENSES.md.
 @Composable
 internal fun SobreSheet(
     c: LkTokens,
@@ -118,12 +124,8 @@ internal fun SobreSheet(
     ) {
         InfoRow(c, "Versão", "v$appVersion")
         HorizontalDivider(color = c.border, thickness = 1.dp)
-        InfoRow(c, "Plataforma", "Android · Kotlin + Compose")
-        HorizontalDivider(color = c.border, thickness = 1.dp)
         InfoRow(c, "Desenvolvido por", "Equipe SignallQ")
         HorizontalDivider(color = c.border, thickness = 1.dp)
         InfoRow(c, "Suporte", "suporte@signallq.app")
-        HorizontalDivider(color = c.border, thickness = 1.dp)
-        InfoRow(c, "Licenças de terceiros", "Google Sans Flex · SIL OFL 1.1")
     }
 }
