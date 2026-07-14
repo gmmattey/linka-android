@@ -3,11 +3,13 @@
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,8 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import io.signallq.app.core.database.MedicaoEntity
@@ -42,6 +46,7 @@ import io.signallq.app.feature.history.ExportadorHistoricoPDF
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
+import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
 import kotlinx.coroutines.launch
 import java.io.File
@@ -67,6 +72,43 @@ enum class FormatoExport(
 ) {
     CSV("CSV", "csv", "Planilha compatível com Excel e Google Sheets"),
     PDF("PDF", "pdf", "Relatório formatado para impressão"),
+}
+
+/**
+ * Indicador visual do estado atual da sheet (4b To-Be) — Seleção/Exportando.
+ * Só reflete [exportando], não é selecionável: o estado real muda ao clicar em
+ * "Exportar", nunca escolhido manualmente pelo usuário.
+ */
+@Composable
+private fun EstadoExportSegmented(
+    exportando: Boolean,
+    c: LkTokens,
+    modifier: Modifier = Modifier,
+) {
+    val opcoes = listOf("Seleção" to !exportando, "Exportando" to exportando)
+    Row(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .border(1.dp, c.border, RoundedCornerShape(20.dp))
+                .padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        opcoes.forEach { (label, ativo) ->
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (ativo) c.textPrimary else c.textSecondary,
+                textAlign = TextAlign.Center,
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(if (ativo) LkColors.accent.copy(alpha = 0.14f) else Color.Transparent)
+                        .padding(vertical = 9.dp),
+            )
+        }
+    }
 }
 
 // ─── ExportHistoricoBottomSheet ────────────────────────────────────────────────
@@ -115,11 +157,18 @@ fun ExportHistoricoBottomSheet(
 
         Spacer(Modifier.height(LkSpacing.sm))
 
+        EstadoExportSegmented(
+            exportando = exportando,
+            c = c,
+            modifier = Modifier.padding(horizontal = LkSpacing.xl),
+        )
+
+        Spacer(Modifier.height(LkSpacing.sm))
+
         Text(
             text = "Exportar histórico",
             modifier = Modifier.padding(horizontal = LkSpacing.xl),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.W600,
+            style = MaterialTheme.typography.titleLarge,
             color = c.textPrimary,
         )
 
