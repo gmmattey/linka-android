@@ -308,6 +308,16 @@ fun HomeScreen(
                 connectedNetwork = if (gw.ip == null && gw.type == ConnectionNodeType.WifiRouter) null else connectedNetwork,
                 c = c,
                 linkSpeedMbps = linkSpeedMbps,
+                gatewaySessaoValida = gatewaySessaoValida,
+                onConectar = {
+                    showGatewaySheet = null
+                    gatewayConnectionIp = gw.ip
+                    showGatewayConnectionSheet = true
+                },
+                onVerEquipamento = {
+                    showGatewaySheet = null
+                    onAbrirGatewayDetalhe()
+                },
             )
         }
     }
@@ -448,19 +458,12 @@ fun HomeScreen(
                     c = c,
                     onDeviceTap = { showDeviceSheet = true },
                     onGatewayTap = { gw ->
-                        when {
-                            gw.type == ConnectionNodeType.Mobile -> showCellularSheet = true
-                            // GH#530: nó do roteador — sessão válida pula a sheet e vai direto
-                            // ao destino provisório; sem sessão abre a GatewayConnectionSheet.
-                            // Mesh/extensor/desconhecido seguem no GatewayInfoSheet somente-leitura.
-                            gw.type == ConnectionNodeType.WifiRouter -> {
-                                if (gatewaySessaoValida) {
-                                    onAbrirGatewayDetalhe()
-                                } else {
-                                    gatewayConnectionIp = gw.ip
-                                    showGatewayConnectionSheet = true
-                                }
-                            }
+                        when (gw.type) {
+                            ConnectionNodeType.Mobile -> showCellularSheet = true
+                            // 2b To-Be: tap sempre abre primeiro o sheet somente-leitura
+                            // "Roteador da casa", igual 2a/2c/2d — de dentro dele o usuario
+                            // segue pra "Conectar" (2b-i) ou "Ver equipamento" quando fizer
+                            // sentido. Nunca pula direto pra um dos dois.
                             else -> showGatewaySheet = gw
                         }
                     },
@@ -2584,6 +2587,9 @@ private fun GatewayInfoSheet(
     connectedNetwork: RedeVizinha?,
     c: LkTokens,
     linkSpeedMbps: Int? = null,
+    gatewaySessaoValida: Boolean = false,
+    onConectar: () -> Unit = {},
+    onVerEquipamento: () -> Unit = {},
 ) {
     val typeLabel =
         when (gateway.type) {
@@ -2606,7 +2612,7 @@ private fun GatewayInfoSheet(
     ) {
         SheetDragHandle(c)
         Spacer(modifier = Modifier.height(LkSpacing.xl))
-        Text(gateway.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.W700, color = c.textPrimary)
+        Text(gateway.name, style = MaterialTheme.typography.headlineSmall, color = c.textPrimary)
         Spacer(modifier = Modifier.height(LkSpacing.lg))
         SheetInfoRow("Tipo detectado", typeLabel, c)
         SheetInfoRow("IP do roteador", gateway.ip ?: "Não detectado", c)
@@ -2624,6 +2630,20 @@ private fun GatewayInfoSheet(
         connectedNetwork?.canal?.let { SheetInfoRow("Canal", "$it", c) }
         connectedNetwork?.larguraCanalMhz?.let { SheetInfoRow("Largura de canal", "$it MHz", c) }
         connectedNetwork?.let { net -> SheetInfoRow("Segurança", wifiSecurityLabel(net.seguranca), c) }
+        // GH#530/2b To-Be: só o roteador Wi-Fi tem fluxo de conexao ativa. Sem sessao
+        // valida, oferece o caminho pra "Conectar" (2b-i); com sessao valida, oferece
+        // o caminho pro destino de detalhe do equipamento.
+        if (gateway.type == ConnectionNodeType.WifiRouter) {
+            Spacer(modifier = Modifier.height(LkSpacing.lg))
+            Button(
+                onClick = if (gatewaySessaoValida) onVerEquipamento else onConectar,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(LkRadius.button),
+                colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+            ) {
+                Text(if (gatewaySessaoValida) "Ver equipamento" else "Conectar")
+            }
+        }
     }
 }
 
