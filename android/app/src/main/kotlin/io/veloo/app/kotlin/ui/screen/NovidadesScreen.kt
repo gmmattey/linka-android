@@ -113,7 +113,8 @@ fun NovidadesScreen(
                         Text(
                             "v$appVersion",
                             fontSize = 12.sp,
-                            color = c.textTertiary,
+                            // GH#937: textTertiary sobre branco ~2.5:1 (fail AA). textSecondary ~4.8:1.
+                            color = c.textSecondary,
                         )
                     }
                 },
@@ -136,7 +137,7 @@ fun NovidadesScreen(
                     modifier = Modifier.fillMaxSize().padding(padding),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(stringResource(R.string.novidades_carregando), style = MaterialTheme.typography.bodyMedium, color = c.textTertiary)
+                    Text(stringResource(R.string.novidades_carregando), style = MaterialTheme.typography.bodyMedium, color = c.textSecondary)
                 }
             }
             erro -> {
@@ -148,7 +149,7 @@ fun NovidadesScreen(
                         Text(
                             "Não foi possível carregar as novidades.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = c.textTertiary,
+                            color = c.textSecondary,
                         )
                         Spacer(Modifier.height(LkSpacing.md))
                         TextButton(onClick = { tentativa++ }) {
@@ -187,7 +188,7 @@ private fun NovidadeRow(
             "novo" -> "NOVO" to LkColors.success
             "melhoria" -> "MELHORIA" to LkColors.accent
             "correcao" -> "CORREÇÃO" to LkColors.error
-            else -> item.tipo.uppercase() to c.textTertiary
+            else -> item.tipo.uppercase() to c.textSecondary
         }
 
     Row(

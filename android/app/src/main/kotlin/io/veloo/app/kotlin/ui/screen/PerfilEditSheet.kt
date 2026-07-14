@@ -135,7 +135,8 @@ internal fun PerfilEditSheet(
             Text(
                 "Toque no avatar para alterar a foto",
                 style = MaterialTheme.typography.labelMedium,
-                color = c.textTertiary,
+                // GH#937: textTertiary sobre branco ~2.5:1 (fail AA). textSecondary ~4.8:1.
+                color = c.textSecondary,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
 

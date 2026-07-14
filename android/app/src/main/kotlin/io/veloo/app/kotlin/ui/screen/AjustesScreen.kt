@@ -823,7 +823,10 @@ private fun SettingItem(
                         .background(c.border)
                         .padding(horizontal = LkSpacing.sm, vertical = 4.dp),
             ) {
-                Text(badge, fontSize = 10.sp, fontWeight = FontWeight.W600, color = c.textTertiary)
+                // Contraste WCAG AA (GH#937): textTertiary sobre chip com fundo c.border
+                // dava ~2:1 (fail) e textSecondary ~3.9:1 (ainda abaixo do AA p/ 10sp);
+                // textPrimary garante AA/AAA. Path hoje sem call site com badge != null.
+                Text(badge, fontSize = 10.sp, fontWeight = FontWeight.W600, color = c.textPrimary)
             }
         } else {
             Icon(

@@ -185,7 +185,8 @@ fun PrivacidadeScreen(
                         Text(
                             text = "Limpar histórico, apagar dados locais ou resetar o app",
                             fontSize = 12.sp,
-                            color = c.textTertiary,
+                            // GH#937: textTertiary sobre branco ~2.5:1 (fail AA). textSecondary ~4.8:1.
+                            color = c.textSecondary,
                         )
                     }
                     Icon(
