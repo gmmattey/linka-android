@@ -1416,3 +1416,260 @@ test("CORS: respostas normais tambem carregam Access-Control-Allow-Origin config
   );
   assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://signallq-admin-panel.pages.dev");
 });
+
+// ============================================================================
+// GH#965 — diretorio remoto de operadora de cauda longa: logo + contato
+// ============================================================================
+
+async function loginAsAdmin(db: FakeD1Database): Promise<string> {
+  const pepper = "pepper-test";
+  const passwordHash = await hashPassword("secret123", pepper);
+  db.adminUsers.set("user-1", {
+    id: "user-1",
+    email: "admin@example.com",
+    password_hash: passwordHash,
+    role: "admin",
+    active: 1,
+    created_at: 1,
+    last_login: null,
+  });
+  db.adminUsersByEmail.set("admin@example.com", "user-1");
+
+  const loginResponse = await worker.fetch(
+    jsonRequest("https://example.com/admin/auth/login", {
+      email: "admin@example.com",
+      password: "secret123",
+    }),
+    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: pepper },
+  );
+  return loginResponse.headers.get("set-cookie") ?? "";
+}
+
+test("provider support: edicao parcial atualiza so os campos enviados, sem apagar o resto", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+
+  // seed inicial via upsert completo
+  await worker.fetch(
+    new Request("https://example.com/admin/providers", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({
+        provider: {
+          id: "regional_teste",
+          displayName: "Regional Teste",
+          support: { sacPhone: "10000", websiteUrl: "https://old.example.com" },
+        },
+      }),
+    }),
+    env,
+  );
+
+  // edicao parcial: so troca o site, sacPhone deve continuar intocado
+  const editResponse = await worker.fetch(
+    new Request("https://example.com/admin/providers/regional_teste/support", {
+      method: "PUT",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ websiteUrl: "https://novo.example.com" }),
+    }),
+    env,
+  );
+  assert.equal(editResponse.status, 200);
+
+  const providerResponse = await worker.fetch(
+    new Request("https://example.com/providers/regional_teste"),
+    env,
+  );
+  const payload = await providerResponse.json() as { support: { sacPhone: string | null; websiteUrl: string | null } };
+  assert.equal(payload.support.sacPhone, "10000");
+  assert.equal(payload.support.websiteUrl, "https://novo.example.com");
+});
+
+test("provider support: valor null explicito remove o canal (nao so ignora)", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+
+  await worker.fetch(
+    new Request("https://example.com/admin/providers", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({
+        provider: { id: "regional_teste2", displayName: "Regional Teste 2", support: { whatsappUrl: "https://wa.me/5511999999999" } },
+      }),
+    }),
+    env,
+  );
+
+  const editResponse = await worker.fetch(
+    new Request("https://example.com/admin/providers/regional_teste2/support", {
+      method: "PUT",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ whatsappUrl: null }),
+    }),
+    env,
+  );
+  assert.equal(editResponse.status, 200);
+
+  const providerResponse = await worker.fetch(new Request("https://example.com/providers/regional_teste2"), env);
+  const payload = await providerResponse.json() as { support: { whatsappUrl: string | null } };
+  assert.equal(payload.support.whatsappUrl, null);
+});
+
+test("provider support: provedor inexistente retorna 404 (nao 500 cru)", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const response = await worker.fetch(
+    new Request("https://example.com/admin/providers/nao_existe/support", {
+      method: "PUT",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ sacPhone: "123" }),
+    }),
+    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
+  );
+  assert.equal(response.status, 404);
+});
+
+test("provider support: sem cookie de sessao retorna 401", async () => {
+  const db = new FakeD1Database();
+  const response = await worker.fetch(
+    new Request("https://example.com/admin/providers/qualquer/support", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sacPhone: "123" }),
+    }),
+    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
+  );
+  assert.equal(response.status, 401);
+});
+
+test("provider logo upload: grava BLOB base64 no D1 (sem R2) e ProviderLogo.url resolve pra rota propria do worker", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const env = {
+    DB: db as unknown as D1Database,
+    ADMIN_AUTH_PEPPER: "pepper-test",
+    PROVIDER_LOGO_PUBLIC_BASE_URL: "https://signallq-diagnostic.example.workers.dev",
+  };
+
+  await worker.fetch(
+    new Request("https://example.com/admin/providers", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ provider: { id: "regional_teste4", displayName: "Regional Teste 4" } }),
+    }),
+    env,
+  );
+
+  const uploadResponse = await worker.fetch(
+    new Request("https://example.com/admin/providers/regional_teste4/logo", {
+      method: "POST",
+      headers: { "content-type": "image/webp", Cookie: cookie },
+      body: new Uint8Array([1, 2, 3, 4]),
+    }),
+    env,
+  );
+  assert.equal(uploadResponse.status, 201);
+  const uploadPayload = await uploadResponse.json() as { ok: boolean; url: string; version: number };
+  assert.equal(uploadPayload.ok, true);
+  assert.equal(uploadPayload.version, 1);
+  assert.equal(uploadPayload.url, "https://signallq-diagnostic.example.workers.dev/providers/regional_teste4/logo");
+
+  const providerResponse = await worker.fetch(new Request("https://example.com/providers/regional_teste4"), env);
+  const providerPayload = await providerResponse.json() as { logo: { url: string; version: number } | null };
+  assert.equal(providerPayload.logo?.url, "https://signallq-diagnostic.example.workers.dev/providers/regional_teste4/logo");
+  assert.equal(providerPayload.logo?.version, 1);
+});
+
+test("GET /providers/:id/logo serve o binario gravado no D1 com o content-type real do upload", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+
+  await worker.fetch(
+    new Request("https://example.com/admin/providers", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ provider: { id: "regional_teste5", displayName: "Regional Teste 5" } }),
+    }),
+    env,
+  );
+  const originalBytes = new Uint8Array([137, 80, 78, 71, 1, 2, 3, 4, 5]);
+  await worker.fetch(
+    new Request("https://example.com/admin/providers/regional_teste5/logo", {
+      method: "POST",
+      headers: { "content-type": "image/png", Cookie: cookie },
+      body: originalBytes,
+    }),
+    env,
+  );
+
+  const logoResponse = await worker.fetch(new Request("https://example.com/providers/regional_teste5/logo"), env);
+  assert.equal(logoResponse.status, 200);
+  assert.equal(logoResponse.headers.get("content-type"), "image/png");
+  const returnedBytes = new Uint8Array(await logoResponse.arrayBuffer());
+  assert.deepEqual([...returnedBytes], [...originalBytes]);
+});
+
+test("GET /providers/:id/logo de provedor sem logo com blob retorna 404 (nunca 500 cru)", async () => {
+  const db = new FakeD1Database();
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+  const response = await worker.fetch(new Request("https://example.com/providers/regional_sem_logo/logo"), env);
+  assert.equal(response.status, 404);
+});
+
+test("provider logo upload: acima de 500KB retorna 413 tratado (nunca 500 cru, nunca finge sucesso)", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const env = { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" };
+  await worker.fetch(
+    new Request("https://example.com/admin/providers", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: JSON.stringify({ provider: { id: "regional_teste6", displayName: "Regional Teste 6" } }),
+    }),
+    env,
+  );
+
+  const oversized = new Uint8Array(501 * 1024);
+  const response = await worker.fetch(
+    new Request("https://example.com/admin/providers/regional_teste6/logo", {
+      method: "POST",
+      headers: { "content-type": "image/webp", Cookie: cookie },
+      body: oversized,
+    }),
+    env,
+  );
+  assert.equal(response.status, 413);
+  const payload = await response.json() as { error: string };
+  assert.ok(payload.error.includes("500KB"));
+});
+
+test("provider logo upload: provedor inexistente retorna 404", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const response = await worker.fetch(
+    new Request("https://example.com/admin/providers/nao_existe/logo", {
+      method: "POST",
+      headers: { "content-type": "image/webp", Cookie: cookie },
+      body: new Uint8Array([1, 2, 3, 4]),
+    }),
+    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
+  );
+  assert.equal(response.status, 404);
+});
+
+test("provider logo upload: Content-Type que nao e image/* retorna 400", async () => {
+  const db = new FakeD1Database();
+  const cookie = await loginAsAdmin(db);
+  const response = await worker.fetch(
+    new Request("https://example.com/admin/providers/qualquer/logo", {
+      method: "POST",
+      headers: { "content-type": "application/json", Cookie: cookie },
+      body: new Uint8Array([1, 2, 3, 4]),
+    }),
+    { DB: db as unknown as D1Database, ADMIN_AUTH_PEPPER: "pepper-test" },
+  );
+  assert.equal(response.status, 400);
+});

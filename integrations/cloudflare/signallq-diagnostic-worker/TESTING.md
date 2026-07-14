@@ -134,3 +134,143 @@ Ambiente derrubado (`Stop-Process`) e `.wrangler/`/`.dev.vars` removidos ao fina
   documentam tabelas de faixa pra saúde óptica (RX) nem pra download/upload — são extrapolações
   documentadas a partir dos thresholds já usados em `bundled-ruleset.ts` (`FIBER_RX_POWER_LOW=-27dBm`,
   `DOWNLOAD_LOW=25Mbps`). Ver comentário no topo de `src/score-engine.ts`.
+
+---
+
+# TESTING.md — validação GH#962/#965 (client Android + diretório remoto de operadora)
+
+PR empilhada sobre `feat/953-worker-diagnostico-integracao` (depende do merge da #964 antes).
+Cobre client Android novo (`RemoteDiagnosticRepository`, `ProviderDirectoryRepository`,
+`OperadoraDirectoryResolver`) e os dois endpoints admin novos do worker (upload de logo como BLOB
+base64 direto no D1 — R2 descartado por decisão de produto em 2026-07-14, ver seção "Decisões de
+arquitetura" abaixo —, edição parcial de `ProviderSupport`).
+
+## Suíte automatizada do worker
+
+```
+npm run verify
+```
+
+Resultado: **65/65 testes passando** (55 pré-existentes + 10 novos desta PR), `tsc --noEmit` limpo.
+
+Novos testes (`test/index.test.ts`):
+
+| # | Cenário | Esperado | Obtido |
+|---|---|---|---|
+| 1 | Edição parcial de `support` (só `websiteUrl`) | `sacPhone` cadastrado antes continua intocado | ✅ |
+| 2 | Edição de `support` com valor `null` explícito | remove o canal (não só ignora) | ✅ |
+| 3 | Edição de `support` de provedor inexistente | 404 tratado | ✅ |
+| 4 | Edição de `support` sem cookie de sessão | 401 | ✅ |
+| 5 | Upload de logo grava BLOB base64 no D1 (sem R2) | 201, `ProviderLogo.url` resolve pra rota própria do worker (`GET /providers/:id/logo`) | ✅ |
+| 6 | `GET /providers/:id/logo` serve o binário gravado no D1 | 200, bytes idênticos aos enviados no upload, `content-type` = o mesmo do upload (`image/png`) | ✅ |
+| 7 | `GET /providers/:id/logo` de provedor sem logo com blob | 404 tratado, nunca 500 cru | ✅ |
+| 8 | Upload de logo acima de 500KB (tamanho razoável de logo aceito) | 413 tratado, nunca 500 cru, nunca finge sucesso | ✅ |
+| 9 | Upload de logo de provedor inexistente | 404 | ✅ |
+| 10 | Upload de logo com Content-Type não-`image/*` | 400 | ✅ |
+| 11 | (suíte pré-existente) nenhuma regressão | 55/55 mantidos | ✅ |
+
+## Suíte automatizada do Android (JVM/Robolectric)
+
+```
+gradlew.bat :featureDiagnostico:testDebugUnitTest :app:testDebugUnitTest
+```
+
+Resultado: **`featureDiagnostico` 415/415** e **`app` suíte completa** passando, sem regressão.
+Novos testes cobrindo GH#962/#965 (via `MockWebServer` e `mockk`, sem depender de processo externo
+no CI):
+
+| Arquivo | Cenários |
+|---|---|
+| `DiagnosticSnapshotMapperTest` | Mapeamento `DiagnosticInput` -> JSON do contrato remoto: snapshot vazio, banda 2.4/5GHz, speed/quality/loadedLatencyMs derivado, `hasInternet=false` quando não há nenhuma métrica de velocidade, dns/fibra/mobile/histórico presentes, fibra "down" sem métrica óptica não é enviada |
+| `RemoteDiagnosticReportMapperTest` | Mapeamento 1:1 dos buckets de `DiagnosticResult`, score com dimensões remotas como `EvidenceScore` informativo, `perfisUso`/`gameReadiness` sempre vazios no mapper (calculados localmente pelo caller), status desconhecido cai pra `inconclusive`, `scoreEngineResultado` ausente mapeia pra `null` |
+| `RemoteDiagnosticRepositoryTest` | Resposta 200 válida usa relatório remoto (com `perfisUso`/`gameReadiness` locais mesclados); HTTP 500, corpo vazio, JSON inválido e conexão derrubada (`SocketPolicy.DISCONNECT_AT_START`) caem pro motor local sem travar; `evaluateRemote` isolado retorna `null` em qualquer falha |
+| `ProviderDirectoryRepositoryTest` | `findById` mapeia logo+contato; 404 retorna `null`; `searchByName` pega o primeiro item da busca; sem resultado retorna `null`; nome em branco nunca dispara chamada de rede; worker fora do ar (porta sem listener) retorna `null` sem exceção |
+| `OperadoraDirectoryResolverTest` (`:app`) | Os 3 níveis de fallback: operadora principal 100% local (nunca chama o repositório remoto); operadora móvel principal via `resolverMovel`; operadora só no diretório remoto (logo+contato); remoto encontrado mas sem `logoUrl` não inventa logo (cai pro fallback); nada encontrado em lugar nenhum (fallback genérico, `hasAnyContact=false`); nome nulo/em branco nunca chama rede; falha do repositório remoto nunca lança exceção |
+
+## Validação manual via HTTP real (`wrangler dev --local` + D1 local)
+
+Rodado com `npx wrangler dev --local --port 8791` após aplicar as 5 migrations em D1 local. Todas
+as chamadas abaixo foram feitas com `curl` contra o worker real rodando localmente — não mock.
+
+| Chamada | Resultado |
+|---|---|
+| `GET /health` | 200, lista de rotas inclui `/admin/providers/:providerId/support` e `/admin/providers/:providerId/logo` |
+| `POST /admin/auth/bootstrap` + `/admin/auth/login` | 201 / 200 + `Set-Cookie` |
+| `POST /admin/providers` (upsert `regional_wrangler_dev` com `sacPhone`+`websiteUrl`) | 201, `syncedIdentifiers=2` |
+| `GET /providers/regional_wrangler_dev` | 200, `support.sacPhone="0800111222"`, `support.websiteUrl="https://old.example.com"` |
+| `PUT /admin/providers/regional_wrangler_dev/support` (só `websiteUrl`+`whatsappUrl`) | 200 |
+| `GET /providers/regional_wrangler_dev/support` após a edição | `sacPhone` continua `"0800111222"` (intocado), `websiteUrl` e `whatsappUrl` atualizados — prova a edição parcial real, não só no fake D1 |
+| `PUT /admin/providers/nao_existe_de_verdade/support` | 404 |
+| `PUT /admin/providers/.../support` sem cookie | 401 |
+| `POST /admin/providers/regional_wrangler_dev/logo` sem R2 configurado | 501, `{"error":"R2 bucket not configured..."}` — nunca finge sucesso |
+| `POST /admin/providers/.../logo` com `Content-Type: application/json` (inválido) | 400 |
+| `GET /providers/search?q=Regional` | 200, retorna `regional_wrangler_dev` |
+| `POST /api/diagnostic/evaluate` com o **payload exato produzido por `DiagnosticSnapshotMapper` (Android)** — `wifi.band=2_4_GHZ`, `rssiDbm=-82`, `linkSpeedMbps=40`, `speed.downloadMbps=18`, `quality.latencyMs=60` | 200, `wifi_signal_critical_24ghz` + `wifi_link_very_slow` + `upload_low`/`download_low` — prova que o contrato JSON do client Android é aceito e interpretado corretamente pelo motor real, não só validado contra o mock do `RemoteDiagnosticReportMapperTest` |
+
+Ambiente derrubado (`Stop-Process` nos processos `workerd`) e `.wrangler/`/`.dev.vars` removidos ao
+final — não commitados.
+
+## Validação manual via HTTP real — GH#965 revisado (BLOB D1, sem R2), 2026-07-14
+
+R2 foi descartado por decisão de produto (Cloudflare exige cartão mesmo no tier grátis) enquanto a
+PR #966 ainda estava com CI vermelho de Ktlint. Este round reaplica as 6 migrations (incluindo a
+nova `006_gh965_provider_logo_d1.sql`) em D1 local e valida o fluxo de logo ponta a ponta contra o
+worker real via `npx wrangler dev --local` — não só a suíte `node --test` com `FakeD1Database`.
+
+| Chamada | Resultado |
+|---|---|
+| `npx wrangler d1 execute signallq-diagnostic-db --local --file=migrations/006_gh965_provider_logo_d1.sql` | Aplicada sem erro sobre as 5 migrations anteriores |
+| `POST /admin/auth/bootstrap` + `/admin/auth/login` | 201 / 200 + `Set-Cookie` |
+| `POST /admin/providers` (cria `regional_manual_teste`) | 201 |
+| `POST /admin/providers/regional_manual_teste/logo` com 13 bytes reais (`Content-Type: image/png`) | 201, `url` = `https://signallq-diagnostic.giammattey-luiz.workers.dev/providers/regional_manual_teste/logo` (URL absoluta, sem R2) |
+| `GET /providers/regional_manual_teste/logo` | 200, `content-type: image/png`, `content-length: 13` — bytes comparados via `cmp` contra o arquivo original enviado: **idênticos** |
+| `GET /providers/regional_manual_teste` | 200, `logo.url` aponta pra própria rota do worker, `logo.version=1` |
+| `POST /admin/providers/regional_manual_teste/logo` com 586KB (`/dev/urandom`) | 413, `{"error":"Logo too large. Max 500KB, got 586KB."}` — nunca 500 cru |
+| `GET /providers/nao_tem_logo_nenhuma/logo` (provedor sem blob no D1) | 404 |
+
+Ambiente derrubado (processo `wrangler dev` finalizado por PID) e `.wrangler/`/`.dev.vars` removidos
+ao final — não commitados.
+
+## Decisões de arquitetura registradas nesta PR
+
+- **Estratégia local vs. remoto (#962)**: `RemoteDiagnosticRepository.evaluate()` tenta o worker com
+  timeout curto (connect 3s / read 4s / write 3s, teto adicional de 5s) e cai pro motor local
+  (`DiagnosticRunner.run`) em qualquer falha — sem rede, timeout, HTTP não-2xx, corpo vazio ou JSON
+  inválido. **Não foi wireada no `DiagnosticOrchestrator`** (o fluxo principal do app continua 100%
+  local, síncrono) — isso exigiria tornar o fluxo de diagnóstico assíncrono, mudança de Composable/
+  ViewModel fora do escopo desta issue (que pede explicitamente "sem alteração de nenhuma
+  Composable/tela"). Fica pronta para adoção numa issue futura.
+- **`perfisUso`/`gameReadiness` sempre locais, mesmo com relatório remoto**: o worker expõe versões
+  simplificadas desses dois campos (perfil de uso deriva só do score geral; `gameReadiness` usa 4
+  perfis de catálogo remoto — `COMPETITIVE_EXTREME`/`COMPETITIVE`/`SPORTS_COMPETITIVE`/
+  `MULTIPLAYER_MODERATE` — que não correspondem às 3 categorias locais `FPS_COMPETITIVO`/
+  `CLOUD_GAMING`/`MOBILE_COMPETITIVO` do `GameReadinessClassifier`). Forçar essa correspondência
+  inventaria dado. `RemoteDiagnosticRepository` sempre recalcula os dois localmente a partir do
+  mesmo `DiagnosticInput` usado pro snapshot remoto — são puros/determinísticos, não dependem de
+  rede. Documentado no kdoc de `RemoteDiagnosticReportMapper`.
+- **Score remoto não é recombinado pelo `ScoreEngine` local**: as dimensões que o worker expõe em
+  `scoreEngineResultado.dimensoes` usam ids simplificados ("internet"/"wifi"/"dns"/...) diferentes da
+  taxonomia interna do `ScoreEngine.kt` local ("estabilidade"/"wifiRedeLocal"/...). O `score` final já
+  vem pronto do worker; as dimensões viram `EvidenceScore` só informativo.
+- **R2 descartado, logo vive no D1 (#965, decisão revisada 2026-07-14)**: a ideia original desta PR
+  era hospedar a logo em R2 (a conta Cloudflare usada neste projeto não tinha R2 habilitado —
+  `wrangler r2 bucket list` → "Please enable R2 through the Cloudflare Dashboard", code 10042). Antes
+  de habilitar R2, o Luiz decidiu descartar essa rota: a Cloudflare exige cartão de crédito
+  cadastrado pra habilitar R2 mesmo no tier grátis, fricção que não vale a pena pagar agora pra um
+  asset pequeno (poucos KB, volume baixo de operadoras de cauda longa). A logo agora é gravada como
+  BLOB base64 direto no D1 já usado pelo worker (`provider_assets.data_base64`/`content_type`,
+  migration `006_gh965_provider_logo_d1.sql` — só 2 colunas nullable adicionadas, menor migration
+  possível) e servida pela própria rota `GET /providers/:id/logo` do worker. Sem binding R2 em
+  `wrangler.toml`. Upload limitado a 500KB (`MAX_LOGO_BYTES`) — retorna 413 tratado acima disso,
+  nunca 500 cru. `test/fake-r2.ts` foi removido (sem mais nenhum uso de R2 no projeto).
+- **Endpoint de edição de `support` é parcial, não substitui `upsertProvider`**: `PUT
+  /admin/providers/:id/support` só edita os campos de contato presentes no payload — chave ausente
+  não mexe em nada, chave com valor `null`/vazio remove o canal. Criado como endpoint dedicado (em
+  vez de forçar o admin a reenviar o provider inteiro toda vez que só quer trocar um telefone).
+- **Resolução de operadora (`OperadoraDirectoryResolver`, `:app`) não foi wireada nos Composables
+  existentes** (`OperadoraBadge`, `OperadoraContactCard`, `OperadoraBottomSheet`): esses componentes
+  hoje consomem `ContatoOperadora`/`OperadoraVisualIdentity` de forma síncrona; o resolver introduz
+  chamada suspensa (rede), que exigiria estado de loading na UI — mudança de Composable/ViewModel
+  fora do escopo desta issue (mesmo princípio do #962: só camada de dados). Fica pronto para adoção
+  futura pela tela que hoje já usa `BancoOperadoras.resolver`/`resolverMovel` diretamente
+  (`MainViewModel.kt:1791`).
