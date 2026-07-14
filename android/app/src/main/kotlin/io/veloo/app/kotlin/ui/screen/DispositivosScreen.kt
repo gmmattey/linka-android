@@ -115,51 +115,55 @@ fun DispositivosScreen(
     Scaffold(
         containerColor = c.bgPrimary,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.Devices,
-                            contentDescription = null,
-                            tint = c.textPrimary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(LkSpacing.xs))
-                        Text(
-                            "Dispositivos na rede",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.W600,
-                            color = c.textPrimary,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    if (onVoltar != null) {
-                        IconButton(onClick = onVoltar) {
-                            Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Voltar", tint = c.textPrimary)
-                        }
-                    }
-                },
-                actions = {
-                    val escaneando = snapshotDevices.estado == EstadoScanDispositivos.varrendo
-                    IconButton(onClick = onRefresh, enabled = !escaneando) {
-                        if (escaneando) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
-                                color = LkColors.accent,
-                            )
-                        } else {
+            Column {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Outlined.Refresh,
-                                contentDescription = "Escanear Rede",
+                                imageVector = Icons.Outlined.Devices,
+                                contentDescription = null,
                                 tint = c.textPrimary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.width(LkSpacing.xs))
+                            Text(
+                                "Dispositivos na rede",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.W600,
+                                color = c.textPrimary,
                             )
                         }
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
-            )
+                    },
+                    navigationIcon = {
+                        if (onVoltar != null) {
+                            IconButton(onClick = onVoltar) {
+                                Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Voltar", tint = c.textPrimary)
+                            }
+                        }
+                    },
+                    actions = {
+                        val escaneando = snapshotDevices.estado == EstadoScanDispositivos.varrendo
+                        IconButton(onClick = onRefresh, enabled = !escaneando) {
+                            if (escaneando) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = LkColors.accent,
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Outlined.Refresh,
+                                    contentDescription = "Escanear Rede",
+                                    tint = c.textPrimary,
+                                )
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
+                )
+                // Spec 5a: cabecalho customizado com borda inferior 1px outlineVariant.
+                HorizontalDivider(color = c.outlineVariant, thickness = 1.dp)
+            }
         },
     ) { padding ->
         Column(
@@ -241,6 +245,46 @@ private fun DispositivosLista(
     var deviceEmSheet by remember { mutableStateOf<DispositivoRede?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // Spec 5a + decisao do Luiz (2026-07-14): NativeAd no meio da lista COMPLETA
+    // (Infraestrutura + Pontos de acesso + Dispositivos), posicao = floor(total/2)
+    // dos itens de equipamento -- nao mais fixo no fim da secao "Dispositivos".
+    val linhas =
+        remember(gateways, aps, clientes) {
+            buildList {
+                val total = gateways.size + aps.size + clientes.size
+                val posicaoAnuncio = total / 2
+                var contador = 0
+
+                fun addDispositivo(
+                    secao: SecaoDispositivo,
+                    d: DispositivoRede,
+                ) {
+                    if (contador == posicaoAnuncio) add(LinhaDispositivos.Anuncio)
+                    add(LinhaDispositivos.Item(secao, d))
+                    contador++
+                }
+
+                if (gateways.isNotEmpty()) {
+                    add(LinhaDispositivos.Cabecalho("INFRAESTRUTURA (${gateways.size})"))
+                    gateways.forEach { addDispositivo(SecaoDispositivo.GATEWAY, it) }
+                }
+                if (aps.isNotEmpty()) {
+                    add(LinhaDispositivos.Cabecalho("PONTOS DE ACESSO (${aps.size})"))
+                    aps.forEach { addDispositivo(SecaoDispositivo.AP, it) }
+                }
+
+                val topPadding = if (gateways.isNotEmpty() || aps.isNotEmpty()) LkSpacing.sm else LkSpacing.md
+                add(LinhaDispositivos.Espaco(topPadding))
+
+                if (clientes.isNotEmpty()) {
+                    add(LinhaDispositivos.Cabecalho("DISPOSITIVOS (${clientes.size})"))
+                    clientes.forEach { addDispositivo(SecaoDispositivo.CLIENTE, it) }
+                } else {
+                    add(LinhaDispositivos.ApenasGateway)
+                }
+            }
+        }
+
     PullToRefreshBox(
         isRefreshing = isLoading,
         onRefresh = onRefresh,
@@ -264,87 +308,66 @@ private fun DispositivosLista(
                 }
             }
 
-            // ── Infraestrutura ─────────────────────────────────────────────
-            if (gateways.isNotEmpty()) {
-                item {
-                    SectionHeaderRow(
-                        title = "INFRAESTRUTURA (${gateways.size})",
-                        c = c,
-                    )
-                }
-                items(gateways) { gw ->
-                    GatewayItem(
-                        dispositivo = gw,
-                        c = c,
-                        apelido = gw.chaveApelido()?.let { apelidos[it] },
-                        bandasWifi = bandasWifi,
-                        clientesCount = clientes.size,
-                        onTap = { deviceEmSheet = gw },
-                    )
-                }
-            }
-
-            // ── Pontos de acesso / nós mesh ───────────────────────────────
-            if (aps.isNotEmpty()) {
-                item {
-                    SectionHeaderRow(title = "PONTOS DE ACESSO (${aps.size})", c = c)
-                }
-                items(aps) { ap ->
-                    ApMeshItem(
-                        dispositivo = ap,
-                        c = c,
-                        apelido = ap.chaveApelido()?.let { apelidos[it] },
-                        onTap = { deviceEmSheet = ap },
-                    )
-                }
-            }
-
-            // ── Todos os dispositivos ──────────────────────────────────────
-            val topPadding = if (gateways.isNotEmpty() || aps.isNotEmpty()) LkSpacing.sm else LkSpacing.md
-            item { Spacer(Modifier.height(topPadding)) }
-
-            if (clientes.isNotEmpty()) {
-                item {
-                    SectionHeaderRow(title = "DISPOSITIVOS (${clientes.size})", c = c)
-                }
-                items(clientes) { dev ->
-                    DispositivoItem(
-                        dispositivo = dev,
-                        c = c,
-                        apelido = dev.chaveApelido()?.let { apelidos[it] },
-                        onTap = { deviceEmSheet = dev },
-                    )
-                }
-                // Slot de anuncio nativo (issue #555, feedback do Luiz 2026-07-12) --
-                // dentro da lista de DISPOSITIVOS, nunca em INFRAESTRUTURA (misturar
-                // com "seu equipamento real" confunde "isso e meu / isso e anuncio").
-                // Tela nao roda diagnostico -- sem tag contextual, so o slot do topico.
-                item(key = "native_ad_dispositivos") {
-                    val nativeAd by
-                        rememberNativeAd(
-                            adUnitId = AdUnitIds.para(AdSlot.DISPOSITIVOS),
-                            contentSignal = NativeAdContentSignals.forSlot(AdSlot.DISPOSITIVOS),
-                            eligible = adsEnabled,
-                        )
-                    NativeAdListRow(nativeAd = nativeAd, source = NativeAdSource.ADMOB, modifier = Modifier.fillMaxWidth())
-                }
-            }
-
-            if (clientes.isEmpty()) {
-                item {
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            "Apenas o gateway foi encontrado",
-                            color = c.textSecondary,
-                            style = MaterialTheme.typography.titleSmall,
-                        )
+            items(
+                items = linhas,
+                key = { linha -> chaveLinha(linha) },
+            ) { linha ->
+                when (linha) {
+                    is LinhaDispositivos.Cabecalho -> SectionHeaderRow(title = linha.titulo, c = c)
+                    is LinhaDispositivos.Espaco -> Spacer(Modifier.height(linha.altura))
+                    is LinhaDispositivos.ApenasGateway -> {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                "Apenas o gateway foi encontrado",
+                                color = c.textSecondary,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        }
                     }
+                    // Slot de anuncio nativo (issue #555, feedback do Luiz 2026-07-12) --
+                    // nunca dentro de INFRAESTRUTURA por confusao visual "isso e meu /
+                    // isso e anuncio"; posicao dentro da lista completa segue a spec 5a.
+                    is LinhaDispositivos.Anuncio -> {
+                        val nativeAd by
+                            rememberNativeAd(
+                                adUnitId = AdUnitIds.para(AdSlot.DISPOSITIVOS),
+                                contentSignal = NativeAdContentSignals.forSlot(AdSlot.DISPOSITIVOS),
+                                eligible = adsEnabled,
+                            )
+                        NativeAdListRow(nativeAd = nativeAd, source = NativeAdSource.ADMOB, modifier = Modifier.fillMaxWidth())
+                    }
+                    is LinhaDispositivos.Item ->
+                        when (linha.secao) {
+                            SecaoDispositivo.GATEWAY ->
+                                GatewayItem(
+                                    dispositivo = linha.dispositivo,
+                                    c = c,
+                                    apelido = linha.dispositivo.chaveApelido()?.let { apelidos[it] },
+                                    bandasWifi = bandasWifi,
+                                    clientesCount = clientes.size,
+                                    onTap = { deviceEmSheet = linha.dispositivo },
+                                )
+                            SecaoDispositivo.AP ->
+                                ApMeshItem(
+                                    dispositivo = linha.dispositivo,
+                                    c = c,
+                                    apelido = linha.dispositivo.chaveApelido()?.let { apelidos[it] },
+                                    onTap = { deviceEmSheet = linha.dispositivo },
+                                )
+                            SecaoDispositivo.CLIENTE ->
+                                DispositivoItem(
+                                    dispositivo = linha.dispositivo,
+                                    c = c,
+                                    apelido = linha.dispositivo.chaveApelido()?.let { apelidos[it] },
+                                    onTap = { deviceEmSheet = linha.dispositivo },
+                                )
+                        }
                 }
             }
         }
@@ -379,6 +402,43 @@ private fun DispositivosLista(
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Modelo de linhas da lista (5a) -- permite calcular a posicao do NativeAd
+// como floor(total/2) sobre a lista COMPLETA de dispositivos antes de montar
+// os itens do LazyColumn, em vez de fixar o anuncio ao fim de uma secao.
+// ---------------------------------------------------------------------------
+
+private enum class SecaoDispositivo { GATEWAY, AP, CLIENTE }
+
+private sealed interface LinhaDispositivos {
+    data class Cabecalho(
+        val titulo: String,
+    ) : LinhaDispositivos
+
+    data class Espaco(
+        val altura: androidx.compose.ui.unit.Dp,
+    ) : LinhaDispositivos
+
+    data object ApenasGateway : LinhaDispositivos
+
+    data object Anuncio : LinhaDispositivos
+
+    data class Item(
+        val secao: SecaoDispositivo,
+        val dispositivo: DispositivoRede,
+    ) : LinhaDispositivos
+}
+
+private fun chaveLinha(linha: LinhaDispositivos): String =
+    when (linha) {
+        is LinhaDispositivos.Cabecalho -> "header_${linha.titulo}"
+        is LinhaDispositivos.Espaco -> "spacer"
+        is LinhaDispositivos.ApenasGateway -> "apenas_gateway"
+        is LinhaDispositivos.Anuncio -> "native_ad_dispositivos"
+        is LinhaDispositivos.Item ->
+            "item_${linha.secao}_${linha.dispositivo.mac ?: linha.dispositivo.ip ?: linha.dispositivo.nomeExibicao}"
+    }
 
 // ---------------------------------------------------------------------------
 // Linha de gateway (Roteador / Extensor)
@@ -1209,7 +1269,7 @@ private fun BadgePill(
     Box(
         modifier =
             Modifier
-                .clip(RoundedCornerShape(4.dp))
+                .clip(RoundedCornerShape(LkRadius.badge))
                 .background(bg)
                 .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
