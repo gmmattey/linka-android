@@ -811,13 +811,15 @@ private fun MetricaGridCell(
     }
 }
 
-private fun estabilidadeLabel(resultado: ResultadoTesteJogo): String =
-    when (resultado.jogo.perfil.thresholds().jitterMs.classificar(resultado.jitterMs)) {
+private fun estabilidadeLabel(resultado: ResultadoTesteJogo): String {
+    val thresholds = resultado.jogo.perfil.thresholds()
+    return when (thresholds.jitterMs.classificar(resultado.jitterMs)) {
         NivelMetrica.EXCELENTE -> "Excelente"
         NivelMetrica.BOA -> "Boa"
         NivelMetrica.ATENCAO -> "Instável"
         NivelMetrica.RUIM -> "Muito instável"
     }
+}
 
 private fun conexaoLabel(estado: EstadoConexao): String =
     when (estado) {
