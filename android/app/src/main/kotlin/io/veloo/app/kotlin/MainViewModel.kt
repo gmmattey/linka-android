@@ -1008,9 +1008,17 @@ class MainViewModel
             if (redesScan.isEmpty()) return null
             val wifiSnapshot = monitorRede.snapshotFlow.value.wifiLinkSnapshot
             val conectadoCanal = wifiSnapshot?.frequenciaMhz?.let { freqToChannel(it)?.second }
+            // #980 (Fase 2B, passo 3) — motor unificado (TopologiaRedeEngine/#979) alimenta
+            // RecommendationEngine com papel/confianca por BSSID, em vez de MeshOuiDatabase
+            // consultado direto (ve OUI e banda; nao afirma "roteador central" sem confirmacao).
+            val classificacaoPorBssid =
+                TopologiaRedeEngine
+                    .classificar(redes = redesScan, connectedBssid = wifiSnapshot?.bssid)
+                    .associate { it.first.bssid to it.second }
             return WifiScanDiagnosticInput(
                 redes =
                     redesScan.map { rv ->
+                        val classificacao = classificacaoPorBssid[rv.bssid]
                         RedeWifiVizinha(
                             canal = rv.canal,
                             rssiDbm = rv.rssiDbm,
@@ -1018,6 +1026,8 @@ class MainViewModel
                             ssid = rv.ssid,
                             bssid = rv.bssid,
                             seguranca = rv.seguranca,
+                            papelTopologia = classificacao?.papelProvavel,
+                            confiancaTopologia = classificacao?.confianca,
                         )
                     },
                 conectadoCanal = conectadoCanal,
