@@ -73,15 +73,6 @@ sealed class AnalisadorState {
         val texto: String,
         val origem: String,
         val acoes: List<AiAcaoRecomendada> = emptyList(),
-        /** "excelente"|"bom"|"regular"|"ruim"|"critico"|"inconclusivo" —
-         *  `AiDiagnosisResult.status`, normalizado pelo repository. Alimenta o banner
-         *  de veredito bom/ruim da tela 1a. "" em resultados persistidos antes desta
-         *  migracao (retrocompat -- nunca deve ocorrer em resultado novo). */
-        val status: String = "",
-        /** `AiDiagnosisResult.titulo` — headline curta (ex.: "Conexão com sinal fraco"),
-         *  distinta de [texto] (laudo/resumo mais longo). Usada no banner de veredito
-         *  da tela 1a; "" em resultados persistidos antes desta migracao. */
-        val titulo: String = "",
     ) : AnalisadorState()
 
     data class Erro(
