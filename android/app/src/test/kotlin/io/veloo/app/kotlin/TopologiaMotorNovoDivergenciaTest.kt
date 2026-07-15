@@ -20,7 +20,6 @@ import org.junit.Test
  * este teste é só o comparador exigido pela Fase 2A antes de migrar qualquer consumidor.
  */
 class TopologiaMotorNovoDivergenciaTest {
-
     private fun rede(
         ssid: String? = "MinhaRede",
         bssid: String = "AA:BB:CC:DD:EE:FF",
@@ -37,7 +36,11 @@ class TopologiaMotorNovoDivergenciaTest {
         oui = oui,
     )
 
-    private fun logDivergencia(cenario: String, ssid: String, redes: List<RedeVizinha>) {
+    private fun logDivergencia(
+        cenario: String,
+        ssid: String,
+        redes: List<RedeVizinha>,
+    ) {
         val gateway = inferirTipoGatewayPorScan(ssid, redes)
         val topologiaAntiga = TopologiaWifiEngine.classificar(redes = redes, connectedBssid = null)
         val topologiaNova = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
@@ -53,11 +56,12 @@ class TopologiaMotorNovoDivergenciaTest {
     @Test
     fun `mesh real 3 nos - os tres motores indicam mesh, motor novo sem afirmar qual no e central`() {
         val ssid = "CasaSilva"
-        val redes = listOf(
-            rede(ssid = ssid, bssid = "50:C7:BF:00:00:01", oui = "50C7BF", rssiDbm = -50),
-            rede(ssid = ssid, bssid = "50:C7:BF:00:00:02", oui = "50C7BF", rssiDbm = -65),
-            rede(ssid = ssid, bssid = "50:C7:BF:00:00:03", oui = "50C7BF", rssiDbm = -72),
-        )
+        val redes =
+            listOf(
+                rede(ssid = ssid, bssid = "50:C7:BF:00:00:01", oui = "50C7BF", rssiDbm = -50),
+                rede(ssid = ssid, bssid = "50:C7:BF:00:00:02", oui = "50C7BF", rssiDbm = -65),
+                rede(ssid = ssid, bssid = "50:C7:BF:00:00:03", oui = "50C7BF", rssiDbm = -72),
+            )
         logDivergencia("mesh real 3 nos", ssid, redes)
 
         assertEquals(ConnectionNodeType.WifiMesh, inferirTipoGatewayPorScan(ssid, redes))
@@ -73,10 +77,11 @@ class TopologiaMotorNovoDivergenciaTest {
     @Test
     fun `roteador dual-band - motores antigos de SSID dao falso positivo de mesh, motor novo corrige via banda`() {
         val ssid = "CasaDual"
-        val redes = listOf(
-            rede(ssid = ssid, bssid = "11:22:AA:00:00:01", oui = "1122AA", rssiDbm = -55, frequenciaMhz = 2412),
-            rede(ssid = ssid, bssid = "11:22:AA:00:00:02", oui = "1122AA", rssiDbm = -58, frequenciaMhz = 5180),
-        )
+        val redes =
+            listOf(
+                rede(ssid = ssid, bssid = "11:22:AA:00:00:01", oui = "1122AA", rssiDbm = -55, frequenciaMhz = 2412),
+                rede(ssid = ssid, bssid = "11:22:AA:00:00:02", oui = "1122AA", rssiDbm = -58, frequenciaMhz = 5180),
+            )
         logDivergencia("roteador dual-band", ssid, redes)
 
         // FALSO POSITIVO CONHECIDO do motor de SSID (ver GatewayHeuristicaCaracterizacaoTest).

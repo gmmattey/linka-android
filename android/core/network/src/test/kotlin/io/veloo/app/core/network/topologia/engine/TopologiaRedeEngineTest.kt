@@ -19,7 +19,6 @@ import org.junit.Test
  * SSID-vs-OUI/banda com prioridade de hardware.
  */
 class TopologiaRedeEngineTest {
-
     private fun rede(
         ssid: String? = "MinhaRede",
         bssid: String = "AA:BB:CC:DD:EE:FF",
@@ -42,11 +41,12 @@ class TopologiaRedeEngineTest {
     fun `mesh real 3 nos mesmo OUI Deco banda repetida sem confirmacao de rota - todos viram SISTEMA_MESH_PROVAVEL`() {
         val ouiDeco = "50C7BF"
         val bssidPrincipal = "50:C7:BF:00:00:01"
-        val redes = listOf(
-            rede(ssid = "CasaSilva", bssid = bssidPrincipal, oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -50),
-            rede(ssid = "CasaSilva", bssid = "50:C7:BF:00:00:02", oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -65),
-            rede(ssid = "CasaSilva", bssid = "50:C7:BF:00:00:03", oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -72),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "CasaSilva", bssid = bssidPrincipal, oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -50),
+                rede(ssid = "CasaSilva", bssid = "50:C7:BF:00:00:02", oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -65),
+                rede(ssid = "CasaSilva", bssid = "50:C7:BF:00:00:03", oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -72),
+            )
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = bssidPrincipal)
 
@@ -64,16 +64,18 @@ class TopologiaRedeEngineTest {
     fun `mesh real com confirmacao de rota central - conectado vira ROTEADOR e os outros NO_MESH`() {
         val ouiDeco = "50C7BF"
         val bssidPrincipal = "50:C7:BF:00:00:01"
-        val redes = listOf(
-            rede(ssid = "CasaSilva", bssid = bssidPrincipal, oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -50),
-            rede(ssid = "CasaSilva", bssid = "50:C7:BF:00:00:02", oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -65),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "CasaSilva", bssid = bssidPrincipal, oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -50),
+                rede(ssid = "CasaSilva", bssid = "50:C7:BF:00:00:02", oui = ouiDeco, frequenciaMhz = 2412, rssiDbm = -65),
+            )
 
-        val resultado = TopologiaRedeEngine.classificar(
-            redes = redes,
-            connectedBssid = bssidPrincipal,
-            temConfirmacaoRoteadorCentral = true,
-        )
+        val resultado =
+            TopologiaRedeEngine.classificar(
+                redes = redes,
+                connectedBssid = bssidPrincipal,
+                temConfirmacaoRoteadorCentral = true,
+            )
 
         val (_, principal) = resultado.first { it.first.bssid == bssidPrincipal }
         val (_, secundario) = resultado.first { it.first.bssid != bssidPrincipal }
@@ -88,10 +90,11 @@ class TopologiaRedeEngineTest {
     @Test
     fun `roteador dual-band mesmo OUI banda nao repetida - ROTEADOR para as duas bandas, nunca SISTEMA_MESH_PROVAVEL`() {
         val ouiGenerico = "1122AA"
-        val redes = listOf(
-            rede(ssid = "CasaDual", bssid = "11:22:AA:00:00:01", oui = ouiGenerico, frequenciaMhz = 2412),
-            rede(ssid = "CasaDual", bssid = "11:22:AA:00:00:02", oui = ouiGenerico, frequenciaMhz = 5180),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "CasaDual", bssid = "11:22:AA:00:00:01", oui = ouiGenerico, frequenciaMhz = 2412),
+                rede(ssid = "CasaDual", bssid = "11:22:AA:00:00:02", oui = ouiGenerico, frequenciaMhz = 5180),
+            )
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -106,10 +109,11 @@ class TopologiaRedeEngineTest {
     fun `extensor mesmo SSID OUI diferente do principal - sinal mais forte vira ROTEADOR e o outro REPETIDOR`() {
         val bssidRoteador = "11:22:AA:00:00:01"
         val bssidExtensor = "33:44:55:00:00:01"
-        val redes = listOf(
-            rede(ssid = "CasaSilva", bssid = bssidRoteador, oui = "1122AA", rssiDbm = -50),
-            rede(ssid = "CasaSilva", bssid = bssidExtensor, oui = "334455", rssiDbm = -70),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "CasaSilva", bssid = bssidRoteador, oui = "1122AA", rssiDbm = -50),
+                rede(ssid = "CasaSilva", bssid = bssidExtensor, oui = "334455", rssiDbm = -70),
+            )
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -125,11 +129,12 @@ class TopologiaRedeEngineTest {
 
     @Test
     fun `multiplos APs cabeados com SSIDs diferentes nao geram falso positivo de mesh`() {
-        val redes = listOf(
-            rede(ssid = "Escritorio-A", bssid = "AA:AA:AA:00:00:01", oui = "AAAAAA"),
-            rede(ssid = "Escritorio-B", bssid = "BB:BB:BB:00:00:01", oui = "BBBBBB"),
-            rede(ssid = "Escritorio-C", bssid = "CC:CC:CC:00:00:01", oui = "CCCCCC"),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "Escritorio-A", bssid = "AA:AA:AA:00:00:01", oui = "AAAAAA"),
+                rede(ssid = "Escritorio-B", bssid = "BB:BB:BB:00:00:01", oui = "BBBBBB"),
+                rede(ssid = "Escritorio-C", bssid = "CC:CC:CC:00:00:01", oui = "CCCCCC"),
+            )
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -146,9 +151,7 @@ class TopologiaRedeEngineTest {
         // aqui — bug de curadoria documentado como baseline. O motor novo, com o catálogo único
         // (OuiCatalog: papeisPossiveis = {ROTEADOR, NO_MESH}) e sem nenhum outro nó no grupo pra
         // desempatar, não finge certeza: registra o conflito e retorna DESCONHECIDO/BAIXA.
-        val redes = listOf(
-            rede(ssid = "MinhaCasaIntelbras", bssid = "C4:6E:1F:00:00:01", oui = "C46E1F"),
-        )
+        val redes = listOf(rede(ssid = "MinhaCasaIntelbras", bssid = "C4:6E:1F:00:00:01", oui = "C46E1F"))
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -161,9 +164,7 @@ class TopologiaRedeEngineTest {
 
     @Test
     fun `roteador Intelbras 6C5AB0 isolado tambem vira DESCONHECIDO com conflito`() {
-        val redes = listOf(
-            rede(ssid = "OutraCasaIntelbras", bssid = "6C:5A:B0:00:00:01", oui = "6C5AB0"),
-        )
+        val redes = listOf(rede(ssid = "OutraCasaIntelbras", bssid = "6C:5A:B0:00:00:01", oui = "6C5AB0"))
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -178,10 +179,11 @@ class TopologiaRedeEngineTest {
     fun `Intelbras agrupado com no de outro fabricante no mesmo SSID - contexto de grupo misto decide, nao a ambiguidade do OUI isolado`() {
         val bssidIntelbras = "C4:6E:1F:00:00:01"
         val bssidOutroFabricante = "33:44:55:00:00:01"
-        val redes = listOf(
-            rede(ssid = "CasaMista", bssid = bssidIntelbras, oui = "C46E1F", rssiDbm = -50),
-            rede(ssid = "CasaMista", bssid = bssidOutroFabricante, oui = "334455", rssiDbm = -70),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "CasaMista", bssid = bssidIntelbras, oui = "C46E1F", rssiDbm = -50),
+                rede(ssid = "CasaMista", bssid = bssidOutroFabricante, oui = "334455", rssiDbm = -70),
+            )
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -195,10 +197,11 @@ class TopologiaRedeEngineTest {
 
     @Test
     fun `multiplos nos Intelbras mesmo OUI banda repetida - evidencia real de mesh sobrepoe ambiguidade do OUI isolado`() {
-        val redes = listOf(
-            rede(ssid = "CasaIntelbrasMesh", bssid = "C4:6E:1F:00:00:01", oui = "C46E1F", frequenciaMhz = 2412, rssiDbm = -50),
-            rede(ssid = "CasaIntelbrasMesh", bssid = "C4:6E:1F:00:00:02", oui = "C46E1F", frequenciaMhz = 2412, rssiDbm = -68),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "CasaIntelbrasMesh", bssid = "C4:6E:1F:00:00:01", oui = "C46E1F", frequenciaMhz = 2412, rssiDbm = -50),
+                rede(ssid = "CasaIntelbrasMesh", bssid = "C4:6E:1F:00:00:02", oui = "C46E1F", frequenciaMhz = 2412, rssiDbm = -68),
+            )
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -209,10 +212,11 @@ class TopologiaRedeEngineTest {
 
     @Test
     fun `SSID com palavra-chave mesh concorda com evidencia de banda - confianca sobe de MEDIA para ALTA`() {
-        val redes = listOf(
-            rede(ssid = "Casa_Deco_Mesh", bssid = "50:C7:BF:00:00:01", oui = "50C7BF", frequenciaMhz = 2412, rssiDbm = -50),
-            rede(ssid = "Casa_Deco_Mesh", bssid = "50:C7:BF:00:00:02", oui = "50C7BF", frequenciaMhz = 2412, rssiDbm = -68),
-        )
+        val redes =
+            listOf(
+                rede(ssid = "Casa_Deco_Mesh", bssid = "50:C7:BF:00:00:01", oui = "50C7BF", frequenciaMhz = 2412, rssiDbm = -50),
+                rede(ssid = "Casa_Deco_Mesh", bssid = "50:C7:BF:00:00:02", oui = "50C7BF", frequenciaMhz = 2412, rssiDbm = -68),
+            )
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -225,9 +229,7 @@ class TopologiaRedeEngineTest {
 
     @Test
     fun `SSID com palavra-chave extensor diverge de OUI de gateway ISP conhecido - conflito registrado mas OUI decide`() {
-        val redes = listOf(
-            rede(ssid = "Casa_Extensor_Sala", bssid = "C4:6E:1F:00:00:01", oui = "B4A9FC"),
-        )
+        val redes = listOf(rede(ssid = "Casa_Extensor_Sala", bssid = "C4:6E:1F:00:00:01", oui = "B4A9FC"))
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 
@@ -253,9 +255,7 @@ class TopologiaRedeEngineTest {
         // 00E09F é Intelbras genérico (câmera, switch etc.) sem papeisPossiveis no catálogo —
         // não deve ser confundido com o gateway Intelbras da casa (C46E1F/6C5AB0) só por
         // compartilhar fabricante.
-        val redes = listOf(
-            rede(ssid = "DispositivoQualquer", bssid = "00:E0:9F:00:00:01", oui = "00E09F"),
-        )
+        val redes = listOf(rede(ssid = "DispositivoQualquer", bssid = "00:E0:9F:00:00:01", oui = "00E09F"))
 
         val resultado = TopologiaRedeEngine.classificar(redes = redes, connectedBssid = null)
 

@@ -31,7 +31,6 @@ import io.signallq.app.core.network.topologia.oui.OuiCatalog
  *   revisão do plano).
  */
 object TopologiaRedeEngine {
-
     // Mesmas listas de `GatewayHeuristica.kt` (app module) — duplicadas aqui porque
     // `:coreNetwork` não pode depender de `:app`. `GatewayHeuristica` é removida na Fase 2C.
     private val SSID_MESH_EXATOS = listOf("MESH", "DECO", "EERO", "VELOP")
@@ -103,16 +102,17 @@ object TopologiaRedeEngine {
             evidencias += Evidencia(TipoEvidencia.SSID, rede.ssid.orEmpty(), PesoEvidencia.MEDIO)
         }
 
-        var (papel, confianca) = decidirPapelPorOuiEBanda(
-            rede = rede,
-            grupo = grupo,
-            connectedBssid = connectedBssid,
-            temConfirmacaoRoteadorCentral = temConfirmacaoRoteadorCentral,
-            papeis = papeis,
-            isUnico = isUnico,
-            todosOuiIguais = todosOuiIguais,
-            bandaRepetida = bandaRepetida,
-        )
+        var (papel, confianca) =
+            decidirPapelPorOuiEBanda(
+                rede = rede,
+                grupo = grupo,
+                connectedBssid = connectedBssid,
+                temConfirmacaoRoteadorCentral = temConfirmacaoRoteadorCentral,
+                papeis = papeis,
+                isUnico = isUnico,
+                todosOuiIguais = todosOuiIguais,
+                bandaRepetida = bandaRepetida,
+            )
 
         val conflitos = mutableListOf<ConflitoSinal>()
         if (papeis.size > 1) {
