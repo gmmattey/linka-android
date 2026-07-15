@@ -25,7 +25,6 @@ import org.junit.Test
  * 4. Múltiplos APs cabeados com SSIDs diferentes — não é mesh (SSID conectado filtra os outros)
  */
 class GatewayHeuristicaCaracterizacaoTest {
-
     private fun rede(
         ssid: String?,
         bssid: String,
@@ -43,11 +42,12 @@ class GatewayHeuristicaCaracterizacaoTest {
 
     @Test
     fun `mesh real 3 nos mesmo SSID RSSI forte retorna wifiMesh`() {
-        val redes = listOf(
-            rede("CasaSilva", "50:C7:BF:00:00:01", -50),
-            rede("CasaSilva", "50:C7:BF:00:00:02", -65),
-            rede("CasaSilva", "50:C7:BF:00:00:03", -72),
-        )
+        val redes =
+            listOf(
+                rede("CasaSilva", "50:C7:BF:00:00:01", -50),
+                rede("CasaSilva", "50:C7:BF:00:00:02", -65),
+                rede("CasaSilva", "50:C7:BF:00:00:03", -72),
+            )
         val resultado = inferirTipoGatewayPorScan("CasaSilva", redes)
         assertEquals(ConnectionNodeType.WifiMesh, resultado)
     }
@@ -61,10 +61,11 @@ class GatewayHeuristicaCaracterizacaoTest {
         // usa só "2+ BSSIDs distintos, mesmo SSID, RSSI forte" como proxy de mesh, que aqui
         // dá falso positivo. TopologiaWifiEngine (que vê banda) acerta esse caso — ver
         // TopologiaCaracterizacaoTest. Baseline atual, não corrigir nesta task.
-        val redes = listOf(
-            rede("CasaDual", "11:22:AA:00:00:01", -55), // 2.4GHz
-            rede("CasaDual", "11:22:AA:00:00:02", -58), // 5GHz, BSSID/RSSI distintos, banda não modelada aqui
-        )
+        val redes =
+            listOf(
+                rede("CasaDual", "11:22:AA:00:00:01", -55), // 2.4GHz
+                rede("CasaDual", "11:22:AA:00:00:02", -58), // 5GHz, BSSID/RSSI distintos, banda não modelada aqui
+            )
         val resultado = inferirTipoGatewayPorScan("CasaDual", redes)
         assertEquals(ConnectionNodeType.WifiMesh, resultado)
     }
@@ -76,10 +77,11 @@ class GatewayHeuristicaCaracterizacaoTest {
         // Mesmo SSID, BSSIDs de OUI totalmente diferentes (roteador vs. extensor de outro
         // fabricante) — GatewayHeuristica não consegue diferenciar de mesh porque não olha
         // OUI, só conta BSSIDs distintos com o mesmo SSID e RSSI acima do threshold.
-        val redes = listOf(
-            rede("CasaSilva", "11:22:AA:00:00:01", -50), // roteador
-            rede("CasaSilva", "33:44:55:00:00:01", -70), // extensor, OUI diferente
-        )
+        val redes =
+            listOf(
+                rede("CasaSilva", "11:22:AA:00:00:01", -50), // roteador
+                rede("CasaSilva", "33:44:55:00:00:01", -70), // extensor, OUI diferente
+            )
         val resultado = inferirTipoGatewayPorScan("CasaSilva", redes)
         assertEquals(ConnectionNodeType.WifiMesh, resultado)
     }
@@ -91,11 +93,12 @@ class GatewayHeuristicaCaracterizacaoTest {
         // Rede corporativa com 3 APs cabeados, cada um com seu próprio SSID. Ao consultar
         // pelo SSID ao qual o device está de fato conectado, os outros SSIDs não entram na
         // contagem de bssidsComMesmoSsid — resultado correto (WifiRouter), sem falso positivo.
-        val redesVisiveis = listOf(
-            rede("Escritorio-A", "AA:AA:AA:00:00:01", -50),
-            rede("Escritorio-B", "BB:BB:BB:00:00:01", -55),
-            rede("Escritorio-C", "CC:CC:CC:00:00:01", -60),
-        )
+        val redesVisiveis =
+            listOf(
+                rede("Escritorio-A", "AA:AA:AA:00:00:01", -50),
+                rede("Escritorio-B", "BB:BB:BB:00:00:01", -55),
+                rede("Escritorio-C", "CC:CC:CC:00:00:01", -60),
+            )
         val resultado = inferirTipoGatewayPorScan("Escritorio-A", redesVisiveis)
         assertEquals(ConnectionNodeType.WifiRouter, resultado)
     }
