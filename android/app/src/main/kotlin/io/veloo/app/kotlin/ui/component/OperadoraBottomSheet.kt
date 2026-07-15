@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Call
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -150,39 +149,23 @@ fun OperadoraBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = c.bgPrimary,
+        containerColor = c.surfaceContainerLow,
     ) {
         Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = LkSpacing.xl)
+                    .padding(horizontal = 24.dp)
                     .navigationBarsPadding(),
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = "Falar com a operadora",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = c.textPrimary,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Outlined.Close,
-                        contentDescription = "Fechar",
-                        tint = c.textSecondary,
-                    )
-                }
-            }
+            Text(
+                text = "Falar com a operadora",
+                style = MaterialTheme.typography.headlineSmall,
+                color = c.textPrimary,
+            )
 
-            Spacer(Modifier.height(LkSpacing.xs))
+            Spacer(Modifier.height(LkSpacing.sm))
 
             Text(
                 text = subtituloConexao,
@@ -190,9 +173,7 @@ fun OperadoraBottomSheet(
                 color = c.textSecondary,
             )
 
-            Spacer(Modifier.height(LkSpacing.lg))
-            HorizontalDivider(color = c.border, thickness = 1.dp)
-            Spacer(Modifier.height(LkSpacing.lg))
+            Spacer(Modifier.height(LkSpacing.xl))
 
             if (operadoraDetectada != null && identidadeDetectada != null) {
                 // Seção: operadora detectada (local ou via diretorio remoto)
@@ -208,7 +189,6 @@ fun OperadoraBottomSheet(
 
                 // Seção: outras operadoras (só quando há detectada)
                 if (outrasOperadoras.isNotEmpty()) {
-                    HorizontalDivider(color = c.border, thickness = 1.dp)
                     Spacer(Modifier.height(LkSpacing.lg))
                     Overline(texto = "Não é a sua? Outras operadoras", color = c.textTertiary)
                     Spacer(Modifier.height(LkSpacing.md))
@@ -233,8 +213,6 @@ fun OperadoraBottomSheet(
                 }
             } else {
                 // Seção: nenhuma detectada — mostrar todas com divisão nacional/regional
-                HorizontalDivider(color = c.border, thickness = 1.dp)
-                Spacer(Modifier.height(LkSpacing.lg))
                 Overline(texto = "Operadoras disponíveis", color = c.textTertiary)
                 Spacer(Modifier.height(LkSpacing.md))
                 val nacionais = BancoOperadoras.lista.filter { it.id in idsMajores }
@@ -255,7 +233,6 @@ fun OperadoraBottomSheet(
                 Spacer(Modifier.height(LkSpacing.md))
             }
 
-            HorizontalDivider(color = c.border, thickness = 1.dp)
             Spacer(Modifier.height(LkSpacing.md))
 
             Text(
@@ -284,20 +261,23 @@ private fun OperadoraDetectadaSection(
         // Identificacao
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(c.surfaceContainer, RoundedCornerShape(LkRadius.card))
+                    .padding(LkSpacing.base),
         ) {
             OperadoraBadge(identidade = identidade, size = 40.dp)
             Spacer(Modifier.width(LkSpacing.md))
             Column {
                 Text(
                     text = contato.displayName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
                     color = c.textPrimary,
                 )
                 Text(
                     text = legenda,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = c.textSecondary,
                 )
             }
@@ -320,7 +300,7 @@ private fun OperadoraDetectadaSection(
             ) {
                 Text(
                     text = "Falar no WhatsApp",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                 )
@@ -352,7 +332,7 @@ private fun OperadoraDetectadaSection(
                     Spacer(Modifier.width(LkSpacing.xs))
                     Text(
                         text = if (ehLocal) "Ligar *${contato.sacPhone}" else "Ligar ${contato.sacPhone}",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelLarge,
                         color = c.textPrimary,
                         fontWeight = FontWeight.Medium,
                     )
@@ -376,7 +356,7 @@ private fun OperadoraDetectadaSection(
                     Spacer(Modifier.width(LkSpacing.xs))
                     Text(
                         text = "App ${contato.grupo}",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelLarge,
                         color = c.textPrimary,
                         fontWeight = FontWeight.Medium,
                     )
@@ -392,7 +372,11 @@ private fun OutraOperadoraRow(operadora: ContatoOperadora) {
     val context = LocalContext.current
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(c.surfaceContainer, RoundedCornerShape(LkRadius.card))
+                .padding(LkSpacing.base),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         OperadoraBadge(operadora = operadora, size = 36.dp)
@@ -402,20 +386,19 @@ private fun OutraOperadoraRow(operadora: ContatoOperadora) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = operadora.nome,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
                 color = c.textPrimary,
             )
             if (operadora.whatsapp != null) {
                 Text(
                     text = "WhatsApp · ligar *${operadora.sac}",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = c.textSecondary,
                 )
             } else {
                 Text(
                     text = "ligar *${operadora.sac}",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = c.textSecondary,
                 )
             }

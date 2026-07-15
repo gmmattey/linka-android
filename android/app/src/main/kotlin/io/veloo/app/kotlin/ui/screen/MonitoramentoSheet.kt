@@ -47,6 +47,10 @@ import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.component.ConfirmacaoDialog
+import io.signallq.app.ui.component.LkInfoCallout
+import io.signallq.app.ui.component.LkSheetDivider
+import io.signallq.app.ui.component.LkSheetFrame
+import io.signallq.app.ui.component.LkSheetSectionTitle
 
 // GH#936 — Fase 7 MD3 (5f): extraido de AjustesScreen.kt (era "DiagnosticoSheet", so
 // acessivel via toggles dentro de Ajustes). Agora e destino unico tanto do atalho
@@ -78,46 +82,38 @@ internal fun MonitoramentoSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = {},
-        containerColor = c.bgSecondary,
+        containerColor = c.surfaceContainerLow,
     ) {
-        Column(
+        LkSheetFrame(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(top = LkSpacing.md, bottom = LkSpacing.xxl)
                     .navigationBarsPadding(),
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(c.border)
-                        .align(Alignment.CenterHorizontally)
-                        .semantics { contentDescription = "Arrastar para fechar" },
-            )
-            Spacer(Modifier.height(LkSpacing.md))
             Text(
-                text = "Monitoramento",
+                text = "Diagnóstico avançado",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
                 color = c.textPrimary,
-                modifier = Modifier.padding(horizontal = LkSpacing.lg),
+                fontWeight = FontWeight.W700,
             )
+            Spacer(Modifier.height(4.dp))
             Text(
                 text = "Recursos que aprofundam a análise da sua rede",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = c.textSecondary,
-                modifier = Modifier.padding(horizontal = LkSpacing.lg),
             )
             Spacer(Modifier.height(LkSpacing.sm))
             ToggleItem(
                 c = c,
                 icon = Icons.Outlined.Analytics,
                 label = "Análise avançada",
-                subtitle = if (analiseAvancada) "Ativa" else "Desativada · pode aumentar consumo de bateria",
+                subtitle =
+                    if (analiseAvancada) {
+                        "Ativa · coleta sinais extras para aprofundar o diagnóstico"
+                    } else {
+                        "Desativada · pode aumentar consumo de bateria"
+                    },
                 checked = analiseAvancada,
                 onCheckedChange = { enabled ->
                     if (enabled && !analiseAvancada) {
@@ -127,12 +123,17 @@ internal fun MonitoramentoSheet(
                     }
                 },
             )
-            HorizontalDivider(color = c.border, thickness = 1.dp)
+            LkSheetDivider()
             ToggleItem(
                 c = c,
                 icon = Icons.Outlined.Sensors,
                 label = "Monitoramento passivo",
-                subtitle = if (monitoramentoAtivo) "Ativo · verifica a cada 30 minutos" else "Desativado",
+                subtitle =
+                    if (monitoramentoAtivo) {
+                        "Ativo · verifica a conexão e pode enviar alertas"
+                    } else {
+                        "Desativado"
+                    },
                 checked = monitoramentoAtivo,
                 onCheckedChange = { novoValor ->
                     if (novoValor) {
@@ -143,17 +144,7 @@ internal fun MonitoramentoSheet(
                 },
             )
             if (monitoramentoAtivo) {
-                HorizontalDivider(
-                    color = c.border,
-                    thickness = 1.dp,
-                    modifier = Modifier.padding(horizontal = LkSpacing.lg, vertical = LkSpacing.sm),
-                )
-                Text(
-                    text = "Notificações",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = c.textSecondary,
-                    modifier = Modifier.padding(horizontal = LkSpacing.lg, vertical = LkSpacing.xs),
-                )
+                LkSheetDivider(modifier = Modifier.padding(horizontal = LkSpacing.lg))
                 ToggleItem(
                     c = c,
                     icon = Icons.Outlined.WifiOff,
@@ -162,7 +153,7 @@ internal fun MonitoramentoSheet(
                     checked = notificacaoSemInternetAtiva,
                     onCheckedChange = onDefinirNotificacaoSemInternetAtiva,
                 )
-                HorizontalDivider(color = c.border, thickness = 1.dp)
+                LkSheetDivider()
                 ToggleItem(
                     c = c,
                     icon = Icons.Outlined.Speed,
@@ -171,7 +162,7 @@ internal fun MonitoramentoSheet(
                     checked = notificacaoLatenciaAtiva,
                     onCheckedChange = onDefinirNotificacaoLatenciaAtiva,
                 )
-                HorizontalDivider(color = c.border, thickness = 1.dp)
+                LkSheetDivider()
                 ToggleItem(
                     c = c,
                     icon = Icons.Outlined.Language,
@@ -180,7 +171,7 @@ internal fun MonitoramentoSheet(
                     checked = notificacaoDnsAtiva,
                     onCheckedChange = onDefinirNotificacaoDnsAtiva,
                 )
-                HorizontalDivider(color = c.border, thickness = 1.dp)
+                LkSheetDivider()
                 ToggleItem(
                     c = c,
                     icon = Icons.Outlined.Wifi,
@@ -191,30 +182,17 @@ internal fun MonitoramentoSheet(
                 )
             }
             if (monitoramentoAtivo && OemKillInfo.fabricanteRiscoAlto) {
-                HorizontalDivider(color = c.border, thickness = 1.dp)
-                Row(
+                LkSheetDivider()
+                LkInfoCallout(
+                    icon = Icons.Outlined.Info,
+                    iconTint = LkColors.warning,
+                    text =
+                        "Em alguns dispositivos ${OemKillInfo.nomeFabricante}, o sistema pode reduzir a frequência " +
+                            "das verificações para economizar bateria. Para garantir o funcionamento, mantenha o SignallQ " +
+                            "na lista de apps sem restrição de bateria nas configurações do sistema.",
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = null,
-                        tint = LkColors.warning,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text =
-                            "Em alguns dispositivos ${OemKillInfo.nomeFabricante}, o sistema pode reduzir a frequência " +
-                                "das verificações para economizar bateria. Para garantir o funcionamento, mantenha o SignallQ " +
-                                "na lista de apps sem restrição de bateria nas configurações do sistema.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = c.textSecondary,
-                    )
-                }
+                        Modifier.padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
+                )
             }
         }
     }

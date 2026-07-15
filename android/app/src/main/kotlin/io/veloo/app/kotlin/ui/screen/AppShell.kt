@@ -434,23 +434,11 @@ fun AppShell(
         tabScreenNames.getOrNull(selectedTab)?.let { onScreenView(it) }
     }
 
-    // Sinaliza que a PRÓXIMA conclusão de diagnóstico deve abrir o Laudo automaticamente —
-    // setado só quando a conclusão é consequência direta de um speedtest do usuário (abaixo).
-    // MainViewModel dispara diagnóstico automaticamente em mais de um gatilho de fundo (cold
-    // start via iniciarRotinasNaoSpeedtest, e de novo sempre que a leitura de fibra/ONT
-    // conclui — ver coletor de executorFibra.snapshotFlow) — nenhum desses é ação do usuário,
-    // então nenhum deles deve abrir o Laudo sozinho. Sem essa flag, o diagnóstico automático
-    // disparado pela fibra concluindo (alguns segundos após o cold start) escapava da supressão
-    // antiga (que só ignorava a primeira conclusão) e abria o Laudo por cima da aba Velocidade
-    // sem o usuário pedir nada.
-    var laudoAutomaticoEsperado by remember { mutableStateOf(false) }
-
     LaunchedEffect(snapshotSpeedtest.estado) {
         when (snapshotSpeedtest.estado) {
             EstadoExecucaoSpeedtest.executando -> testeAtivo = true
             EstadoExecucaoSpeedtest.concluido -> {
                 if (testeAtivo) {
-                    laudoAutomaticoEsperado = true
                     onIniciarDiagnostico()
                     mostrarConcluido = true
                     delay(400)
@@ -460,16 +448,6 @@ fun AppShell(
                 }
             }
             else -> {}
-        }
-    }
-
-    // Abre LaudoScreen automaticamente só quando a conclusão do diagnóstico é a que foi
-    // sinalizada acima (consequência de um speedtest do usuário) — nunca em conclusões
-    // automáticas de fundo.
-    LaunchedEffect(snapshotDiagnostico.estado) {
-        if (snapshotDiagnostico.estado == EstadoDiagnostico.concluido && laudoAutomaticoEsperado) {
-            laudoAutomaticoEsperado = false
-            if (Overlay.Laudo !in overlayStack) overlayStack.add(Overlay.Laudo)
         }
     }
 
@@ -1067,9 +1045,9 @@ private fun AppBottomNavBar(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        HorizontalDivider(color = c.border, thickness = 1.dp)
+        HorizontalDivider(color = c.outlineVariant, thickness = 1.dp)
         NavigationBar(
-            containerColor = c.bgSecondary,
+            containerColor = c.surfaceContainer,
             tonalElevation = 0.dp,
         ) {
             AppNavItem(c, selectedTab, 0, "Início", Icons.Outlined.Home, Icons.Filled.Home, onTabSelected)
@@ -1116,14 +1094,20 @@ private fun RowScope.AppNavItem(
                 )
             }
         },
-        label = { Text(label, fontWeight = FontWeight.W600) },
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (selectedTab == index) FontWeight.SemiBold else FontWeight.Medium,
+            )
+        },
         colors =
             NavigationBarItemDefaults.colors(
-                selectedIconColor = LkColors.accent,
-                unselectedIconColor = c.textTertiary,
-                selectedTextColor = LkColors.accent,
-                unselectedTextColor = c.textTertiary,
-                indicatorColor = LkColors.accent.copy(alpha = 0.12f),
+                selectedIconColor = c.onSecondaryContainer,
+                unselectedIconColor = c.onSurfaceVariant,
+                selectedTextColor = c.onSurface,
+                unselectedTextColor = c.onSurfaceVariant,
+                indicatorColor = c.secondaryContainer,
             ),
     )
 }

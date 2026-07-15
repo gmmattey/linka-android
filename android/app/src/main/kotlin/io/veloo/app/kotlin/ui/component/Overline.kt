@@ -6,7 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.SignallQTheme
 
@@ -31,9 +30,8 @@ fun Overline(
         text = texto.uppercase(),
         modifier = modifier,
         color = color,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.SemiBold,
-        letterSpacing = 0.3.sp,
+        style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.Medium,
     )
 }
 

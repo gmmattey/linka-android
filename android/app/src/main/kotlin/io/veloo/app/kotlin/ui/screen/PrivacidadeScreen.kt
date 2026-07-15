@@ -41,6 +41,7 @@ import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.LkSheetDivider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,8 +111,7 @@ fun PrivacidadeScreen(
                     Spacer(Modifier.height(LkSpacing.md))
                     Text(
                         text = "Tudo é processado localmente",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.W600,
+                        style = MaterialTheme.typography.headlineSmall,
                         color = c.textPrimary,
                     )
                     Spacer(Modifier.height(LkSpacing.sm))
@@ -119,9 +119,8 @@ fun PrivacidadeScreen(
                         text =
                             "O SignallQ roda inteiramente no seu aparelho. Resultados são salvos localmente. " +
                                 "Nada vai para servidores externos sem você acionar.",
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = c.textSecondary,
-                        lineHeight = 19.sp,
                         modifier = Modifier.padding(horizontal = LkSpacing.md),
                     )
                 }
@@ -163,7 +162,6 @@ fun PrivacidadeScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(LkRadius.card))
                             .clickable(onClick = onAbrirGerenciarDados)
                             .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
                     verticalAlignment = Alignment.CenterVertically,
@@ -178,13 +176,12 @@ fun PrivacidadeScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Gerenciar dados e privacidade",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.W600,
+                            style = MaterialTheme.typography.titleSmall,
                             color = c.textPrimary,
                         )
                         Text(
                             text = "Limpar histórico, apagar dados locais ou resetar o app",
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             // GH#937: textTertiary sobre branco ~2.5:1 (fail AA). textSecondary ~4.8:1.
                             color = c.textSecondary,
                         )
@@ -196,6 +193,10 @@ fun PrivacidadeScreen(
                         modifier = Modifier.size(14.dp),
                     )
                 }
+            }
+
+            item {
+                LkSheetDivider(modifier = Modifier.padding(horizontal = LkSpacing.lg))
             }
 
             item {
@@ -223,16 +224,14 @@ private fun PrivacidadeSection(
     ) {
         Text(
             text = titulo,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.W600,
+            style = MaterialTheme.typography.titleSmall,
             color = c.textPrimary,
         )
         Spacer(Modifier.height(LkSpacing.xs))
         Text(
             text = descricao,
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = c.textSecondary,
-            lineHeight = 19.sp,
         )
     }
 }

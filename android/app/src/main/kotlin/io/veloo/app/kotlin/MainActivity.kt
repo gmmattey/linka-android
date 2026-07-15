@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
@@ -11,7 +12,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -75,40 +75,6 @@ class MainActivity : ComponentActivity() {
     // por compatibilidade legada; migracao completa em PR subsequente.
     private val devicesViewModel: DevicesViewModel by viewModels()
     private val speedtestViewModel: SpeedtestViewModel by viewModels()
-
-    private val solicitacaoPermissoes =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { resultados ->
-            aguardandoRespostaPermissoes = false
-            val todasConcedidas = resultados.values.all { it }
-            if (todasConcedidas) viewModel.iniciarRotinasNaoSpeedtest()
-        }
-
-    /**
-     * Solicitacao LAZY de READ_PHONE_STATE — disparada apenas quando o usuario
-     * roda diagnostico em rede movel pela primeira vez. Justificativa:
-     * "Para analise de sinal 4G/5G". Se negar, snapshot movel fica null e a
-     * IA recebe `connectionType: mobile` sem o bloco `movel` (gracioso).
-     */
-    private val solicitacaoPermissaoTelefonia =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedida ->
-            temPermissaoTelefonia = concedida
-            if (concedida) viewModel.iniciarMonitorTelefoniaSeMovel()
-        }
-
-    private val solicitacaoPermissaoLocalizacao =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedida ->
-            temPermissaoLocalizacao = concedida
-            if (concedida) viewModel.iniciarRotinasNaoSpeedtest()
-        }
-
-    private val solicitacaoPermissaoNotificacao =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            // Worker agenda mesmo se permissao negada — notificacoes ficam silenciosas
-            viewModel.atualizarMonitoramento(true)
-        }
-
-    private var jaSolicitouTelefoniaNestaSessao = false
-    private var aguardandoRespostaPermissoes = false
 
     private var temPermissaoTelefonia by mutableStateOf(false)
     private var temPermissaoLocalizacao by mutableStateOf(false)
@@ -386,7 +352,6 @@ class MainActivity : ComponentActivity() {
                             io.signallq.app.ui.screen.AppShellDiagnosticoState(
                                 snapshotDiagnostico = snapshotDiagnostico,
                                 onIniciarDiagnostico = {
-                                    solicitarPermissaoTelefoniaSeNecessario()
                                     // GH#919 — feature_used("diagnostico") passou a ser disparado
                                     // dentro do SignallQOrchestrator, no momento em que a sessao
                                     // real (diagnostic_sessions.id) e criada, correlacionando com
@@ -479,11 +444,17 @@ class MainActivity : ComponentActivity() {
                         onResetarApp = { viewModel.resetarApp() },
                         monitoramentoAtivo = monitoramentoAtivo,
                         onAtivarMonitoramento = { ativo ->
-                            if (ativo) {
-                                solicitarPermissaoNotificacaoSeNecessario { viewModel.atualizarMonitoramento(true) }
-                            } else {
-                                viewModel.atualizarMonitoramento(false)
+                            if (ativo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                val notificacaoConcedida =
+                                    ContextCompat.checkSelfPermission(
+                                        this@MainActivity,
+                                        Manifest.permission.POST_NOTIFICATIONS,
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                if (!notificacaoConcedida) {
+                                    abrirAjustesDoApp()
+                                }
                             }
+                            viewModel.atualizarMonitoramento(ativo)
                         },
                         notificacaoLatenciaAtiva = notificacaoLatenciaAtiva,
                         notificacaoDnsAtiva = notificacaoDnsAtiva,
@@ -549,7 +520,9 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         viewModel.iniciarMonitorRede()
-        verificarEPedirPermissoes()
+        if (viewModel.onboardingConcluido.value == true) {
+            viewModel.iniciarRotinasNaoSpeedtest()
+        }
     }
 
     override fun onResume() {
@@ -594,59 +567,6 @@ class MainActivity : ComponentActivity() {
         analyticsTracker.registrarBatterySnapshot(levelPercent, charging)
     }
 
-    private fun verificarEPedirPermissoes() {
-        if (aguardandoRespostaPermissoes) return
-        // #128: onboarding novo (tela 2) e quem controla a solicitacao de permissoes antes da
-        // primeira conclusao — sem essa guarda, este auto-pedido do onStart competia com os
-        // dialogs abertos pelos toggles da tela 2 (mesma permissao pedida duas vezes seguidas).
-        if (viewModel.onboardingConcluido.value != true) return
-        val pendentes = viewModel.gerenciadorPermissoes.listarPermissoesPendentes()
-        if (pendentes.isNotEmpty()) {
-            aguardandoRespostaPermissoes = true
-            solicitacaoPermissoes.launch(pendentes.toTypedArray())
-        } else {
-            viewModel.iniciarRotinasNaoSpeedtest()
-        }
-    }
-
-    /**
-     * Lazy: so solicita READ_PHONE_STATE quando o usuario esta em rede movel
-     * E ainda nao tentamos pedir nesta sessao. Em Wi-Fi/Ethernet, nao pede.
-     * Se ja concedida, apenas garante que o monitor esta iniciado.
-     */
-    private fun solicitarPermissaoNotificacaoSeNecessario(onProsseguir: () -> Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val concedida =
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS,
-                ) == PackageManager.PERMISSION_GRANTED
-            if (!concedida) {
-                solicitacaoPermissaoNotificacao.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return
-            }
-        }
-        onProsseguir()
-    }
-
-    private fun solicitarPermissaoTelefoniaSeNecessario() {
-        val emRedeMovel = viewModel.monitorRede.snapshotFlow.value.estadoConexao == EstadoConexao.movel
-        if (!emRedeMovel) return
-        val concedida =
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_PHONE_STATE,
-            ) == PackageManager.PERMISSION_GRANTED
-        if (concedida) {
-            temPermissaoTelefonia = true
-            viewModel.iniciarMonitorTelefoniaSeMovel()
-            return
-        }
-        if (jaSolicitouTelefoniaNestaSessao) return
-        jaSolicitouTelefoniaNestaSessao = true
-        solicitacaoPermissaoTelefonia.launch(Manifest.permission.READ_PHONE_STATE)
-    }
-
     private fun solicitarPermissaoTelefoniaContextual() {
         val concedida =
             ContextCompat.checkSelfPermission(
@@ -658,7 +578,7 @@ class MainActivity : ComponentActivity() {
             viewModel.iniciarMonitorTelefoniaSeMovel()
             return
         }
-        solicitacaoPermissaoTelefonia.launch(Manifest.permission.READ_PHONE_STATE)
+        abrirAjustesDoApp()
     }
 
     // Analytics (SIG-155): EstadoConexao.movel vira "mobile" no schema do funil.
@@ -674,16 +594,17 @@ class MainActivity : ComponentActivity() {
             ) == PackageManager.PERMISSION_GRANTED
         if (concedida) {
             temPermissaoLocalizacao = true
+            viewModel.iniciarRotinasNaoSpeedtest()
             return
         }
-        if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            solicitacaoPermissaoLocalizacao.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            startActivity(
-                android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = android.net.Uri.fromParts("package", packageName, null)
-                },
-            )
-        }
+        abrirAjustesDoApp()
+    }
+
+    private fun abrirAjustesDoApp() {
+        startActivity(
+            Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", packageName, null)
+            },
+        )
     }
 }

@@ -64,9 +64,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.signallq.app.R
-import io.signallq.app.ads.AdSlot
-import io.signallq.app.ads.AdUnitIds
-import io.signallq.app.ads.NativeAdContentSignals
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.SnapshotRede
 import io.signallq.app.core.telephony.MovelSnapshot
@@ -80,10 +77,10 @@ import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
-import io.signallq.app.ui.ads.rememberNativeAd
+import io.signallq.app.ui.component.LkSectionOverline
+import io.signallq.app.ui.component.LkSurfaceCard
 import io.signallq.app.ui.component.ProfileAvatarButton
-import io.signallq.app.ui.component.ads.NativeAdRow
-import io.signallq.app.ui.component.ads.NativeAdSource
+import io.signallq.app.ui.component.ads.SimulatedOfferRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,30 +181,11 @@ fun SpeedTestScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.Speed,
-                                contentDescription = "Velocidade",
-                                tint = c.textPrimary,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(Modifier.width(LkSpacing.xs))
-                            Text(
-                                text = "Velocidade",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.W600,
-                                color = c.textPrimary,
-                            )
-                        }
-                        if (planoInternet.isNotEmpty()) {
-                            Text(
-                                text = "Plano contratado: $planoInternet",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = c.textSecondary,
-                            )
-                        }
-                    }
+                    Text(
+                        text = "Velocidade",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = c.textPrimary,
+                    )
                 },
                 navigationIcon = {
                     ProfileAvatarButton(
@@ -264,61 +242,33 @@ private fun ConteudoSpeedTest(
     adsEnabled: Boolean,
     c: LkTokens,
 ) {
-    if (!temResultado) {
-        // Sem resultado: centraliza verticalmente no espaço disponível, sem vazio inferior
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = LkSpacing.lg),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                BlocoCirculoSpeedTest(
-                    snapshotSpeedtest = snapshotSpeedtest,
-                    snapshotRede = snapshotRede,
-                    movelSnapshot = movelSnapshot,
-                    localizacaoServidor = localizacaoServidor,
-                    modoSelecionado = modoSelecionado,
-                    onModoSelecionado = onModoSelecionado,
-                    onIniciarTeste = onIniciarTeste,
-                    onVerResultado = onVerResultado,
-                    mostrarDialogCancelar = mostrarDialogCancelar,
-                    estadoIdle = estadoIdle,
-                    c = c,
-                )
-            }
-        }
-    } else {
-        // Com resultado: scroll para acomodar o card
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = LkSpacing.lg),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = LkSpacing.base),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.height(LkSpacing.xl))
+
+        BlocoCirculoSpeedTest(
+            snapshotSpeedtest = snapshotSpeedtest,
+            snapshotRede = snapshotRede,
+            movelSnapshot = movelSnapshot,
+            localizacaoServidor = localizacaoServidor,
+            modoSelecionado = modoSelecionado,
+            onModoSelecionado = onModoSelecionado,
+            onIniciarTeste = onIniciarTeste,
+            onVerResultado = onVerResultado,
+            mostrarDialogCancelar = mostrarDialogCancelar,
+            estadoIdle = estadoIdle,
+            c = c,
+        )
+
+        if (temResultado) {
             Spacer(Modifier.height(LkSpacing.lg))
-
-            BlocoCirculoSpeedTest(
-                snapshotSpeedtest = snapshotSpeedtest,
-                snapshotRede = snapshotRede,
-                movelSnapshot = movelSnapshot,
-                localizacaoServidor = localizacaoServidor,
-                modoSelecionado = modoSelecionado,
-                onModoSelecionado = onModoSelecionado,
-                onIniciarTeste = onIniciarTeste,
-                onVerResultado = onVerResultado,
-                mostrarDialogCancelar = mostrarDialogCancelar,
-                estadoIdle = estadoIdle,
-                c = c,
-            )
-
-            Spacer(Modifier.height(LkSpacing.lg))
-
             val resultado = snapshotSpeedtest.resultado!!
             val timestampRelativo =
                 remember(resultado.timestampEpochMs) {
@@ -343,22 +293,21 @@ private fun ConteudoSpeedTest(
                 Spacer(Modifier.height(LkSpacing.sm))
                 CardRodadasTriplo(c = c, rodadas = snapshotSpeedtest.rodadasTriplo)
             }
-
-            // Slot de anuncio nativo (issue #555) -- espaco vazio abaixo do "Ultimo
-            // resultado". So depende do estado idle/concluido + Remote Config, nao de
-            // evidencia de diagnostico (fallback generico do AdMob).
-            if (estadoIdle) {
-                Spacer(Modifier.height(LkSpacing.md))
-                val nativeAd by
-                    rememberNativeAd(
-                        adUnitId = AdUnitIds.para(AdSlot.VELOCIDADE),
-                        contentSignal = NativeAdContentSignals.forSlot(AdSlot.VELOCIDADE),
-                        eligible = adsEnabled,
-                    )
-                NativeAdRow(nativeAd = nativeAd, source = NativeAdSource.ADMOB, modifier = Modifier.fillMaxWidth())
-            }
-            Spacer(Modifier.height(LkSpacing.xxl))
         }
+
+        if (estadoIdle) {
+            Spacer(Modifier.height(LkSpacing.md))
+            // TODO: substituir o card SIMULADO abaixo por rememberNativeAd + NativeAdRow
+            // quando o AdMob real deste slot estiver configurado. Enquanto isso, manter
+            // visivel para espelhar a spec mesmo sem inventario real.
+            SimulatedOfferRow(
+                title = "Oferta simulada de roteador Wi-Fi 6",
+                body = "Melhore cobertura e estabilidade em casas com muitos dispositivos.",
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        Spacer(Modifier.height(LkSpacing.xxl))
     }
 }
 
@@ -391,16 +340,6 @@ private fun BlocoCirculoSpeedTest(
     )
 
     // Linha de contexto: tipo de conexão + servidor (só no estado idle/concluído)
-    if (estadoIdle) {
-        Spacer(Modifier.height(LkSpacing.sm))
-        LinhaContextoConexao(
-            snapshotRede = snapshotRede,
-            movelSnapshot = movelSnapshot,
-            localizacaoServidor = localizacaoServidor,
-            c = c,
-        )
-    }
-
     if (!snapshotRede.conectado) {
         Spacer(Modifier.height(LkSpacing.sm))
         Row(
@@ -451,16 +390,18 @@ private fun BlocoCirculoSpeedTest(
         Spacer(Modifier.height(LkSpacing.md))
     }
 
+    Spacer(Modifier.height(LkSpacing.sm))
     ModeSelector(modoSelecionado = modoSelecionado, onSelect = onModoSelecionado)
 
-    Spacer(Modifier.height(LkSpacing.xs))
-    Text(
-        text = descricaoModo(modoSelecionado),
-        style = MaterialTheme.typography.labelSmall,
-        color = c.textTertiary,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(horizontal = LkSpacing.lg),
-    )
+    if (estadoIdle) {
+        Spacer(Modifier.height(LkSpacing.md))
+        LinhaContextoConexao(
+            snapshotRede = snapshotRede,
+            movelSnapshot = movelSnapshot,
+            localizacaoServidor = localizacaoServidor,
+            c = c,
+        )
+    }
 
     val erroMsg = snapshotSpeedtest.erroMensagem
     if (snapshotSpeedtest.estado == EstadoExecucaoSpeedtest.erro && erroMsg != null) {
@@ -578,13 +519,13 @@ private fun IdleCircle(
         Box(
             modifier =
                 Modifier
-                    .size(220.dp)
+                    .size(250.dp)
                     .background(corBotao.copy(alpha = if (habilitado) glowAlpha else glowAlpha * 0.5f), CircleShape),
         )
         Box(
             modifier =
                 Modifier
-                    .size(210.dp)
+                    .size(230.dp)
                     .scale(if (habilitado) scale else 1f)
                     .clip(CircleShape)
                     .background(corBotao)
@@ -593,10 +534,10 @@ private fun IdleCircle(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "Iniciar",
+                text = "Iniciar teste",
                 color = LkColors.signallQTextOnDark,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 26.sp),
+                fontWeight = FontWeight.W600,
             )
         }
     }
@@ -668,15 +609,8 @@ private val modoOpcoes =
     listOf(
         "Rápido" to ModoSpeedtest.fast,
         "Completo" to ModoSpeedtest.complete,
-        "Triplo" to ModoSpeedtest.triplo,
+        "3 testes" to ModoSpeedtest.triplo,
     )
-
-private fun descricaoModo(modo: ModoSpeedtest): String =
-    when (modo) {
-        ModoSpeedtest.fast -> "Mede download e upload rapidamente"
-        ModoSpeedtest.complete -> "Mede download, upload e latência com mais precisão"
-        ModoSpeedtest.triplo -> "Repete o teste completo 3 vezes para maior confiabilidade"
-    }
 
 @Composable
 private fun ModeSelector(
@@ -689,7 +623,7 @@ private fun ModeSelector(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(999.dp))
-                .background(c.bgSecondary)
+                .border(1.dp, c.outline, RoundedCornerShape(999.dp))
                 .padding(2.dp)
                 .semantics { contentDescription = "Modo do teste" },
     ) {
@@ -699,11 +633,10 @@ private fun ModeSelector(
                 modifier =
                     Modifier
                         .weight(1f)
-                        .shadow(elevation = if (selected) 1.dp else 0.dp, shape = RoundedCornerShape(999.dp))
                         .clip(RoundedCornerShape(999.dp))
-                        .background(if (selected) c.bgPrimary else Color.Transparent)
+                        .background(if (selected) c.secondaryContainer else Color.Transparent)
                         .clickable { onSelect(modo) }
-                        .padding(vertical = LkSpacing.sm)
+                        .padding(vertical = LkSpacing.sm, horizontal = LkSpacing.xs)
                         .semantics {
                             role = Role.Tab
                             this.selected = selected
@@ -713,9 +646,9 @@ private fun ModeSelector(
             ) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.W600,
-                    color = if (selected) c.textPrimary else c.textSecondary,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = if (selected) c.onSecondaryContainer else c.onSurfaceVariant,
                 )
             }
         }
@@ -728,7 +661,7 @@ private fun IndicadorRodadaTriplo(
     aguardando: Boolean,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs)) {
             repeat(3) { index ->
                 val ativo = index < rodadaAtual
                 Box(
@@ -762,16 +695,12 @@ private fun CardRodadasTriplo(
 ) {
     var expandido by remember { mutableStateOf(false) }
     val cdMedicoes = if (expandido) stringResource(R.string.cd_recolher_detalhes_medicoes) else stringResource(R.string.cd_expandir_detalhes_medicoes)
-    Column(
+    LkSurfaceCard(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
                 .semantics { contentDescription = cdMedicoes }
-                .clickable { expandido = !expandido }
-                .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
+                .clickable { expandido = !expandido },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -795,7 +724,7 @@ private fun CardRodadasTriplo(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = LkSpacing.xs),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
@@ -815,7 +744,7 @@ private fun CardRodadasTriplo(
             }
             if (rodadas.size == 3) {
                 Spacer(Modifier.height(LkSpacing.xs))
-                HorizontalDivider(color = c.border)
+                HorizontalDivider(color = c.outlineVariant)
                 Spacer(Modifier.height(LkSpacing.xs))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -856,33 +785,23 @@ private fun LastResultCard(
     label: String = "Último resultado",
     onClick: () -> Unit = {},
 ) {
-    Column(
+    LkSurfaceCard(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .clickable(onClick = onClick)
-                .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
+                .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = label.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.W600,
-                color = c.textTertiary,
-                letterSpacing = 0.4.sp,
-            )
+            LkSectionOverline(text = label)
             if (relativeTimestamp.isNotEmpty()) {
                 Text(
                     text = relativeTimestamp,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = c.textTertiary,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = c.onSurfaceVariant,
                 )
             }
         }
@@ -891,38 +810,12 @@ private fun LastResultCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(LkSpacing.lg),
         ) {
-            MetricColumn("Download", "%.1f".format(downloadMbps), "Mbps", corDownloadPorSeveridade(downloadMbps), Modifier.weight(1f))
-            MetricColumn("Upload", "%.1f".format(uploadMbps), "Mbps", corUploadPorSeveridade(uploadMbps), Modifier.weight(1f))
-            MetricColumn("Latência", "%.0f".format(latencyMs), "ms", corLatenciaPorSeveridade(latencyMs), Modifier.weight(1f))
+            MetricColumn("Download", "%.1f".format(downloadMbps), "Mbps", LkColors.success, Modifier.weight(1f))
+            MetricColumn("Upload", "%.1f".format(uploadMbps), "Mbps", LkColors.accent, Modifier.weight(1f))
+            MetricColumn("Latência", "%.0f".format(latencyMs), "ms", LkColors.success, Modifier.weight(1f))
         }
     }
 }
-
-/**
- * Mesmas faixas de severidade ja usadas em ResultadoVelocidadeScreen.kt
- * (corDownload/corUpload/corLatencia) -- duplicadas aqui de proposito pra nao
- * acoplar este card resumido ao arquivo de resultado detalhado so por causa de cor.
- */
-private fun corDownloadPorSeveridade(mbps: Double): Color =
-    when {
-        mbps >= 50.0 -> LkColors.success
-        mbps >= 25.0 -> LkColors.warning
-        else -> LkColors.error
-    }
-
-private fun corUploadPorSeveridade(mbps: Double): Color =
-    when {
-        mbps >= 10.0 -> LkColors.success
-        mbps >= 3.0 -> LkColors.warning
-        else -> LkColors.error
-    }
-
-private fun corLatenciaPorSeveridade(ms: Double): Color =
-    when {
-        ms < 20.0 -> LkColors.success
-        ms < 60.0 -> LkColors.warning
-        else -> LkColors.error
-    }
 
 @Composable
 private fun MetricColumn(
@@ -934,8 +827,8 @@ private fun MetricColumn(
 ) {
     Column(modifier = modifier) {
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = LocalLkTokens.current.textTertiary)
-        Spacer(Modifier.height(2.dp))
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        Spacer(Modifier.height(LkSpacing.xs))
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs)) {
             Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.W700, color = color)
             Text(text = unit, style = MaterialTheme.typography.labelSmall, color = LocalLkTokens.current.textSecondary)
         }

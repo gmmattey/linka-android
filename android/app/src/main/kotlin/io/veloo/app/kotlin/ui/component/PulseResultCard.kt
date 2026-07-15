@@ -61,7 +61,7 @@ fun PulseResultCard(
             modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
+                .background(c.surfaceContainer)
                 .semantics { stateDescription = cardStateDesc }
                 .clickable { expanded = !expanded }
                 .padding(LkSpacing.lg),
@@ -74,13 +74,13 @@ fun PulseResultCard(
             Icon(
                 imageVector = Icons.Default.AutoAwesome,
                 contentDescription = null,
-                tint = LkColors.accent,
+                tint = c.primary,
                 modifier = Modifier.size(16.dp),
             )
             Text(
                 "Análise IA",
                 style = MaterialTheme.typography.labelLarge,
-                color = LkColors.accent,
+                color = c.primary,
                 modifier = Modifier.weight(1f),
             )
             if (analysis.isFallback) {

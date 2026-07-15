@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.signallq.app.R
@@ -101,34 +103,43 @@ fun NovidadesScreen(
     Scaffold(
         containerColor = c.bgPrimary,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "Novidades",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.W600,
-                            color = c.textPrimary,
-                        )
-                        Text(
-                            "v$appVersion",
-                            fontSize = 12.sp,
-                            // GH#937: textTertiary sobre branco ~2.5:1 (fail AA). textSecondary ~4.8:1.
-                            color = c.textSecondary,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onVoltar) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.global_cd_voltar),
-                            tint = c.textPrimary,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
-            )
+            Column {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Column(
+                            modifier = Modifier.fillMaxHeight(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                "Novidades",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.W600,
+                                color = c.textPrimary,
+                            )
+                            Text(
+                                "v$appVersion",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = c.textSecondary,
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onVoltar) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.global_cd_voltar),
+                                tint = c.textPrimary,
+                            )
+                        }
+                    },
+                    actions = {
+                        Spacer(Modifier.width(40.dp))
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
+                )
+                HorizontalDivider(color = c.border, thickness = 1.dp)
+            }
         },
     ) { padding ->
         when {
@@ -202,12 +213,12 @@ private fun NovidadeRow(
             modifier =
                 Modifier
                     .clip(RoundedCornerShape(4.dp))
-                    .background(badgeCor.copy(alpha = 0.12f))
+                    .background(badgeCor.copy(alpha = 0.14f))
                     .padding(horizontal = LkSpacing.sm, vertical = 2.dp),
         ) {
             Text(
                 text = badgeLabel,
-                fontSize = 10.sp,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.W700,
                 color = badgeCor,
             )
@@ -216,16 +227,16 @@ private fun NovidadeRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.titulo,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.W600,
                 color = c.textPrimary,
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = item.descricao,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = c.textSecondary,
-                lineHeight = 17.sp,
+                textAlign = TextAlign.Start,
             )
         }
     }

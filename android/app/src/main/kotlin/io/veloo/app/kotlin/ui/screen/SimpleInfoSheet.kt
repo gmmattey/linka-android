@@ -96,8 +96,8 @@ internal fun InfoRow(
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = c.textPrimary, modifier = Modifier.weight(1f))
-        Text(text = value, style = MaterialTheme.typography.titleSmall, color = c.textSecondary, fontWeight = FontWeight.W500)
+        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = c.textSecondary, modifier = Modifier.weight(1f))
+        Text(text = value, style = MaterialTheme.typography.titleSmall, color = c.textPrimary, fontWeight = FontWeight.W500)
     }
 }
 
@@ -118,12 +118,8 @@ internal fun SobreSheet(
     ) {
         InfoRow(c, "Versão", "v$appVersion")
         HorizontalDivider(color = c.border, thickness = 1.dp)
-        InfoRow(c, "Plataforma", "Android · Kotlin + Compose")
-        HorizontalDivider(color = c.border, thickness = 1.dp)
         InfoRow(c, "Desenvolvido por", "Equipe SignallQ")
         HorizontalDivider(color = c.border, thickness = 1.dp)
-        InfoRow(c, "Suporte", "suporte@signallq.app")
-        HorizontalDivider(color = c.border, thickness = 1.dp)
-        InfoRow(c, "Licenças de terceiros", "Google Sans Flex · SIL OFL 1.1")
+        InfoRow(c, "Suporte", "suporte@signallq.com")
     }
 }
