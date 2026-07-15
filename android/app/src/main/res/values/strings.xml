@@ -78,8 +78,7 @@
     <string name="onboarding_tela1_subtitulo">Diagnóstico de conectividade direto ao ponto, sem enrolação.</string>
     <string name="onboarding_tela2_titulo">Permitir acesso</string>
     <string name="onboarding_tela2_subtitulo">Essas permissões deixam o diagnóstico mais completo — nenhuma é obrigatória.</string>
-    <string name="onboarding_btn_comecar">Começar</string>
-    <string name="onboarding_btn_concluir">Concluir</string>
+    <string name="onboarding_btn_continuar">Continuar</string>
 
     <!-- Home screen -->
     <string name="home_titulo">Home</string>
@@ -216,6 +215,8 @@
     <string name="cd_toggle_desativado">Desativado</string>
     <string name="cd_detalhes_tecnicos_expandir">Ver detalhes técnicos</string>
     <string name="cd_detalhes_tecnicos_recolher">Recolher detalhes técnicos</string>
+    <string name="cd_analise_ia_expandida">Análise IA expandida</string>
+    <string name="cd_analise_ia_recolhida">Análise IA recolhida</string>
     <string name="cd_abrir_whatsapp">Abrir WhatsApp</string>
     <string name="cd_rede_aberta">Rede aberta</string>
     <string name="cd_rede_protegida">Rede protegida</string>

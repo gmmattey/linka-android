@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.component.ConfirmacaoDialog
@@ -103,13 +104,14 @@ internal fun DadosLocaisSheet(
                 text = "Estas ações são irreversíveis. Os dados serão removidos permanentemente do dispositivo.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = c.textSecondary,
-                lineHeight = 18.sp,
+                lineHeight = 20.sp,
             )
             OutlinedButton(
                 onClick = { showConfirmLimpar = true },
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(1.dp, LkColors.warning),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = LkColors.warning),
+                shape = RoundedCornerShape(LkRadius.button),
             ) {
                 Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(LkSpacing.xs))
@@ -120,6 +122,7 @@ internal fun DadosLocaisSheet(
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(1.dp, LkColors.error),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = LkColors.error),
+                shape = RoundedCornerShape(LkRadius.button),
             ) {
                 Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(LkSpacing.xs))
@@ -129,6 +132,7 @@ internal fun DadosLocaisSheet(
                 onClick = { showConfirmResetar = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = LkColors.error),
+                shape = RoundedCornerShape(LkRadius.button),
             ) {
                 Icon(Icons.Outlined.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(LkSpacing.xs))

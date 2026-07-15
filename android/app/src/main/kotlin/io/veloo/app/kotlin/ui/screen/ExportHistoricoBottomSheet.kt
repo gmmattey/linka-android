@@ -3,7 +3,6 @@
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -34,10 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import io.signallq.app.core.database.MedicaoEntity
@@ -46,8 +42,8 @@ import io.signallq.app.feature.history.ExportadorHistoricoPDF
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
-import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.LkSheetFrame
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -72,43 +68,6 @@ enum class FormatoExport(
 ) {
     CSV("CSV", "csv", "Planilha compatível com Excel e Google Sheets"),
     PDF("PDF", "pdf", "Relatório formatado para impressão"),
-}
-
-/**
- * Indicador visual do estado atual da sheet (4b To-Be) — Seleção/Exportando.
- * Só reflete [exportando], não é selecionável: o estado real muda ao clicar em
- * "Exportar", nunca escolhido manualmente pelo usuário.
- */
-@Composable
-private fun EstadoExportSegmented(
-    exportando: Boolean,
-    c: LkTokens,
-    modifier: Modifier = Modifier,
-) {
-    val opcoes = listOf("Seleção" to !exportando, "Exportando" to exportando)
-    Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .border(1.dp, c.border, RoundedCornerShape(20.dp))
-                .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        opcoes.forEach { (label, ativo) ->
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (ativo) c.textPrimary else c.textSecondary,
-                textAlign = TextAlign.Center,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(if (ativo) LkColors.accent.copy(alpha = 0.14f) else Color.Transparent)
-                        .padding(vertical = 9.dp),
-            )
-        }
-    }
 }
 
 // ─── ExportHistoricoBottomSheet ────────────────────────────────────────────────
@@ -139,160 +98,156 @@ fun ExportHistoricoBottomSheet(
     var exportando by remember { mutableStateOf(false) }
 
     Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = LkSpacing.xxl),
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        // ── Drag handle ──
-        Box(
-            Modifier
-                .padding(vertical = LkSpacing.sm)
-                .width(36.dp)
-                .height(4.dp)
-                .align(Alignment.CenterHorizontally)
-                .clip(RoundedCornerShape(2.dp))
-                .background(c.border),
-        )
-
-        Spacer(Modifier.height(LkSpacing.sm))
-
-        EstadoExportSegmented(
-            exportando = exportando,
-            c = c,
-            modifier = Modifier.padding(horizontal = LkSpacing.xl),
-        )
-
-        Spacer(Modifier.height(LkSpacing.sm))
-
-        Text(
-            text = "Exportar histórico",
-            modifier = Modifier.padding(horizontal = LkSpacing.xl),
-            style = MaterialTheme.typography.titleLarge,
-            color = c.textPrimary,
-        )
-
-        Spacer(Modifier.height(LkSpacing.lg))
-
-        // ── Seção 1: Período ──
-        Text(
-            text = "Período",
-            modifier = Modifier.padding(horizontal = LkSpacing.xl),
-            style = MaterialTheme.typography.labelMedium,
-            color = c.textSecondary,
-        )
-        Spacer(Modifier.height(LkSpacing.xs))
-        FlowRow(
-            modifier = Modifier.padding(horizontal = LkSpacing.xl),
-            horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-        ) {
-            PeriodoExport.entries.forEach { periodo ->
-                FilterChip(
-                    selected = periodoSelecionado == periodo,
-                    onClick = { if (!exportando) periodoSelecionado = periodo },
-                    label = { Text(periodo.label) },
-                    colors =
-                        FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = LkColors.accent.copy(alpha = 0.15f),
-                            selectedLabelColor = LkColors.accent,
-                        ),
-                )
-            }
-        }
-
-        Spacer(Modifier.height(LkSpacing.lg))
-
-        // ── Seção 2: Formato ──
-        Text(
-            text = "Formato",
-            modifier = Modifier.padding(horizontal = LkSpacing.xl),
-            style = MaterialTheme.typography.labelMedium,
-            color = c.textSecondary,
-        )
-        Spacer(Modifier.height(LkSpacing.xs))
-        FlowRow(
-            modifier = Modifier.padding(horizontal = LkSpacing.xl),
-            horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
-        ) {
-            FormatoExport.entries.forEach { formato ->
-                FilterChip(
-                    selected = formatoSelecionado == formato,
-                    onClick = { if (!exportando) formatoSelecionado = formato },
-                    label = { Text(formato.label) },
-                    colors =
-                        FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = LkColors.accent.copy(alpha = 0.15f),
-                            selectedLabelColor = LkColors.accent,
-                        ),
-                )
-            }
-        }
-        Spacer(Modifier.height(LkSpacing.xs))
-        Text(
-            text = formatoSelecionado.descricao,
-            modifier = Modifier.padding(horizontal = LkSpacing.xl),
-            style = MaterialTheme.typography.labelSmall,
-            color = c.textTertiary,
-        )
-
-        Spacer(Modifier.height(LkSpacing.xl))
-
-        // ── Botão exportar ──
-        Button(
-            onClick = {
-                scope.launch {
-                    exportando = true
-                    val resultado =
-                        executarExport(
-                            context = context,
-                            historico = historico,
-                            periodo = periodoSelecionado,
-                            formato = formatoSelecionado,
-                        )
-                    exportando = false
-
-                    if (resultado != null) {
-                        abrirIntentCompartilhamento(context, resultado, formatoSelecionado)
-                        onDismiss()
-                    } else {
-                        snackbarHostState
-                            .showSnackbar(
-                                message = "Não foi possível exportar",
-                                actionLabel = "Tentar novamente",
-                            ).let { result ->
-                                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
-                                    onRetry?.invoke()
-                                }
-                            }
-                    }
-                }
-            },
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = LkSpacing.xl),
-            enabled = historico.isNotEmpty() && !exportando,
-            shape = RoundedCornerShape(LkRadius.button),
-            colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-        ) {
-            Text(
-                text = if (exportando) "Exportando..." else "Exportar",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.W600,
-            )
-        }
-
-        // ── LinearProgressIndicator fora do botão ──
-        if (exportando) {
-            Spacer(Modifier.height(LkSpacing.sm))
-            LinearProgressIndicator(
+        LkSheetFrame {
+            Row(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = LkSpacing.xl),
-                color = LkColors.accent,
-                trackColor = c.bgSecondary,
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(c.surfaceContainer)
+                        .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.xs),
+            ) {
+                listOf("Seleção" to !exportando, "Exportando" to exportando).forEach { (label, ativo) ->
+                    Box(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(if (ativo) c.secondaryContainer else androidx.compose.ui.graphics.Color.Transparent)
+                                .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (ativo) c.onSecondaryContainer else c.textSecondary,
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(LkSpacing.lg))
+            Text(
+                text = "Exportar histórico",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.W600,
+                color = c.textPrimary,
             )
+
+            Spacer(Modifier.height(LkSpacing.lg))
+
+            Text(
+                text = "Período",
+                style = MaterialTheme.typography.labelLarge,
+                color = c.textSecondary,
+            )
+            Spacer(Modifier.height(LkSpacing.xs))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+            ) {
+                PeriodoExport.entries.forEach { periodo ->
+                    FilterChip(
+                        selected = periodoSelecionado == periodo,
+                        onClick = { if (!exportando) periodoSelecionado = periodo },
+                        label = { Text(periodo.label) },
+                        colors =
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = c.secondaryContainer,
+                                selectedLabelColor = c.onSecondaryContainer,
+                            ),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(LkSpacing.lg))
+
+            Text(
+                text = "Formato",
+                style = MaterialTheme.typography.labelLarge,
+                color = c.textSecondary,
+            )
+            Spacer(Modifier.height(LkSpacing.xs))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+            ) {
+                FormatoExport.entries.forEach { formato ->
+                    FilterChip(
+                        selected = formatoSelecionado == formato,
+                        onClick = { if (!exportando) formatoSelecionado = formato },
+                        label = { Text(formato.label) },
+                        colors =
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = c.secondaryContainer,
+                                selectedLabelColor = c.onSecondaryContainer,
+                            ),
+                    )
+                }
+            }
+            Spacer(Modifier.height(LkSpacing.xs))
+            Text(
+                text = formatoSelecionado.descricao,
+                style = MaterialTheme.typography.labelSmall,
+                color = c.textTertiary,
+            )
+
+            Spacer(Modifier.height(LkSpacing.xl))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        exportando = true
+                        val resultado =
+                            executarExport(
+                                context = context,
+                                historico = historico,
+                                periodo = periodoSelecionado,
+                                formato = formatoSelecionado,
+                            )
+                        exportando = false
+
+                        if (resultado != null) {
+                            abrirIntentCompartilhamento(context, resultado, formatoSelecionado)
+                            onDismiss()
+                        } else {
+                            snackbarHostState
+                                .showSnackbar(
+                                    message = "Não foi possível exportar",
+                                    actionLabel = "Tentar novamente",
+                                ).let { result ->
+                                    if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                                        onRetry?.invoke()
+                                    }
+                                }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = historico.isNotEmpty() && !exportando,
+                shape = RoundedCornerShape(LkRadius.button),
+                colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+            ) {
+                Text(
+                    text = if (exportando) "Exportando..." else "Exportar",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.W600,
+                )
+            }
+
+            if (exportando) {
+                Spacer(Modifier.height(LkSpacing.sm))
+                LinearProgressIndicator(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                    color = LkColors.accent,
+                    trackColor = c.surfaceContainerHighest,
+                )
+            }
         }
     }
 }

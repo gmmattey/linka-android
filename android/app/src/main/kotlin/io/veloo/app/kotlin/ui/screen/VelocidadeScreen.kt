@@ -3,6 +3,7 @@
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -63,7 +65,6 @@ import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.component.GaugeCircular
 import io.signallq.app.ui.component.MiniGrafico
-import io.signallq.app.ui.component.Overline
 import kotlinx.coroutines.isActive
 import androidx.compose.animation.core.tween as tweenSpec
 
@@ -349,6 +350,7 @@ private val fasePills =
         PillConfig(FaseSpeedtest.ping, "LATÊNCIA", 0),
         PillConfig(FaseSpeedtest.download, "DOWNLOAD", 1),
         PillConfig(FaseSpeedtest.upload, "UPLOAD", 2),
+        PillConfig(FaseSpeedtest.concluido, "CONCLUÍDO", 3),
     )
 
 @Composable
@@ -367,34 +369,43 @@ private fun PillsFase(faseAtual: FaseSpeedtest) {
 
             val corBorda =
                 when {
-                    concluido -> LkColors.phaseDownload
+                    concluido -> LkColors.success
                     ativo -> corDaFase(faseAtual)
-                    else -> c.border
+                    else -> Color.Transparent
                 }
             val corTexto =
                 when {
-                    concluido -> LkColors.phaseDownload
+                    concluido -> LkColors.success
                     ativo -> corDaFase(faseAtual)
-                    else -> c.textTertiary
+                    else -> c.onSurfaceVariant
                 }
             val bgColor =
                 when {
-                    concluido -> LkColors.phaseDownload.copy(alpha = 0.08f)
-                    ativo -> corDaFase(faseAtual).copy(alpha = 0.08f)
-                    else -> Color.Transparent
+                    concluido -> LkColors.success.copy(alpha = 0.16f)
+                    ativo -> corDaFase(faseAtual).copy(alpha = 0.16f)
+                    else -> c.surfaceContainer
                 }
 
             Box(
                 modifier =
                     Modifier
-                        .border(
-                            width = 1.dp,
-                            color = corBorda,
-                            shape = RoundedCornerShape(LkRadius.button),
-                        ).padding(horizontal = LkSpacing.md, vertical = LkSpacing.xs),
+                        .clip(RoundedCornerShape(LkRadius.pill))
+                        .background(bgColor)
+                        .then(
+                            if (corBorda != Color.Transparent) {
+                                Modifier.border(1.dp, corBorda, RoundedCornerShape(LkRadius.pill))
+                            } else {
+                                Modifier
+                            },
+                        ).padding(horizontal = LkSpacing.md, vertical = LkSpacing.sm),
                 contentAlignment = Alignment.Center,
             ) {
-                Overline(texto = pill.label, color = corTexto)
+                Text(
+                    text = pill.label,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = corTexto,
+                )
             }
         }
     }

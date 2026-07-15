@@ -1,8 +1,6 @@
 package io.signallq.app.ui.screen
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,28 +25,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Business
-import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Router
-import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SignalCellularAlt
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.VerifiedUser
-import androidx.compose.material.icons.outlined.Wifi
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -60,7 +48,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -80,15 +67,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.signallq.app.BuildConfig
 import io.signallq.app.R
-import io.signallq.app.monitoramento.OemKillInfo
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
-import io.signallq.app.ui.component.ProfileAvatarButton
 
 @SuppressLint("InlinedApi")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -180,27 +164,11 @@ fun AjustesScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null,
-                            tint = c.textPrimary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(LkSpacing.xs))
-                        Text(
-                            stringResource(R.string.ajustes_titulo),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.W600,
-                            color = c.textPrimary,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    ProfileAvatarButton(
-                        nomeUsuario = nomeUsuario,
-                        fotoUri = fotoUriUsuario,
-                        onClick = onAbrirPerfil,
+                    Text(
+                        stringResource(R.string.ajustes_titulo),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.W600,
+                        color = c.textPrimary,
                     )
                 },
                 actions = {
@@ -225,294 +193,148 @@ fun AjustesScreen(
                     .padding(padding)
                     .background(c.bgPrimary),
         ) {
-            // ── HERO CARD (6 · Perfil): cabeçalho clicável avatar 52dp + "Ver perfil" ──
+            // ── HERO CARD ────────────────────────────────────────────────────────────
             item {
-                val temNome = nomeUsuario.isNotBlank()
-                val nomeDisplay = if (temNome) nomeUsuario else "Adicionar nome"
-                val cdPerfil = stringResource(R.string.ajustes_cd_perfil)
-                Row(
+                val nomeDisplay = if (nomeUsuario.isNotBlank()) nomeUsuario else "Seu perfil"
+                Box(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = LkSpacing.lg)
-                            .padding(top = LkSpacing.lg, bottom = LkSpacing.lg)
-                            .semantics {
-                                contentDescription = cdPerfil
-                            }.clip(RoundedCornerShape(LkRadius.card))
-                            .background(c.bgSecondary)
+                            .padding(top = LkSpacing.xl, bottom = LkSpacing.md)
+                            .clip(RoundedCornerShape(LkRadius.card))
+                            .background(c.surfaceContainer)
                             .clickable { showPerfilSheet = true }
                             .padding(LkSpacing.lg),
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    UserAvatar(
-                        fotoUri = fotoUriUsuario,
-                        fallbackInitial = nomeUsuario.firstOrNull(),
-                        size = 52.dp,
-                    )
-                    Spacer(Modifier.width(LkSpacing.md))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = nomeDisplay,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.W600,
-                            color = if (temNome) c.textPrimary else c.textTertiary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = "Ver perfil",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = c.textSecondary,
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = null,
-                        tint = c.textTertiary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
-            }
-
-            // Banner de confirmação de ISP auto-detectado (fora do card, acima da seção)
-            if (!ispConfirmado && !ispDetectado.isNullOrBlank() && operadora.isBlank()) {
-                item {
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = LkSpacing.lg)
-                                .padding(bottom = LkSpacing.md)
-                                .clip(RoundedCornerShape(LkRadius.card))
-                                .background(LkColors.accent.copy(alpha = 0.08f))
-                                .border(1.dp, LkColors.accent.copy(alpha = 0.30f), RoundedCornerShape(LkRadius.card))
-                                .padding(LkSpacing.md),
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Wifi,
-                                    contentDescription = null,
-                                    tint = LkColors.accent,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                                Spacer(Modifier.width(LkSpacing.sm))
-                                Text(
-                                    text = stringResource(R.string.ajustes_operadora_detectada, ispDetectado),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.W600,
-                                    color = c.textPrimary,
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
+                        UserAvatar(
+                            fotoUri = fotoUriUsuario,
+                            fallbackInitial = nomeUsuario.firstOrNull(),
+                            size = 52.dp,
+                        )
+                        Spacer(Modifier.width(LkSpacing.md))
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = stringResource(R.string.ajustes_usar_operadora),
+                                text = nomeDisplay,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.W600,
+                                color = c.textPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = "Ver perfil",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = c.textSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
-                                Button(
-                                    onClick = { onConfirmarIsp(ispDetectado) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-                                    contentPadding =
-                                        androidx.compose.foundation.layout
-                                            .PaddingValues(horizontal = LkSpacing.md, vertical = LkSpacing.xs),
-                                ) {
-                                    Text(stringResource(R.string.ajustes_btn_confirmar), style = MaterialTheme.typography.labelMedium)
-                                }
-                                TextButton(onClick = onDispensarBannerIsp) {
-                                    Text("Ignorar", color = c.textTertiary, style = MaterialTheme.typography.labelMedium)
-                                }
-                            }
                         }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                            contentDescription = null,
+                            tint = c.textTertiary,
+                            modifier = Modifier.size(16.dp),
+                        )
                     }
                 }
             }
 
-            // ── MINHA CONEXÃO (Section 1/4) ──────────────────────────────────────────
+            item { SectionHeader(stringResource(R.string.ajustes_minha_conexao), c) }
             item {
-                // #225/#849: plano/local vazios exibem call-to-action em vez de "—";
-                // "Plano" reflete velocidade contratada (down/up Mbps) persistida por
-                // MinhaConexaoSheet, não o campo "planoInternet" legado (texto livre da
-                // extinta ProvedorSheet, nunca atualizado por este fluxo).
-                val temVelocidadeContratada = velocidadeContratadaDownMbps > 0 || velocidadeContratadaUpMbps > 0
-                val planoValue =
-                    if (temVelocidadeContratada) {
-                        "$velocidadeContratadaDownMbps/$velocidadeContratadaUpMbps Mbps"
-                    } else {
-                        "Adicionar"
-                    }
-                val cidadeValue =
-                    when {
-                        cidadeNome.isNotBlank() && estadoUf.isNotBlank() -> "$cidadeNome, $estadoUf"
-                        regiao.isNotBlank() -> regiao
-                        else -> "Adicionar"
-                    }
-                val mostrarRoteador = BuildConfig.FEATURE_FIBRA_SCREEN
-                AjustesSectionCard(title = "Minha conexão", c = c) {
-                    AjustesRow(
+                SettingsSectionCard(c = c) {
+                    ValueSettingRow(
                         c = c,
                         icon = Icons.Outlined.Business,
                         label = "Operadora",
-                        value = operadora.ifBlank { "Adicionar" },
+                        value = operadora.ifBlank { "—" },
                         onClick = { showMinhaConexaoSheet = true },
                     )
-                    AjustesRow(
+                    HorizontalDivider(color = c.border, thickness = 1.dp)
+                    ValueSettingRow(
                         c = c,
                         icon = Icons.Outlined.Speed,
                         label = "Plano contratado",
-                        value = planoValue,
-                        onClick = { showMinhaConexaoSheet = true },
-                    )
-                    AjustesRow(
-                        c = c,
-                        icon = Icons.Outlined.LocationOn,
-                        label = "Cidade",
-                        value = cidadeValue,
-                        onClick = { showMinhaConexaoSheet = true },
-                        last = !mostrarRoteador,
-                    )
-                    if (mostrarRoteador) {
-                        // GH#531 — rename "Fibra óptica" → "Roteador e rede": destino é o
-                        // roteador/GPON, não fibra em si.
-                        val subtitleGateway =
+                        value =
                             when {
-                                modemHost.isNullOrBlank() -> "Não configurado"
-                                bandasWifiGateway.isNullOrBlank() -> "Conectado"
-                                else -> "Conectado · $dispositivosNaRedeGateway dispositivos"
-                            }
-                        AjustesRow(
-                            c = c,
-                            icon = Icons.Outlined.Router,
-                            label = "Roteador e rede",
-                            value = subtitleGateway,
-                            onClick = {
-                                // GH#530: sessão válida (mesmo BSSID em que "manter conectado"
-                                // foi salvo) pula a sheet e vai direto ao destino provisório.
-                                if (gatewaySessaoValida) {
-                                    onAbrirFibra()
-                                } else {
-                                    showGatewayConnectionSheet = true
-                                }
+                                velocidadeContratadaDownMbps > 0 && velocidadeContratadaUpMbps > 0 ->
+                                    "$velocidadeContratadaDownMbps Mbps"
+                                planoInternet.isNotBlank() -> planoInternet
+                                else -> "—"
                             },
-                            last = true,
-                        )
-                    }
-                }
-            }
-
-            // ── APARÊNCIA (Section 2/4): Tema + preferências de comportamento ───────
-            item {
-                val mbLabel = if (speedtestMbConsumidosMes > 0L) "$speedtestMbConsumidosMes MB" else "0 MB"
-                val mostrarMonitoramento = BuildConfig.FEATURE_LINKPULSE_ATIVO
-                AjustesSectionCard(title = "Aparência", c = c) {
-                    ThemeSelector(
-                        selecionado = temaSelecionado,
-                        onSelect = onDefinirTemaSelecionado,
-                        c = c,
+                        onClick = { showMinhaConexaoSheet = true },
                     )
                     HorizontalDivider(color = c.border, thickness = 1.dp)
-                    AjustesRow(
+                    ValueSettingRow(
                         c = c,
-                        icon = Icons.Outlined.Notifications,
-                        label = "Notificações",
-                        onClick = {
-                            val intent =
-                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                            context.startActivity(intent)
-                        },
+                        icon = Icons.Outlined.Router,
+                        label = "Cidade",
+                        value =
+                            when {
+                                cidadeNome.isNotBlank() && estadoUf.isNotBlank() -> "$cidadeNome, $estadoUf"
+                                regiao.isNotBlank() -> regiao
+                                else -> "—"
+                            },
+                        onClick = { showMinhaConexaoSheet = true },
                     )
-                    // GH#936 — entrada pra PreferenciasSheet.kt (limite mínimo de download
-                    // que dispara alerta).
-                    AjustesRow(
-                        c = c,
-                        icon = Icons.Outlined.Speed,
-                        label = "Alertas de qualidade",
-                        value = if (limiteAlertaMbps > 0) "Abaixo de $limiteAlertaMbps Mbps" else "Sem limite",
-                        onClick = { showPreferenciasSheet = true },
-                    )
-                    AjustesRow(
-                        c = c,
-                        icon = Icons.Outlined.SignalCellularAlt,
-                        label = "Testes pesados em dados móveis",
-                        value = "$mbLabel/mês",
-                        checked = speedtestPermiteHeavyMovel,
-                        onCheckedChange = onSetSpeedtestPermiteHeavyMovel,
-                        last = !mostrarMonitoramento,
-                    )
-                    if (mostrarMonitoramento) {
-                        // GH#936 — Fase 7 (5f): unifica "Monitoramento passivo" + "Análise
-                        // avançada" numa linha só, mesmo destino do atalho "Monitoramento"
-                        // do hub Ferramentas (MonitoramentoSheet.kt) — nada de toggle
-                        // duplicado aqui.
-                        AjustesRow(
-                            c = c,
-                            icon = Icons.Outlined.Sensors,
-                            label = "Monitoramento",
-                            value =
-                                when {
-                                    !monitoramentoAtivo -> "Desativado"
-                                    OemKillInfo.fabricanteRiscoAlto -> "Ativo · limitado"
-                                    else -> "Ativo"
-                                },
-                            onClick = onAbrirMonitoramento,
-                            last = true,
-                        )
-                    }
                 }
             }
+            item { Spacer(Modifier.height(16.dp)) }
 
-            // ── DADOS E PRIVACIDADE (Section 3/4) ────────────────────────────────────
+            item { SectionHeader("Aparência", c) }
             item {
-                AjustesSectionCard(title = "Dados e privacidade", c = c) {
-                    AjustesRow(c = c, icon = Icons.Outlined.Lock, label = "Privacidade", onClick = { onAbrirPrivacidade() })
-                    AjustesRow(c = c, icon = Icons.Outlined.History, label = "Ver histórico", onClick = onAbrirHistorico)
-                    AjustesRow(
+                SettingsSectionCard(c = c) {
+                    ValueSettingRow(
                         c = c,
-                        icon = Icons.AutoMirrored.Outlined.Article,
-                        label = "Comprovante para a Anatel",
-                        onClick = onAbrirLaudo,
+                        icon = Icons.Outlined.DarkMode,
+                        label = "Tema",
+                        value = temaLabel(temaSelecionado),
+                        onClick = { showPreferenciasSheet = true },
                     )
-                    AjustesRow(
+                }
+            }
+            item { Spacer(Modifier.height(16.dp)) }
+
+            item { SectionHeader("Dados e privacidade", c) }
+            item {
+                SettingsSectionCard(c = c) {
+                    SimpleSettingRow(
+                        c = c,
+                        icon = Icons.Outlined.Lock,
+                        label = "Privacidade",
+                        onClick = onAbrirPrivacidade,
+                    )
+                    HorizontalDivider(color = c.border, thickness = 1.dp)
+                    SimpleSettingRow(
                         c = c,
                         icon = Icons.Outlined.Delete,
                         label = "Gerenciar dados",
                         onClick = { showDadosLocaisSheet = true },
-                        last = true,
                     )
                 }
             }
+            item { Spacer(Modifier.height(16.dp)) }
 
-            // ── SOBRE (Section 4/4) ──────────────────────────────────────────────────
+            item { SectionHeader("Sobre", c) }
             item {
-                AjustesSectionCard(title = "Sobre", c = c) {
-                    AjustesRow(c = c, icon = Icons.Outlined.Campaign, label = "Novidades", onClick = { onAbrirNovidades() })
-                    AjustesRow(
+                SettingsSectionCard(c = c) {
+                    SimpleSettingRow(
                         c = c,
-                        icon = Icons.Outlined.Email,
-                        label = "Fale conosco",
-                        onClick = {
-                            val intent =
-                                Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:hello7agents@icloud.com")
-                                }
-                            context.startActivity(intent)
-                        },
+                        icon = Icons.Outlined.NewReleases,
+                        label = "Novidades",
+                        onClick = onAbrirNovidades,
                     )
-                    AjustesRow(
-                        c = c,
-                        icon = Icons.Outlined.VerifiedUser,
-                        label = "Diagnóstico do app",
-                        onClick = { showDiagnosticoAppSheet = true },
-                    )
-                    AjustesRow(
+                    HorizontalDivider(color = c.border, thickness = 1.dp)
+                    ValueSettingRow(
                         c = c,
                         icon = Icons.Outlined.Info,
                         label = "Sobre o SignallQ",
                         value = "v$appVersion",
                         onClick = { showSobreSheet = true },
-                        last = true,
                     )
                 }
             }
@@ -612,13 +434,8 @@ fun AjustesScreen(
     }
 }
 
-// GH#936 — Fase 7 MD3 (6 · Perfil/Ajustes): Section + Row seguem a spec To-Be
-// (Overline + cartão surfaceContainer radius 16px overflow hidden; ícone 34dp
-// circular primary 14% + rótulo bodyLarge flex:1 + valor opcional bodyMedium +
-// chevron_right ou Switch; separador 1px entre linhas exceto a última).
 @Composable
-private fun AjustesSectionCard(
-    title: String,
+private fun SettingsSectionCard(
     c: LkTokens,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -627,100 +444,167 @@ private fun AjustesSectionCard(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = LkSpacing.lg)
-                .padding(bottom = LkSpacing.lg),
+                .clip(RoundedCornerShape(LkRadius.card))
+                .background(c.surfaceContainer),
+        content = content,
+    )
+}
+
+@Composable
+private fun SimpleSettingRow(
+    c: LkTokens,
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    ValueSettingRow(c = c, icon = icon, label = label, value = null, onClick = onClick)
+}
+
+@Composable
+private fun ValueSettingRow(
+    c: LkTokens,
+    icon: ImageVector,
+    label: String,
+    value: String?,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = LkSpacing.lg, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.W600,
-            color = c.textTertiary,
-            letterSpacing = 0.8.sp,
-            modifier = Modifier.padding(start = 4.dp, bottom = LkSpacing.sm),
-        )
-        Column(
+        Box(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(LkRadius.card))
-                    .background(c.bgSecondary),
-            content = content,
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(c.primary.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = c.primary,
+                modifier = Modifier.size(19.dp),
+            )
+        }
+        Spacer(Modifier.width(LkSpacing.lg))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = c.textPrimary,
+            modifier = Modifier.weight(1f),
+        )
+        if (!value.isNullOrBlank()) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.textSecondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.width(LkSpacing.sm))
+        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+            contentDescription = null,
+            tint = c.textTertiary,
+            modifier = Modifier.size(14.dp),
         )
     }
 }
 
+private fun temaLabel(valor: String): String =
+    when (valor.lowercase()) {
+        "claro" -> "Claro"
+        "escuro" -> "Escuro"
+        else -> "Sistema"
+    }
+
 @Composable
-private fun AjustesRow(
+private fun SectionHeader(
+    titulo: String,
+    c: LkTokens,
+) {
+    Text(
+        text = titulo.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.W600,
+        color = c.textTertiary,
+        letterSpacing = 0.8.sp,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).padding(top = 8.dp),
+    )
+}
+
+@Composable
+private fun SettingItem(
     c: LkTokens,
     icon: ImageVector,
     label: String,
-    value: String? = null,
+    subtitle: String,
     onClick: (() -> Unit)? = null,
-    checked: Boolean? = null,
-    onCheckedChange: ((Boolean) -> Unit)? = null,
-    last: Boolean = false,
+    badge: String? = null,
+    tintError: Boolean = false,
 ) {
-    Column {
-        Row(
+    val iconTint = if (tintError) LkColors.error else LkColors.accent
+    val labelColor = if (tintError) LkColors.error else c.textPrimary
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                .padding(LkSpacing.lg),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-                    .padding(horizontal = LkSpacing.lg, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(c.primary.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center,
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (tintError) LkColors.error else c.primary,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+
+        Spacer(Modifier.width(LkSpacing.md))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = labelColor, fontWeight = FontWeight.W500)
+            Spacer(Modifier.height(2.dp))
+            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = c.textSecondary)
+        }
+
+        if (badge != null) {
             Box(
                 modifier =
                     Modifier
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .background(LkColors.accent.copy(alpha = 0.14f)),
-                contentAlignment = Alignment.Center,
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(c.border)
+                        .padding(horizontal = LkSpacing.sm, vertical = 4.dp),
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = LkColors.accent, modifier = Modifier.size(19.dp))
+                // Contraste WCAG AA (GH#937): textTertiary sobre chip com fundo c.border
+                // dava ~2:1 (fail) e textSecondary ~3.9:1 (ainda abaixo do AA p/ 10sp);
+                // textPrimary garante AA/AAA. Path hoje sem call site com badge != null.
+                Text(badge, fontSize = 10.sp, fontWeight = FontWeight.W600, color = c.textPrimary)
             }
-            Spacer(Modifier.width(LkSpacing.md))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = c.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+        } else {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = if (onClick != null) c.textTertiary else c.border,
+                modifier = Modifier.size(14.dp),
             )
-            if (value != null) {
-                Spacer(Modifier.width(LkSpacing.sm))
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = c.textSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (checked != null && onCheckedChange != null) {
-                Spacer(Modifier.width(LkSpacing.sm))
-                Switch(
-                    checked = checked,
-                    onCheckedChange = onCheckedChange,
-                    colors =
-                        SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                            checkedTrackColor = LkColors.accent,
-                            uncheckedThumbColor = c.textTertiary,
-                            uncheckedTrackColor = c.border,
-                        ),
-                )
-            } else if (onClick != null) {
-                Spacer(Modifier.width(LkSpacing.xs))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                    contentDescription = null,
-                    tint = c.textTertiary,
-                    modifier = Modifier.size(14.dp),
-                )
-            }
         }
-        if (!last) HorizontalDivider(color = c.border, thickness = 1.dp)
     }
 }
 
@@ -745,13 +629,13 @@ internal fun ToggleItem(
                 Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(LkColors.accent.copy(alpha = 0.12f)),
+                    .background(c.primary.copy(alpha = 0.14f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = LkColors.accent,
+                tint = c.primary,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -759,9 +643,9 @@ internal fun ToggleItem(
         Spacer(Modifier.width(LkSpacing.md))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = c.textPrimary, fontWeight = FontWeight.W500)
+            Text(text = label, style = MaterialTheme.typography.titleSmall, color = c.textPrimary, fontWeight = FontWeight.W500)
             Spacer(Modifier.height(2.dp))
-            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = c.textSecondary)
+            Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = c.textSecondary)
         }
 
         Switch(
@@ -809,7 +693,7 @@ private fun ThemeSelector(
                         Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(LkRadius.card))
-                            .background(c.bgCard)
+                            .background(c.surfaceContainer)
                             .border(
                                 width = if (selecionada) 2.dp else 1.dp,
                                 color = if (selecionada) LkColors.accent else c.border,

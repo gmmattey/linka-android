@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.Dns
@@ -38,11 +38,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import io.signallq.app.ui.LkColors
-import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.LkSurfaceCard
 import io.signallq.app.ui.component.ProfileAvatarButton
 
 // GH#933 — Fase 4 MD3: hub real de atalhos, substitui o placeholder criado na Fase 1
@@ -95,7 +94,7 @@ fun FerramentasScreen(
                     FerramentaItem(
                         icon = Icons.Outlined.Router,
                         titulo = "Equipamento de internet",
-                        descricao = "ONT, roteador e sinal óptico",
+                        descricao = "Status do modem/ONT da operadora",
                         onClick = onAbrirEquipamentoInternet,
                     ),
                 )
@@ -103,7 +102,7 @@ fun FerramentasScreen(
                     FerramentaItem(
                         icon = Icons.Outlined.NetworkCheck,
                         titulo = "Ping",
-                        descricao = "Latência e estabilidade",
+                        descricao = "Teste de latência para um endereço",
                         onClick = onAbrirPing,
                     ),
                 )
@@ -111,7 +110,7 @@ fun FerramentasScreen(
                     FerramentaItem(
                         icon = Icons.Outlined.Dns,
                         titulo = "DNS",
-                        descricao = "Comparar servidores DNS",
+                        descricao = "Compare servidores e troque o seu",
                         onClick = onAbrirDns,
                     ),
                 )
@@ -119,7 +118,7 @@ fun FerramentasScreen(
                     FerramentaItem(
                         icon = Icons.Outlined.Description,
                         titulo = "Laudo",
-                        descricao = "Relatório do último diagnóstico",
+                        descricao = "Laudo técnico completo da sua conexão",
                         onClick = onAbrirLaudo,
                     ),
                 )
@@ -127,7 +126,7 @@ fun FerramentasScreen(
                     FerramentaItem(
                         icon = Icons.Outlined.MonitorHeart,
                         titulo = "Monitoramento",
-                        descricao = "Alertas em segundo plano",
+                        descricao = "Análise avançada e alertas em segundo plano",
                         onClick = onAbrirMonitoramento,
                     ),
                 )
@@ -135,7 +134,7 @@ fun FerramentasScreen(
                     FerramentaItem(
                         icon = Icons.Outlined.SportsEsports,
                         titulo = "Jogos",
-                        descricao = "Prontidão da rede para jogar",
+                        descricao = "Games multiplayer e dicas para PS5, Xbox e PC",
                         onClick = onAbrirJogos,
                     ),
                 )
@@ -171,66 +170,67 @@ fun FerramentasScreen(
                     .fillMaxSize()
                     .padding(padding),
             contentPadding = PaddingValues(LkSpacing.lg),
-            verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
         ) {
-            items(itens) { item -> FerramentaRow(item = item, c = c) }
+            items(itens) { item -> FerramentaListItem(item = item, c = c) }
         }
     }
 }
 
 @Composable
-private fun FerramentaRow(
+private fun FerramentaListItem(
     item: FerramentaItem,
     c: LkTokens,
 ) {
-    Row(
+    LkSurfaceCard(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .clickable(onClick = item.onClick)
-                .padding(LkSpacing.lg),
-        verticalAlignment = Alignment.CenterVertically,
+                .padding(0.dp),
+        outlined = false,
     ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(LkRadius.button))
-                    .background(LkColors.accent.copy(alpha = 0.14f)),
-            contentAlignment = Alignment.Center,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(c.primary.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = item.icon,
+                    contentDescription = null,
+                    tint = c.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f).padding(start = LkSpacing.md),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = item.titulo,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.W600,
+                    color = c.textPrimary,
+                )
+                Text(
+                    text = item.descricao,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.textSecondary,
+                )
+            }
             Icon(
-                imageVector = item.icon,
+                imageVector = Icons.AutoMirrored.Outlined.ArrowForwardIos,
                 contentDescription = null,
-                tint = LkColors.accent,
-                modifier = Modifier.size(22.dp),
+                tint = c.textTertiary,
+                modifier = Modifier.size(20.dp),
             )
         }
-        Column(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .padding(horizontal = LkSpacing.md),
-        ) {
-            Text(
-                text = item.titulo,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.W600,
-                color = c.textPrimary,
-            )
-            Text(
-                text = item.descricao,
-                style = MaterialTheme.typography.bodySmall,
-                color = c.onSurfaceVariant,
-            )
-        }
-        Icon(
-            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-            contentDescription = null,
-            tint = c.onSurfaceVariant,
-            modifier = Modifier.size(20.dp),
-        )
     }
 }

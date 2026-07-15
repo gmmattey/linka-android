@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,7 +30,6 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -54,9 +54,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import io.signallq.app.core.network.EstadoConexao
-import io.signallq.app.ui.IspInfo
 import io.signallq.app.ui.LkColors
+import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 
@@ -72,8 +71,8 @@ internal fun PerfilEditSheet(
     fotoUriAtual: String?,
     deviceName: String,
     appVersion: String,
-    ispInfo: IspInfo? = null,
-    estadoConexao: EstadoConexao? = null,
+    ispInfo: io.signallq.app.ui.IspInfo? = null,
+    estadoConexao: io.signallq.app.core.network.EstadoConexao? = null,
     onDismiss: () -> Unit,
     onSalvar: (nome: String, fotoUri: String?) -> Unit,
 ) {
@@ -124,39 +123,17 @@ internal fun PerfilEditSheet(
             Spacer(Modifier.height(LkSpacing.sm))
             Text("Meu perfil", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = c.textPrimary)
 
-            // Avatar (6a To-Be): 80dp + botao de camera 26dp sobreposto (fundo primary,
-            // borda 2px surfaceContainerLow) — clique funciona tanto no avatar quanto no
-            // botao, ambos abrem o mesmo picker de foto.
+            // Avatar
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
-                Box {
-                    UserAvatar(
-                        fotoUri = fotoUriInput,
-                        fallbackInitial = nomeInput.firstOrNull() ?: deviceName.firstOrNull(),
-                        size = 80.dp,
-                        onClick = { pickerFoto.launch("image/*") },
-                    )
-                    Box(
-                        modifier =
-                            Modifier
-                                .align(Alignment.BottomEnd)
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(LkColors.accent)
-                                .border(2.dp, MaterialTheme.colorScheme.surfaceContainerLow, CircleShape)
-                                .clickable { pickerFoto.launch("image/*") },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.PhotoCamera,
-                            contentDescription = "Alterar foto de perfil",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(14.dp),
-                        )
-                    }
-                }
+                UserAvatar(
+                    fotoUri = fotoUriInput,
+                    fallbackInitial = nomeInput.firstOrNull() ?: deviceName.firstOrNull(),
+                    size = 80.dp,
+                    onClick = { pickerFoto.launch("image/*") },
+                )
             }
             Text(
                 "Toque no avatar para alterar a foto",
@@ -185,35 +162,18 @@ internal fun PerfilEditSheet(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = fieldColors,
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(12.dp),
             )
-
-            HorizontalDivider(color = c.border)
-            val tipoConexao =
-                when (estadoConexao) {
-                    EstadoConexao.wifi -> "Wi-Fi"
-                    EstadoConexao.movel -> ispInfo?.isp?.takeIf { it.isNotEmpty() } ?: "Rede móvel"
-                    EstadoConexao.ethernet -> "Ethernet"
-                    else -> "Sem conexão"
-                }
-            val localizacao = listOfNotNull(ispInfo?.region, ispInfo?.country).joinToString(", ").ifBlank { null }
-
-            ispInfo?.isp?.let { InfoRow(c, "Operadora / ISP", it) }
-            if (ispInfo?.isp != null) HorizontalDivider(color = c.border)
-            ispInfo?.ip?.let { InfoRow(c, "IP Público", it) }
-            if (ispInfo?.ip != null) HorizontalDivider(color = c.border)
-            InfoRow(c, "Conexão", tipoConexao)
-            HorizontalDivider(color = c.border)
-            localizacao?.let { InfoRow(c, "Localização", it) }
-            if (localizacao != null) HorizontalDivider(color = c.border)
-            InfoRow(c, "Versão", "v$appVersion")
-            HorizontalDivider(color = c.border)
 
             Spacer(Modifier.height(LkSpacing.sm))
             Button(
                 onClick = { onSalvar(nomeInput.trim(), fotoUriInput) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                shape = RoundedCornerShape(LkRadius.button),
             ) {
                 Text("Salvar perfil")
             }
@@ -244,7 +204,7 @@ internal fun UserAvatar(
             Modifier
                 .size(size)
                 .clip(CircleShape)
-                .background(LkColors.accent.copy(alpha = 0.12f))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f))
                 .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         contentAlignment = Alignment.Center,
     ) {
@@ -263,8 +223,28 @@ internal fun UserAvatar(
                 text = fallbackInitial?.uppercaseChar()?.toString() ?: "?",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.W700,
-                color = LkColors.accent,
+                color = MaterialTheme.colorScheme.primary,
             )
+        }
+        if (onClick != null) {
+            Box(
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset(x = 2.dp, y = 2.dp)
+                        .size(26.dp)
+                        .clip(CircleShape)
+                        .background(LkColors.accent)
+                        .border(2.dp, MaterialTheme.colorScheme.surfaceContainerLow, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PhotoCamera,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
         }
     }
 }

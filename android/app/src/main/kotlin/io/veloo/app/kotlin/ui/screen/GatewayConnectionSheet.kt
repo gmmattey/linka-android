@@ -16,13 +16,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +53,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.signallq.app.core.network.contracts.gateway.GatewayConnectionResultado
 import io.signallq.app.core.network.contracts.gateway.GatewayConnectionService
@@ -78,6 +81,40 @@ private sealed interface GatewayConnectionSheetState {
         val mensagem: String,
     ) : GatewayConnectionSheetState
 }
+
+internal const val MENSAGEM_ERRO_ALCANCABILIDADE = "Não foi possível alcançar esse endereço na rede."
+
+private const val TIMEOUT_ALCANCABILIDADE_MS = 2000
+private val PORTAS_ADMIN_ROTEADOR = listOf(80, 443)
+
+/**
+ * Alcancabilidade real do gateway (2b-i To-Be) — connect TCP com timeout curto
+ * nas portas comuns de admin de roteador (80/443), em vez de
+ * [java.net.InetAddress.isReachable] (ICMP, costuma vir bloqueado em rede
+ * movel/Wi-Fi Android). Alcancavel se QUALQUER uma das portas aceitar conexao;
+ * refused/timeout em ambas = inalcancavel.
+ */
+private suspend fun alcancavelViaSocket(ip: String): Boolean =
+    withContext(Dispatchers.IO) {
+        PORTAS_ADMIN_ROTEADOR.any { porta ->
+            runCatching {
+                Socket().use { it.connect(InetSocketAddress(ip, porta), TIMEOUT_ALCANCABILIDADE_MS) }
+                true
+            }.getOrDefault(false)
+        }
+    }
+
+private data class ModeloCompativelGateway(
+    val marca: String,
+    val modelo: String,
+    val tipo: String,
+)
+
+private val modelosCompativeisGateway =
+    listOf(
+        ModeloCompativelGateway("Nokia", "G-1425", "Roteador Wi-Fi 5"),
+        ModeloCompativelGateway("TP-Link", "Archer C6", "Roteador Wi-Fi 5 (AC1200)"),
+    )
 
 /**
  * Sheet de conexao ativa ao GPON/roteador (GH#526, epic #525).
@@ -161,21 +198,11 @@ internal fun GatewayConnectionSheetContent(
     var estado by remember { mutableStateOf<GatewayConnectionSheetState>(GatewayConnectionSheetState.Formulario) }
     // GH#529: guia ilustrado de como obter usuario/senha, aberto sem sair da sheet de conexao.
     var mostrarGuiaCredenciais by remember { mutableStateOf(false) }
-    // 2b-iii To-Be: lista de modelos compativeis, aberta sem sair da sheet de conexao
-    // (mesmo padrao do guia de credenciais acima).
     var mostrarModelosCompativeis by remember { mutableStateOf(false) }
 
     val escopo = rememberCoroutineScope()
     val conectando = estado is GatewayConnectionSheetState.Conectando
-    // 2b-i To-Be: valida formato IPv4 antes de habilitar "Conectar" — diferencia
-    // erro de credencial de erro de formato de IP antes mesmo de tentar autenticar.
-    val ipValido = isIpv4Valido(ipInput)
-    val podeConectar = ipValido && !conectando
-
-    if (mostrarModelosCompativeis) {
-        GatewayCompatibleModelsSheetContent(onBack = { mostrarModelosCompativeis = false }, c = c)
-        return
-    }
+    val podeConectar = ipInput.isNotBlank() && !conectando
 
     fun tentarConectar() {
         if (!podeConectar) return
@@ -223,12 +250,14 @@ internal fun GatewayConnectionSheetContent(
         verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
     ) {
         SheetDragHandle()
-        Spacer(Modifier.height(LkSpacing.sm))
-        EstadoConexaoSegmented(estado = estado, c = c)
-        Spacer(Modifier.height(LkSpacing.xs))
+        GatewayConnectionSegmentedState(
+            estado = estado,
+            c = c,
+        )
         Text(
             text = "Conectar ao roteador",
             style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.W700,
             color = c.textPrimary,
         )
 
@@ -240,17 +269,9 @@ internal fun GatewayConnectionSheetContent(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             enabled = !conectando,
-            isError = ipInput.isNotBlank() && !ipValido,
             colors = fieldColors,
             shape = RoundedCornerShape(LkRadius.input),
         )
-        if (ipInput.isNotBlank() && !ipValido) {
-            Text(
-                text = "Endereço IP inválido — use o formato 192.168.1.1",
-                style = MaterialTheme.typography.labelSmall,
-                color = LkColors.error,
-            )
-        }
 
         OutlinedTextField(
             value = usuarioInput,
@@ -299,7 +320,6 @@ internal fun GatewayConnectionSheetContent(
         TextButton(
             onClick = { mostrarModelosCompativeis = true },
             enabled = !conectando,
-            modifier = Modifier.testTag("gateway_link_modelos_compativeis"),
         ) {
             Text(
                 text = "Ver modelos de roteador compatíveis",
@@ -340,21 +360,21 @@ internal fun GatewayConnectionSheetContent(
                     Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(LkRadius.card))
-                        .background(LkColors.error.copy(alpha = 0.08f))
+                        .background(c.errorContainer)
                         .padding(LkSpacing.md),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.ErrorOutline,
                     contentDescription = null,
-                    tint = LkColors.error,
+                    tint = c.onErrorContainer,
                     modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.width(LkSpacing.sm))
                 Text(
                     text = erroAtual,
                     style = MaterialTheme.typography.bodySmall,
-                    color = LkColors.error,
+                    color = c.onErrorContainer,
                     modifier = Modifier.testTag("gateway_error_message"),
                 )
             }
@@ -386,77 +406,42 @@ internal fun GatewayConnectionSheetContent(
     if (mostrarGuiaCredenciais) {
         GatewayCredentialsGuideSheet(onDismissRequest = { mostrarGuiaCredenciais = false })
     }
+
+    if (mostrarModelosCompativeis) {
+        GatewayCompatibleModelsSheet(onDismissRequest = { mostrarModelosCompativeis = false })
+    }
 }
 
-/**
- * Formato de IPv4 (2b-i To-Be) — valida cada octeto no intervalo 0-255 antes de
- * habilitar "Conectar". Real (regex de faixa), não decorativo: "999.999.999.999"
- * ou "192.168.1" não passam. Alcançabilidade de rede (ping/reachability) fica
- * fora deste escopo — a validação aqui é só de formato.
- */
-private val ipv4Regex =
-    Regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
-
-private fun isIpv4Valido(ip: String): Boolean = ipv4Regex.matches(ip.trim())
-
-internal const val MENSAGEM_ERRO_ALCANCABILIDADE = "Não foi possível alcançar esse endereço na rede."
-
-private const val TIMEOUT_ALCANCABILIDADE_MS = 2000
-private val PORTAS_ADMIN_ROTEADOR = listOf(80, 443)
-
-/**
- * Alcancabilidade real do gateway (2b-i To-Be) — connect TCP com timeout curto
- * nas portas comuns de admin de roteador (80/443), em vez de
- * [java.net.InetAddress.isReachable] (ICMP, costuma vir bloqueado em rede
- * movel/Wi-Fi Android). Alcancavel se QUALQUER uma das portas aceitar conexao;
- * refused/timeout em ambas = inalcancavel.
- */
-private suspend fun alcancavelViaSocket(ip: String): Boolean =
-    withContext(Dispatchers.IO) {
-        PORTAS_ADMIN_ROTEADOR.any { porta ->
-            runCatching {
-                Socket().use { it.connect(InetSocketAddress(ip, porta), TIMEOUT_ALCANCABILIDADE_MS) }
-                true
-            }.getOrDefault(false)
-        }
-    }
-
-/**
- * Indicador visual do estado atual da sheet (2b-i To-Be) — Formulário/Conectando/Erro.
- * Só reflete [estado], não é selecionável: o estado real é resultado da tentativa
- * de conexão, nunca escolhido manualmente pelo usuário.
- */
 @Composable
-private fun EstadoConexaoSegmented(
+private fun GatewayConnectionSegmentedState(
     estado: GatewayConnectionSheetState,
     c: LkTokens,
 ) {
-    val opcoes =
-        listOf(
-            "Formulário" to (estado is GatewayConnectionSheetState.Formulario),
-            "Conectando" to (estado is GatewayConnectionSheetState.Conectando),
-            "Erro" to (estado is GatewayConnectionSheetState.Erro),
-        )
+    val ativo =
+        when (estado) {
+            GatewayConnectionSheetState.Formulario -> "Formulário"
+            GatewayConnectionSheetState.Conectando -> "Conectando"
+            is GatewayConnectionSheetState.Erro -> "Erro"
+        }
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .border(1.dp, c.border, RoundedCornerShape(20.dp))
-                .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
     ) {
-        opcoes.forEach { (label, ativo) ->
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (ativo) c.textPrimary else c.textSecondary,
-                textAlign = TextAlign.Center,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(if (ativo) LkColors.accent.copy(alpha = 0.14f) else Color.Transparent)
-                        .padding(vertical = 9.dp),
+        listOf("Formulário", "Conectando", "Erro").forEach { label ->
+            FilterChip(
+                selected = ativo == label,
+                onClick = {},
+                enabled = false,
+                modifier = Modifier.weight(1f),
+                label = { Text(label) },
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = c.secondaryContainer,
+                        selectedLabelColor = c.onSecondaryContainer,
+                        disabledSelectedContainerColor = c.secondaryContainer,
+                        disabledContainerColor = c.surfaceContainer,
+                        disabledLabelColor = c.textTertiary,
+                    ),
             )
         }
     }
@@ -477,8 +462,8 @@ private fun ToggleRow(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card))
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
+                .border(1.dp, c.outlineVariant, RoundedCornerShape(LkRadius.card))
+                .background(c.surfaceContainer)
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -526,3 +511,120 @@ internal fun toggleRowSwitchColors(c: LkTokens): SwitchColors =
         disabledUncheckedThumbColor = c.textTertiary,
         disabledUncheckedTrackColor = c.border,
     )
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GatewayCompatibleModelsSheet(onDismissRequest: () -> Unit) {
+    val c = LocalLkTokens.current
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = c.bgSecondary,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = LkSpacing.xl)
+                    .padding(top = LkSpacing.sm, bottom = LkSpacing.xxl)
+                    .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onDismissRequest) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                        contentDescription = "Voltar",
+                        tint = c.textSecondary,
+                    )
+                }
+                Text(
+                    text = "Modelos compatíveis",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.W700,
+                    color = c.textPrimary,
+                )
+            }
+            Text(
+                text = "O SignallQ já testou a conexão automática com estes roteadores. Outros modelos também podem funcionar via usuário e senha manuais.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.textSecondary,
+            )
+            modelosCompativeisGateway.forEach { modelo ->
+                GatewayModelRow(
+                    marcaModelo = "${modelo.marca} ${modelo.modelo}",
+                    tipo = modelo.tipo,
+                    c = c,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GatewayModelRow(
+    marcaModelo: String,
+    tipo: String,
+    c: LkTokens,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(LkRadius.card))
+                .background(c.surfaceContainer)
+                .padding(LkSpacing.md),
+        horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        GatewayModelIcon(c = c)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = marcaModelo,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.W600,
+                color = c.textPrimary,
+            )
+            Text(
+                text = tipo,
+                style = MaterialTheme.typography.bodySmall,
+                color = c.textSecondary,
+            )
+        }
+        Text(
+            text = "Compatível",
+            style = MaterialTheme.typography.labelMedium,
+            color = LkColors.success,
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(LkColors.success.copy(alpha = 0.14f))
+                    .padding(horizontal = LkSpacing.sm, vertical = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun GatewayModelIcon(c: LkTokens) {
+    Row(
+        modifier =
+            Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(LkColors.accent.copy(alpha = 0.14f)),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Router,
+            contentDescription = null,
+            modifier = Modifier.size(22.dp),
+            tint = LkColors.accent,
+        )
+    }
+}

@@ -17,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.NetworkCheck
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +26,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -46,6 +49,7 @@ import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.LkSheetFrame
 import io.signallq.app.ui.state.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -103,47 +107,57 @@ fun PingScreen(onDismiss: () -> Unit) {
     val viewModel = remember { PingScreenViewModel() }
     val state by viewModel.stateFlow.collectAsState()
 
+    LaunchedEffect(Unit) {
+        if (state == UiState.Empty) {
+            viewModel.executarPing()
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = {},
-        containerColor = c.bgCard,
+        containerColor = c.surfaceContainerLow,
     ) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp, start = LkSpacing.lg, end = LkSpacing.lg),
-        ) {
-            Box(
+        LkSheetFrame {
+            val segmentedStateLabel =
+                when (val currentState = state) {
+                    is UiState.Success ->
+                        when (currentState.data) {
+                            is PingUiData.Executando -> "Coletando"
+                            is PingUiData.Concluido -> "Resultado"
+                        }
+                    else -> "Coletando"
+                }
+
+            Row(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = LkSpacing.md, bottom = LkSpacing.lg),
-                contentAlignment = Alignment.Center,
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(c.surfaceContainer)
+                        .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
             ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .width(40.dp)
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(c.border),
-                )
-            }
-
-            val estadoAtual = state
-            val estadoResultado =
-                when (estadoAtual) {
-                    is UiState.Success -> (estadoAtual.data as? PingUiData.Concluido) != null
-                    is UiState.Error -> true
-                    else -> false
+                listOf("Coletando", "Resultado").forEach { label ->
+                    FilterChip(
+                        selected = segmentedStateLabel == label,
+                        onClick = {},
+                        enabled = false,
+                        label = { Text(label) },
+                        modifier = Modifier.weight(1f),
+                        colors =
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = c.secondaryContainer,
+                                selectedLabelColor = c.onSecondaryContainer,
+                                disabledSelectedContainerColor = c.secondaryContainer,
+                                disabledContainerColor = Color.Transparent,
+                                disabledLabelColor = c.textTertiary,
+                            ),
+                    )
                 }
-            EstadoPingSegmented(
-                resultado = estadoResultado,
-                c = c,
-                modifier = Modifier.padding(bottom = LkSpacing.lg),
-            )
+            }
+            Spacer(Modifier.height(LkSpacing.lg))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -159,6 +173,7 @@ fun PingScreen(onDismiss: () -> Unit) {
                 Text(
                     text = stringResource(R.string.ping_titulo),
                     style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.W600,
                     color = c.textPrimary,
                 )
             }
@@ -166,21 +181,21 @@ fun PingScreen(onDismiss: () -> Unit) {
             when (val currentState = state) {
                 UiState.Empty -> {
                     Text(
-                        text = stringResource(R.string.ping_descricao),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = c.textSecondary,
+                        text = stringResource(R.string.ping_coletando_amostras, 0),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = c.textPrimary,
                         modifier = Modifier.padding(bottom = LkSpacing.md),
                     )
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                viewModel.executarPing()
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.ping_btn_iniciar))
-                    }
+                    LinearProgressIndicator(
+                        progress = { 0f },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp)),
+                        color = c.primary,
+                        trackColor = c.surfaceContainerHighest,
+                    )
                 }
 
                 UiState.Loading -> {
@@ -192,7 +207,7 @@ fun PingScreen(onDismiss: () -> Unit) {
                         is PingUiData.Executando -> {
                             Text(
                                 text = stringResource(R.string.ping_coletando_amostras, data.progresso),
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodyLarge,
                                 color = c.textPrimary,
                                 modifier = Modifier.padding(bottom = LkSpacing.md),
                             )
@@ -207,6 +222,8 @@ fun PingScreen(onDismiss: () -> Unit) {
                                             contentDescription =
                                                 "Medindo latência — ${data.progresso} de 20 amostras coletadas"
                                         },
+                                color = c.primary,
+                                trackColor = c.surfaceContainerHighest,
                             )
                         }
 
@@ -301,43 +318,6 @@ fun PingScreen(onDismiss: () -> Unit) {
     }
 }
 
-/**
- * Indicador visual do estado atual da sheet (5c To-Be) — Coletando/Resultado.
- * Só reflete [resultado], não é selecionável — mesmo padrão de
- * EstadoExportSegmented usado em ExportHistoricoBottomSheet.
- */
-@Composable
-private fun EstadoPingSegmented(
-    resultado: Boolean,
-    c: LkTokens,
-    modifier: Modifier = Modifier,
-) {
-    val opcoes = listOf("Coletando" to !resultado, "Resultado" to resultado)
-    Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .border(1.dp, c.border, RoundedCornerShape(20.dp))
-                .padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        opcoes.forEach { (label, ativo) ->
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (ativo) c.textPrimary else c.textSecondary,
-                textAlign = TextAlign.Center,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(if (ativo) LkColors.accent.copy(alpha = 0.14f) else Color.Transparent)
-                        .padding(vertical = 9.dp),
-            )
-        }
-    }
-}
-
 @Composable
 private fun PingMetricCard(
     c: LkTokens,
@@ -350,8 +330,8 @@ private fun PingMetricCard(
         modifier =
             modifier
                 .clip(RoundedCornerShape(LkRadius.card))
-                .border(1.dp, if (destacarErro) LkColors.error else c.border, RoundedCornerShape(LkRadius.card))
-                .background(if (destacarErro) LkColors.error.copy(alpha = 0.08f) else c.bgSecondary)
+                .border(1.dp, if (destacarErro) LkColors.error.copy(alpha = 0.30f) else c.outlineVariant, RoundedCornerShape(LkRadius.card))
+                .background(if (destacarErro) LkColors.error.copy(alpha = 0.08f) else c.surfaceContainer)
                 .padding(LkSpacing.md),
         contentAlignment = Alignment.Center,
     ) {
@@ -366,7 +346,7 @@ private fun PingMetricCard(
             )
             Text(
                 text = valor,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (destacarErro) LkColors.error else c.textPrimary,
                 textAlign = TextAlign.Center,

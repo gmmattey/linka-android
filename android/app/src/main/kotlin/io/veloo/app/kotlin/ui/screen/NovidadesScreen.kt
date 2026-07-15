@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.signallq.app.R
 import io.signallq.app.ui.LkColors
@@ -49,11 +51,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 
-// GAP CONHECIDO (6e To-Be, 2026-07): a spec pede changelog alimentado por
-// CMS/JSON remoto versionado por versao do app. Hoje le de asset local
-// embutido no APK (context.assets.open("changelog.json") abaixo). Decisao de
-// infraestrutura (endpoint novo? Worker Cloudflare? schema D1?) grande demais
-// pra essa correcao de tela -- fica pendente, fora de escopo aqui.
 private data class NovidadeItem(
     val tipo: String,
     val titulo: String,
@@ -105,33 +102,43 @@ fun NovidadesScreen(
     Scaffold(
         containerColor = c.bgPrimary,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "Novidades",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.W600,
-                            color = c.textPrimary,
-                        )
-                        Text(
-                            "v$appVersion",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = c.onSurfaceVariant,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onVoltar) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.global_cd_voltar),
-                            tint = c.textPrimary,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
-            )
+            Column {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Column(
+                            modifier = Modifier.fillMaxHeight(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                "Novidades",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.W600,
+                                color = c.textPrimary,
+                            )
+                            Text(
+                                "v$appVersion",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = c.textSecondary,
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onVoltar) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.global_cd_voltar),
+                                tint = c.textPrimary,
+                            )
+                        }
+                    },
+                    actions = {
+                        Spacer(Modifier.width(40.dp))
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = c.bgPrimary),
+                )
+                HorizontalDivider(color = c.border, thickness = 1.dp)
+            }
         },
     ) { padding ->
         when {
@@ -211,6 +218,7 @@ private fun NovidadeRow(
             Text(
                 text = badgeLabel,
                 style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.W700,
                 color = badgeCor,
             )
         }
@@ -219,13 +227,15 @@ private fun NovidadeRow(
             Text(
                 text = item.titulo,
                 style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.W600,
                 color = c.textPrimary,
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = item.descricao,
                 style = MaterialTheme.typography.bodySmall,
-                color = c.onSurfaceVariant,
+                color = c.textSecondary,
+                textAlign = TextAlign.Start,
             )
         }
     }

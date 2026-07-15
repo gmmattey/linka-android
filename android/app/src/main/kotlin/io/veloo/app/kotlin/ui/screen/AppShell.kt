@@ -74,7 +74,6 @@ import io.signallq.app.core.network.contracts.localdevice.LocalNetworkDeviceSnap
 import io.signallq.app.core.telephony.MovelSimSnapshot
 import io.signallq.app.core.telephony.MovelSnapshot
 import io.signallq.app.feature.devices.ehClienteFinal
-import io.signallq.app.feature.diagnostico.EstadoDiagnostico
 import io.signallq.app.feature.diagnostico.topology.model.NatStatus
 import io.signallq.app.feature.dns.SnapshotBenchmarkDns
 import io.signallq.app.feature.fibra.SnapshotFibra
@@ -88,6 +87,9 @@ import io.signallq.app.ui.IspInfo
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.OperadoraSource
+import io.signallq.app.ui.ResolvedOperadoraContact
+import io.signallq.app.ui.ResolvedOperadoraIdentity
 import io.signallq.app.ui.resumoBandasWifi
 import io.signallq.app.ui.state.UiState
 import kotlinx.coroutines.delay
@@ -209,13 +211,6 @@ fun AppShell(
     temPermissaoLocalizacao: Boolean = true,
     localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
-    telefoniaBloqueadaPermanentemente: Boolean = false,
-    // Auditoria design To-Be 2026-07-13 — dismiss persistido (DataStore) das sheets
-    // contextuais de permissao de Sinal, pra nao reabrir sozinha em toda nova sessao.
-    localizacaoSheetDismissed: Boolean = false,
-    onDispensarSheetLocalizacao: () -> Unit = {},
-    telefoniaSheetDismissed: Boolean = false,
-    onDispensarSheetTelefonia: () -> Unit = {},
     // Issue #85 — Minha Conexão
     velocidadeContratadaDownMbps: Int = 0,
     velocidadeContratadaUpMbps: Int = 0,
@@ -240,6 +235,35 @@ fun AppShell(
     onScreenView: (screenName: String) -> Unit = {},
     // GH#784 — etapa "compartilhou" do funil do teste de velocidade.
     onCompartilharResultadoVelocidade: () -> Unit = {},
+    // GH#970 — resolucao de identidade/contato de operadora: nivel 1 (catalogo local,
+    // sincrono, sem I/O) + cadeia completa (local -> diretorio remoto do worker
+    // signallq-diagnostic -> fallback generico). Injetado a partir da MainActivity
+    // (OperadoraDirectoryResolver via Hilt) — AppShell so repassa, nao resolve nada.
+    resolveOperadoraIdentidadeLocal: (String?, Boolean) -> ResolvedOperadoraIdentity? =
+        { _, _ -> null },
+    resolveOperadoraContatoLocal: (String?, Boolean) -> ResolvedOperadoraContact? =
+        { _, _ -> null },
+    resolveOperadoraIdentidadeRemota: suspend (String?, Boolean) -> ResolvedOperadoraIdentity =
+        { nome, _ ->
+            ResolvedOperadoraIdentity(
+                displayName = nome ?: "Operadora",
+                monograma = nome?.firstOrNull()?.uppercase() ?: "?",
+                corMarca = null,
+                logoRes = null,
+                logoUrl = null,
+                source = OperadoraSource.FALLBACK,
+            )
+        },
+    resolveOperadoraContatoRemoto: suspend (String?, Boolean) -> ResolvedOperadoraContact =
+        { nome, _ ->
+            ResolvedOperadoraContact(
+                displayName = nome ?: "Operadora",
+                sacPhone = null,
+                whatsapp = null,
+                site = null,
+                source = OperadoraSource.FALLBACK,
+            )
+        },
 ) {
     // Desempacota os grupos de estado para variaveis locais — mantém compatibilidade com
     // o corpo interno sem precisar propagar o prefixo `speedtest.x` por toda a funcao.
@@ -269,10 +293,6 @@ fun AppShell(
 
     val snapshotDiagnostico = diagnostico.snapshotDiagnostico
     val onIniciarDiagnostico = diagnostico.onIniciarDiagnostico
-    // analisadorState/onAnalisarProblema/onResetarAnalisador -- mecanismo UNICO de
-    // chamada de IA (decisao do Luiz, 2026-07-14), reaproveitado tanto pela tela 1a
-    // reconstruida (Analise detalhada, chamada automatica com problema=null) quanto
-    // pelo fluxo legado por sintoma escolhido (AnaliseDetalhadaBottomSheet.kt).
     val analisadorState = diagnostico.analisadorState
     val onAnalisarProblema = diagnostico.onAnalisarProblema
     val onResetarAnalisador = diagnostico.onResetarAnalisador
@@ -287,9 +307,8 @@ fun AppShell(
     val operadoraMovel = signallQ.operadoraMovel
     val onVerificarGemma = signallQ.onVerificarGemma
 
-    // Monetizacao nativa (issue #555, + slot JOGOS na spec To-Be 5g) -- resolvido uma
-    // vez aqui, repassado como booleano simples "adsEnabled" por tela para nao acoplar
-    // as telas ao tipo AdsFlags.
+    // Monetizacao nativa (issue #555) -- resolvido uma vez aqui, repassado como
+    // booleano simples "adsEnabled" por tela para nao acoplar as 4 telas ao tipo AdsFlags.
     val adsFlags = ads.flags
     val podeRequisitarAnuncio = ads.podeRequisitarAnuncio
 
@@ -414,23 +433,11 @@ fun AppShell(
         tabScreenNames.getOrNull(selectedTab)?.let { onScreenView(it) }
     }
 
-    // Sinaliza que a PRÓXIMA conclusão de diagnóstico deve abrir o Laudo automaticamente —
-    // setado só quando a conclusão é consequência direta de um speedtest do usuário (abaixo).
-    // MainViewModel dispara diagnóstico automaticamente em mais de um gatilho de fundo (cold
-    // start via iniciarRotinasNaoSpeedtest, e de novo sempre que a leitura de fibra/ONT
-    // conclui — ver coletor de executorFibra.snapshotFlow) — nenhum desses é ação do usuário,
-    // então nenhum deles deve abrir o Laudo sozinho. Sem essa flag, o diagnóstico automático
-    // disparado pela fibra concluindo (alguns segundos após o cold start) escapava da supressão
-    // antiga (que só ignorava a primeira conclusão) e abria o Laudo por cima da aba Velocidade
-    // sem o usuário pedir nada.
-    var laudoAutomaticoEsperado by remember { mutableStateOf(false) }
-
     LaunchedEffect(snapshotSpeedtest.estado) {
         when (snapshotSpeedtest.estado) {
             EstadoExecucaoSpeedtest.executando -> testeAtivo = true
             EstadoExecucaoSpeedtest.concluido -> {
                 if (testeAtivo) {
-                    laudoAutomaticoEsperado = true
                     onIniciarDiagnostico()
                     mostrarConcluido = true
                     delay(400)
@@ -440,16 +447,6 @@ fun AppShell(
                 }
             }
             else -> {}
-        }
-    }
-
-    // Abre LaudoScreen automaticamente só quando a conclusão do diagnóstico é a que foi
-    // sinalizada acima (consequência de um speedtest do usuário) — nunca em conclusões
-    // automáticas de fundo.
-    LaunchedEffect(snapshotDiagnostico.estado) {
-        if (snapshotDiagnostico.estado == EstadoDiagnostico.concluido && laudoAutomaticoEsperado) {
-            laudoAutomaticoEsperado = false
-            if (Overlay.Laudo !in overlayStack) overlayStack.add(Overlay.Laudo)
         }
     }
 
@@ -544,8 +541,8 @@ fun AppShell(
                             onAbrirDiagnostico = onAbrirLaudoOverlay,
                             snapshotDispositivos = snapshotDevices,
                             onAbrirDispositivos = onAbrirDispositivosOverlay,
-                            temPermissaoTelefonia = temPermissaoTelefonia,
-                            onSolicitarPermissaoTelefonia = onSolicitarPermissaoTelefonia,
+                            resolveOperadoraIdentidadeLocal = resolveOperadoraIdentidadeLocal,
+                            resolveOperadoraIdentidadeRemota = resolveOperadoraIdentidadeRemota,
                         )
                     // NAV-E: Tab 1 — Velocidade (SpeedTestScreen como tab fixa)
                     1 ->
@@ -594,11 +591,6 @@ fun AppShell(
                             temPermissaoLocalizacao = temPermissaoLocalizacao,
                             localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                             onSolicitarPermissaoLocalizacao = onSolicitarPermissaoLocalizacao,
-                            telefoniaBloqueadaPermanentemente = telefoniaBloqueadaPermanentemente,
-                            localizacaoSheetDismissed = localizacaoSheetDismissed,
-                            onDispensarSheetLocalizacao = onDispensarSheetLocalizacao,
-                            telefoniaSheetDismissed = telefoniaSheetDismissed,
-                            onDispensarSheetTelefonia = onDispensarSheetTelefonia,
                             onRefresh = onRefreshSinal,
                             onVoltar = { selectedTab = 0 },
                             nomeUsuario = nomeUsuario,
@@ -720,6 +712,10 @@ fun AppShell(
                     onRecommendationDismissed = onRecommendationDismissed,
                     localDevice = localDevice,
                     adsEnabled = podeRequisitarAnuncio && adsFlags.habilitadoPara(AdSlot.RESULTADO),
+                    resolveOperadoraIdentidadeLocal = resolveOperadoraIdentidadeLocal,
+                    resolveOperadoraContatoLocal = resolveOperadoraContatoLocal,
+                    resolveOperadoraIdentidadeRemota = resolveOperadoraIdentidadeRemota,
+                    resolveOperadoraContatoRemoto = resolveOperadoraContatoRemoto,
                 )
             }
         }
@@ -810,6 +806,7 @@ fun AppShell(
                 onVoltar = { overlayStack.remove(Overlay.Dispositivos) },
                 bandasWifi = bandasWifiGateway,
                 adsEnabled = podeRequisitarAnuncio && adsFlags.habilitadoPara(AdSlot.DISPOSITIVOS),
+                correlacoesTopologia = wifi.correlacoesTopologia,
             )
         }
 
@@ -881,7 +878,6 @@ fun AppShell(
             JogosScreen(
                 tipoConexaoAtual = snapshotRede.estadoConexao,
                 wifiLinkSnapshot = snapshotRede.wifiLinkSnapshot,
-                adsEnabled = podeRequisitarAnuncio && adsFlags.habilitadoPara(AdSlot.JOGOS),
                 onVoltar = { overlayStack.remove(Overlay.Jogos) },
             )
         }
@@ -1049,9 +1045,9 @@ private fun AppBottomNavBar(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        HorizontalDivider(color = c.border, thickness = 1.dp)
+        HorizontalDivider(color = c.outlineVariant, thickness = 1.dp)
         NavigationBar(
-            containerColor = c.bgSecondary,
+            containerColor = c.surfaceContainer,
             tonalElevation = 0.dp,
         ) {
             AppNavItem(c, selectedTab, 0, "Início", Icons.Outlined.Home, Icons.Filled.Home, onTabSelected)
@@ -1098,14 +1094,20 @@ private fun RowScope.AppNavItem(
                 )
             }
         },
-        label = { Text(label, fontWeight = FontWeight.W600) },
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (selectedTab == index) FontWeight.SemiBold else FontWeight.Medium,
+            )
+        },
         colors =
             NavigationBarItemDefaults.colors(
-                selectedIconColor = LkColors.accent,
-                unselectedIconColor = c.textTertiary,
-                selectedTextColor = LkColors.accent,
-                unselectedTextColor = c.textTertiary,
-                indicatorColor = LkColors.accent.copy(alpha = 0.12f),
+                selectedIconColor = c.onSecondaryContainer,
+                unselectedIconColor = c.onSurfaceVariant,
+                selectedTextColor = c.onSurface,
+                unselectedTextColor = c.onSurfaceVariant,
+                indicatorColor = c.secondaryContainer,
             ),
     )
 }

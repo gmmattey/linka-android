@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import io.signallq.app.core.database.MedicaoEntity
 import io.signallq.app.feature.diagnostico.DiagnosticStatus
@@ -60,6 +59,8 @@ import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.component.LkSectionOverline
+import io.signallq.app.ui.component.LkStatusDot
 import io.signallq.app.ui.component.rememberTopBarAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,6 +93,9 @@ fun LaudoScreen(
     var gerando by remember { mutableStateOf(false) }
     var erro by remember { mutableStateOf<String?>(null) }
 
+    val relatorio = snapshotDiagnostico.relatorio
+    val decisao = relatorio?.decisao
+
     val compartilharLaudo: () -> Unit = {
         scope.launch {
             gerando = true
@@ -117,9 +121,6 @@ fun LaudoScreen(
         }
     }
 
-    val relatorio = snapshotDiagnostico.relatorio
-    val decisao = relatorio?.decisao
-
     // #375: offline reaproveita a ultima medicao salva — exibir o timestamp da
     // medicao original, nunca o momento da consulta, para nao sugerir uma analise nova.
     val dataHoraEpochMs =
@@ -127,7 +128,7 @@ fun LaudoScreen(
     val dataHora =
         remember(dataHoraEpochMs) {
             val data = dataHoraEpochMs?.let { Date(it) } ?: Date()
-            SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(data)
+            SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.of("pt", "BR")).format(data)
         }
     val headerTitulo =
         buildString {
@@ -208,20 +209,8 @@ fun LaudoScreen(
             // Banner de status — colorido por severidade da decisão
             if (decisao != null) {
                 item {
-                    val containerColor =
-                        when (decisao.status) {
-                            DiagnosticStatus.ok -> c.successContainer
-                            DiagnosticStatus.attention -> c.warningContainer
-                            DiagnosticStatus.critical -> LkColors.error.copy(alpha = 0.12f)
-                            else -> c.bgCard
-                        }
-                    val textColor =
-                        when (decisao.status) {
-                            DiagnosticStatus.ok -> c.onSuccessContainer
-                            DiagnosticStatus.attention -> c.onWarningContainer
-                            DiagnosticStatus.critical -> LkColors.error
-                            else -> c.textSecondary
-                        }
+                    val containerColor = c.successContainer
+                    val textColor = c.onSuccessContainer
                     val labelStatus =
                         when (decisao.status) {
                             DiagnosticStatus.ok -> "Conexão saudável"
@@ -245,25 +234,18 @@ fun LaudoScreen(
                             horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
                             modifier = Modifier.weight(1f),
                         ) {
-                            Spacer(
-                                modifier =
-                                    Modifier
-                                        .size(8.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(textColor),
-                            )
+                            LkStatusDot(color = textColor)
                             Column {
                                 Text(
                                     labelStatus,
-                                    fontSize = 11.sp,
+                                    style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.W600,
                                     color = textColor,
-                                    letterSpacing = 0.3.sp,
                                 )
                                 Spacer(Modifier.height(1.dp))
                                 Text(
                                     decisao.titulo,
-                                    fontSize = 14.sp,
+                                    style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.W600,
                                     color = textColor,
                                 )
@@ -271,17 +253,16 @@ fun LaudoScreen(
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                "${relatorio?.scoreConexao ?: 0}",
-                                fontSize = 26.sp,
+                                "${relatorio.scoreConexao}",
+                                style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.W700,
                                 color = textColor,
                             )
                             Text(
-                                relatorio?.veredito ?: "",
-                                fontSize = 10.sp,
+                                relatorio.veredito,
+                                style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.W600,
                                 color = textColor,
-                                letterSpacing = 0.2.sp,
                             )
                         }
                     }
@@ -293,15 +274,14 @@ fun LaudoScreen(
                 Column {
                     Text(
                         "LAUDO TÉCNICO · $dataHora",
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.W600,
                         color = c.textTertiary,
-                        letterSpacing = 0.3.sp,
                     )
                     Spacer(Modifier.height(LkSpacing.xs))
                     Text(
                         headerTitulo,
-                        fontSize = 17.sp,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.W700,
                         color = c.textPrimary,
                     )
@@ -309,7 +289,7 @@ fun LaudoScreen(
                         Spacer(Modifier.height(2.dp))
                         Text(
                             headerSub,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             color = c.textTertiary,
                         )
                     }
@@ -319,7 +299,7 @@ fun LaudoScreen(
                         Spacer(Modifier.height(LkSpacing.xs))
                         Text(
                             "Sem conexão no momento · exibindo última medição salva",
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.W600,
                             color = LkColors.error,
                         )
@@ -333,9 +313,8 @@ fun LaudoScreen(
                     LaudoSection(titulo = "RESUMO", c = c) {
                         Text(
                             decisao.mensagemUsuario,
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = c.textSecondary,
-                            lineHeight = 19.sp,
                         )
                     }
                 }
@@ -409,9 +388,8 @@ fun LaudoScreen(
                     LaudoSection(titulo = "RECOMENDAÇÃO", c = c) {
                         Text(
                             recomendacao,
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = c.textSecondary,
-                            lineHeight = 19.sp,
                         )
                     }
                 }
@@ -420,7 +398,43 @@ fun LaudoScreen(
             // Error message if PDF generation failed
             if (erro != null) {
                 item {
-                    Text(erro!!, fontSize = 12.sp, color = LkColors.error)
+                    Text(
+                        erro!!,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LkColors.error,
+                    )
+                }
+            }
+
+            item {
+                Button(
+                    onClick = compartilharLaudo,
+                    enabled = !gerando,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(LkRadius.button),
+                    colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
+                    contentPadding = PaddingValues(vertical = 14.dp),
+                ) {
+                    if (gerando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp,
+                        )
+                        Spacer(Modifier.width(LkSpacing.sm))
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(LkSpacing.sm))
+                    }
+                    Text(
+                        "Compartilhar laudo em PDF",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.W600,
+                    )
                 }
             }
 
@@ -463,16 +477,10 @@ private fun LaudoSection(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
+                .background(c.surfaceContainer)
                 .padding(LkSpacing.lg),
     ) {
-        Text(
-            titulo,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.W600,
-            color = c.textTertiary,
-            letterSpacing = 0.4.sp,
-        )
+        LkSectionOverline(titulo)
         Spacer(Modifier.height(LkSpacing.sm))
         content()
     }
@@ -490,21 +498,21 @@ private fun LaudoMetrica(
     Column(modifier = modifier) {
         Text(
             label,
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelMedium,
             color = c.textTertiary,
         )
         Spacer(Modifier.height(2.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 valor,
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.W700,
                 color = c.textPrimary,
             )
             Spacer(Modifier.width(3.dp))
             Text(
                 unidade,
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelMedium,
                 color = c.textSecondary,
                 modifier = Modifier.padding(bottom = 2.dp),
             )
@@ -512,7 +520,7 @@ private fun LaudoMetrica(
         if (nota != null) {
             Text(
                 nota,
-                fontSize = 9.5.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = c.textTertiary,
             )
         }
@@ -541,7 +549,7 @@ private suspend fun gerarECompartilharLaudo(
             // #375: offline reaproveita a ultima medicao salva — o comprovante (usado para
             // reclamacao formal na Anatel) precisa exibir o timestamp real da medicao.
             val dataHoraBase = if (!conectado) ultimaMedicao?.timestampEpochMs?.let { Date(it) } ?: Date() else Date()
-            val dataHora = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(dataHoraBase)
+            val dataHora = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.of("pt", "BR")).format(dataHoraBase)
             val margem = 40f
             val colValor = 180f
 

@@ -60,7 +60,6 @@ import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.SettingsInputAntenna
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.SignalCellularAlt
-import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material.icons.outlined.Smartphone
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.SportsEsports
@@ -87,7 +86,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -98,7 +96,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -109,7 +106,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -129,6 +125,7 @@ import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.SnapshotRede
 import io.signallq.app.core.network.contracts.gateway.GatewayConnectionResultado
 import io.signallq.app.core.network.contracts.gateway.GatewayConnectionService
+import io.signallq.app.core.network.contracts.topologia.NivelConfianca
 import io.signallq.app.core.telephony.MovelSimSnapshot
 import io.signallq.app.core.telephony.MovelSnapshot
 import io.signallq.app.feature.speedtest.GargaloPrimario
@@ -138,7 +135,6 @@ import io.signallq.app.feature.speedtest.SnapshotExecucaoSpeedtest
 import io.signallq.app.feature.speedtest.VereditoUso
 import io.signallq.app.feature.wifi.RedeVizinha
 import io.signallq.app.feature.wifi.SegurancaWifi
-import io.signallq.app.ui.BancoOperadoras
 import io.signallq.app.ui.ConnectionNodeType
 import io.signallq.app.ui.GatewayInfo
 import io.signallq.app.ui.HistoryPoint
@@ -148,10 +144,17 @@ import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
+import io.signallq.app.ui.OperadoraSource
+import io.signallq.app.ui.ResolvedOperadoraIdentity
+import io.signallq.app.ui.component.LkSheetDivider
+import io.signallq.app.ui.component.LkSheetFrame
+import io.signallq.app.ui.component.LkSheetSectionTitle
+import io.signallq.app.ui.component.LkSurfaceCard
 import io.signallq.app.ui.component.OperadoraBadge
-import io.signallq.app.ui.component.Overline
 import io.signallq.app.ui.component.ProfileAvatarButton
+import io.signallq.app.ui.component.rememberResolvedOperadoraIdentity
 import io.signallq.app.ui.component.rememberTopBarAlpha
+import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
 // ─── TopBar subtitle (#180) ───────────────────────────────────────────────────
@@ -233,11 +236,23 @@ fun HomeScreen(
     onAbrirDiagnostico: () -> Unit,
     snapshotDispositivos: io.signallq.app.feature.devices.SnapshotScanDispositivos? = null,
     onAbrirDispositivos: () -> Unit = {},
-    // 2d To-Be: sem permissao de telefonia, o sheet "Rede movel" nao pode abrir com campos
-    // vazios — direciona pro fluxo de permissao (3f, mesmo PermissaoTelefoniaContextoSheet
-    // usado na aba Sinal) em vez disso.
-    temPermissaoTelefonia: Boolean = false,
-    onSolicitarPermissaoTelefonia: () -> Unit = {},
+    /** GH#970 — resolucao de identidade de operadora (nivel 1, catalogo local, sincrono).
+     *  Sem I/O, sem corrotina — mesmo comportamento de sempre pras ~12 operadoras principais. */
+    resolveOperadoraIdentidadeLocal: (String?, Boolean) -> ResolvedOperadoraIdentity? =
+        { _, _ -> null },
+    /** GH#970 — cadeia completa (local -> diretorio remoto do worker signallq-diagnostic ->
+     *  fallback generico), so chamada quando o nivel 1 acima nao encontrou. */
+    resolveOperadoraIdentidadeRemota: suspend (String?, Boolean) -> ResolvedOperadoraIdentity =
+        { nome, _ ->
+            ResolvedOperadoraIdentity(
+                displayName = nome ?: "Operadora",
+                monograma = nome?.firstOrNull()?.uppercase() ?: "?",
+                corMarca = null,
+                logoRes = null,
+                logoUrl = null,
+                source = OperadoraSource.FALLBACK,
+            )
+        },
 ) {
     val c = LocalLkTokens.current
     val context = LocalContext.current
@@ -287,13 +302,7 @@ fun HomeScreen(
     var showGatewaySheet by remember { mutableStateOf<GatewayInfo?>(null) }
     var showInternetSheet by remember { mutableStateOf(false) }
     var showCellularSheet by remember { mutableStateOf(false) }
-    var showTelefoniaPermissaoSheet by remember { mutableStateOf(false) }
     var showMedicaoTipoSheet by remember { mutableStateOf(false) }
-    // 2d To-Be: sem permissao de telefonia, abre o fluxo de permissao (3f) em vez do
-    // sheet "Rede movel" com campos vazios.
-    val abrirCellularSheet = {
-        if (temPermissaoTelefonia) showCellularSheet = true else showTelefoniaPermissaoSheet = true
-    }
     // GH#530 — GatewayConnectionSheet (roteador/GPON) do nó do gateway na trilha. IP separado
     // de "visível" porque um gateway detectado pode legitimamente ter ip == null.
     var showGatewayConnectionSheet by remember { mutableStateOf(false) }
@@ -319,16 +328,6 @@ fun HomeScreen(
                 connectedNetwork = if (gw.ip == null && gw.type == ConnectionNodeType.WifiRouter) null else connectedNetwork,
                 c = c,
                 linkSpeedMbps = linkSpeedMbps,
-                gatewaySessaoValida = gatewaySessaoValida,
-                onConectar = {
-                    showGatewaySheet = null
-                    gatewayConnectionIp = gw.ip
-                    showGatewayConnectionSheet = true
-                },
-                onVerEquipamento = {
-                    showGatewaySheet = null
-                    onAbrirGatewayDetalhe()
-                },
             )
         }
     }
@@ -372,22 +371,6 @@ fun HomeScreen(
                 movelSnapshot = movelSnapshot,
                 wifiAtivo = isOnWifi,
                 c = c,
-            )
-        }
-    }
-    if (showTelefoniaPermissaoSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showTelefoniaPermissaoSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = c.bgSecondary,
-            dragHandle = {},
-        ) {
-            PermissaoTelefoniaContextoSheet(
-                onConceder = {
-                    showTelefoniaPermissaoSheet = false
-                    onSolicitarPermissaoTelefonia()
-                },
-                onAgoraNao = { showTelefoniaPermissaoSheet = false },
             )
         }
     }
@@ -483,14 +466,23 @@ fun HomeScreen(
                     snapshotRede = snapshotRede,
                     movelSnapshot = movelSnapshot,
                     c = c,
+                    resolveOperadoraIdentidadeLocal = resolveOperadoraIdentidadeLocal,
+                    resolveOperadoraIdentidadeRemota = resolveOperadoraIdentidadeRemota,
                     onDeviceTap = { showDeviceSheet = true },
                     onGatewayTap = { gw ->
-                        when (gw.type) {
-                            ConnectionNodeType.Mobile -> abrirCellularSheet()
-                            // 2b To-Be: tap sempre abre primeiro o sheet somente-leitura
-                            // "Roteador da casa", igual 2a/2c/2d — de dentro dele o usuario
-                            // segue pra "Conectar" (2b-i) ou "Ver equipamento" quando fizer
-                            // sentido. Nunca pula direto pra um dos dois.
+                        when {
+                            gw.type == ConnectionNodeType.Mobile -> showCellularSheet = true
+                            // GH#530: nó do roteador — sessão válida pula a sheet e vai direto
+                            // ao destino provisório; sem sessão abre a GatewayConnectionSheet.
+                            // Mesh/extensor/desconhecido seguem no GatewayInfoSheet somente-leitura.
+                            gw.type == ConnectionNodeType.WifiRouter -> {
+                                if (gatewaySessaoValida) {
+                                    onAbrirGatewayDetalhe()
+                                } else {
+                                    gatewayConnectionIp = gw.ip
+                                    showGatewayConnectionSheet = true
+                                }
+                            }
                             else -> showGatewaySheet = gw
                         }
                     },
@@ -551,26 +543,6 @@ fun HomeScreen(
                 )
             }
 
-            // GH#847 — disclaimer regulatório Anatel: só após 1+ medição, respeitando dismiss
-            if (hasEffectiveResult && !anatelBannerDismissed) {
-                item {
-                    AnatelBanner(
-                        onDismiss = onDismissAnatelBanner,
-                        c = c,
-                    )
-                }
-            }
-
-            // 3. Mini-cards DNS / Ping / Diagnóstico IA
-            item {
-                MiniCardsRow(
-                    c = c,
-                    onAbrirDns = onAbrirDns,
-                    onAbrirPing = onAbrirPing,
-                    onAbrirDiagnostico = onAbrirDiagnostico,
-                )
-            }
-
             // 4a. Wi-Fi SignalCard
             if (snapshotRede.estadoConexao == EstadoConexao.wifi) {
                 item {
@@ -590,22 +562,16 @@ fun HomeScreen(
                 }
             }
 
-            // 4b. Mobile SignalCard — só quando single-SIM (dual-SIM cobre a mesma info via chips, GH#522)
-            if (movelSnapshot != null && simsAtivos.size < 2) {
+            if (movelSnapshot != null || simsAtivos.isNotEmpty()) {
                 item {
-                    MobileSignalCard(
+                    MobileChipsCard(
                         movelSnapshot = movelSnapshot,
-                        mobileName = movelSnapshot.operadora,
+                        simsAtivos = simsAtivos,
                         c = c,
-                        onTap = abrirCellularSheet,
+                        onTap = { showCellularSheet = true },
+                        resolveOperadoraIdentidadeLocal = resolveOperadoraIdentidadeLocal,
+                        resolveOperadoraIdentidadeRemota = resolveOperadoraIdentidadeRemota,
                     )
-                }
-            }
-
-            // 5. SIM chips compactos (abaixo dos SignalCards) — só exibir se dual-SIM
-            if (simsAtivos.size >= 2) {
-                item {
-                    CardMovelDualSim(simsAtivos = simsAtivos, c = c)
                 }
             }
         }
@@ -638,62 +604,27 @@ private fun CardMedicoes(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.xs)) {
                     Text(
-                        stringResource(R.string.home_medicoes_titulo),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = c.textPrimary,
+                        text = stringResource(R.string.home_medicoes_titulo).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.W600,
+                        color = c.textTertiary,
                     )
                     effectiveTs?.let {
                         Text(
-                            "Última: ${formatTimestamp(it)}",
+                            formatRelativeTimestamp(it),
                             style = MaterialTheme.typography.labelMedium,
                             color = c.textTertiary,
                         )
                     }
                 }
-                if (history.isNotEmpty()) {
-                    Text(
-                        stringResource(R.string.home_btn_ver_historico),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.W600,
-                        color = LkColors.accent,
-                        modifier = Modifier.minimumInteractiveComponentSize().clickable { onAbrirHistorico() },
-                    )
-                }
             }
             Spacer(modifier = Modifier.height(LkSpacing.lg))
             if (hasEffectiveResult && effectiveTs != null && effectiveDl != null && effectiveUl != null) {
                 LastResultHero(
-                    timestampEpochMs = effectiveTs,
                     downloadMbps = effectiveDl,
                     uploadMbps = effectiveUl,
-                    c = c,
                 )
                 Spacer(modifier = Modifier.height(LkSpacing.lg))
-            }
-            val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
-            val chartHeight = (screenHeightDp * 0.10f).coerceIn(72.dp, 120.dp)
-            val hasChartData = remember(history) { hasRenderableChartData(history) }
-            if (hasChartData) {
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(LkRadius.card))
-                            .clickable { onAbrirHistorico() },
-                ) {
-                    MiniLineChart(
-                        history = history,
-                        modifier = Modifier.fillMaxWidth().height(chartHeight),
-                        c = c,
-                    )
-                    Spacer(modifier = Modifier.height(LkSpacing.xs))
-                    Text(
-                        text = "Ver detalhes →",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = LkColors.accent,
-                        modifier = Modifier.align(Alignment.End),
-                    )
-                }
             } else {
                 Box(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
@@ -972,6 +903,8 @@ private fun NetworkPath(
     snapshotRede: SnapshotRede,
     movelSnapshot: MovelSnapshot?,
     c: LkTokens,
+    resolveOperadoraIdentidadeLocal: (String?, Boolean) -> ResolvedOperadoraIdentity?,
+    resolveOperadoraIdentidadeRemota: suspend (String?, Boolean) -> ResolvedOperadoraIdentity,
     onDeviceTap: () -> Unit,
     onGatewayTap: (GatewayInfo) -> Unit,
     onInternetTap: () -> Unit,
@@ -999,195 +932,162 @@ private fun NetworkPath(
     val isMobileConnection = snapshotRede.estadoConexao == EstadoConexao.movel
     val mobileGateway = gateways.singleOrNull { it.type == ConnectionNodeType.Mobile }
 
-    val temErro = hasLocalError || hasInternetError
-    val temCarregamento = loadingLocal || loadingInternet
-    val legenda =
-        when {
-            temErro -> "Não foi possível conectar. Verifique sua rede."
-            temCarregamento -> "Conectando…"
-            else -> "Tudo conectado. Sua conexão chega até o provedor sem falhas."
-        }
-    val legendaColor = if (temErro) LkColors.error else c.textSecondary
-
     SignallQCard(c) {
-        Column {
-            Overline(texto = "Caminho da sua internet")
-            Spacer(modifier = Modifier.height(LkSpacing.md))
-            NetworkPathRow(
-                hasLocalError = hasLocalError,
-                loadingLocal = loadingLocal,
-                hasInternetError = hasInternetError,
-                loadingInternet = loadingInternet,
-                isIspInfoLoading = isIspInfoLoading,
-                isConectado = isConectado,
-                isMobileConnection = isMobileConnection,
-                mobileGateway = mobileGateway,
-                deviceName = deviceName,
-                localIp = localIp,
-                publicIp = publicIp,
-                ispName = ispName,
-                gateways = gateways,
-                ispInfo = ispInfo,
-                movelSnapshot = movelSnapshot,
-                c = c,
-                onDeviceTap = onDeviceTap,
-                onGatewayTap = onGatewayTap,
-                onInternetTap = onInternetTap,
-            )
-            Spacer(modifier = Modifier.height(LkSpacing.md))
-            Text(
-                text = legenda,
-                style = MaterialTheme.typography.bodySmall,
-                color = legendaColor,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
-
-@Composable
-private fun NetworkPathRow(
-    hasLocalError: Boolean,
-    loadingLocal: Boolean,
-    hasInternetError: Boolean,
-    loadingInternet: Boolean,
-    isIspInfoLoading: Boolean,
-    isConectado: Boolean,
-    isMobileConnection: Boolean,
-    mobileGateway: GatewayInfo?,
-    deviceName: String,
-    localIp: String?,
-    publicIp: String?,
-    ispName: String?,
-    gateways: List<GatewayInfo>,
-    ispInfo: IspInfo?,
-    movelSnapshot: MovelSnapshot?,
-    c: LkTokens,
-    onDeviceTap: () -> Unit,
-    onGatewayTap: (GatewayInfo) -> Unit,
-    onInternetTap: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            PathNode(
-                icon = Icons.Outlined.Smartphone,
-                iconColor = LkColors.accent,
-                label = deviceName,
-                subLabel =
-                    when {
-                        localIp != null -> stringResource(R.string.home_network_conectado)
-                        isConectado -> stringResource(R.string.home_network_buscando)
-                        else -> stringResource(R.string.home_network_desconectado)
-                    },
-                subLabelColor = if (hasLocalError) LkColors.error else null,
-                c = c,
-                onTap = onDeviceTap,
-            )
-        }
-        if (isMobileConnection && mobileGateway != null) {
-            // Rede móvel: a "antena" e a "internet" são a mesma entidade (a operadora) — um
-            // único nó no lugar de dois evita um hop artificial sem nada de real no meio.
-            PathConnector(
-                c = c,
-                active = !hasLocalError && !loadingLocal && !hasInternetError && !loadingInternet,
-                hasError = hasLocalError || hasInternetError,
-                loading = loadingLocal || loadingInternet,
-            )
+        Text(
+            text = "CAMINHO DA SUA INTERNET",
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.W600,
+            color = c.textTertiary,
+        )
+        Spacer(modifier = Modifier.height(LkSpacing.md))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                val nomeOperadora =
-                    movelSnapshot?.operadora?.ifBlank { null }
-                        ?: ispInfo?.isp?.ifBlank { null }
-                        ?: mobileGateway.name.takeIf { it != "Antena movel" && it != "Antena móvel" }
-                val operadoraIdentificada = BancoOperadoras.resolverMovel(nomeOperadora)
-                val nodeLabel = nomeOperadora ?: "Operadora"
-                val tec = tecnologiaSimplificada(movelSnapshot?.tecnologia)
-                val statusLabel =
-                    when {
-                        hasInternetError -> stringResource(R.string.home_network_sem_conexao)
-                        loadingInternet -> stringResource(R.string.home_network_conectando)
-                        else -> stringResource(R.string.home_network_conectado)
-                    }
-                // "4G" sozinho não confirma nada pro usuário leigo — sempre acompanhar de
-                // status de conexão, mesmo quando a tecnologia é conhecida (Lia, PR #524).
-                val nodeSubLabel = if (tec != null && !hasInternetError) "$tec · $statusLabel" else statusLabel
                 PathNode(
-                    icon = Icons.Outlined.CellTower,
-                    iconColor = if (hasInternetError) c.textTertiary else c.textSecondary,
-                    label = nodeLabel,
-                    subLabel = nodeSubLabel,
-                    subLabelColor = if (hasInternetError) LkColors.error else null,
-                    c = c,
-                    onTap = { onGatewayTap(mobileGateway) },
-                    iconContent =
-                        operadoraIdentificada?.let { operadora ->
-                            { OperadoraBadge(operadora = operadora, size = 32.dp) }
+                    icon = Icons.Outlined.Smartphone,
+                    iconColor = LkColors.success,
+                    label = "Seu aparelho",
+                    subLabel =
+                        when {
+                            localIp != null -> stringResource(R.string.home_network_conectado)
+                            isConectado -> stringResource(R.string.home_network_buscando)
+                            else -> stringResource(R.string.home_network_desconectado)
                         },
+                    subLabelColor = if (hasLocalError) LkColors.error else null,
+                    c = c,
+                    onTap = onDeviceTap,
                 )
             }
-        } else {
-            gateways.forEachIndexed { i, gw ->
+            if (isMobileConnection && mobileGateway != null) {
                 PathConnector(
                     c = c,
-                    active = if (i == 0) !hasLocalError && !loadingLocal else true,
-                    hasError = i == 0 && hasLocalError,
-                    loading = i == 0 && loadingLocal,
+                    active = !hasLocalError && !loadingLocal && !hasInternetError && !loadingInternet,
+                    hasError = hasLocalError || hasInternetError,
+                    loading = loadingLocal || loadingInternet,
                 )
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    val (icon, _) = nodeDisplay(gw.type)
+                    val nomeOperadora =
+                        movelSnapshot?.operadora?.ifBlank { null }
+                            ?: ispInfo?.isp?.ifBlank { null }
+                            ?: mobileGateway.name.takeIf { it != "Antena movel" && it != "Antena móvel" }
+                    val identidadeOperadora =
+                        rememberResolvedOperadoraIdentity(
+                            ispNomeBruto = nomeOperadora,
+                            viaMovel = true,
+                            resolveLocal = resolveOperadoraIdentidadeLocal,
+                            resolveRemoteOrFallback = resolveOperadoraIdentidadeRemota,
+                        )
+                    val nodeLabel = nomeOperadora ?: "Operadora"
+                    val tec = tecnologiaSimplificada(movelSnapshot?.tecnologia)
+                    val statusLabel =
+                        when {
+                            hasInternetError -> stringResource(R.string.home_network_sem_conexao)
+                            loadingInternet -> stringResource(R.string.home_network_conectando)
+                            else -> stringResource(R.string.home_network_conectado)
+                        }
+                    val nodeSubLabel = if (tec != null && !hasInternetError) "$tec · $statusLabel" else statusLabel
                     PathNode(
-                        icon = icon,
-                        iconColor = c.textSecondary,
-                        label = gw.name,
-                        subLabel = if (gw.ip != null) stringResource(R.string.home_network_conectado) else "—",
+                        icon = Icons.Outlined.CellTower,
+                        iconColor = if (hasInternetError) c.textTertiary else c.textSecondary,
+                        label = nodeLabel,
+                        subLabel = nodeSubLabel,
+                        subLabelColor = if (hasInternetError) LkColors.error else null,
                         c = c,
-                        onTap = { onGatewayTap(gw) },
+                        onTap = { onGatewayTap(mobileGateway) },
+                        iconContent =
+                            identidadeOperadora?.let { identidade ->
+                                { OperadoraBadge(identidade = identidade, size = 34.dp) }
+                            },
+                    )
+                }
+            } else {
+                gateways.forEachIndexed { i, gw ->
+                    PathConnector(
+                        c = c,
+                        active = if (i == 0) !hasLocalError && !loadingLocal else true,
+                        hasError = i == 0 && hasLocalError,
+                        loading = i == 0 && loadingLocal,
+                    )
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        val (icon, _) = nodeDisplay(gw.type)
+                        PathNode(
+                            icon = icon,
+                            iconColor = c.textSecondary,
+                            label = "Roteador",
+                            subLabel = if (gw.ip != null) stringResource(R.string.home_network_conectado) else "—",
+                            c = c,
+                            onTap = { onGatewayTap(gw) },
+                        )
+                    }
+                }
+                PathConnector(
+                    c = c,
+                    active = !hasInternetError && !loadingInternet,
+                    hasError = hasInternetError,
+                    loading = loadingInternet,
+                )
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    val internetLabel =
+                        ispInfo?.isp?.takeIf { it.isNotEmpty() }
+                            ?: ispName?.takeIf { it.isNotEmpty() }
+                            ?: "Provedor"
+                    val identidadeInternet =
+                        rememberResolvedOperadoraIdentity(
+                            ispNomeBruto = ispInfo?.isp ?: ispName,
+                            viaMovel = false,
+                            resolveLocal = resolveOperadoraIdentidadeLocal,
+                            resolveRemoteOrFallback = resolveOperadoraIdentidadeRemota,
+                        )
+                    val internetSubLabel =
+                        if ((ispInfo?.ip ?: publicIp) != null) {
+                            stringResource(R.string.home_network_conectado)
+                        } else {
+                            when {
+                                hasInternetError -> stringResource(R.string.home_network_sem_conexao)
+                                isIspInfoLoading -> stringResource(R.string.home_network_conectando)
+                                else -> "IP indisponível"
+                            }
+                        }
+                    val internetSubColor: Color? =
+                        when {
+                            hasInternetError -> LkColors.error
+                            (ispInfo?.ip ?: publicIp) != null -> LkColors.success
+                            else -> null
+                        }
+                    PathNode(
+                        icon = Icons.Outlined.Language,
+                        iconColor = if (hasInternetError) c.textTertiary else LkColors.success,
+                        label = internetLabel,
+                        subLabel = internetSubLabel,
+                        subLabelColor = internetSubColor,
+                        c = c,
+                        onTap = onInternetTap,
+                        iconContent =
+                            identidadeInternet?.let { identidade ->
+                                { OperadoraBadge(identidade = identidade, size = 34.dp) }
+                            },
                     )
                 }
             }
-            PathConnector(
-                c = c,
-                active = !hasInternetError && !loadingInternet,
-                hasError = hasInternetError,
-                loading = loadingInternet,
-            )
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                val internetLabel =
-                    ispInfo?.isp?.takeIf { it.isNotEmpty() }
-                        ?: ispName?.takeIf { it.isNotEmpty() }
-                        ?: "Internet"
-                val internetSubLabel =
-                    if ((ispInfo?.ip ?: publicIp) != null) {
-                        stringResource(R.string.home_network_conectado)
-                    } else {
-                        when {
-                            hasInternetError -> stringResource(R.string.home_network_sem_conexao)
-                            isIspInfoLoading -> stringResource(R.string.home_network_conectando)
-                            // #220: "—" substituído por texto útil quando IP público não está disponível
-                            else -> "IP indisponível"
-                        }
-                    }
-                val internetSubColor: Color? =
-                    when {
-                        hasInternetError -> LkColors.error
-                        (ispInfo?.ip ?: publicIp) != null -> LkColors.success
-                        else -> null
-                    }
-                PathNode(
-                    icon = Icons.Outlined.Language,
-                    iconColor = if (hasInternetError) c.textTertiary else LkColors.success,
-                    label = internetLabel,
-                    subLabel = internetSubLabel,
-                    subLabelColor = internetSubColor,
-                    c = c,
-                    onTap = onInternetTap,
-                )
-            }
         }
+        Spacer(modifier = Modifier.height(LkSpacing.md))
+        Text(
+            text =
+                if (!hasLocalError && !hasInternetError && !loadingLocal && !loadingInternet) {
+                    "Tudo conectado. Sua conexão chega até o provedor sem falhas."
+                } else if (loadingLocal || loadingInternet) {
+                    "Estamos confirmando cada etapa da sua conexão."
+                } else {
+                    "Há uma falha em um dos pontos da sua conexão."
+                },
+            style = MaterialTheme.typography.bodySmall,
+            color = c.textSecondary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -1251,11 +1151,19 @@ private fun PathNode(
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(modifier = Modifier.size(52.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier =
+                Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(iconColor.copy(alpha = 0.12f))
+                    .border(1.dp, iconColor.copy(alpha = 0.30f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
             if (iconContent != null) {
                 iconContent()
             } else {
-                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(26.dp))
+                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
             }
         }
         Spacer(modifier = Modifier.height(LkSpacing.sm))
@@ -1326,11 +1234,17 @@ private fun PathConnector(
     Box(
         modifier =
             Modifier
-                .size(width = 36.dp, height = 56.dp)
+                .size(width = 28.dp, height = 56.dp)
                 .then(semanticModifier),
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.fillMaxWidth().height(2.dp)) {
+        Canvas(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 2.dp)
+                    .height(2.dp),
+        ) {
             if (dashed) {
                 var x = 0f
                 val dashW = 4.dp.toPx()
@@ -1345,7 +1259,6 @@ private fun PathConnector(
                     x += dashW + space
                 }
             } else {
-                // Conexão saudável: gradiente success→primary (spec To-Be), em vez de linha solida.
                 drawLine(
                     brush = Brush.horizontalGradient(listOf(LkColors.success, LkColors.accent)),
                     start = Offset.Zero,
@@ -1374,42 +1287,26 @@ private fun PathConnector(
 
 @Composable
 private fun LastResultHero(
-    timestampEpochMs: Long,
     downloadMbps: Double,
     uploadMbps: Double,
-    c: LkTokens,
 ) {
-    Column {
-        HorizontalDivider(color = c.border, thickness = 1.dp)
-        Column(modifier = Modifier.padding(vertical = 12.dp)) {
-            Text(
-                text = formatTimestamp(timestampEpochMs),
-                style = MaterialTheme.typography.labelMedium,
-                color = c.textTertiary,
-                modifier = Modifier.align(Alignment.End),
-            )
-            Spacer(modifier = Modifier.height(LkSpacing.sm))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                HeroSpeed(
-                    arrow = "↓",
-                    value = downloadMbps,
-                    label = "Download",
-                    color = LkColors.success,
-                    labelColor = c.textTertiary,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                HeroSpeed(
-                    arrow = "↑",
-                    value = uploadMbps,
-                    label = "Upload",
-                    color = LkColors.accent,
-                    labelColor = c.textTertiary,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-        HorizontalDivider(color = c.border, thickness = 1.dp)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(LkSpacing.lg),
+    ) {
+        HeroMetric(
+            label = "Download",
+            value = downloadMbps,
+            color = LkColors.success,
+            modifier = Modifier.weight(1f),
+        )
+        HeroMetric(
+            label = "Upload",
+            value = uploadMbps,
+            color = LkColors.accent,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -1500,6 +1397,19 @@ private fun formatTimestamp(epochMs: Long): String {
         else -> "${cal.get(java.util.Calendar.DAY_OF_MONTH)}/${cal.get(java.util.Calendar.MONTH) + 1}"
     }
 }
+
+private fun formatRelativeTimestamp(epochMs: Long): String {
+    val diffMs = (System.currentTimeMillis() - epochMs).coerceAtLeast(0L)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(diffMs)
+    return when {
+        minutes < 1 -> "agora mesmo"
+        minutes < 60 -> "há $minutes min"
+        minutes < 24 * 60 -> "há ${minutes / 60} h"
+        else -> "há ${minutes / (24 * 60)} d"
+    }
+}
+
+private fun formatSpeedValue(value: Double): String = if (value >= 100) value.toLong().toString() else "%.1f".format(value)
 
 // ─── Mini line chart ──────────────────────────────────────────────────────────
 
@@ -1701,6 +1611,12 @@ private fun WifiSignalCard(
         } else {
             LkColors.accent
         }
+    val qualityLabel =
+        when {
+            localizacaoDesligada -> "Sem leitura"
+            wifiRssi != null -> wifiSignalQuality(wifiRssi)
+            else -> "Conectado"
+        }
 
     SignallQCard(c) {
         Column {
@@ -1759,14 +1675,14 @@ private fun WifiSignalCard(
                     } else {
                         val bandaLabel =
                             when {
-                                freqMhz != null && freqMhz >= 5900 -> "6 GHZ"
-                                freqMhz != null && freqMhz >= 3000 -> "5 GHZ"
-                                freqMhz != null -> "2.4 GHZ"
+                                freqMhz != null && freqMhz >= 5900 -> "6 GHz"
+                                freqMhz != null && freqMhz >= 3000 -> "5 GHz"
+                                freqMhz != null -> "2.4 GHz"
                                 else -> null
                             }
                         if (bandaLabel != null) {
                             Text(
-                                "WI-FI · $bandaLabel",
+                                bandaLabel.uppercase(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.W600,
                                 color = c.textTertiary,
@@ -1775,35 +1691,20 @@ private fun WifiSignalCard(
                         }
                         Text(
                             ssid,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.W600,
                             color = c.textPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        if (wifiRssi != null) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    "RSSI $wifiRssi dBm",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = c.textSecondary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text("  ·  ", style = MaterialTheme.typography.bodySmall, color = c.textTertiary)
-                                Text(
-                                    wifiSignalQuality(wifiRssi),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.W600,
-                                    color = iconColor,
-                                )
-                            }
-                        }
                     }
                 }
-                if (wifiRssi != null && wifiPct != null) {
-                    MiniSignalBars(pct = wifiPct, color = iconColor)
-                }
+                Text(
+                    text = qualityLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.W700,
+                    color = iconColor,
+                )
             }
             if (!localizacaoDesligada && connectedNetwork != null) {
                 Spacer(Modifier.height(LkSpacing.sm))
@@ -1811,6 +1712,15 @@ private fun WifiSignalCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
                 ) {
+                    if (wifiRssi != null) {
+                        Text(
+                            text = "RSSI $wifiRssi dBm",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = c.textSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     ChipSegurancaWifi(seguranca = connectedNetwork.seguranca)
                     if (quantidadeDispositivos != null) {
                         val labelDispositivos =
@@ -1827,13 +1737,13 @@ private fun WifiSignalCard(
                             },
                             colors =
                                 AssistChipDefaults.assistChipColors(
-                                    containerColor = LkColors.accent.copy(alpha = 0.08f),
-                                    labelColor = LkColors.accent,
-                                    leadingIconContentColor = LkColors.accent,
+                                    containerColor = c.surfaceContainerHigh,
+                                    labelColor = c.onSurfaceVariant,
+                                    leadingIconContentColor = c.onSurfaceVariant,
                                 ),
                             border =
                                 AssistChipDefaults.assistChipBorder(
-                                    borderColor = LkColors.accent.copy(alpha = 0.25f),
+                                    borderColor = c.outlineVariant,
                                     enabled = true,
                                 ),
                         )
@@ -1920,17 +1830,16 @@ private fun MobileSignalCard(
             Box(
                 modifier =
                     Modifier
-                        .size(40.dp)
+                        .size(44.dp)
                         .clip(CircleShape)
-                        .background(mobileColor.copy(alpha = 0.10f))
-                        .diagonalStripes(mobileColor.copy(alpha = 0.18f)),
+                        .background(mobileColor.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Outlined.SimCard,
+                    Icons.Outlined.SignalCellularAlt,
                     contentDescription = "Rede móvel, ${mobileName ?: "dados móveis"}",
                     tint = mobileColor,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(22.dp),
                 )
             }
             Spacer(Modifier.width(LkSpacing.md))
@@ -1980,27 +1889,6 @@ private fun MobileSignalCard(
         }
     }
 }
-
-/**
- * Placeholder de "listras diagonais" atrás do ícone de sim_card no cartão Chip móvel
- * (spec To-Be, tela 2 · Início) — textura genérica, sem depender de logo de operadora.
- */
-private fun Modifier.diagonalStripes(stripeColor: Color): Modifier =
-    drawBehind {
-        val stripeWidth = 2.dp.toPx()
-        val gap = 5.dp.toPx()
-        val step = stripeWidth + gap
-        var x = -size.height
-        while (x < size.width) {
-            drawLine(
-                color = stripeColor,
-                start = Offset(x, size.height),
-                end = Offset(x + size.height, 0f),
-                strokeWidth = stripeWidth,
-            )
-            x += step
-        }
-    }
 
 @Composable
 internal fun MiniSignalBars(
@@ -2253,8 +2141,7 @@ private fun QualidadeShortcutRow(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
+                .background(c.surfaceContainer)
                 .clickable(onClick = onClick)
                 .padding(horizontal = LkSpacing.lg, vertical = LkSpacing.md),
         verticalAlignment = Alignment.CenterVertically,
@@ -2264,10 +2151,10 @@ private fun QualidadeShortcutRow(
                 Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(LkColors.accent.copy(alpha = 0.1f)),
+                    .background(c.primary.copy(alpha = 0.14f)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Outlined.Insights, contentDescription = null, tint = LkColors.accent, modifier = Modifier.size(18.dp))
+            Icon(Icons.Outlined.Insights, contentDescription = null, tint = c.primary, modifier = Modifier.size(18.dp))
         }
         Spacer(modifier = Modifier.width(LkSpacing.md))
         Column(modifier = Modifier.weight(1f)) {
@@ -2571,25 +2458,15 @@ private fun DeviceInfoSheet(
     deviceName: String,
     c: LkTokens,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = LkSpacing.xl)
-                .padding(bottom = 32.dp)
-                .navigationBarsPadding(),
-    ) {
-        SheetDragHandle(c)
-        Spacer(modifier = Modifier.height(LkSpacing.xl))
-        Text(
-            stringResource(R.string.home_sheet_meu_dispositivo),
-            style = MaterialTheme.typography.headlineSmall,
-            color = c.textPrimary,
-        )
+    LkSheetFrame(modifier = Modifier.navigationBarsPadding()) {
+        LkSheetSectionTitle(title = stringResource(R.string.home_sheet_meu_dispositivo))
         Spacer(modifier = Modifier.height(LkSpacing.lg))
         SheetInfoRow("Modelo", deviceName, c)
+        LkSheetDivider()
         SheetInfoRow("Sistema", "Android", c)
-        SheetInfoRow("IP Local", localIp?.takeIf { it.isNotEmpty() } ?: "N/A", c)
+        LkSheetDivider()
+        SheetInfoRow("IP Local", localIp?.takeIf { it.isNotEmpty() } ?: "Não disponível", c)
+        LkSheetDivider()
         SheetInfoRow("Tipo de conexão", if (isMobile) "Dados móveis" else "Wi-Fi", c)
     }
 }
@@ -2614,11 +2491,8 @@ private fun GatewayInfoSheet(
     connectedNetwork: RedeVizinha?,
     c: LkTokens,
     linkSpeedMbps: Int? = null,
-    gatewaySessaoValida: Boolean = false,
-    onConectar: () -> Unit = {},
-    onVerEquipamento: () -> Unit = {},
 ) {
-    val typeLabel =
+    val typeLabelBase =
         when (gateway.type) {
             ConnectionNodeType.WifiRouter -> "Roteador Wi-Fi"
             ConnectionNodeType.WifiMesh -> "Rede Mesh"
@@ -2626,51 +2500,45 @@ private fun GatewayInfoSheet(
             ConnectionNodeType.Mobile -> "Antena móvel"
             ConnectionNodeType.Unknown -> "Não identificado"
         }
+    // #980 (Fase 2B) — sem confirmação de qual nó é o central (ver TopologiaRedeEngine/#979),
+    // a confiança do motor fica MEDIA/BAIXA; a Home nunca afirma o papel nesse caso.
+    val typeLabel =
+        if (gateway.confianca != null && gateway.confianca != NivelConfianca.ALTA) {
+            "$typeLabelBase (provável)"
+        } else {
+            typeLabelBase
+        }
     val isMeshOrExtensor =
         gateway.type == ConnectionNodeType.WifiMesh ||
             gateway.type == ConnectionNodeType.WifiExtender
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = LkSpacing.xl)
-                .padding(bottom = 32.dp)
-                .navigationBarsPadding(),
-    ) {
-        SheetDragHandle(c)
-        Spacer(modifier = Modifier.height(LkSpacing.xl))
-        Text(gateway.name, style = MaterialTheme.typography.headlineSmall, color = c.textPrimary)
+    LkSheetFrame(modifier = Modifier.navigationBarsPadding()) {
+        LkSheetSectionTitle(title = "Roteador da casa")
         Spacer(modifier = Modifier.height(LkSpacing.lg))
         SheetInfoRow("Tipo detectado", typeLabel, c)
+        LkSheetDivider()
         SheetInfoRow("IP do roteador", gateway.ip ?: "Não detectado", c)
-        connectedNetwork?.let { net ->
-            net.ssid?.let { SheetInfoRow("SSID", it, c) }
-            if (isMeshOrExtensor) {
-                bssidCurto(net.bssid)?.let { SheetInfoRow("Nó atual", it, c) }
-            }
-            SheetInfoRow("Sinal", "${net.rssiDbm} dBm", c)
-            SheetInfoRow("Banda", freqDisplay(net.frequenciaMhz), c)
-        }
-        if (!isMeshOrExtensor) {
-            linkSpeedMbps?.let { SheetInfoRow("Velocidade do link", "$it Mbps", c) }
-        }
-        connectedNetwork?.canal?.let { SheetInfoRow("Canal", "$it", c) }
-        connectedNetwork?.larguraCanalMhz?.let { SheetInfoRow("Largura de canal", "$it MHz", c) }
-        connectedNetwork?.let { net -> SheetInfoRow("Segurança", wifiSecurityLabel(net.seguranca), c) }
-        // GH#530/2b To-Be: só o roteador Wi-Fi tem fluxo de conexao ativa. Sem sessao
-        // valida, oferece o caminho pra "Conectar" (2b-i); com sessao valida, oferece
-        // o caminho pro destino de detalhe do equipamento.
-        if (gateway.type == ConnectionNodeType.WifiRouter) {
-            Spacer(modifier = Modifier.height(LkSpacing.lg))
-            Button(
-                onClick = if (gatewaySessaoValida) onVerEquipamento else onConectar,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(LkRadius.button),
-                colors = ButtonDefaults.buttonColors(containerColor = LkColors.accent),
-            ) {
-                Text(if (gatewaySessaoValida) "Ver equipamento" else "Conectar")
-            }
-        }
+        LkSheetDivider()
+        SheetInfoRow("SSID", connectedNetwork?.ssid?.takeIf { it.isNotBlank() } ?: "Não detectado", c)
+        LkSheetDivider()
+        SheetInfoRow("Sinal", connectedNetwork?.let { "${it.rssiDbm} dBm" } ?: "Não detectado", c)
+        LkSheetDivider()
+        SheetInfoRow("Banda", connectedNetwork?.let { freqDisplay(it.frequenciaMhz) } ?: "Não detectado", c)
+        LkSheetDivider()
+        SheetInfoRow(
+            "Velocidade do link",
+            if (!isMeshOrExtensor) {
+                linkSpeedMbps?.let { "$it Mbps" } ?: "Não detectado"
+            } else {
+                "Não detectado"
+            },
+            c,
+        )
+        LkSheetDivider()
+        SheetInfoRow("Canal", connectedNetwork?.canal?.toString() ?: "Não detectado", c)
+        LkSheetDivider()
+        SheetInfoRow("Largura de canal", connectedNetwork?.larguraCanalMhz?.let { "$it MHz" } ?: "Não detectado", c)
+        LkSheetDivider()
+        SheetInfoRow("Segurança", connectedNetwork?.let { wifiSecurityLabel(it.seguranca) } ?: "Não detectada", c)
     }
 }
 
@@ -2689,23 +2557,13 @@ private fun InternetInfoSheet(
     c: LkTokens,
 ) {
     val countryRegion = listOfNotNull(ispInfo?.country, ispInfo?.region).joinToString(" / ")
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = LkSpacing.xl)
-                .padding(bottom = 32.dp)
-                .navigationBarsPadding(),
-    ) {
-        SheetDragHandle(c)
-        Spacer(modifier = Modifier.height(LkSpacing.xl))
-        Text(
-            stringResource(R.string.home_sheet_internet),
-            style = MaterialTheme.typography.headlineSmall,
-            color = c.textPrimary,
-        )
+    val publicIpValue = ispInfo?.ip ?: publicIp ?: "Não disponível"
+    val provedorValue = ispInfo?.isp?.takeIf { it.isNotEmpty() } ?: "Não disponível"
+    val regionValue = countryRegion.ifEmpty { "Não disponível" }
+    LkSheetFrame(modifier = Modifier.navigationBarsPadding()) {
+        LkSheetSectionTitle(title = stringResource(R.string.home_sheet_internet))
         Spacer(modifier = Modifier.height(LkSpacing.lg))
-        SheetInfoRow("IP Público", ispInfo?.ip ?: publicIp ?: "N/A", c)
+        SheetInfoRow("IP Público", publicIpValue, c)
         if (isCgNat(ispInfo?.ip ?: publicIp)) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -2715,17 +2573,21 @@ private fun InternetInfoSheet(
                 modifier = Modifier.padding(bottom = LkSpacing.md),
             )
         }
-        ispInfo?.isp?.takeIf { it.isNotEmpty() }?.let { SheetInfoRow("Provedor", it, c) }
-        if (countryRegion.isNotEmpty()) SheetInfoRow("País / Região", countryRegion, c)
+        LkSheetDivider()
+        SheetInfoRow("Provedor", provedorValue, c)
+        LkSheetDivider()
+        SheetInfoRow("País / Região", regionValue, c)
         val dnsPrivadoValor =
             if (privateDnsAtivo) {
                 privateDnsHostname?.takeIf { it.isNotEmpty() } ?: "Ativo"
             } else {
                 "Padrão do provedor"
             }
+        LkSheetDivider()
         SheetInfoRow("DNS Privado", dnsPrivadoValor, c, valueColor = if (privateDnsAtivo) LkColors.success else null)
-        val servidoresDnsStr = dnsServidores.take(2).joinToString(" / ").takeIf { it.isNotEmpty() }
-        servidoresDnsStr?.let { SheetInfoRow("Servidores DNS", it, c) }
+        val servidoresDnsStr = dnsServidores.take(2).joinToString(" / ").ifEmpty { "Não disponível" }
+        LkSheetDivider()
+        SheetInfoRow("Servidores DNS", servidoresDnsStr, c)
     }
 }
 
@@ -2854,121 +2716,106 @@ private fun CellularInfoSheet(
 
     val qualityLabel = rsrp?.let { "${mobileSignalQuality(it)} ($it dBm)" }
     val qualityColor = rsrp?.let { mobileSignalColor(it) }
-
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = LkSpacing.xl)
-                .padding(bottom = 32.dp)
-                .navigationBarsPadding(),
-    ) {
-        SheetDragHandle(c)
-        Spacer(Modifier.height(LkSpacing.xl))
-
-        Text(
-            "Rede móvel",
-            style = MaterialTheme.typography.headlineSmall,
-            color = c.textPrimary,
-        )
-        Text(
-            "Detalhes da conexão móvel ativa",
-            style = MaterialTheme.typography.bodySmall,
-            color = c.onSurfaceVariant,
-        )
-
-        Spacer(Modifier.height(LkSpacing.lg))
-
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(LkRadius.card))
-                    .background(c.bgCard)
-                    .border(1.dp, c.outlineVariant, RoundedCornerShape(LkRadius.card))
-                    .padding(LkSpacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(LkColors.accent.copy(alpha = 0.14f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Outlined.SignalCellularAlt,
-                    contentDescription = null,
-                    tint = LkColors.accent,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            Spacer(Modifier.width(LkSpacing.md))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    operadora ?: "Rede móvel",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = c.textPrimary,
-                )
-                val heroSub =
-                    listOfNotNull(tec, banda?.let { "banda $it" })
-                        .joinToString(" · ")
-                        .takeIf { it.isNotEmpty() }
-                if (heroSub != null) {
-                    Text(heroSub, style = MaterialTheme.typography.bodySmall, color = c.textSecondary)
-                }
-            }
-            Box(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(LkColors.success.copy(alpha = 0.14f))
-                        .padding(horizontal = LkSpacing.sm, vertical = 2.dp),
-            ) {
-                Text(
-                    "Conectado",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = LkColors.success,
-                )
-            }
-        }
-
-        Spacer(Modifier.height(LkSpacing.lg))
-
-        tec?.let { SheetInfoRow("Tecnologia", it, c) }
-        operadora?.let { SheetInfoRow("Operadora", it, c) }
-        ip?.let { SheetInfoRow("IP público", it, c) }
-        qualityLabel?.let { SheetInfoRow("Qualidade do sinal", it, c, valueColor = qualityColor) }
-        rsrp?.let {
-            val asu = it + 140
-            SheetInfoRow("ASU", "$asu", c)
-        }
+    val asuValue = rsrp?.let { "${it + 140}" } ?: "Não disponível"
+    val sinrValue = sinr?.let { "$it dB" } ?: "Não disponível"
+    val sinrColor =
         sinr?.let { s ->
-            val sinrColor =
-                when {
-                    s > 10 -> LkColors.success
-                    s > 0 -> LkColors.warning
-                    else -> LkColors.error
-                }
-            SheetInfoRow("SINR", "$s dB", c, valueColor = sinrColor)
+            when {
+                s > 10 -> LkColors.success
+                s > 0 -> LkColors.warning
+                else -> LkColors.error
+            }
         }
+
+    LkSheetFrame(modifier = Modifier.navigationBarsPadding()) {
+        LkSheetSectionTitle(
+            title = "Rede móvel",
+            subtitle = "Detalhes da conexão móvel ativa",
+        )
+
+        Spacer(Modifier.height(LkSpacing.lg))
+
+        LkSurfaceCard(outlined = true) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(LkColors.accent.copy(alpha = 0.10f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Outlined.SignalCellularAlt,
+                        contentDescription = null,
+                        tint = LkColors.accent,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                Spacer(Modifier.width(LkSpacing.md))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        operadora ?: "Rede móvel",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.W600,
+                        color = c.textPrimary,
+                    )
+                    val heroSub =
+                        listOfNotNull(tec, banda?.let { "banda $it" })
+                            .joinToString(" · ")
+                            .takeIf { it.isNotEmpty() }
+                    if (heroSub != null) {
+                        Text(heroSub, style = MaterialTheme.typography.bodySmall, color = c.textSecondary)
+                    }
+                }
+                Box(
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(LkColors.success.copy(alpha = 0.10f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                ) {
+                    Text(
+                        "Conectado",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.W700,
+                        color = LkColors.success,
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(LkSpacing.lg))
+
+        SheetInfoRow("Tecnologia", tec ?: "Não disponível", c)
+        LkSheetDivider()
+        SheetInfoRow("Operadora", operadora ?: "Não disponível", c)
+        LkSheetDivider()
+        SheetInfoRow("IP público", ip ?: "Não disponível", c)
+        LkSheetDivider()
+        SheetInfoRow("Qualidade do sinal", qualityLabel ?: "Não disponível", c, valueColor = qualityColor)
+        LkSheetDivider()
+        SheetInfoRow("ASU", asuValue, c)
+        LkSheetDivider()
+        SheetInfoRow("SINR", sinrValue, c, valueColor = sinrColor)
+        LkSheetDivider()
         SheetInfoRow(
             "Roaming",
             if (movelSnapshot?.roaming == true) "Sim" else "Não",
             c,
             valueColor = if (movelSnapshot?.roaming == true) LkColors.warning else null,
         )
-        if (mcc != null && mnc != null) {
-            SheetInfoRow("MCC / MNC", "$mcc / $mnc", c)
-        }
+        LkSheetDivider()
+        SheetInfoRow("MCC / MNC", if (mcc != null && mnc != null) "$mcc / $mnc" else "Não disponível", c)
 
         Spacer(Modifier.height(LkSpacing.md))
         Text(
             "Teste de velocidade pode consumir uma parcela significativa do seu plano de dados.",
             style = MaterialTheme.typography.labelMedium,
-            color = c.onSurfaceVariant,
-            lineHeight = 15.sp,
+            color = c.textSecondary,
         )
 
         if (ip == null && operadora == null && movelSnapshot == null) {
@@ -3017,7 +2864,8 @@ private fun SheetInfoRow(
             Text(key, style = MaterialTheme.typography.bodyMedium, color = c.textSecondary, modifier = Modifier.padding(end = LkSpacing.lg))
             Text(
                 value,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.W600,
                 color = valueColor ?: c.textPrimary,
                 textAlign = TextAlign.End,
                 maxLines = 1,
@@ -3527,19 +3375,22 @@ private fun MedicaoTipoSheet(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .padding(top = LkSpacing.sm)
                     .padding(horizontal = LkSpacing.lg)
                     .padding(bottom = 32.dp)
                     .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
         ) {
+            SheetDragHandle(c)
             Text(
                 "Tipo de medição",
                 style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.W700,
                 color = c.textPrimary,
             )
             Text(
                 "Escolha como quer medir sua conexão",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = c.textSecondary,
             )
             Spacer(modifier = Modifier.height(LkSpacing.sm))
@@ -3569,8 +3420,8 @@ private fun MedicaoTipoSheet(
                 icon = Icons.Outlined.Refresh,
                 titulo = "Triplo",
                 descricao = "Média de 3 testes consecutivos · ~3 min",
-                badge = if (!isOnWifi) "Só Wi-Fi" else null,
-                badgeColor = c.onSurfaceVariant,
+                badge = "Só Wi-Fi",
+                badgeColor = c.textTertiary,
                 disponivel = isOnWifi,
                 c = c,
                 onClick = { onIniciarTeste(ModoSpeedtest.triplo) },
@@ -3607,6 +3458,8 @@ private fun MedicaoOpcaoItem(
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card))
+                .background(c.bgCard)
+                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
                 .then(
                     if (disponivel) {
                         Modifier.clickable { onClick() }
@@ -3622,7 +3475,7 @@ private fun MedicaoOpcaoItem(
                 Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(iconColor.copy(alpha = 0.14f)),
+                    .background(iconColor.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -3636,6 +3489,7 @@ private fun MedicaoOpcaoItem(
             Text(
                 titulo,
                 style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.W600,
                 color = textColor,
             )
             Text(
@@ -3654,7 +3508,8 @@ private fun MedicaoOpcaoItem(
             ) {
                 Text(
                     badge,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.W600,
                     color = badgeColor,
                 )
             }
@@ -3903,3 +3758,181 @@ private fun ConnectionContextCard(
         }
     }
 }
+
+@Composable
+private fun HeroMetric(
+    label: String,
+    value: Double,
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = LocalLkTokens.current.textSecondary,
+        )
+        Text(
+            text = formatSpeedValue(value),
+            style = MaterialTheme.typography.headlineLarge,
+            color = color,
+        )
+        Text(
+            text = "Mbps",
+            style = MaterialTheme.typography.labelMedium,
+            color = LocalLkTokens.current.textTertiary,
+        )
+    }
+}
+
+@Composable
+private fun MobileChipsCard(
+    movelSnapshot: MovelSnapshot?,
+    simsAtivos: List<MovelSimSnapshot>,
+    c: LkTokens,
+    onTap: () -> Unit,
+    resolveOperadoraIdentidadeLocal: (String?, Boolean) -> ResolvedOperadoraIdentity?,
+    resolveOperadoraIdentidadeRemota: suspend (String?, Boolean) -> ResolvedOperadoraIdentity,
+) {
+    val linhas: List<Pair<String, Pair<String, Color>>> =
+        remember(movelSnapshot, simsAtivos) {
+            when {
+                simsAtivos.isNotEmpty() ->
+                    simsAtivos.map { sim ->
+                        (sim.operadora?.takeIf { it.isNotBlank() } ?: "SIM ${sim.simIndex}") to
+                            simStatusLabel(sim.rsrpDbm, sim.radioDesligado)
+                    }
+                movelSnapshot != null ->
+                    listOf(
+                        (movelSnapshot.operadora?.takeIf { it.isNotBlank() } ?: "Rede móvel") to
+                            simStatusLabel(movelSnapshot.rsrpDbm, movelSnapshot.radioDesligado),
+                    )
+                else -> emptyList<Pair<String, Pair<String, Color>>>()
+            }
+        }
+
+    if (linhas.isEmpty()) return
+
+    val operadoraPrincipal =
+        remember(movelSnapshot, simsAtivos) {
+            simsAtivos.firstOrNull { !it.operadora.isNullOrBlank() }?.operadora
+                ?: movelSnapshot?.operadora
+        }
+    val identidadePrincipal =
+        rememberResolvedOperadoraIdentity(
+            ispNomeBruto = operadoraPrincipal,
+            viaMovel = true,
+            resolveLocal = resolveOperadoraIdentidadeLocal,
+            resolveRemoteOrFallback = resolveOperadoraIdentidadeRemota,
+        )
+
+    SignallQCard(c) {
+        Column {
+            Text(
+                text = "CHIP MÓVEL",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.W600,
+                color = c.textTertiary,
+            )
+            Spacer(Modifier.height(LkSpacing.md))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
+            ) {
+                if (identidadePrincipal != null) {
+                    OperadoraBadge(identidade = identidadePrincipal, size = 32.dp)
+                } else {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(c.surfaceContainerHighest),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Smartphone,
+                            contentDescription = null,
+                            tint = c.textSecondary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
+                Text(
+                    text = "Operadoras detectadas",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.textSecondary,
+                )
+            }
+            Spacer(Modifier.height(LkSpacing.md))
+            linhas.forEachIndexed { index, (operadora, status) ->
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onTap)
+                            .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(c.surfaceContainerHighest),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Canvas(modifier = Modifier.matchParentSize()) {
+                            val stripeColor = c.surfaceContainerHigh
+                            val gap = 6.dp.toPx()
+                            var startX = -size.height
+                            while (startX < size.width) {
+                                drawLine(
+                                    color = stripeColor,
+                                    start = Offset(startX, size.height),
+                                    end = Offset(startX + size.height, 0f),
+                                    strokeWidth = 3.dp.toPx(),
+                                )
+                                startX += gap
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.Outlined.Smartphone,
+                            contentDescription = null,
+                            tint = c.textSecondary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(LkSpacing.md))
+                    Text(
+                        text = operadora,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = c.textPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = status.first,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.W700,
+                        color = status.second,
+                    )
+                }
+                if (index < linhas.lastIndex) {
+                    HorizontalDivider(color = c.border, thickness = 1.dp)
+                }
+            }
+        }
+    }
+}
+
+private fun simStatusLabel(
+    rsrpDbm: Int?,
+    radioDesligado: Boolean,
+): Pair<String, Color> =
+    when {
+        radioDesligado -> "Sem sinal" to LkColors.error
+        rsrpDbm == null -> "Sem leitura" to LkColors.warning
+        rsrpDbm > -85 -> "Bom" to LkColors.success
+        rsrpDbm > -100 -> "Regular" to LkColors.warning
+        else -> "Ruim" to LkColors.error
+    }

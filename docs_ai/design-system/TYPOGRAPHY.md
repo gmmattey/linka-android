@@ -1,84 +1,64 @@
 # Tipografia — SignallQ
 
-**Fonte de verdade (documentação, To-Be):** "SignallQ App - Fluxo de Telas.dc.html" (Claude
-Design, projeto `e77ea465-291f-4bf5-930c-a267680da04e`) — ver
-`docs_ai/design-system/DECISAO_ALINHAMENTO_TOBE_2026-07-13.md`.
-**Fonte Android (código, AINDA NÃO atualizada para a escala abaixo):** `SignallQTheme.kt`
-(`signallQTypography`)
-**Escopo:** Android v0.23.0
-**Última atualização:** 2026-07-13
+**Fonte de verdade:** `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/SignallQTheme.kt`  
+**Escopo:** Android v0.23.0+  
+**Última atualização:** 2026-07-15
 
 ---
 
-## Família de fonte
+## Família tipográfica
 
-Fonte única do app: **Google Sans Flex** (fallback `Google Sans` → `Roboto` → `system-ui`), pesos
-400/500/600/700, em **todos** os estilos — não há mais split display/body por família. Implementada
-em PR #939 (arquivos TTF embutidos no APK, licença SIL OFL 1.1).
+Fonte única do app:
 
-## Material Design 3 — Escala do Fluxo de Telas (12 estilos)
+- `Google Sans Flex`
+- fallback técnico no código via recursos `google_sans_flex_*`
 
-Todos os tamanhos em `sp` para respeitar `fontScale` do sistema (acessibilidade).
+Pesos em uso no tema:
 
-| Estilo | Tamanho/Altura de linha | Peso | Tracking | Uso |
+- `400` Normal
+- `500` Medium
+- `600` SemiBold
+- `700` Bold
+
+Nenhuma nova tela deve introduzir segunda família tipográfica.
+
+---
+
+## Escala tipográfica oficial (MD3)
+
+Todos os tamanhos abaixo são a implementação oficial atual em `signallQTypography`.
+
+| Token | Tamanho | Line height | Peso | Tracking |
 | --- | --- | --- | --- | --- |
-| `displaySmall` | 34/40 sp | 700 | 0px | Heading de destaque (único display usado) |
-| `headlineLarge` | 26/32 sp | 700 | 0px | Títulos principais de seção |
-| `headlineSmall` | 22/28 sp | 600 | 0px | Headings menores, títulos de sheet |
-| `titleLarge` | 20/26 sp | 600 | 0px | Títulos de tela/feature |
-| `titleMedium` | 16/22 sp | 500 | .1px | Títulos secundários |
-| `titleSmall` | 14/20 sp | 500 | .1px | Labels de componentes |
-| `bodyLarge` | 16/24 sp | 400 | .15px | Texto principal, descrições longas |
-| `bodyMedium` | 14/20 sp | 400 | .2px | Corpo padrão |
-| `bodySmall` | 12/16 sp | 400 | .25px | Texto menor, suplementar |
-| `labelLarge` | 14/20 sp | 500 | .1px | Labels de botões/chips |
-| `labelMedium` | 12/16 sp | 500 | .3px | Hints, captions |
-| `labelSmall` | 11/16 sp | 500 | .4px | Footnotes, overline |
-
-> `displayLarge`, `displayMedium` e `headlineMedium` foram **removidos** desta escala — nenhuma
-> tela do Fluxo de Telas usa estilo maior que `displaySmall`. Se necessidade real surgir, validar
-> valor com a Lia antes de reintroduzir (não extrapolar).
-
----
-
-## Componentes de Animação Tipográfica
-
-SignallQ inclui dois componentes especiais para animação de texto:
-
-### TypewriterText
-Anima texto entrando caractere por caractere, criando efeito de digitação.
-
-**Uso:** Respostas da IA no SignallQ (tela DESCONTINUADA no Fluxo de Telas — componente só
-relevante enquanto a rota existir no As-Is).
-**Arquivo:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/TypewriterText.kt`
-
-### RotatingMessageText
-Rotaciona entre múltiplas mensagens em loop, com fade in/out.
-
-**Uso:** Perguntas contextuais, hints dinâmicos no SignallQ Pulse.
-**Arquivo:** `app/src/main/kotlin/io/veloo/app/kotlin/ui/component/RotatingMessageText.kt`
+| `displayLarge` | 34 sp | 40 sp | Bold | 0 |
+| `displayMedium` | 34 sp | 40 sp | Bold | 0 |
+| `displaySmall` | 34 sp | 40 sp | Bold | 0 |
+| `headlineLarge` | 26 sp | 32 sp | Bold | 0 |
+| `headlineMedium` | 26 sp | 32 sp | Bold | 0 |
+| `headlineSmall` | 22 sp | 28 sp | SemiBold | 0 |
+| `titleLarge` | 20 sp | 26 sp | SemiBold | 0 |
+| `titleMedium` | 16 sp | 22 sp | Medium | 0.1 |
+| `titleSmall` | 14 sp | 20 sp | Medium | 0.1 |
+| `bodyLarge` | 16 sp | 24 sp | Normal | 0.15 |
+| `bodyMedium` | 14 sp | 20 sp | Normal | 0.2 |
+| `bodySmall` | 12 sp | 16 sp | Normal | 0.25 |
+| `labelLarge` | 14 sp | 20 sp | Medium | 0.1 |
+| `labelMedium` | 12 sp | 16 sp | Medium | 0.3 |
+| `labelSmall` | 11 sp | 16 sp | Medium | 0.4 |
 
 ---
 
-## Uso em Composables
+## Regras de uso
 
-```kotlin
-Text("Seu texto", style = MaterialTheme.typography.bodyMedium)
-Text("Headline", style = MaterialTheme.typography.headlineSmall)
-```
-
----
-
-## Acessibilidade
-
-- **Mínimo para corpo:** `bodyMedium` (14 sp) atende WCAG AA.
-- **Respeito ao sistema:** Todos os tamanhos usam `sp`, não `dp`, para adaptar à configuração de zoom do usuário.
-- **Contrast:** Material Design 3 garante contraste 4.5:1 em cores padrão.
+- Preferir sempre `MaterialTheme.typography.*`.
+- Evitar `fontSize = ...sp` e `letterSpacing = ...sp` em tela/componente comum.
+- Só usar `TextStyle(...)` manual quando houver motivo técnico real, como canvas, chart labels ou renderização custom.
+- Mesmo papel visual deve usar o mesmo token em todas as telas.
 
 ---
 
-## Implementação Android pendente
+## Situação atual do código
 
-`SignallQTheme.kt` (`signallQTypography`) ainda usa a escala anterior (valores e pesos
-diferentes dos acima) — atualização de código é fase separada, fora do escopo desta correção de
-documentação (2026-07-13).
+- A implementação do tema já está alinhada com a spec mais recente.
+- Ainda existem telas e componentes com `fontSize` e `letterSpacing` hardcoded.
+- Esses hardcodes devem ser tratados como dívida de padronização, não como novo padrão.

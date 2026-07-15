@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,7 @@ import androidx.compose.material.icons.outlined.SettingsEthernet
 import androidx.compose.material.icons.outlined.SettingsInputAntenna
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,7 +52,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.signallq.app.core.network.contracts.gateway.EquipmentClassification
 import io.signallq.app.core.network.contracts.localdevice.ClientSnapshot
 import io.signallq.app.core.network.contracts.localdevice.DataFreshness
@@ -64,7 +63,6 @@ import io.signallq.app.feature.diagnostico.DiagnosticStatus
 import io.signallq.app.feature.diagnostico.FibraDiagnosticInput
 import io.signallq.app.feature.diagnostico.FibraSignalQualityEngine
 import io.signallq.app.ui.LkColors
-import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.SignallQTheme
@@ -660,13 +658,7 @@ fun LocalDeviceSection(
     val c = LocalLkTokens.current
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = "EQUIPAMENTO LOCAL",
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            color = c.textTertiary,
-            letterSpacing = 0.5.sp,
-        )
+        LkSectionOverline("Equipamento local")
         Spacer(Modifier.height(LkSpacing.sm))
 
         when (state) {
@@ -718,32 +710,39 @@ private fun LocalDeviceEmptyCard(
     accent: Color,
 ) {
     val c = LocalLkTokens.current
-    Row(
+    LkSurfaceCard(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.lg)
                 .semantics(mergeDescendants = true) {},
-        verticalAlignment = Alignment.CenterVertically,
+        outlined = true,
     ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(accent.copy(alpha = 0.10f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(18.dp))
-        }
-        Spacer(Modifier.width(LkSpacing.md))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(titulo, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = c.textPrimary)
-            Spacer(Modifier.height(2.dp))
-            Text(descricao, fontSize = 11.5.sp, color = c.textSecondary, lineHeight = 16.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(accent.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(18.dp))
+            }
+            Spacer(Modifier.width(LkSpacing.md))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    titulo,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = c.textPrimary,
+                )
+                Spacer(Modifier.height(LkSpacing.xs))
+                Text(
+                    descricao,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.textSecondary,
+                )
+            }
         }
     }
 }
@@ -757,15 +756,7 @@ private fun LocalDeviceConectadoContent(
     var detalhesExpandidos by remember { mutableStateOf(false) }
     val statusColor = statusParaCor(state.resumoStatus)
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgCard)
-                .border(1.dp, c.border, RoundedCornerShape(LkRadius.card))
-                .padding(LkSpacing.lg),
-    ) {
+    LkSurfaceCard(modifier = Modifier.fillMaxWidth(), outlined = true) {
         // Cabecalho: nome do equipamento + tipo (GH#538, deixa claro se e ONT ou
         // roteador antes de qualquer dado tecnico) + nivel de suporte.
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -779,13 +770,13 @@ private fun LocalDeviceConectadoContent(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     state.tituloEquipamento,
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = c.textSecondary,
                 )
                 Text(
                     deviceTypeLabel(state.deviceType),
-                    fontSize = 10.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     color = c.textTertiary,
                 )
             }
@@ -804,12 +795,11 @@ private fun LocalDeviceConectadoContent(
         // fibra; deixa isso explicito para o usuario nao esperar essa informacao
         // aqui e nao confundir com falha de leitura.
         notaSemLeituraDeFibra(state.deviceType)?.let { nota ->
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(LkSpacing.xs))
             Text(
                 nota,
-                fontSize = 10.5.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = c.textTertiary,
-                lineHeight = 14.sp,
             )
         }
 
@@ -824,16 +814,15 @@ private fun LocalDeviceConectadoContent(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .background(LkColors.warning.copy(alpha = 0.08f))
-                        .padding(horizontal = LkSpacing.sm, vertical = 6.dp),
+                        .padding(horizontal = LkSpacing.sm, vertical = LkSpacing.sm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Outlined.Science, contentDescription = null, tint = LkColors.warning, modifier = Modifier.size(14.dp))
                 Spacer(Modifier.width(LkSpacing.xs))
                 Text(
                     "Suporte experimental. Alguns dados podem não aparecer ou estar incompletos.",
-                    fontSize = 10.5.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = c.textSecondary,
-                    lineHeight = 14.sp,
                 )
             }
         }
@@ -842,18 +831,21 @@ private fun LocalDeviceConectadoContent(
 
         // Resumo interpretado — sempre acima dos dados tecnicos crus.
         Row(verticalAlignment = Alignment.Top) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(statusColor),
-            )
+            LkStatusDot(color = statusColor)
             Spacer(Modifier.width(LkSpacing.sm))
             Column {
-                Text(state.resumoTitulo, fontSize = 14.sp, fontWeight = FontWeight.W600, color = c.textPrimary)
-                Spacer(Modifier.height(2.dp))
-                Text(state.resumoDescricao, fontSize = 12.sp, color = c.textSecondary, lineHeight = 17.sp)
+                Text(
+                    state.resumoTitulo,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.W600,
+                    color = c.textPrimary,
+                )
+                Spacer(Modifier.height(LkSpacing.xs))
+                Text(
+                    state.resumoDescricao,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = c.textSecondary,
+                )
             }
         }
 
@@ -861,13 +853,12 @@ private fun LocalDeviceConectadoContent(
         // refazer quando ela ja existe na tela (footer/botao existente, nunca um
         // botao novo criado dentro deste card).
         if (state.freshness.expirado && refazerDisponivel) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(LkSpacing.xs))
             Text(
                 "Estes dados podem não refletir o estado atual do equipamento — " +
                     "toque em Atualizar para uma nova leitura.",
-                fontSize = 10.5.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = LkColors.warning,
-                lineHeight = 14.sp,
             )
         }
 
@@ -877,17 +868,10 @@ private fun LocalDeviceConectadoContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "DADOS TÉCNICOS",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = c.textTertiary,
-                    letterSpacing = 0.5.sp,
-                    modifier = Modifier.weight(1f),
-                )
+                LkSectionOverline("Dados técnicos", modifier = Modifier.weight(1f))
                 Text(
                     text = if (detalhesExpandidos) "Ocultar" else "Ver detalhes",
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.labelLarge,
                     color = c.textTertiary,
                     modifier =
                         Modifier
@@ -918,28 +902,37 @@ private fun EquipamentoSecaoRow(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
                 .background(c.bgSecondary)
-                .padding(horizontal = 11.dp, vertical = 9.dp),
+                .padding(horizontal = LkSpacing.md, vertical = LkSpacing.sm),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(secao.icone, contentDescription = null, tint = c.textSecondary, modifier = Modifier.size(14.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(secao.titulo, fontSize = 11.sp, fontWeight = FontWeight.W600, color = c.textSecondary)
+            Spacer(Modifier.width(LkSpacing.sm))
+            Text(
+                secao.titulo,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.W600,
+                color = c.textSecondary,
+            )
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(LkSpacing.sm))
 
         secao.overline?.let { overline ->
-            Text(overline, fontSize = 10.5.sp, color = c.textTertiary)
-            Spacer(Modifier.height(4.dp))
+            Text(
+                overline,
+                style = MaterialTheme.typography.bodySmall,
+                color = c.textTertiary,
+            )
+            Spacer(Modifier.height(LkSpacing.xs))
         }
 
         secao.itens.forEach { item ->
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = LkSpacing.xs),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     item.label,
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = c.textTertiary,
                     modifier = Modifier.weight(1f),
                     maxLines = 2,
@@ -952,7 +945,7 @@ private fun EquipamentoSecaoRow(
                 // revalidacao de 2026-07-10, so aparecia com dado real de Wi-Fi.
                 Text(
                     item.valor,
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.W600,
                     color = item.statusValor?.let { statusParaCor(it) } ?: c.textPrimary,
                     modifier = Modifier.weight(1.3f),
@@ -966,8 +959,12 @@ private fun EquipamentoSecaoRow(
         secao.clientes.forEach { cliente -> ClienteConectadoRow(cliente = cliente, c = c) }
 
         secao.trailing?.let { trailing ->
-            Spacer(Modifier.height(2.dp))
-            Text(trailing, fontSize = 10.5.sp, color = c.textTertiary)
+            Spacer(Modifier.height(LkSpacing.xs))
+            Text(
+                trailing,
+                style = MaterialTheme.typography.bodySmall,
+                color = c.textTertiary,
+            )
         }
     }
 }
@@ -1007,18 +1004,26 @@ private fun ClienteConectadoRow(
             ) {
                 Text(
                     cliente.titulo,
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.W600,
                     color = c.textPrimary,
                     modifier = Modifier.weight(1f),
                 )
                 cliente.tipoLabel?.let { tipoLabel ->
                     Spacer(Modifier.width(6.dp))
-                    Text(tipoLabel, fontSize = 10.5.sp, color = c.textTertiary)
+                    Text(
+                        tipoLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = c.textTertiary,
+                    )
                 }
             }
             cliente.ip?.let { ip ->
-                Text(ip, fontSize = 10.5.sp, color = c.textTertiary)
+                Text(
+                    ip,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = c.textTertiary,
+                )
             }
         }
     }
@@ -1041,10 +1046,10 @@ private fun FrescorIndicator(
                 tint = LkColors.warning,
                 modifier = Modifier.size(12.dp),
             )
-            Spacer(Modifier.width(2.dp))
+            Spacer(Modifier.width(LkSpacing.xs))
             Text(
                 "Leitura desatualizada",
-                fontSize = 10.sp,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.W600,
                 color = LkColors.warning,
             )
@@ -1052,7 +1057,7 @@ private fun FrescorIndicator(
     } else {
         Text(
             formatarFrescor(freshness.capturadoEmEpochMs),
-            fontSize = 10.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = c.textTertiary,
         )
     }
@@ -1063,15 +1068,11 @@ private fun SuporteBadge(
     texto: String,
     cor: Color,
 ) {
-    Box(
-        modifier =
-            Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(cor.copy(alpha = 0.10f))
-                .padding(horizontal = LkSpacing.sm, vertical = 2.dp),
-    ) {
-        Text(texto, fontSize = 10.sp, fontWeight = FontWeight.W700, color = cor)
-    }
+    LkPillBadge(
+        text = texto,
+        containerColor = cor.copy(alpha = 0.10f),
+        contentColor = cor,
+    )
 }
 
 /** `internal` (GH#934) para ser reaproveitada por EquipamentoInternetScreen.kt
