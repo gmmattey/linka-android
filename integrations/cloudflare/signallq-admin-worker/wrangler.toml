@@ -37,10 +37,14 @@ binding = "DB"
 database_name = "signallq-admin-db"
 database_id = "952cb253-1a84-48ac-9018-a4ca31036915"
 
+# GH#788 — snapshot de latencia/uptime a cada 15min (96 execucoes/dia, dentro do
+# free tier de Workers requests). Cron Triggers sao gratuitos em todos os planos.
 # GH#877 — sync automático de telemetria (Firebase Analytics + Google Play).
 # 1x/dia é suficiente: o export GA4->BigQuery é diário (não há granularidade
 # maior pra ganhar rodando com mais frequência) e ratings/tracks do Play Console
 # não mudam rápido o bastante pra justificar polling mais agressivo.
 # 06:00 UTC = 03:00 BRT (horário de menor tráfego no painel).
+# Cloudflare aceita multiplas expressoes cron no mesmo trigger — cada uma dispara
+# scheduled() independentemente; o handler diferencia pela `event.cron` recebida.
 [triggers]
-crons = ["0 6 * * *"]
+crons = ["*/15 * * * *", "0 6 * * *"]
