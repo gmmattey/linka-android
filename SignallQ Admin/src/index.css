@@ -74,6 +74,12 @@
   --error-container:      #93000A;
   --on-error-container:   #FFDAD6;
   --info:                 #8AB4F8;
+  /* Badge "IA & Custos" do card de Alertas Recentes (Overview) — par
+     container/on-container que não existia ainda (App/Sistema reaproveitam
+     --nav-active-bg/fg e --bg-surface-muted/--text-secondary, mas nenhum
+     token cobria o âmbar do protótipo). Ver Md3DashboardContent.dc.html:102. */
+  --attention-container:    #5C3F00;
+  --on-attention-container: #FFDDB0;
   --nav-active-bg:        var(--bg-sidebar-active);
   --nav-active-fg:        #E8DEF8;
   --chart-line-primary:   var(--primary);
@@ -149,6 +155,8 @@
   --error-container:    #93000A;
   --on-error-container: #FFDAD6;
   --info:               #8AB4F8;
+  --attention-container:    #5C3F00;
+  --on-attention-container: #FFDDB0;
   --nav-active-bg:      var(--bg-sidebar-active);
   --nav-active-fg:      #E8DEF8;
 }
@@ -179,6 +187,8 @@
   --success:            #1E8E3E;
   --attention:          #8A5300;
   --info:               #1A73E8;
+  --attention-container:    #FFDDB0;
+  --on-attention-container: #2B1700;
   --nav-active-bg:      #E8DEF8;
   --nav-active-fg:      #1E192B;
   --scrollbar-thumb:       #CAC4D0;
@@ -225,6 +235,8 @@
     --success:            #1E8E3E;
     --attention:          #8A5300;
     --info:               #1A73E8;
+    --attention-container:    #FFDDB0;
+    --on-attention-container: #2B1700;
     --nav-active-bg:      #E8DEF8;
     --nav-active-fg:      #1E192B;
     --scrollbar-thumb:       #CAC4D0;
