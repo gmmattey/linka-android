@@ -17,6 +17,20 @@ tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
 
+// kotlin.plugin.compose 2.4.0 emite @Metadata versao 2.4.0, mas o leitor kotlin-metadata-jvm
+// bundlado nas versoes atuais do Room compiler (2.8.4, usado direto por :coreDatabase e via
+// copia shadada dentro do Dagger/Hilt compiler nos modulos com Hilt) so suporta ler ate 2.3.0 --
+// quebra kaptDebugKotlin com IllegalArgumentException. Forcar a versao mais nova nas configs
+// kapt* resolve sem tocar em Room nem migrar KAPT->KSP. Remover quando Room publicar uma versao
+// com kotlin-metadata-jvm >= 2.4.0 (nao existia em 2026-07-15).
+subprojects {
+    configurations.matching {
+        it.name.startsWith("kapt") || it.name.contains("annotationProcessor", ignoreCase = true)
+    }.configureEach {
+        resolutionStrategy.force("org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0")
+    }
+}
+
 val signallQVersionName = libs.versions.versionName.get()
 val signallQVersionCode = libs.versions.versionCode.get()
 
