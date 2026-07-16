@@ -24,6 +24,8 @@ export interface Env {
   ALLOWED_ORIGIN: string;
   FIREBASE_PROJECT_ID: string;
   FIREBASE_GA4_PROPERTY_ID: string;
+  /** "true"/"false" — ver comentário em wrangler.toml (decisão 2026-07-11, GH#877/#878). */
+  FIREBASE_SYNC_ENABLED: string;
   /** Mantido apenas para /health (retrocompat). NÃO protege mais /admin/*. */
   ADMIN_SECRET: string;
   /** Chave separada para ingest do app Android. Scope: POST /ingest/* apenas. */
@@ -2516,6 +2518,20 @@ async function handleFirebaseCrashIssues(_req: Request, env: Env): Promise<Respo
 }
 
 async function handleFirebaseSync(_req: Request, env: Env): Promise<Response> {
+  // Decisao 2026-07-11 (GH#877/#878): dataset `analytics_${FIREBASE_GA4_PROPERTY_ID}`
+  // nao existe — export GA4->BigQuery nunca foi criado (Sandbox sem billing, decisao do
+  // Luiz de nao assumir custo novo). Sem esta guarda, todo sync (cron 06:00 UTC e botao
+  // manual) bate em bq_error_403 garantido. Religar via FIREBASE_SYNC_ENABLED=true em
+  // wrangler.toml quando o export existir de verdade.
+  if (env.FIREBASE_SYNC_ENABLED !== 'true') {
+    console.log('[firebase-sync] pulado: FIREBASE_SYNC_ENABLED=false (export GA4->BigQuery ausente)');
+    return json({
+      ok: false,
+      source: 'disabled',
+      message: 'Firebase Analytics não configurado (export BigQuery ausente).',
+    }, 200, env);
+  }
+
   if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
     return json({ source: "no_credentials", ok: false }, 200, env);
   }
@@ -2527,14 +2543,26 @@ async function handleFirebaseSync(_req: Request, env: Env): Promise<Response> {
       AND event_name = 'session_start'
   `);
 
-  if (error === "table_not_found" || !rows.length) {
+  if (error) {
+    if (error === "table_not_found") {
+      // Esperado antes do primeiro export diário do GA4 -> BigQuery: não é falha.
+      const syncedAt = new Date().toISOString();
+      await writeFirebaseSyncState(env, { syncedAt, eventsImported: 0, crashesImported: 0 });
+      return json({ ok: false, source: "no_data_yet", sessionsYesterday: 0, syncedAt }, 200, env);
+    }
+    // GH#877 — bug anterior: `!rows.length` cai aqui pra QUALQUER erro (queryBigQuery
+    // sempre devolve rows:[] em caso de falha), então nenhuma falha real (auth_failed,
+    // bq_error_*) nunca chegava a virar source:"error" — era sempre lida como
+    // "no_data_yet" e o sync ainda gravava estado de "sucesso com 0 eventos",
+    // escondendo a falha real e corrompendo o timestamp da última sincronização
+    // válida. Query falhou de verdade: não persiste estado de sync, pois nada foi
+    // de fato sincronizado.
+    return json({ ok: false, source: "error", message: error }, 200, env);
+  }
+  if (!rows.length) {
     const syncedAt = new Date().toISOString();
     await writeFirebaseSyncState(env, { syncedAt, eventsImported: 0, crashesImported: 0 });
     return json({ ok: false, source: "no_data_yet", sessionsYesterday: 0, syncedAt }, 200, env);
-  }
-  if (error) {
-    // Query falhou: não persiste estado de sync, pois nada foi de fato sincronizado.
-    return json({ ok: false, source: "error", message: error }, 200, env);
   }
 
   const sessions = parseInt(rows[0]?.sessions ?? "0", 10);
@@ -3115,11 +3143,27 @@ async function handleProductAnalytics(request: Request, env: Env): Promise<Respo
   ]);
 
   // GH#418: tempo médio de sessão real (duration_ms só existe em session_end, SIG-295/GH#417).
-  const sessionDurationRow = await env.DB.prepare(
-    `SELECT AVG(duration_ms) AS avg_duration_ms, COUNT(*) AS session_count
-     FROM analytics_events
-     WHERE event_name = 'session_end' AND duration_ms IS NOT NULL AND created_at >= ?${envClause}`
-  ).bind(since, ...envBinds).first<{ avg_duration_ms: number | null; session_count: number }>();
+  // GH#XXX: session_count NÃO pode vir dessa mesma query — nem todo fluxo
+  // dispara session_end com duration_ms preenchido (app fica em foreground o
+  // teste todo, sessão nunca fecha graciosamente), e isso zera "Sessões no
+  // período" mesmo com atividade real (feature_usage/screen_navigation > 0 na
+  // mesma janela). session_id é NOT NULL/indexado para TODO evento (migration
+  // 006_sig134.sql) — mesmo critério já usado em feature_usage/screen_navigation
+  // (COUNT DISTINCT session_id). avg_session_duration_ms continua exigindo
+  // session_end de verdade — não inventar duração a partir de outro evento.
+  const [sessionDurationRow, sessionCountRow] = await Promise.all([
+    env.DB.prepare(
+      `SELECT AVG(duration_ms) AS avg_duration_ms
+       FROM analytics_events
+       WHERE event_name = 'session_end' AND duration_ms IS NOT NULL AND created_at >= ?${envClause}`
+    ).bind(since, ...envBinds).first<{ avg_duration_ms: number | null }>(),
+
+    env.DB.prepare(
+      `SELECT COUNT(DISTINCT session_id) AS session_count
+       FROM analytics_events
+       WHERE created_at >= ?${envClause}`
+    ).bind(since, ...envBinds).first<{ session_count: number }>(),
+  ]);
 
   // GH#418: retenção D1/D7/D30 por cohort de device_id (device_id só existe desde GH#417/migration 008).
   // Cohort de retenção usa histórico completo (não limitado ao `period` do request) porque D1/D7/D30
@@ -3224,7 +3268,7 @@ async function handleProductAnalytics(request: Request, env: Env): Promise<Respo
   const avg_session_duration_ms = sessionDurationRow?.avg_duration_ms != null
     ? Math.round(sessionDurationRow.avg_duration_ms)
     : null;
-  const session_count = sessionDurationRow?.session_count ?? 0;
+  const session_count = sessionCountRow?.session_count ?? 0;
 
   const totalDevices = retentionRow?.total_devices ?? 0;
   const retention = totalDevices === 0 ? [] : [{
@@ -3550,6 +3594,59 @@ const INGEST_ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }
   { method: "POST", pattern: /^\/ingest\/analytics$/,  handler: withErrorLogging('analytics', handleIngestAnalytics) },
 ];
 
+// GH#877 — automatiza o sync de telemetria (Firebase Analytics + Google Play
+// ratings/tracks) que antes só rodava quando alguém clicava em "Sincronizar
+// telemetria" no Admin. O botão manual continua existindo (força um sync fora
+// do horário do cron); o cron cobre o caso de ninguém lembrar de clicar.
+//
+// Cada sync roda isolada: uma falhar não pode impedir as outras, por isso
+// try/catch individual por job em vez de um Promise.all que aborta tudo no
+// primeiro reject. logError é a única forma de alguém notar que o cron parou
+// de funcionar, já que não existe nenhuma UI olhando essa execução em tempo real.
+//
+// GH#878 (decisão 2026-07-11): o job 'firebase' continua na lista de propósito —
+// handleFirebaseSync curto-circuita sozinho via FIREBASE_SYNC_ENABLED e devolve
+// source:"disabled" (não é 'error'), então o cron não grava mais 403 recorrente
+// em system_errors. Tirar o job da lista exigiria reinserir manualmente quando o
+// export existir; a guarda por flag é a forma mais fácil de religar.
+const SCHEDULED_SYNC_JOBS: Array<{
+  name: string;
+  run: (env: Env) => Promise<Response>;
+  isError: (data: Record<string, unknown>) => boolean;
+}> = [
+  {
+    name: 'firebase',
+    run: (env) => handleFirebaseSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.source === 'error',
+  },
+  {
+    name: 'google-play',
+    run: (env) => handleGooglePlaySync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'google-play-tracks',
+    run: (env) => handleGooglePlayTracksSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+];
+
+async function runScheduledSync(env: Env): Promise<void> {
+  await Promise.allSettled(
+    SCHEDULED_SYNC_JOBS.map(async (job) => {
+      try {
+        const resp = await job.run(env);
+        const data = (await resp.json()) as Record<string, unknown>;
+        if (job.isError(data)) {
+          await logError(env, `${job.name}-scheduled-sync`, String(data.message ?? 'falha sem mensagem detalhada'));
+        }
+      } catch (e) {
+        await logError(env, `${job.name}-scheduled-sync`, String(e), e instanceof Error ? (e.stack ?? '') : '');
+      }
+    })
+  );
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === "OPTIONS") {
@@ -3618,10 +3715,16 @@ export default {
     return err("Not found", 404, env);
   },
 
-  // #788 — Cron Trigger (ver [triggers] em wrangler.toml): grava um snapshot
-  // de latência/uptime a cada execução, sem custo (Workers Free inclui cron
-  // triggers; a cada 15min = 96 invocações/dia, irrelevante nos 100k/dia livres).
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(runHealthSnapshot(env));
+  // Cloudflare Cron Trigger (ver [triggers] em wrangler.toml) — dois crons
+  // compartilham o mesmo handler; diferencia pela expressão recebida em event.cron.
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (event.cron === "0 6 * * *") {
+      // GH#877 — sync diário de telemetria (Firebase Analytics + Google Play).
+      ctx.waitUntil(runScheduledSync(env));
+    } else {
+      // #788 — snapshot de latência/uptime a cada 15min, sem custo (Workers Free
+      // inclui cron triggers; 96 invocações/dia, irrelevante nos 100k/dia livres).
+      ctx.waitUntil(runHealthSnapshot(env));
+    }
   },
 };
