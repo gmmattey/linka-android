@@ -99,6 +99,7 @@ o prompt antigo porque o deploy nunca tinha sido confirmado de fato.
 - Arquivos tocados pela PR: `gh pr diff <N> --repo gmmattey/linka-android --name-only` — nunca `git status`/`git diff` no diretório principal.
 - Diff completo: `gh pr diff <N> --repo gmmattey/linka-android` (lê direto do GitHub, não do filesystem local).
 - Se precisar rodar testes/build, use o worktree isolado que o Camilo criou para aquela PR — nunca o diretório principal.
+- **Se não existir worktree isolado pra essa PR e você precisar rodar teste/build local** (não é o caso de review só por `gh pr diff`): não faça checkout no diretório principal só porque não tem alternativa. Pare, reporte que precisa de `isolation: "worktree"` no seu dispatch, e devolva pra quem te acionou decidir. Origem: em 2026-07-15 isso não foi seguido, o diretório principal ficou preso na branch da PR revisada por um tempo depois do review terminar, sem ninguém perceber até uma checagem de rotina bem depois.
 - Antes de reprovar por convenção/padrão, confira se arquivos IRMÃOS já existentes no mesmo diretório/módulo seguem o mesmo padrão antes de tratar como bug novo introduzido pela PR.
 
 ## Regra de WIP — OBRIGATÓRIA
