@@ -145,7 +145,24 @@ Ao tocar em uma seção de Ajustes: extraia sheets e fluxos independentes para a
 agrupe por responsabilidade do usuário, não crie arquivos genéricos como `AjustesUtils.kt`, mantenha
 `AjustesScreen.kt` como composição das seções, preserve uma única fonte para cada configuração.
 
-### 4.5 Identificação de topologia e dispositivos
+### 4.5 `HomeScreen.kt`
+
+Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/HomeScreen.kt` — **3938
+linhas** (acima do limiar de "dívida crítica" da seção 7). Concentra a tela Início e múltiplas sheets
+(Meu dispositivo, Internet/Provedor, Rede móvel, Medir agora, mais SignalQualitySheet,
+QualidadePlaceholderSheet, MedicaoTipoSheet).
+
+Ao tocar nele:
+1. identifique qual sheet ou seção está sendo modificada;
+2. não adicione nova sheet diretamente — extraia para arquivo dedicado antes;
+3. prefira separar: estado de cada sheet, orquestração de métrica de sinal, adaptadores de dados,
+   componentes de visualização, wiring com features subjacentes;
+4. mantenha em `HomeScreen.kt` apenas a composição da tela principal e delegação das sheets;
+5. cada sheet independente deve ter seu próprio arquivo (ex.: `MeuDispositivoSheet.kt`,
+   `InternetProveedorSheet.kt`, `MedicaoTipoSheet.kt`);
+6. crie testes de caracterização antes de extrações com risco de comportamento visual ou estado.
+
+### 4.6 Identificação de topologia e dispositivos
 
 Quando encontrar motores, heurísticas ou classificadores concorrentes:
 1. liste todos os consumidores;
@@ -159,7 +176,7 @@ Quando encontrar motores, heurísticas ou classificadores concorrentes:
 Features não podem depender diretamente de outras features. A composição entre domínios acontece em
 `:app` ou por contratos normalizados em um módulo `core` adequado.
 
-### 4.6 Documentação divergente
+### 4.7 Documentação divergente
 
 Valide antes de confiar: referências antigas a versões anteriores, quantidades antigas de módulos,
 caminhos `io/veloo`, nomes antigos da marca, navegação anterior, agentes arquivados, issues antigas,
