@@ -191,7 +191,7 @@ fun OperadoraBottomSheet(
                 // Seção: outras operadoras (só quando há detectada)
                 if (outrasOperadoras.isNotEmpty()) {
                     LkSheetDivider()
-                    Spacer(Modifier.height(LkSpacing.lg))
+                    Spacer(Modifier.height(LkSpacing.md))
                     Overline(texto = "Não é a sua? Outras operadoras", color = c.textTertiary)
                     Spacer(Modifier.height(LkSpacing.md))
                     if (outrasNacionais.isNotEmpty()) {
