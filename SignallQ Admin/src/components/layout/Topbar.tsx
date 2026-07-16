@@ -155,9 +155,10 @@ export const Topbar: React.FC<TopbarProps> = ({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="p-2 min-w-[44px] min-h-[44px] lg:px-4 lg:py-2 lg:min-w-0 lg:min-h-0 rounded-xl text-xs font-semibold text-white transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+            className="p-2 min-w-[44px] min-h-[44px] lg:px-4 lg:py-2 lg:min-w-0 lg:min-h-0 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
             style={{
               backgroundColor: "var(--primary)",
+              color: "var(--on-primary)",
               boxShadow: `0 4px 12px ${alpha("var(--primary)", 20)}`,
             }}
             title="Sincronizar telemetria"
