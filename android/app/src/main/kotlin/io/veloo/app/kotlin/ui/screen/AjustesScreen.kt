@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.NewReleases
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.VerifiedUser
@@ -152,7 +153,7 @@ fun AjustesScreen(
     var showDadosLocaisSheet by remember { mutableStateOf(false) }
     var showDiagnosticoAppSheet by remember { mutableStateOf(false) }
     var showMinhaConexaoSheet by remember { mutableStateOf(false) }
-    // GH#936 — restaurado: tinha ficado sem entrada de UI (ver PreferenciasSheet.kt).
+    // GH#936 — sheet de "Alertas de qualidade", entrada na seção Notificações.
     var showPreferenciasSheet by remember { mutableStateOf(false) }
     // Row "Tema" abria showPreferenciasSheet por engano (sheet de "Alertas de
     // qualidade", sem relação com tema) — ThemeSelector existia pronto mas nunca
@@ -294,6 +295,21 @@ fun AjustesScreen(
                         label = "Tema",
                         value = temaLabel(temaSelecionado),
                         onClick = { showTemaSheet = true },
+                    )
+                }
+            }
+            item { Spacer(Modifier.height(16.dp)) }
+
+            item { SectionHeader("Notificações", c) }
+            item {
+                SettingsSectionCard(c = c) {
+                    // GH#936 — PreferenciasSheet ficou órfã depois que "Tema" passou a abrir
+                    // showTemaSheet (PR #1032). Entrada correta é aqui, não em Aparência.
+                    SimpleSettingRow(
+                        c = c,
+                        icon = Icons.Outlined.Notifications,
+                        label = "Alertas de qualidade",
+                        onClick = { showPreferenciasSheet = true },
                     )
                 }
             }
