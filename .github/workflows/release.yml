@@ -93,7 +93,7 @@ jobs:
         with:
           name: "SignallQ v${{ steps.versao.outputs.name }} (build ${{ steps.versao.outputs.code }})"
           body: ${{ steps.notas.outputs.corpo }}
-          draft: true
+          draft: false
           files: |
             android/app/build/outputs/bundle/release/signallq-*.aab
             android/app/build/outputs/apk/release/signallq-*.apk
