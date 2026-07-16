@@ -41,7 +41,7 @@ export const AdsOpportunityPanel: React.FC<AdsOpportunityPanelProps> = ({ opport
 
   return (
     <SectionCard
-      title="Oportunidades de Anúncios Contextuais (Monetização Futura)"
+      title="Oportunidades de anúncios contextuais (monetização futura)"
       description="Identificação de demandas e dores operacionais de conectividade do usuário para recomendação dirigida de equipamentos/serviços de rede."
     >
       <div className="space-y-6">

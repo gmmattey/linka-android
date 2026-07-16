@@ -31,7 +31,7 @@ describe("SystemHealthPage", () => {
       <SystemHealthPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
-    expect(screen.getByText("Uptime do Worker (30d)")).toBeInTheDocument();
+    expect(screen.getByText("Uptime do worker (30d)")).toBeInTheDocument();
     expect(screen.getByText("Latência p95 da API")).toBeInTheDocument();
     expect(screen.getByText("Erros 5xx (7d)")).toBeInTheDocument();
     expect(screen.getByText("Fila de eventos pendentes")).toBeInTheDocument();

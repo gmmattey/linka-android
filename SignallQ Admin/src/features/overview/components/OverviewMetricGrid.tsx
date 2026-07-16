@@ -12,7 +12,7 @@ interface OverviewMetricGridProps {
 }
 
 // Seção "App" do Centro de Controle (spec Lia, Md3DashboardContent.dc.html:25-30):
-// Usuários Ativos, Sessões (7d), Crash-free Rate, Nota na Play Store. Custo de
+// Usuários ativos, Sessões (7d), Crash-free rate, Nota na Play Store. Custo de
 // IA saiu deste grid — agora é card isolado full-width (AiCostSummaryCard).
 
 export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({
@@ -26,7 +26,7 @@ export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Usuários Ativos — real, Firebase Analytics (GA4) */}
       <MetricCard
-        label="Usuários Ativos"
+        label="Usuários ativos"
         value={activeUsersToday === null ? "Não disponível" : activeUsersToday}
         verdictNote={activeUsersToday === null ? "Firebase Analytics sem dado no período" : undefined}
         source="firebase"
@@ -50,7 +50,7 @@ export const OverviewMetricGrid: React.FC<OverviewMetricGridProps> = ({
           source==="bigquery"; qualquer outro source é honesto-vazio, com o
           motivo exato do worker (sem credencial, sem volume ainda, ou erro). */}
       <MetricCard
-        label="Crash-free Rate"
+        label="Crash-free rate"
         value={crashFreeAvailable ? `${firebaseCrashlytics!.crashFreeUsersPercentage}%` : "Não disponível"}
         verdictNote={crashFreeAvailable ? undefined : crashFreeReason(firebaseCrashlytics?.source)}
         source={crashFreeAvailable ? "firebase (bigquery)" : "não disponível"}

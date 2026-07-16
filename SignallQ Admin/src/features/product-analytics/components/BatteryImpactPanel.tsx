@@ -30,7 +30,7 @@ export const BatteryImpactPanel: React.FC<BatteryImpactPanelProps> = ({ metrics 
 
   return (
     <SectionCard
-      title="Impacto Estimado de Bateria e Performance"
+      title="Impacto estimado de bateria e performance"
       description="Estimativas agregadas de consumo com base no padrão operacional de rádio, ciclos de hardware e rotas nativas (Android Vitals/Custom Traces)."
     >
       <div className="space-y-5">

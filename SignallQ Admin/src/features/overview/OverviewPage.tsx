@@ -140,13 +140,13 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--error)]/20 bg-[var(--error)]/5 rounded-[var(--radius-card)]">
-        <h4 className="text-sm font-semibold text-[var(--error)] uppercase tracking-wider font-sans">Erro de Telemetria</h4>
+        <h4 className="text-sm font-semibold text-[var(--error)] uppercase tracking-wider font-sans">Erro de telemetria</h4>
         <p className="text-xs text-[var(--text-secondary)] mt-2 font-sans">{error}</p>
         <button
           onClick={() => { setError(null); setRetryCount(c => c + 1); }}
           className="mt-4 px-4 py-2 text-xs bg-[var(--error)]/10 border border-[var(--error)]/20 text-[var(--error)] hover:bg-[var(--error)]/20 transition-all rounded-xl font-sans"
         >
-          TENTAR NOVAMENTE
+          Tentar novamente
         </button>
       </div>
     );
@@ -155,7 +155,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({
   if (!metrics) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-6 border border-[var(--border)] bg-[var(--bg-sidebar)] rounded-[var(--radius-card)]">
-        <h4 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest font-sans">Nenhum Registro Encontrado</h4>
+        <h4 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest font-sans">Nenhum registro encontrado</h4>
         <p className="text-xs text-[var(--text-secondary)] mt-2 font-sans">Nossos Workers não catalogaram dados de diagnósticos neste período.</p>
       </div>
     );

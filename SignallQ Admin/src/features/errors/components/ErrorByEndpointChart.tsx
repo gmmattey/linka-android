@@ -9,7 +9,7 @@ import { FeatureComingSoon } from "../../../components/ui/FeatureComingSoon";
 // Mantém "Não disponível" em vez de inventar números por tela do app.
 export const ErrorByEndpointChart: React.FC = () => {
   return (
-    <ChartCard title="ERROS POR TELA" id="error-by-screen-card">
+    <ChartCard title="Erros por tela" id="error-by-screen-card">
       <FeatureComingSoon
         feature="Erros por tela"
         reason="Métrica ainda não disponível — requer instrumentação de tela nos logs de erro do app"

@@ -11,7 +11,7 @@ interface CostLimitSettingsProps {
 export const CostLimitSettings: React.FC<CostLimitSettingsProps> = ({ settings, onChange }) => {
   return (
     <SectionCard
-      title="Limiares de Alerta (GET /admin/metrics/alerts)"
+      title="Limiares de alerta (GET /admin/metrics/alerts)"
       description="Estes três valores são lidos diretamente pelo worker a cada consulta de alertas — alterar aqui muda o comportamento real do painel de alertas."
       id="cost-limit-settings"
     >

@@ -109,7 +109,7 @@ describe("ToolsPage", () => {
     expect(screen.getByText("Erros — lista detalhada")).toBeInTheDocument();
     expect(screen.getByText("IA & Custos — detalhamento")).toBeInTheDocument();
     expect(screen.getByText("Uso do App — detalhamento")).toBeInTheDocument();
-    expect(screen.getByText(/Saúde do Sistema — detalhamento/)).toBeInTheDocument();
+    expect(screen.getByText(/Saúde do sistema — detalhamento/)).toBeInTheDocument();
     expect(screen.getByText("Configurações — integrações e limites")).toBeInTheDocument();
   });
 

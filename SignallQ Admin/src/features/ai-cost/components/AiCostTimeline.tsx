@@ -24,7 +24,7 @@ export const AiCostTimeline: React.FC<AiCostTimelineProps> = ({ timelineData }) 
   if (timelineData.length === 0) {
     return (
       <ChartCard
-        title="Uso de IA — Tokens por Provedor por Dia"
+        title="Uso de IA — tokens por provedor por dia"
         description="Volume diário de tokens processados, segmentado por provedor de IA."
         id="ai-usage-timeline"
       >
@@ -74,7 +74,7 @@ export const AiCostTimeline: React.FC<AiCostTimelineProps> = ({ timelineData }) 
 
   return (
     <ChartCard
-      title="Uso de IA — Tokens por Provedor por Dia"
+      title="Uso de IA — tokens por provedor por dia"
       description="Volume diário de tokens processados, segmentado por provedor de IA."
       id="ai-usage-timeline"
     >

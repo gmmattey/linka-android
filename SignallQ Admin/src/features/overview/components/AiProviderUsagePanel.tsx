@@ -10,7 +10,7 @@ interface AiProviderUsagePanelProps {
 export const AiProviderUsagePanel: React.FC<AiProviderUsagePanelProps> = ({ usage }) => {
   return (
     <ChartCard
-      title="Uso de IA por Provedor"
+      title="Uso de IA por provedor"
       description="Divisão das requisições de triagem e inteligência preditiva processadas na extremidade."
       id="ai-provider-usage-card"
     >

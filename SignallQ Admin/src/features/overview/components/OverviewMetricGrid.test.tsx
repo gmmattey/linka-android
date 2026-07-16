@@ -3,8 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { OverviewMetricGrid } from "./OverviewMetricGrid";
 
 // Paridade com o protótipo md3-tobe (Md3DashboardContent.dc.html:25-30): os 4
-// KPIs da seção "App" do Centro de Controle são Usuários Ativos, Sessões
-// (7d), Crash-free Rate e Nota na Play Store. Custo de IA saiu deste grid —
+// KPIs da seção "App" do Centro de Controle são Usuários ativos, Sessões
+// (7d), Crash-free rate e Nota na Play Store. Custo de IA saiu deste grid —
 // virou card isolado (AiCostSummaryCard), fora deste componente.
 describe("OverviewMetricGrid", () => {
   it("renderiza os 4 KPIs da seção App com dado real quando disponível", () => {
@@ -17,11 +17,11 @@ describe("OverviewMetricGrid", () => {
       />
     );
 
-    expect(screen.getByText("Usuários Ativos")).toBeInTheDocument();
+    expect(screen.getByText("Usuários ativos")).toBeInTheDocument();
     expect(screen.getByText("18.240")).toBeInTheDocument();
     expect(screen.getByText("Sessões (7d)")).toBeInTheDocument();
     expect(screen.getByText("12.860")).toBeInTheDocument();
-    expect(screen.getByText("Crash-free Rate")).toBeInTheDocument();
+    expect(screen.getByText("Crash-free rate")).toBeInTheDocument();
     expect(screen.getByText("98.6%")).toBeInTheDocument();
     expect(screen.getByText("Nota na Play Store")).toBeInTheDocument();
     expect(screen.getByText("4.6 ★")).toBeInTheDocument();
