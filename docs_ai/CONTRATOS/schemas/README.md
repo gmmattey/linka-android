@@ -26,7 +26,7 @@ ninguém percebesse.
 
 | Schema | Versão atual confirmada | Caminho de origem | Consumidor(es) |
 |---|---|---|---|
-| Room — `SignallQDatabase` (atual) | **v13** | `android/core/database/schemas/io.signallq.app.core.database.SignallQDatabase/13.json` (definição em `SignallQDatabase.kt`) | App Android (`:app`, `:coreDatabase`, DAOs consumidos por `:featureHistory`, `:featureDiagnostico`, `:featureDevices` etc.) |
+| Room — `SignallQDatabase` (atual) | **v14** | `android/core/database/schemas/io.signallq.app.core.database.SignallQDatabase/14.json` (definição em `SignallQDatabase.kt`; GH#1027 adiciona `bandaWifi`) | App Android (`:app`, `:coreDatabase`, DAOs consumidos por `:featureHistory`, `:featureDiagnostico`, `:featureDevices` etc.) |
 | Room — `VelooDatabase` (residual) | v10 (única versão presente) | `android/core/database/schemas/io.signallq.app.core.database.VelooDatabase/10.json` | Nenhum — histórico de schema mantido pelo Room, não referenciado por código ativo |
 | Room — `LinkaDatabase` (legado) | v10 (mais alta presente; 1–10) | `android/core/database/schemas/io.linka.app.kotlin.core.database.LinkaDatabase/1.json` … `/10.json` | Nenhum — histórico de schema mantido pelo Room, não referenciado por código ativo |
 | D1 — `signallq-admin-db` | migration 014 (`014_gh786.sql`) | `integrations/cloudflare/signallq-admin-worker/migrations/001_sig143.sql` … `014_gh786.sql` | `signallq-admin-worker` + SignallQ Console (`SignallQ Admin/`, via API do worker) |
@@ -44,7 +44,7 @@ foi possível confirmar datas exatas de cada transição, só a ordem relativa:
   nova sob esse nome; o rebrand de classe aconteceu sem alterar o schema (mesma v10 herdada de
   `LinkaDatabase`), e o nome já mudou de novo antes de qualquer versão v11 nascer sob `Veloo`.
 - **`SignallQDatabase`** (nome atual) — retomou a numeração a partir de **v10** e evoluiu até
-  **v13** (confirmado em `SignallQDatabase.kt`, `version = 13`, idêntico ao `13.json`). É a única
+  **v14** (confirmado em `SignallQDatabase.kt`, `version = 14`, idêntico ao `14.json` — GH#1027 adiciona `bandaWifi` para capturar banda Wi-Fi durante medição). É a única
   classe `RoomDatabase` presente no código Kotlin atual — `LinkaDatabase`/`VelooDatabase` não têm
   arquivo `.kt` correspondente, existem só como histórico de schema JSON gerado pelo Room em
   builds anteriores ao rebrand.

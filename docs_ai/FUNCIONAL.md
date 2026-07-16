@@ -174,15 +174,17 @@ full-screen) → `ResultadoVelocidadeScreen` (overlay).
 ### 4.2 Diagnóstico assistido por IA
 
 Não existe mais uma tela de chat dedicada. O diagnóstico por IA acontece **inline dentro de
-`ResultadoVelocidadeScreen`**, via `AnalisadorEntryRow`:
+`ResultadoVelocidadeScreen`**, via `AnalisadorEntryRow` (GH#931 fase 2 MD3):
 
-1. **Inativo:** card "Analisar meu problema com IA" — "Abrir diagnóstico específico por problema
-   relatado".
-2. Usuário toca, descreve o problema (texto livre) em `AnaliseDetalhadaBottomSheet`.
-3. **Analisando:** spinner + "Analisando seu problema…".
-4. **Resultado:** "Diagnóstico da IA" — "Ver análise completa" abre o sheet com o texto da IA e
-   ações recomendadas (`AiAcaoRecomendada`).
-5. **Erro:** "A análise falhou — toque para tentar novamente".
+**Fluxo duplo:**
+1. **Laudo automático** ("Diagnóstico geral da sua conexão") — diagnóstico Motor remoto (`signallq-diagnostic-worker`, timeout 42s, GH#962) chamado automaticamente com o resultado do speedtest, sem ação do usuário. Fallback automático para motor local em caso de timeout/erro.
+2. **Análise por problema específico** ("Análise do seu problema") — usuário descreve em texto livre em `AnaliseDetalhadaBottomSheet`, IA Gemini/Qwen analisa aquele sintoma específico com timeout remoto 42s (GH#969).
+
+**Estados de cada análise:**
+- **Inativo:** card "Analisar meu problema com IA" — convite a descrever.
+- **Analisando:** spinner + "Analisando seu problema…".
+- **Resultado:** "Diagnóstico" ou "Análise do seu problema" + ações recomendadas (`AiAcaoRecomendada`).
+- **Erro:** "Falha — toque para tentar novamente".
 
 É uma interação de turno único por análise (usuário descreve → IA responde), não uma conversa
 contínua com histórico multi-turno como nas versões anteriores do app.

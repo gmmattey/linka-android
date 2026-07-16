@@ -261,9 +261,10 @@ skill `auditar-ux`.
 
 ## 9. Ícones
 
-Material Symbols (**Outlined**, variable font) — não-negociável fixado em `.claude/CLAUDE.md`.
+Material Symbols (**Outlined**, variable font — `material_symbols_outlined.ttf`, Apache 2.0) — não-negociável fixado em `.claude/CLAUDE.md` — GH#1008 (fundação). Fonte variável com eixos FILL, wght, GRAD, opsz; renderiza via ligadura OpenType (o nome do ícone em texto é substituído pelo glifo). Componente `LkSymbol` (GH#1008) encapsula uso, com suporte a `filled = true` para estado selecionado (eixo FILL) — migração de `androidx.compose.material.icons.*` tela a tela em andamento.
+
 Não há tabela de mapeamento ícone→uso nas fontes originais; ao introduzir um ícone novo, usar o
-catálogo Material Symbols Outlined e manter peso/densidade consistentes com o restante da tela.
+catálogo https://fonts.google.com/icons?icon.set=Material+Symbols e manter peso/densidade consistentes com o restante da tela.
 
 ---
 

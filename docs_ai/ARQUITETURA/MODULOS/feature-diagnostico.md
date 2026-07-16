@@ -20,8 +20,9 @@ físico legado) — subpacotes `engines/`, `ai/`, `pulse/`, `chat/`.
 
 | Arquivo/Pacote | Tipo | Responsabilidade |
 |---|---|---|
-| `DiagnosticOrchestrator.kt` | Orchestrator | Sequencia engines e retorna relatório completo |
-| `DiagnosticRunner.kt` | Object stateless | Executa todos os engines e agrega resultados |
+| `DiagnosticOrchestrator.kt` | Orchestrator | Sequencia engines e retorna relatório completo. Chamada remota primeiro via `RemoteDiagnosticRepository` (timeout 42s, GH#962/GH#969), fallback para motor local em qualquer falha |
+| `RemoteDiagnosticRepository.kt` | Repository | POST ao `signallq-diagnostic-worker` (GH#962), timeout **42s** (ampliado de 5s recomendado na spec por decisão de produto 2026-07-16 para reduzir fallback prematuro em rede lenta). Fallback automático a `DiagnosticRunner` (motor local 100% offline) em timeout/erro/sem rede |
+| `DiagnosticRunner.kt` | Object stateless | Executa todos os engines e agrega resultados — motor local pure |
 | `DiagnosticResult.kt` / `DiagnosticStatus.kt` | Data class/Enum | Saída dos engines — ok/info/attention/critical/inconclusive |
 | `engines/WifiSignalQualityEngine.kt` | Engine | Qualidade do sinal Wi-Fi por banda |
 | `engines/InternetDiagnosticEngine.kt` | Engine | Velocidade, latência, jitter, perda, bufferbloat |

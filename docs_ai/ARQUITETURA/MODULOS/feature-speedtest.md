@@ -22,7 +22,8 @@ legado).
 | `SnapshotExecucaoSpeedtest.kt` / `ResultadoSpeedtest.kt` | Data class | Estado durante execução / resultado final |
 | `EstadoExecucaoSpeedtest.kt` | Enum | idle, executando, concluido, erro, cancelado |
 | `ModoSpeedtest.kt` | Enum | complete, ping_only |
-| `PingExecutor.kt` | Class | 20 amostras ICMP-over-HTTP/2 contra `speed.cloudflare.com/__down?bytes=0`, descarta 1ª amostra, filtra outliers |
+| `PingExecutor.kt` | Class | 20 amostras ICMP-over-HTTP/2 contra `speed.cloudflare.com/__down?bytes=0` (ou URL customizada como game-latency-probe), descarta 1ª amostra, filtra outliers — usa `AnalisadorAmostragemPing` para análise (GH#1019 consolidação) |
+| `AnalisadorAmostragemPing.kt` | Object stateless | Algoritmo puro consolidado: mediana, jitter, % perda. Extraído de `ExecutorSpeedtestCloudflare` e `PingExecutor` (duplicação literal removida em GH#1019). Reusado também por `ExecutorSpeedtestCloudflare` |
 | `PingResultado.kt` | Data class | latenciaMs, jitterMs, perdaPercentual, amostras |
 
 ## Entradas/saídas

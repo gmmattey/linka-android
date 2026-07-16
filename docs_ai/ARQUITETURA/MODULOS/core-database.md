@@ -18,8 +18,8 @@ subpacote `chat/`.
 
 | Arquivo | Tipo | Responsabilidade |
 |---|---|---|
-| `SignallQDatabase.kt` | Room Database | DB principal — versão 10, 4 entidades, 3 DAOs (nota: `.claude/CLAUDE.md` cita v12 em outro contexto — reconfirmar versão real antes de próxima alteração de schema) |
-| `MedicaoEntity.kt` / `MedicaoDao.kt` | Entity/DAO | Tabela `medicao` — medições de speedtest e monitoramento |
+| `SignallQDatabase.kt` | Room Database | DB principal — **versão 14** (GH#1027), 4 entidades, 3 DAOs (confirmado em `SignallQDatabase.kt`) |
+| `MedicaoEntity.kt` / `MedicaoDao.kt` | Entity/DAO | Tabela `medicao` — medições de speedtest e monitoramento (**coluna `bandaWifi` adicionada em v14** — captura banda 2.4GHz/5GHz durante medição, `NULL` pra histórico) |
 | `ApelidoDispositivoEntity.kt` / `ApelidoDispositivoDao.kt` | Entity/DAO | Tabela `apelido_dispositivo` |
 | `CoreDatabaseModulo.kt` | Object | Fábrica `criarBanco(context)` + migrações v1→v10 |
 | `chat/ChatSessionEntity.kt`, `chat/ChatMessageEntity.kt` | Entity | Tabelas `chat_sessions`, `chat_messages` |

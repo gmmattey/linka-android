@@ -111,7 +111,7 @@ subdiretórios `io/veloo`.
 
 ### 4.2 `MainViewModel.kt`
 
-Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/MainViewModel.kt` — **2186 linhas**
+Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/MainViewModel.kt` — **2191 linhas**
 (acima do limiar de "dívida crítica" da seção 7). Concentra responsabilidades demais e não deve
 continuar crescendo indiscriminadamente.
 
@@ -126,7 +126,7 @@ Ao tocar nele:
 
 ### 4.3 `AppShell.kt`
 
-Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/AppShell.kt` — **1140
+Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/AppShell.kt` — **1146
 linhas** (acima do limiar de extração obrigatória da seção 7). Deve ser shell de composição e
 navegação, não depósito de regras de negócio.
 
@@ -137,8 +137,8 @@ chamar isso de modularização.
 
 ### 4.4 `AjustesScreen.kt`
 
-Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/AjustesScreen.kt` — **809
-linhas** (acima do limiar de extração obrigatória da seção 7). Ainda contém múltiplos fluxos e
+Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/AjustesScreen.kt` — **771
+linhas** (acima do limiar de extração obrigatória da seção 7, mas diminuiu de 809 em relação ao último audit). Ainda contém múltiplos fluxos e
 componentes.
 
 Ao tocar em uma seção de Ajustes: extraia sheets e fluxos independentes para arquivos próprios,

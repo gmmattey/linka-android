@@ -218,11 +218,11 @@ antes do commit Android** quando houver mudança em
 
 ### 8.1 Room — `SignallQDatabase`
 
-**Módulo:** `:coreDatabase`. **Versão atual do schema: v13** (confirmado em
-`android/core/database/schemas/`).
+**Módulo:** `:coreDatabase`. **Versão atual do schema: v14** (confirmado em
+`android/core/database/schemas/` — migration 13→14 em GH#1027 adiciona coluna `bandaWifi` para capturar banda Wi-Fi durante medição).
 
 > Correção: `STORAGE.md`, `ANDROID_TECNICO.md`, `DATA_FLOW.md`, `MODULES.md`, `SERVICES.md` e o
-> `.claude/CLAUDE.md` citavam versões entre v10 e v12. A versão real mais alta é **v13**.
+> `.claude/CLAUDE.md` citavam versões entre v10 e v12. A versão real era **v13**; atualizada para **v14** nesta revalidação (2026-07-16).
 
 **Histórico dos 3 nomes de banco** (as três pastas de schema coexistem em
 `android/core/database/schemas/`, refletindo o histórico de rebrand Linka → Veloo → SignallQ):
@@ -231,7 +231,7 @@ antes do commit Android** quando houver mudança em
 |---|---|---|---|
 | `io.linka.app.kotlin.core.database.LinkaDatabase` | pacote antigo `io.linka.app.kotlin` | v10 | **Legado** — schema da era Linka, congelado |
 | `io.signallq.app.core.database.VelooDatabase` | já `io.signallq.app`, classe ainda `VelooDatabase` | v10 (única versão) | **Residual** — não recebeu migration própria; classe renomeada de novo antes de v11 nascer |
-| `io.signallq.app.core.database.SignallQDatabase` | `io.signallq.app` | **v13** | **Atual** — única classe `RoomDatabase` presente no `.kt` atual |
+| `io.signallq.app.core.database.SignallQDatabase` | `io.signallq.app` | **v14** | **Atual** — única classe `RoomDatabase` presente no `.kt` atual |
 
 `LinkaDatabase`/`VelooDatabase` não têm arquivo `.kt` correspondente — existem só como histórico de
 schema JSON gerado pelo Room em builds anteriores ao rebrand (comportamento normal de
@@ -386,7 +386,7 @@ Checklist completo por stack (Android + Cloudflare Pages/Workers) e changelog: v
 | compileSdk | ANDROID_TECNICO, BUILD_SYSTEM | 36 | 37 |
 | Total de módulos Gradle | ANDROID_TECNICO, MODULES | 15 (alegando CLAUDE.md errado) | 16 — CLAUDE.md estava certo; faltava `:coreRecommendation` |
 | Total de Workers Cloudflare | CLOUDFLARE, API_MAP | 3 | 5 — faltavam `signallq-diagnostic-worker` e `game-latency-probe-worker` |
-| Versão do schema Room | STORAGE, ANDROID_TECNICO, DATA_FLOW, MODULES, SERVICES, CLAUDE.md | v10 (ou "v12" no CLAUDE.md) | v13 (`SignallQDatabase`) — histórico de 3 nomes de banco na seção 8.1 |
+| Versão do schema Room | STORAGE, ANDROID_TECNICO, DATA_FLOW, MODULES, SERVICES, CLAUDE.md | v10 (ou "v12" no CLAUDE.md) | v14 (`SignallQDatabase`, GH#1027 — +bandaWifi) — histórico de 3 nomes de banco na seção 8.1 |
 
 ---
 
