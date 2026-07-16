@@ -50,7 +50,7 @@ export const DiagnosticsAggregateTable: React.FC<DiagnosticsAggregateTableProps>
 
   const columns = [
     {
-      header: "Tipo de Rede",
+      header: "Tipo de rede",
       accessor: (row: AggregateRow) => (
         <span className="font-sans font-semibold text-[var(--text-primary)] uppercase text-xs">
           {row.networkType}
@@ -66,7 +66,7 @@ export const DiagnosticsAggregateTable: React.FC<DiagnosticsAggregateTableProps>
       )
     },
     {
-      header: "Score Médio",
+      header: "Score médio",
       accessor: (row: AggregateRow) => {
         const value = row.avgScore;
         const color = value >= 85 ? "text-emerald-400" : value >= 70 ? "text-amber-500" : "text-red-400";
@@ -78,7 +78,7 @@ export const DiagnosticsAggregateTable: React.FC<DiagnosticsAggregateTableProps>
       }
     },
     {
-      header: "Download Médio (Mbps)",
+      header: "Download médio (Mbps)",
       accessor: (row: AggregateRow) => (
         <span className="font-mono text-[var(--info)] font-semibold text-[11px]">
           {row.avgDownload}
@@ -86,7 +86,7 @@ export const DiagnosticsAggregateTable: React.FC<DiagnosticsAggregateTableProps>
       )
     },
     {
-      header: "Latência Média (ms)",
+      header: "Latência média (ms)",
       accessor: (row: AggregateRow) => (
         <span className="font-mono text-[var(--text-secondary)]">
           {row.avgPing}
@@ -94,7 +94,7 @@ export const DiagnosticsAggregateTable: React.FC<DiagnosticsAggregateTableProps>
       )
     },
     {
-      header: "% do Total",
+      header: "% do total",
       accessor: (row: AggregateRow) => (
         <span className="font-mono text-[var(--text-secondary)] text-[11px]">
           {row.trendLabel}
@@ -127,7 +127,7 @@ export const DiagnosticsAggregateTable: React.FC<DiagnosticsAggregateTableProps>
 
   return (
     <SectionCard
-      title="Análise Agregada de Diagnósticos"
+      title="Análise agregada de diagnósticos"
       description="Consolidado multivariado de telemetria segmentado pelas interfaces ativas."
       id="diagnostics-aggregate-card"
     >

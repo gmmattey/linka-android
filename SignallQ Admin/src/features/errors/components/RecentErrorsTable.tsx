@@ -24,7 +24,7 @@ export const RecentErrorsTable: React.FC<RecentErrorsTableProps> = ({
       ),
     },
     {
-      header: "Componente (Fonte)",
+      header: "Componente (fonte)",
       accessor: (row: SystemError) => {
         let label = "ANDROID SDK";
         let color = "text-[var(--info)] bg-[var(--info)]/10 border-[var(--info)]/15";
@@ -69,7 +69,7 @@ export const RecentErrorsTable: React.FC<RecentErrorsTableProps> = ({
       },
     },
     {
-      header: "Mensagem de Erro",
+      header: "Mensagem de erro",
       accessor: (row: SystemError) => (
         <span className="font-sans font-medium text-[var(--text-primary)] block max-w-[280px] truncate" title={row.message}>
           {row.message}
@@ -83,7 +83,7 @@ export const RecentErrorsTable: React.FC<RecentErrorsTableProps> = ({
       ),
     },
     {
-      header: "Usuários Afetados",
+      header: "Usuários afetados",
       accessor: (row: SystemError) => (
         <span className="font-mono text-[var(--text-secondary)] font-semibold">{row.affectedUserCount}</span>
       ),

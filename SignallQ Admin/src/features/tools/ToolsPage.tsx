@@ -604,7 +604,7 @@ const SystemHealthDetailSection: React.FC<{ triggerRefreshCounter: number }> = (
 
   return (
     <ToolSection
-      title="Saúde do Sistema — detalhamento de infraestrutura"
+      title="Saúde do sistema — detalhamento"
       description="Status bruto do D1, credenciais Firebase, acesso BigQuery, ingest e últimos eventos registrados."
     >
       {healthError && <SectionError message={`Não foi possível consultar /admin/system-health: ${healthError}`} />}

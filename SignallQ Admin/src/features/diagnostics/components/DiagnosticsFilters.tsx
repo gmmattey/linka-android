@@ -122,7 +122,7 @@ export const DiagnosticsFilters: React.FC<DiagnosticsFiltersProps> = ({
             onClick={onRefresh}
             disabled={isRefreshing}
             className="flex items-center justify-center p-2.5 bg-[var(--bg-surface)] border border-[var(--border)] hover:border-zinc-700 active:bg-zinc-900 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all rounded-xl disabled:opacity-50 group"
-            title="Sincronizar Telemetria"
+            title="Sincronizar telemetria"
           >
             <RefreshCw
               className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[var(--primary)]" : "group-hover:rotate-45 transition-transform"}`}

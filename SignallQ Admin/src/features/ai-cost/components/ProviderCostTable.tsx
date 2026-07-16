@@ -25,7 +25,7 @@ function providerMeta(provider: string): { color: string; Icon: React.ElementTyp
 export const ProviderCostTable: React.FC<ProviderCostTableProps> = ({ insights }) => {
   const columns = [
     {
-      header: "Modelo de Borda (LLM)",
+      header: "Modelo de borda (LLM)",
       accessor: (row: AiModelInsights) => {
         const { color, Icon } = providerMeta(row.provider);
         return (
@@ -52,7 +52,7 @@ export const ProviderCostTable: React.FC<ProviderCostTableProps> = ({ insights }
       },
     },
     {
-      header: "Total de Chamadas",
+      header: "Total de chamadas",
       accessor: (row: AiModelInsights) => (
         <span className="font-mono text-xs" style={{ color: "var(--sq-text-secondary)" }}>
           {row.totalCalls.toLocaleString("pt-BR")}
@@ -60,7 +60,7 @@ export const ProviderCostTable: React.FC<ProviderCostTableProps> = ({ insights }
       ),
     },
     {
-      header: "Tokens Consumidos",
+      header: "Tokens consumidos",
       accessor: (row: AiModelInsights) => {
         if (row.totalTokens === 0) return <span className="font-mono" style={{ color: "var(--sq-text-tertiary)" }}>-</span>;
         const millionTokens = (row.totalTokens / 1000000).toFixed(1);
@@ -73,7 +73,7 @@ export const ProviderCostTable: React.FC<ProviderCostTableProps> = ({ insights }
       },
     },
     {
-      header: "Custo Estimado (R$)",
+      header: "Custo estimado (R$)",
       accessor: (row: AiModelInsights) => {
         const costVal = row.estimatedCostUsd;
         if (costVal === 0) {
@@ -98,10 +98,10 @@ export const ProviderCostTable: React.FC<ProviderCostTableProps> = ({ insights }
       },
     },
     {
-      header: "Taxa de Sucesso",
+      header: "Taxa de sucesso",
       accessor: (row: AiModelInsights) => {
         if (row.reliabilityPercentage === null) {
-          return <FeatureComingSoon feature="Taxa de Sucesso" compact />;
+          return <FeatureComingSoon feature="Taxa de sucesso" compact />;
         }
         const val = row.reliabilityPercentage;
         const color = val > 99

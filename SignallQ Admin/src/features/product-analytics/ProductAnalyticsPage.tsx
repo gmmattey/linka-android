@@ -118,7 +118,7 @@ export const ProductAnalyticsPage: React.FC<ProductAnalyticsPageProps> = ({
         {data!.featureUsage.length > 0 ? (
           <FeatureRankingBars metrics={data!.featureUsage} />
         ) : (
-          <ChartCard title="Funcionalidade mais usada · Sessões 7 dias" id="feature-ranking-bars-card">
+          <ChartCard title="Funcionalidade mais usada · sessões 7 dias" id="feature-ranking-bars-card">
             <FeatureComingSoon feature="Funcionalidade mais usada" reason="Métrica ainda não disponível — aguardando exposição no worker" />
           </ChartCard>
         )}

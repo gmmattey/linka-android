@@ -82,7 +82,7 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
         }}
       >
         <h4 className="text-sm font-semibold uppercase tracking-wider font-mono" style={{ color: "var(--sq-error)" }}>
-          Erro de Telemetria
+          Erro de telemetria
         </h4>
         <p className="text-xs mt-2" style={{ color: "var(--sq-text-secondary)" }}>{error}</p>
         <button
@@ -94,7 +94,7 @@ export const AiCostPage: React.FC<AiCostPageProps> = ({
             color: "var(--sq-error)",
           }}
         >
-          TENTAR NOVAMENTE
+          Tentar novamente
         </button>
       </div>
     );

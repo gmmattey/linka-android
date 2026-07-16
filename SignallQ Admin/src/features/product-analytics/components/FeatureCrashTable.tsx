@@ -37,7 +37,7 @@ export const FeatureCrashTable: React.FC<FeatureCrashTableProps> = ({ metrics })
 
   return (
     <SectionCard
-      title="Crashes, Erros e ANRs por Funcionalidade"
+      title="Crashes, erros e ANRs por funcionalidade"
       description="Relação sistemática de anomalias detectadas pelo SDK do Firebase Crashlytics e Android Vitals por segmento operacional."
     >
       <div className="overflow-x-auto">

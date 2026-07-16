@@ -10,7 +10,7 @@ interface TopIssuesPanelProps {
 export const TopIssuesPanel: React.FC<TopIssuesPanelProps> = ({ issues }) => {
   return (
     <ChartCard
-      title="Problemas mais Comuns"
+      title="Problemas mais comuns"
       description="Principais gargalos e falhas de infraestrutura residencial e móvel analisados nas varreduras."
       id="top-issues-panel-card"
     >
