@@ -1244,13 +1244,13 @@ private fun MetricCard(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             color = c.textSecondary,
         )
         Spacer(Modifier.height(LkSpacing.xs))
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineSmall,
             color = cor,
         )
         Text(
