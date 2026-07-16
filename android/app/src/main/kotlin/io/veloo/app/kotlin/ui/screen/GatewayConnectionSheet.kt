@@ -58,7 +58,11 @@ import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.component.SheetDragHandle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.InetSocketAddress
+import java.net.Socket
 
 /**
  * Estado interno da sheet de conexao ao gateway (GH#526). Nao ha estado de
@@ -73,6 +77,28 @@ private sealed interface GatewayConnectionSheetState {
         val mensagem: String,
     ) : GatewayConnectionSheetState
 }
+
+internal const val MENSAGEM_ERRO_ALCANCABILIDADE = "Não foi possível alcançar esse endereço na rede."
+
+private const val TIMEOUT_ALCANCABILIDADE_MS = 2000
+private val PORTAS_ADMIN_ROTEADOR = listOf(80, 443)
+
+/**
+ * Alcancabilidade real do gateway (2b-i To-Be) — connect TCP com timeout curto
+ * nas portas comuns de admin de roteador (80/443), em vez de
+ * [java.net.InetAddress.isReachable] (ICMP, costuma vir bloqueado em rede
+ * movel/Wi-Fi Android). Alcancavel se QUALQUER uma das portas aceitar conexao;
+ * refused/timeout em ambas = inalcancavel.
+ */
+private suspend fun alcancavelViaSocket(ip: String): Boolean =
+    withContext(Dispatchers.IO) {
+        PORTAS_ADMIN_ROTEADOR.any { porta ->
+            runCatching {
+                Socket().use { it.connect(InetSocketAddress(ip, porta), TIMEOUT_ALCANCABILIDADE_MS) }
+                true
+            }.getOrDefault(false)
+        }
+    }
 
 /**
  * Sheet de conexao ativa ao GPON/roteador (GH#526, epic #525).
@@ -142,6 +168,10 @@ internal fun GatewayConnectionSheetContent(
     conectar: GatewayConnectionService,
     onConectado: (ip: String, usuario: String, senha: String, lembrarSenha: Boolean, manterConectado: Boolean) -> Unit,
     c: LkTokens,
+    // 2b-i To-Be: alcancabilidade real via TCP connect (porta 80/443). Seam de
+    // teste — producao usa o default (Socket real), testes injetam um stub pra
+    // nao depender de rede real no Robolectric.
+    verificarAlcancabilidade: suspend (String) -> Boolean = ::alcancavelViaSocket,
 ) {
     var ipInput by remember { mutableStateOf(ipInicial.orEmpty()) }
     var usuarioInput by remember { mutableStateOf(usuarioInicial) }
@@ -162,10 +192,18 @@ internal fun GatewayConnectionSheetContent(
         if (!podeConectar) return
         estado = GatewayConnectionSheetState.Conectando
         escopo.launch {
-            when (val resultado = conectar.conectar(ipInput.trim(), usuarioInput, senhaInput)) {
+            val ipAlvo = ipInput.trim()
+            // 2b-i To-Be: alcancabilidade antes de autenticar — diferencia "nao
+            // alcancei o roteador" (rede errada, roteador desligado) de
+            // "usuario/senha errados", que so faz sentido testar depois.
+            if (!verificarAlcancabilidade(ipAlvo)) {
+                estado = GatewayConnectionSheetState.Erro(MENSAGEM_ERRO_ALCANCABILIDADE)
+                return@launch
+            }
+            when (val resultado = conectar.conectar(ipAlvo, usuarioInput, senhaInput)) {
                 is GatewayConnectionResultado.Sucesso -> {
                     estado = GatewayConnectionSheetState.Formulario
-                    onConectado(ipInput.trim(), usuarioInput, senhaInput, lembrarSenha, manterConectado)
+                    onConectado(ipAlvo, usuarioInput, senhaInput, lembrarSenha, manterConectado)
                 }
                 is GatewayConnectionResultado.Falha -> {
                     estado = GatewayConnectionSheetState.Erro(resultado.mensagemUsuario)
