@@ -84,6 +84,61 @@ merge concorrente. Reverter se algum dia a conta virar organização com Merge Q
 3. Isso realmente precisa ser PR isolada (urgência/rollback/domínio diferente), ou é só reflexo de
    "achei, então abro"? → se for só reflexo, agrupa.
 
+## Parte 2 — Efetividade e delegação de agentes (revisão pedida pelo Luiz em seguida)
+
+Pedido: revisar fluxo, delegação e efetividade do squad — contratar, demitir, fundir cargo, mudar
+posição, mudar effort/modelo, o que fosse necessário para eficiência, velocidade e baixo custo, sem
+retrabalho.
+
+### Veredito: não é problema de elenco
+
+Nenhum dos 11 dispatches de 2026-07-15 mostrou incompetência de agente — Camilo entregou fixes
+corretos e achou causa raiz real de build quebrado (#892); Lia achou um bug de dado fake em
+produção que ninguém mais tinha visto; Rhodolfo fez review com verificação real (`gh api`, não
+inferência). **Não há demissão, fusão de cargo ou contratação justificada pelos dados desta
+sessão.** O que estava errado era como a Claudete despachava trabalho pra esse elenco, não o
+elenco em si:
+
+1. **Granularidade errada.** Toda tarefa, do tamanho que fosse, virou uma chamada completa pro
+   Camilo (persona pesada, Sonnet, sem tiering de custo). Remover 2 campos mortos custou ~60K
+   tokens — o mesmo formato caro usado pra investigar uma falha real de build (justificado, 141K
+   tokens).
+2. **Juninho (Haiku, barato) não foi usado nenhuma vez na sessão**, apesar de existir desde
+   2026-07-11 exatamente pra isso (ver `.claude/agents/juninho.md`). Ele não tem Edit/Write por
+   desenho — não dá pra simplesmente jogar mais edição de código nele sem remover uma trava de
+   segurança deliberada. O uso correto é ele fazer o levantamento/verificação ANTES do agente caro
+   entrar, não substituí-lo na edição.
+3. **Sem tiering de effort/model nos dispatches da Claudete.** Toda chamada saiu no padrão da
+   sessão, independente de ser execução mecânica confirmada ou investigação genuína.
+4. **Isolamento de worktree inconsistente.** Camilo já tem essa regra na própria persona desde
+   2026-07-09 ("nunca no diretório principal") — mas só funciona se quem despacha (Claudete) passa
+   `isolation: "worktree"` ou aponta uma worktree dedicada. O Rhodolfo não tinha essa regra
+   reforçada da mesma forma, e isso causou o diretório principal compartilhado ficar preso na
+   branch de uma PR revisada por um tempo, sem ninguém perceber.
+
+### Mudanças aplicadas (nível de processo, não de cargo)
+
+Ver `.claude/agents/claudete.md`, seção "Regra de dispatch — OBRIGATÓRIA (revisão 2026-07-16)":
+isolamento sempre que o subagente for rodar checkout/build/teste local; Juninho antes de
+Camilo/Rhodolfo em investigação/leitura mecânica; effort explícito por tipo de tarefa; batching
+(já coberto na Parte 1); sequenciamento antes de despachar.
+
+`.claude/agents/rhodolfo.md` ganhou reforço explícito: se precisar rodar teste/build local e não
+existir worktree isolado pra aquela PR, ele para e pede `isolation: "worktree"` em vez de cair no
+diretório principal por falta de alternativa.
+
+### Item em observação, não decisão
+
+Cogitado re-separar o Camilo (Android vs Admin/Workers, papel que existia antes da saída do Felipe
+em 2026-07-09) — mas o trabalho desta sessão foi quase todo Android, sem sobreposição real que
+comprove esse split como gargalo hoje. Não é decisão, é item pra reabrir se um padrão real de
+conflito Android+Admin simultâneo aparecer em sessão futura.
+
+### Métrica de acompanhamento
+
+Tokens médios por dispatch e nº de vezes que uma mesma PR precisou de 2+ rodadas de resolução
+(proxy de retrabalho) — revisar na próxima sessão grande pra confirmar se as mudanças pegaram.
+
 ## Referência
 
 Ver `.claude/CLAUDE.md`, seção "Disciplina de Branches e PRs", atualizada com a versão condensada
