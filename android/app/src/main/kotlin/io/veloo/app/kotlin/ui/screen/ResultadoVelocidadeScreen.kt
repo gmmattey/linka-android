@@ -1435,6 +1435,13 @@ internal fun recommendationTypeLabel(type: RecommendationType): String =
         RecommendationType.NATIVE_AD_FALLBACK -> "PUBLICIDADE"
     }
 
+/** Título do card de resultado do [AnalisadorEntryRow] — distingue o laudo disparado
+ * automaticamente pela tela 1a (`problemaRelatado == null`) da análise que o usuário pediu
+ * por sintoma (`problemaRelatado != null`). Extraída como função pura pra ser testável
+ * isoladamente (follow-up Lia, PR #1013). */
+internal fun tituloResultadoAnalisadorEntryRow(problemaRelatado: String?): String =
+    if (problemaRelatado == null) "Laudo pronto — toque para ver" else "Ver análise completa"
+
 /**
  * Entrada compacta do fluxo "Analisar meu problema com IA" dentro do sheet de diagnóstico
  * detalhado — GH#931 (Fase 2 MD3). O fluxo completo (seletor de problema, loading, resultado,
@@ -1506,7 +1513,7 @@ private fun AnalisadorEntryRow(
                     color = LkColors.accent,
                 )
                 Text(
-                    text = "Analisando seu problema…",
+                    text = "Preparando o diagnóstico da IA…",
                     style = MaterialTheme.typography.bodyMedium,
                     color = c.textSecondary,
                 )
@@ -1527,7 +1534,7 @@ private fun AnalisadorEntryRow(
                     LkSectionOverline(text = "Diagnóstico da IA")
                     Spacer(Modifier.height(LkSpacing.xs))
                     Text(
-                        text = "Ver análise completa",
+                        text = tituloResultadoAnalisadorEntryRow(state.problemaRelatado),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.W600,
                         color = c.textPrimary,

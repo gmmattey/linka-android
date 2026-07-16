@@ -80,6 +80,24 @@ fun AnaliseDetalhadaBottomSheet(
     }
 }
 
+/** Título/subtítulo do header do sheet aninhado — distingue laudo automático da tela 1a
+ * (`problemaRelatado == null`) de análise pedida pelo usuário por sintoma
+ * (`problemaRelatado != null`); qualquer outro estado mantém a copy original de convite
+ * a descrever o problema. Extraída como função pura pra ser testável isoladamente
+ * (follow-up Lia, PR #1013). */
+internal fun headerAnaliseDetalhada(state: AnalisadorState): Pair<String, String> =
+    when {
+        state is AnalisadorState.Resultado && state.problemaRelatado == null ->
+            "Diagnóstico geral da sua conexão" to
+                "Baseado no teste que você acabou de rodar. Quer detalhar um problema específico?"
+        state is AnalisadorState.Resultado && state.problemaRelatado != null ->
+            "Análise do seu problema" to
+                "Diagnóstico específico para \"${state.problemaRelatado}\"."
+        else ->
+            "Analisar meu problema com IA" to
+                "Descreva o que está acontecendo pra receber um diagnóstico específico."
+    }
+
 private val problemasPredefinidos =
     listOf(
         "Baixa velocidade",
@@ -105,15 +123,16 @@ private fun AnaliseDetalhadaConteudo(
                 .padding(bottom = LkSpacing.xxl)
                 .navigationBarsPadding(),
     ) {
+        val (headerTitulo, headerSubtitulo) = headerAnaliseDetalhada(state)
         Text(
-            text = "Analisar meu problema com IA",
+            text = headerTitulo,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.W700,
             color = c.textPrimary,
         )
         Spacer(Modifier.height(LkSpacing.xs))
         Text(
-            text = "Descreva o que está acontecendo pra receber um diagnóstico específico.",
+            text = headerSubtitulo,
             style = MaterialTheme.typography.bodySmall,
             color = c.textTertiary,
         )
@@ -171,7 +190,10 @@ private fun AnaliseDetalhadaConteudo(
                     colors = CardDefaults.cardColors(containerColor = c.bgSecondary),
                 ) {
                     Column(modifier = Modifier.padding(LkSpacing.lg)) {
-                        Overline(texto = "Diagnóstico", color = c.textTertiary)
+                        Overline(
+                            texto = state.problemaRelatado?.let { "Diagnóstico — $it" } ?: "Diagnóstico geral",
+                            color = c.textTertiary,
+                        )
                         Spacer(Modifier.height(LkSpacing.sm))
                         Text(
                             text = state.texto,

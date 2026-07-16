@@ -1811,6 +1811,7 @@ class MainViewModel
                                     acoes = resultado.result.acoesRecomendadas,
                                     titulo = resultado.result.titulo,
                                     resumo = resultado.result.resumo,
+                                    problemaRelatado = problema,
                                 )
                             speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
@@ -1823,6 +1824,7 @@ class MainViewModel
                                     acoes = resultado.result.acoesRecomendadas,
                                     titulo = resultado.result.titulo,
                                     resumo = resultado.result.resumo,
+                                    problemaRelatado = problema,
                                 )
                             speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
@@ -1839,6 +1841,7 @@ class MainViewModel
                                     acoes = local.acoesRecomendadas,
                                     titulo = local.titulo,
                                     resumo = local.resumo,
+                                    problemaRelatado = problema,
                                 )
                             speedtestPersistenceCoordinator.atualizarDiagnosticoIa(texto, problema)
                         }
