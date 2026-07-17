@@ -533,6 +533,18 @@ fun HomeScreen(
                 )
             }
 
+            // 3. Mini-cards DNS / Ping / Diagnóstico IA
+            // #1070 (HOME-011) — composable ficou orfao (definido mas nunca chamado) desde
+            // e1aa9f3e (alinhamento ao design system), derrubando o atalho de DNS da Home.
+            item {
+                MiniCardsRow(
+                    c = c,
+                    onAbrirDns = onAbrirDns,
+                    onAbrirPing = onAbrirPing,
+                    onAbrirDiagnostico = onAbrirDiagnostico,
+                )
+            }
+
             // 4a. Wi-Fi SignalCard
             if (snapshotRede.estadoConexao == EstadoConexao.wifi) {
                 item {
