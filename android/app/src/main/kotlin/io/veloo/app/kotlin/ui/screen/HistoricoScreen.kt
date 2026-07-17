@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Share
@@ -329,7 +331,10 @@ fun HistoricoScreen(
                 historico
             } else {
                 // Modo não-controlado: filtra internamente.
+                // #1096 -- exclui medicoes sinteticas do MonitoramentoWorker (fonte="monitor"),
+                // que nao tem download/upload e nao devem aparecer na lista do Historico.
                 historico
+                    .filter { m -> m.fonte != "monitor" }
                     .filter { m ->
                         when (filtroConexaoAtivo) {
                             FiltroTipo.TODOS -> true
@@ -596,7 +601,12 @@ private fun HistoricoDetailSheet(medicao: MedicaoEntity) {
     val videoChamada = vereditoLabel(medicao.vereditoVideoChamada)
     val gargalo = gargaloLabel(medicao.gargaloPrimario)
 
-    LkSheetFrame(modifier = Modifier.fillMaxWidth()) {
+    LkSheetFrame(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+    ) {
         Text(
             "Detalhes do teste",
             style = MaterialTheme.typography.titleLarge,
