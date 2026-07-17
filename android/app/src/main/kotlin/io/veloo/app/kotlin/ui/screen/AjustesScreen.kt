@@ -253,7 +253,8 @@ fun AjustesScreen(
                         c = c,
                         icon = Icons.Outlined.Business,
                         label = "Operadora",
-                        value = operadora.ifBlank { "—" },
+                        value = operadora.ifBlank { "Adicionar" },
+                        isPlaceholder = operadora.isBlank(),
                         onClick = { showMinhaConexaoSheet = true },
                     )
                     HorizontalDivider(color = c.border, thickness = 1.dp)
@@ -266,8 +267,11 @@ fun AjustesScreen(
                                 velocidadeContratadaDownMbps > 0 && velocidadeContratadaUpMbps > 0 ->
                                     "$velocidadeContratadaDownMbps Mbps"
                                 planoInternet.isNotBlank() -> planoInternet
-                                else -> "—"
+                                else -> "Adicionar"
                             },
+                        isPlaceholder =
+                            !(velocidadeContratadaDownMbps > 0 && velocidadeContratadaUpMbps > 0) &&
+                                planoInternet.isBlank(),
                         onClick = { showMinhaConexaoSheet = true },
                     )
                     HorizontalDivider(color = c.border, thickness = 1.dp)
@@ -279,8 +283,9 @@ fun AjustesScreen(
                             when {
                                 cidadeNome.isNotBlank() && estadoUf.isNotBlank() -> "$cidadeNome, $estadoUf"
                                 regiao.isNotBlank() -> regiao
-                                else -> "—"
+                                else -> "Adicionar"
                             },
+                        isPlaceholder = !(cidadeNome.isNotBlank() && estadoUf.isNotBlank()) && regiao.isBlank(),
                         onClick = { showMinhaConexaoSheet = true },
                     )
                 }
@@ -493,6 +498,7 @@ private fun ValueSettingRow(
     label: String,
     value: String?,
     onClick: () -> Unit,
+    isPlaceholder: Boolean = false,
 ) {
     Row(
         modifier =
@@ -528,7 +534,8 @@ private fun ValueSettingRow(
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                color = c.textSecondary,
+                fontWeight = if (isPlaceholder) FontWeight.Medium else null,
+                color = if (isPlaceholder) c.primary else c.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
