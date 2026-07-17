@@ -46,6 +46,33 @@ class RecommendationEngineTest {
     }
 
     @Test
+    fun `diagnostico com sinal movel fraco escolhe dica gratuita especifica de rede movel`() {
+        val request = RecommendationRequest(
+            tags = setOf(DiagnosticTag.SINAL_BAIXO),
+            network = NetworkContextType.MOVEL,
+        )
+
+        val decision = engine.choose(request)
+
+        assertNotNull(decision)
+        assertEquals(RecommendationType.FREE_TIP, decision!!.type)
+        assertEquals("free_tip_sinal_movel_fraco", decision.recommendation.id)
+        assertTrue(!decision.monetized)
+    }
+
+    @Test
+    fun `dica de sinal movel fraco nao aparece em diagnostico de rede wifi`() {
+        val request = RecommendationRequest(
+            tags = setOf(DiagnosticTag.SINAL_BAIXO),
+            network = NetworkContextType.WIFI,
+        )
+
+        val ranked = engine.rank(request)
+
+        assertTrue(ranked.none { it.recommendation.id == "free_tip_sinal_movel_fraco" })
+    }
+
+    @Test
     fun `afiliado nao elegivel quando relacao com diagnostico e fraca`() {
         // sinal_baixo casa com affiliate_repetidor_wifi, mas junto de tags irrelevantes
         // o match ratio da recomendacao continua 1 de 1 -- entao forcamos o cenario fraco

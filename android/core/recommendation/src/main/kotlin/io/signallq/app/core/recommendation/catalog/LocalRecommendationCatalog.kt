@@ -25,6 +25,14 @@ class LocalRecommendationCatalog : RecommendationCatalog {
                 basePriority = 70,
             ),
             Recommendation(
+                id = "free_tip_sinal_movel_fraco",
+                type = RecommendationType.FREE_TIP,
+                title = "Melhore o sinal da rede movel",
+                tags = setOf(DiagnosticTag.SINAL_BAIXO),
+                applicableNetworkTypes = setOf(NetworkContextType.MOVEL),
+                basePriority = 70,
+            ),
+            Recommendation(
                 id = "configuration_trocar_dns",
                 type = RecommendationType.CONFIGURATION,
                 title = "Troque o DNS da sua rede",

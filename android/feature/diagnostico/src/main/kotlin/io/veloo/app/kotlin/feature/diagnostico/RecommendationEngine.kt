@@ -8,8 +8,8 @@ private const val CAT = "recomendacao"
 /**
  * Motor de recomendacoes praticas do diagnostico local — consome os achados do
  * [FindingEngine] (via [FindingResult]) e os dados brutos ([DiagnosticInput]) para
- * gerar as 12 situacoes de recomendacao documentadas na skill `motor-diagnostico`
- * (fase RecommendationEngine, SIG-287).
+ * gerar as 14 regras de recomendacao (REC-01..REC-14) documentadas na skill
+ * `motor-diagnostico` (fase RecommendationEngine, SIG-287).
  *
  * ## Por que separa de [FindingEngine]
  * O [FindingEngine] decide QUAL e o problema principal (desempate por score entre

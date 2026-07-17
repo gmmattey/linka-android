@@ -3,15 +3,16 @@ package io.signallq.app.feature.diagnostico
 /**
  * Ponto unico de classificacao de metrica do motor de diagnostico.
  *
- * Ate esta issue (SIG-285), a classificacao de RSSI/latencia/jitter/RSRP/RSRQ/SINR/etc
+ * Ate a issue SIG-285, a classificacao de RSSI/latencia/jitter/RSRP/RSRQ/SINR/etc
  * estava espalhada entre [WifiSignalQualityEngine], [InternetDiagnosticEngine],
  * [MobileSignalDiagnosticEngine] e SinalScreen.kt (app module) — cada um com sua
  * propria regua numerica, gerando thresholds divergentes para o mesmo dado.
  *
  * Este objeto centraliza TODAS as reguas em um unico lugar, com uma unica fonte de
- * verdade: a skill `/regras-diagnostico-rede`. Os call sites acima ainda NAO foram
- * migrados para consumir este classifier — isso acontece nas proximas issues da fase
- * (FindingEngine e alem). Este arquivo so precisa existir corretamente testado.
+ * verdade: a skill `/regras-diagnostico-rede`. [WifiSignalQualityEngine] (RSSI Wi-Fi) e
+ * [MobileSignalDiagnosticEngine] (RSRP/RSRQ/SINR) ja consomem este classifier (issue
+ * #998). [InternetDiagnosticEngine] e SinalScreen.kt (app module) ainda NAO foram
+ * migrados — fora do escopo da #998, pendente de issue propria se necessario.
  *
  * ## Vocabulario canonico (MetricStatus)
  * [MetricStatus] usa os mesmos 6 valores que a IA de diagnostico ja usa hoje
