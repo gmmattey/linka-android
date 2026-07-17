@@ -100,7 +100,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -151,7 +150,6 @@ import io.signallq.app.ui.component.OperadoraBadge
 import io.signallq.app.ui.component.ProfileAvatarButton
 import io.signallq.app.ui.component.SheetDragHandle
 import io.signallq.app.ui.component.rememberResolvedOperadoraIdentity
-import io.signallq.app.ui.component.rememberTopBarAlpha
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
@@ -373,7 +371,6 @@ fun HomeScreen(
 
     val profileBrush = remember { Brush.linearGradient(colors = listOf(c.primary, LkColors.accentBlue)) }
     val listState = rememberLazyListState()
-    val topBarAlpha = listState.rememberTopBarAlpha()
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -383,7 +380,6 @@ fun HomeScreen(
                             snapshotRede.estadoConexao == EstadoConexao.movel
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -414,7 +410,6 @@ fun HomeScreen(
                         nomeUsuario = nomeUsuario,
                         fotoUri = fotoUriUsuario,
                         onClick = onAbrirPerfil,
-                        modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                     )
                 },
                 colors =

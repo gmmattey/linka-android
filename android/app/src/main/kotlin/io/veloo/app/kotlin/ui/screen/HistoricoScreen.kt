@@ -50,7 +50,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -80,7 +79,6 @@ import io.signallq.app.ui.component.LkSurfaceCard
 import io.signallq.app.ui.component.Overline
 import io.signallq.app.ui.component.ProfileAvatarButton
 import io.signallq.app.ui.component.ads.SimulatedOfferCard
-import io.signallq.app.ui.component.rememberTopBarAlpha
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -317,7 +315,6 @@ fun HistoricoScreen(
     val sheetExportState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    val topBarAlpha = listState.rememberTopBarAlpha()
 
     // Modo controlado: AppShell/ViewModel já pré-filtrou a lista — não re-filtrar aqui,
     // pois isso causaria double-filter e lista sempre vazia ao selecionar MOVEL.
@@ -345,7 +342,6 @@ fun HistoricoScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(

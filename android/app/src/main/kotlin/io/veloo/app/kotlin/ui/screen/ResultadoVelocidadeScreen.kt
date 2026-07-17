@@ -67,7 +67,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
@@ -109,7 +108,6 @@ import io.signallq.app.ui.component.ads.SimulatedOfferCard
 import io.signallq.app.ui.component.mapLocalDeviceSectionUiState
 import io.signallq.app.ui.component.rememberResolvedOperadoraContact
 import io.signallq.app.ui.component.rememberResolvedOperadoraIdentity
-import io.signallq.app.ui.component.rememberTopBarAlpha
 import kotlinx.coroutines.launch
 
 /**
@@ -192,7 +190,6 @@ fun ResultadoVelocidadeScreen(
 ) {
     val c = LocalLkTokens.current
     val scrollState = rememberScrollState()
-    val topBarAlpha = scrollState.rememberTopBarAlpha()
     val decisao = snapshotDiagnostico.relatorio?.decisao
     val decisaoTitulo = decisao?.titulo
     val decisaoMensagem = decisao?.mensagemUsuario
@@ -256,7 +253,6 @@ fun ResultadoVelocidadeScreen(
         containerColor = c.bgPrimary,
         topBar = {
             CenterAlignedTopAppBar(
-                modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                 title = {
                     Text("Resultado", style = MaterialTheme.typography.titleLarge, color = c.textPrimary)
                 },

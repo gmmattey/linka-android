@@ -45,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +60,6 @@ import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.component.LkSectionOverline
 import io.signallq.app.ui.component.LkStatusDot
-import io.signallq.app.ui.component.rememberTopBarAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -89,7 +87,6 @@ fun LaudoScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val topBarAlpha = listState.rememberTopBarAlpha()
     var gerando by remember { mutableStateOf(false) }
     var erro by remember { mutableStateOf<String?>(null) }
 
@@ -149,7 +146,6 @@ fun LaudoScreen(
         containerColor = c.bgPrimary,
         topBar = {
             CenterAlignedTopAppBar(
-                modifier = Modifier.graphicsLayer { alpha = topBarAlpha },
                 title = {
                     Text(
                         "Laudo de diagnóstico",
