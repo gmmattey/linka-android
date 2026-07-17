@@ -227,6 +227,15 @@ licença SIL OFL, arquivos embutidos no APK. Classes em `colors_and_type.css`:
 `headline-medium` foram **removidos** — nenhuma tela do Fluxo de Telas usa estilo maior que
 displaySmall.
 
+### Container de logo/badge de marca de terceiro (operadora, jogos — 2026-07-17)
+Logo real (bundled ou remoto) de marca que a SignallQ não controla (operadora, artwork de jogo)
+fica sempre sobre um container com fundo **branco fixo** (`#FFFFFF`, hardcode — não deriva de
+`surface`/tema) + borda **1dp `outlineVariant`** (token `border`, já existe em `LocalLkTokens`).
+Motivo: o asset assume fundo claro e "some" no tema escuro se ficar exposto direto ao fundo do
+card. Fallback sem asset (monograma/sigla) usa fundo **sólido** da cor de marca ou `primary` +
+texto branco — nunca fundo translúcido (`alpha` baixo tem contraste insuficiente). Ver decisão
+completa em `docs_ai/design-system/DECISAO_CONTAINER_LOGO_MARCA_2026-07-17.md`.
+
 ### Alpha (convenção do codebase, fora do escopo MD3)
 Tints são cor-em-alpha por sufixo hex: `1A`=10% · `1F`=12% · `26`=15% · `33`=20% ·
 `40`=25%. Ex.: card de Wi-Fi conectado = `success @12%` fill; seleção/IA = `primary @8–12%`
