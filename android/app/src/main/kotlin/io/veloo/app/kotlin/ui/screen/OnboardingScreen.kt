@@ -72,6 +72,7 @@ import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.component.ConfirmacaoDialog
+import io.signallq.app.ui.component.LkPillBadge
 import io.signallq.app.ui.component.LkSurfaceCard
 import kotlinx.coroutines.launch
 
@@ -533,7 +534,7 @@ private fun OnboardingTelaPermissoes(
 }
 
 @Composable
-private fun PermissaoToggleCard(
+internal fun PermissaoToggleCard(
     icon: ImageVector,
     titulo: String,
     descricao: String,
@@ -577,23 +578,42 @@ private fun PermissaoToggleCard(
                 )
             }
             Spacer(Modifier.width(LkSpacing.sm))
-            Switch(
-                checked = marcado,
-                onCheckedChange = onMarcadoChange,
-                enabled = !concedida,
-                colors =
-                    SwitchDefaults.colors(
-                        checkedThumbColor = c.onPrimary,
-                        checkedTrackColor = c.primary,
-                        uncheckedThumbColor = c.outline,
-                        uncheckedTrackColor = c.surfaceContainerHighest,
-                        uncheckedBorderColor = c.outline,
-                    ),
-                modifier =
-                    Modifier.semantics {
-                        contentDescription = "$titulo: ${if (marcado) "marcado" else "não marcado"}"
-                    },
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                if (concedida) {
+                    LkPillBadge(
+                        text = "Concedida",
+                        containerColor = c.success.copy(alpha = 0.14f),
+                        contentColor = c.success,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                }
+                Switch(
+                    checked = marcado,
+                    onCheckedChange = onMarcadoChange,
+                    enabled = !concedida,
+                    colors =
+                        SwitchDefaults.colors(
+                            checkedThumbColor = c.onPrimary,
+                            checkedTrackColor = c.primary,
+                            uncheckedThumbColor = c.outline,
+                            uncheckedTrackColor = c.surfaceContainerHighest,
+                            uncheckedBorderColor = c.outline,
+                            disabledCheckedThumbColor = c.onPrimary,
+                            disabledCheckedTrackColor = c.primary.copy(alpha = 0.6f),
+                            disabledUncheckedThumbColor = c.outline.copy(alpha = 0.6f),
+                            disabledUncheckedTrackColor = c.surfaceContainerHighest.copy(alpha = 0.6f),
+                        ),
+                    modifier =
+                        Modifier.semantics {
+                            contentDescription =
+                                if (concedida) {
+                                    "$titulo: concedida, ative pelas configurações do sistema para alterar"
+                                } else {
+                                    "$titulo: ${if (marcado) "marcado" else "não marcado"}"
+                                }
+                        },
+                )
+            }
         }
     }
 }
