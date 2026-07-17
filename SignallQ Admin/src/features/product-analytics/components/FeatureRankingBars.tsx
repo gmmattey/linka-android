@@ -15,7 +15,7 @@ export const FeatureRankingBars: React.FC<FeatureRankingBarsProps> = ({ metrics 
 
   return (
     <ChartCard
-      title="Funcionalidade mais usada · Sessões 7 dias"
+      title="Funcionalidade mais usada · sessões 7 dias"
       description="Participação de cada funcionalidade no volume total de uso, no período."
       id="feature-ranking-bars-card"
     >

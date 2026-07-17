@@ -10,7 +10,7 @@ interface ScreenNavigationPanelProps {
 export const ScreenNavigationPanel: React.FC<ScreenNavigationPanelProps> = ({ metrics }) => {
   return (
     <SectionCard
-      title="Navegação e Fluxo de Telas"
+      title="Navegação e fluxo de telas"
       description="Views totais, usuários únicos e taxa de evasão de cada tela visualizada pelo aplicativo móvel."
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

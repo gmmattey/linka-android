@@ -10,7 +10,7 @@ interface MostUsedFeaturesTableProps {
 export const MostUsedFeaturesTable: React.FC<MostUsedFeaturesTableProps> = ({ metrics }) => {
   return (
     <SectionCard
-      title="Engajamento por Funcionalidade"
+      title="Engajamento por funcionalidade"
       description="Taxas de ativação, uso único e eficiência de execução por ponto de menu operacional."
     >
       <div className="overflow-x-auto">

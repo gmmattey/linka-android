@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               color: "var(--sq-error)",
             }}
           >
-            TENTAR NOVAMENTE
+            Tentar novamente
           </button>
         </div>
       );

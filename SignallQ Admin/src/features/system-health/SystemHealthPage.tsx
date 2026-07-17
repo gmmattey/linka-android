@@ -172,7 +172,7 @@ export const SystemHealthPage: React.FC<SystemHealthPageProps> = ({
           deploy). Erros 5xx e fila de eventos seguem sem contrato de dado. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          label="Uptime do Worker (30d)"
+          label="Uptime do worker (30d)"
           value={avgUptime != null ? `${avgUptime}%` : "Não disponível"}
           verdictNote={avgUptime != null ? "Média dos últimos 14 dias (checks D1/Firebase/BigQuery)" : "Aguardando primeiro snapshot do Cron Trigger"}
           source={avgUptime != null ? "d1 · cron 15min" : "não implementado"}

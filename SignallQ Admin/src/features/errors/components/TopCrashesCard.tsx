@@ -85,7 +85,7 @@ export const TopCrashesCard: React.FC<TopCrashesCardProps> = ({
   }, [environment, period, triggerRefreshCounter]);
 
   return (
-    <ChartCard title="TOP CRASHES" id="top-crashes-card">
+    <ChartCard title="Top crashes" id="top-crashes-card">
       {loading && <LoadingState message="Buscando crashes no Firebase Crashlytics..." rows={4} />}
 
       {!loading && (error || emptyReason) && (

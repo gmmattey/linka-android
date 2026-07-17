@@ -183,7 +183,7 @@ export const IntegrationsSettings: React.FC = () => {
   return (
     <div className="col-span-1 lg:col-span-2 select-none">
       <SectionCard
-        title="Integrações Administrativas Externas"
+        title="Integrações administrativas externas"
         description="Gerencie pontes de dados de telemetria analítica com a console do Firebase, estatísticas do Google Play e App Store futura da Apple."
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

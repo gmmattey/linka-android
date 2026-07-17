@@ -45,6 +45,6 @@ describe("ProductAnalyticsPage", () => {
       <ProductAnalyticsPage environment="production" period="7d" triggerRefreshCounter={0} />
     );
 
-    expect(await screen.findByText("Funcionalidade mais usada · Sessões 7 dias")).toBeInTheDocument();
+    expect(await screen.findByText("Funcionalidade mais usada · sessões 7 dias")).toBeInTheDocument();
   });
 });
