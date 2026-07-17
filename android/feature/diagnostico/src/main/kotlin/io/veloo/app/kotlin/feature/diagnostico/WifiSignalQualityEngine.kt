@@ -18,10 +18,17 @@ object WifiSignalQualityEngine {
         val rssi = input.rssiDbm
         val banda = input.banda()
 
-        // RSSI
-        val rssiResultado = when {
-            rssi == null -> null
-            rssi > -60 -> DiagnosticResult(
+        // RSSI — classificacao delegada ao MetricClassifier (issue #998), unica fonte de
+        // thresholds diferenciados por banda. Banda desconhecida (leitura de frequencia
+        // falhou) usa a regua 2.4GHz, mais conservadora.
+        val bandaClassificacao = when (banda) {
+            BandaWifi.ghz24, BandaWifi.desconhecida -> MetricClassifier.WifiBand.GHZ_2_4
+            BandaWifi.ghz5 -> MetricClassifier.WifiBand.GHZ_5
+        }
+        val rssiStatus = rssi?.let { MetricClassifier.classificarRssiWifi(it, bandaClassificacao) }
+        val rssiResultado = when (rssiStatus) {
+            null -> null
+            MetricStatus.excelente -> DiagnosticResult(
                 id = "WIFI-01",
                 titulo = "Sinal Excelente",
                 status = DiagnosticStatus.ok,
@@ -31,7 +38,7 @@ object WifiSignalQualityEngine {
                 categoria = CAT,
                 podeConcluir = true,
             )
-            rssi >= -67 -> DiagnosticResult(
+            MetricStatus.bom -> DiagnosticResult(
                 id = "WIFI-02",
                 titulo = "Sinal Bom",
                 status = DiagnosticStatus.ok,
@@ -41,7 +48,7 @@ object WifiSignalQualityEngine {
                 categoria = CAT,
                 podeConcluir = true,
             )
-            rssi >= -75 -> DiagnosticResult(
+            MetricStatus.regular -> DiagnosticResult(
                 id = "WIFI-03",
                 titulo = "Sinal Fraco",
                 status = DiagnosticStatus.attention,
@@ -51,7 +58,7 @@ object WifiSignalQualityEngine {
                 categoria = CAT,
                 podeConcluir = false,
             )
-            else -> DiagnosticResult(
+            MetricStatus.ruim, MetricStatus.critico -> DiagnosticResult(
                 id = "WIFI-04",
                 titulo = "Sinal Muito Fraco",
                 status = DiagnosticStatus.critical,
@@ -61,6 +68,7 @@ object WifiSignalQualityEngine {
                 categoria = CAT,
                 podeConcluir = false,
             )
+            MetricStatus.inconclusivo -> null
         }
         if (rssiResultado != null) resultados.add(rssiResultado)
 
@@ -182,8 +190,12 @@ object WifiSignalQualityEngine {
             }
         }
 
-        // Confiabilidade: sinal >= WIFI-03 (>= -75 dBm) é confiável para teste
-        val confiavelParaTeste = rssi == null || rssi >= -75
+        // Confiabilidade: sinal ate WIFI-03 (regular) e confiavel para teste — so
+        // WIFI-04 (ruim/critico) marca como nao confiavel.
+        val confiavelParaTeste = rssiStatus == null ||
+            rssiStatus == MetricStatus.excelente ||
+            rssiStatus == MetricStatus.bom ||
+            rssiStatus == MetricStatus.regular
 
         return WifiQualityResult(resultados = resultados, confiavelParaTeste = confiavelParaTeste)
     }
