@@ -171,7 +171,7 @@ fun AjustesScreen(
                         color = c.textPrimary,
                     )
                 },
-                actions = {
+                navigationIcon = {
                     if (onVoltar != null) {
                         IconButton(onClick = onVoltar) {
                             Icon(
