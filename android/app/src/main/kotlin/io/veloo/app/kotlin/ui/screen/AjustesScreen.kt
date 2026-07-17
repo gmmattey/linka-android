@@ -126,16 +126,16 @@ fun AjustesScreen(
     val velocidadeContratadaUpMbps = provedor.velocidadeContratadaUpMbps
     val operadoraAutodetectada = provedor.operadoraAutodetectada
     val monitoramentoAtivo = monitoramento.monitoramentoAtivo
-    val modemHost = modem.modemHost
-    val modemUsername = modem.modemUsername
-    val modemPassword = modem.modemPassword
-    val modemPermanecerConectado = modem.modemPermanecerConectado
-    val gatewayIpDetectado = modem.gatewayIpDetectado
-    val gatewaySessaoValida = modem.gatewaySessaoValida
-    val conectarGateway = modem.conectarGateway
-    val onGatewayConectado = modem.onGatewayConectado
-    val bandasWifiGateway = modem.bandasWifi
-    val dispositivosNaRedeGateway = modem.dispositivosNaRede
+    // GH#1099 — modemHost/modemUsername/modemPassword/modemPermanecerConectado/
+    // gatewayIpDetectado/conectarGateway/onGatewayConectado removidos daqui: só existiam
+    // pra alimentar o showGatewayConnectionSheet órfão abaixo (nunca setado como true em
+    // lugar nenhum, dead code de uma versão anterior). O fluxo real de credenciais do
+    // roteador é via Home (GatewayConnectionSheet) ou, desde #1099, via
+    // EquipamentoInternetScreen — nenhum dos dois passa por AjustesScreen.
+    // gatewaySessaoValida/bandasWifi/dispositivosNaRede também são lidos de `modem` mas já
+    // estavam sem nenhum consumidor antes desta mudança — dívida pré-existente, não
+    // resolvida aqui (ver seção "Dívidas" da entrega).
+
     // aliases de lambdas — mantém corpo interno sem alteração
     val onSalvarPerfil = perfil.onSalvarPerfil
     val onSalvarDadosProvedor = provedor.onSalvarDadosProvedor
@@ -147,8 +147,6 @@ fun AjustesScreen(
     val speedtestMbConsumidosMes = dadosMoveis.speedtestMbConsumidosMes
     val onSetSpeedtestPermiteHeavyMovel = dadosMoveis.onSetSpeedtestPermiteHeavyMovel
 
-    // GH#530 — GatewayConnectionSheet (mesmo componente da Home) na linha do roteador.
-    var showGatewayConnectionSheet by remember { mutableStateOf(false) }
     var showPerfilSheet by remember { mutableStateOf(false) }
     var showSobreSheet by remember { mutableStateOf(false) }
     var showDadosLocaisSheet by remember { mutableStateOf(false) }
@@ -371,19 +369,6 @@ fun AjustesScreen(
     }
 
     // ── Bottom sheets & dialogs ───────────────────────────────────────────────
-
-    if (showGatewayConnectionSheet) {
-        GatewayConnectionSheet(
-            ipInicial = modemHost ?: gatewayIpDetectado,
-            usuarioInicial = modemUsername,
-            senhaInicial = modemPassword,
-            lembrarSenhaInicial = modemUsername.isNotBlank() || modemPassword.isNotBlank(),
-            manterConectadoInicial = modemPermanecerConectado,
-            onDismissRequest = { showGatewayConnectionSheet = false },
-            conectar = conectarGateway,
-            onConectado = onGatewayConectado,
-        )
-    }
 
     if (showPerfilSheet) {
         PerfilEditSheet(
@@ -774,6 +759,3 @@ private fun DiagnosticoAppSheet(
         }
     }
 }
-
-// ─── Roteador sheet (GH#526/#530): ver GatewayConnectionSheet.kt (componente único
-// reaproveitado aqui e no nó do gateway em HomeScreen.kt) ──────────────────────
