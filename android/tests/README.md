@@ -114,7 +114,20 @@ Existem **2 classes** instrumentadas, ambas focadas na camada de banco
 
 ## 4. Testes manuais / E2E
 
-O roteiro completo está em [`signallq_test_cases.yaml`](./signallq_test_cases.yaml).
+O caderno mais completo e atual é
+[`caderno-completo-testes-android.xlsx`](./caderno-completo-testes-android.xlsx)
+(178 casos, adicionado em 2026-07-17) — cobre tela por tela (Início, Velocidade,
+Sinal, Histórico, Perfil/Ferramentas, overlays/detalhes), fluxos E2E, checklist
+de tokens de design, template de bug para o GitHub e comandos ADB de apoio.
+Reflete o estado atual do app (5ª aba Ferramentas, Ajustes/Perfil pelo avatar,
+package `io.signallq.app`) e traz colunas de status (Não iniciado / Em execução
+/ Passou / Falhou / Bloqueado) com resumo agregado por grupo.
+
+> **`signallq_test_cases.yaml` está desatualizado** — ainda referencia
+> `io.veloo.app` e a navegação antiga de 5 abas com Ajustes (a 5ª aba hoje é
+> Ferramentas). Mantido por ora como roteiro histórico/YAML; reconciliar ou
+> arquivar é decisão do Rhodolfo (dono de QA/docs), não decidida nesta edição.
+
 Cobre, em PT-BR, os fluxos das 5 abas (Início, Velocidade, Sinal, Histórico,
 Ajustes) e as ferramentas associadas:
 
