@@ -1,4 +1,4 @@
-# ADR-008 — Vocabulário canônico de issue de diagnóstico (Android x Admin)
+# ADR-009 — Vocabulário canônico de issue de diagnóstico (Android x Admin)
 
 **Data:** 2026-07-16
 **Status:** Aceito

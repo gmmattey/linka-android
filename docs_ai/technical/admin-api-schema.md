@@ -258,7 +258,7 @@ Lista de sessões de diagnóstico com payload completo.
 | `latency_ms` | integer\|null | Latência em ms |
 | `jitter_ms` | number\|null | Jitter em ms |
 | `packet_loss` | number\|null | Perda de pacotes em % |
-| `issues` | string[] | Array de issue keys, vocabulario canonico GH#881 (ex.: `["sinal_fraco", "falha_dns"]`) — ver ADR-008 |
+| `issues` | string[] | Array de issue keys, vocabulario canonico GH#881 (ex.: `["sinal_fraco", "falha_dns"]`) — ver ADR-009 |
 | `resolved` | integer | `0` = aberto, `1` = resolvido |
 | `operator` | string | Operadora detectada (ex.: `"Claro"`, `"Vivo"`) |
 | `device_model` | string | Modelo do dispositivo |

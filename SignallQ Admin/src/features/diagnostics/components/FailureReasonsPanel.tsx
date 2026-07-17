@@ -8,7 +8,7 @@ interface FailureReasonsPanelProps {
 }
 
 // GH#881 — vocabulario canonico (ver types/diagnostics.ts DiagnosisIssue e
-// docs_ai/decisions/ADR-008-vocabulario-diagnostic-issue.md). Cobre 100% das
+// docs_ai/decisions/ADR-009-vocabulario-diagnostic-issue.md). Cobre 100% das
 // categorias que o Android realmente envia hoje.
 const ISSUE_LABELS: Record<string, string> = {
   sinal_fraco: "Sinal fraco",

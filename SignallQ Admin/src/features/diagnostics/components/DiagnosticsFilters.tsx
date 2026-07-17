@@ -195,7 +195,7 @@ export const DiagnosticsFilters: React.FC<DiagnosticsFiltersProps> = ({
             onChange={(e) => onIssueChange(e.target.value)}
             className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] cursor-pointer"
           >
-            {/* GH#881 — vocabulario canonico, ver docs_ai/decisions/ADR-008-vocabulario-diagnostic-issue.md */}
+            {/* GH#881 — vocabulario canonico, ver docs_ai/decisions/ADR-009-vocabulario-diagnostic-issue.md */}
             <option value="all">Sem problemas</option>
             <option value="sinal_fraco">Sinal fraco</option>
             <option value="alta_latencia">Alta latência</option>

@@ -26,7 +26,7 @@ export function playTrackLabel(track?: string | null): string {
 }
 
 // GH#881 — vocabulario canonico de issue de diagnostico, decidido em 2026-07-16
-// (docs_ai/decisions/ADR-008-vocabulario-diagnostic-issue.md). Espelha 1:1 o que o
+// (docs_ai/decisions/ADR-009-vocabulario-diagnostic-issue.md). Espelha 1:1 o que o
 // Android realmente envia hoje (`idParaIssueLabel` em AdminIngestPayloads.kt): 12 categorias
 // snake_case + "none" (sem issue detectado) + "unknown" (fallback para tag nao reconhecida,
 // incluindo dado legado pre-normalizacao como "Resposta").
