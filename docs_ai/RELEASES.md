@@ -11,6 +11,33 @@
 
 ---
 
+## v0.26.0 (versionCode 61) — 2026-07-17
+
+**Redesign Material 3 To-Be, motor de topologia unificado e monetização nativa**
+
+- Redesign completo de UI em 8 fases (MD3 To-Be): nova navegação (Ferramentas na tab bar, Perfil via avatar), Onboarding, Início, Velocidade, Sinal, Ferramentas, Equipamento de internet, Monitoramento, Jogos, ícones Material Symbols (#939–#949, #1014)
+- Motor de topologia de rede unificado substitui 3 classificadores concorrentes (Home, Sinal, Recommendation Engine) — contratos canônicos, catálogo OUI único, correlação LAN+Wi-Fi (#975–#994)
+- Monetização nativa (AdMob) em 4 telas, com consentimento UMP e fallback seguro (#555)
+- Diagnóstico remoto via `signallq-diagnostic-worker` + diretório de operadoras (#962–#973)
+- 6 bugs de layout achados e corrigidos na rodada de QA de 2026-07-17, verificados ao vivo (#1076–#1081)
+- Dezenas de fixes de qualidade, acessibilidade WCAG e consistência visual — detalhe completo em `android/CHANGELOG.md`
+
+**Publicação:** trilha alpha do Play Console (fechada), via `gradle-play-publisher`
+
+---
+
+## v0.25.0 (versionCode 60) — 2026-07-10
+
+**Recommendation Engine, avaliação nativa e equipamento local (Nokia GPON)**
+
+- Recommendation Engine desacoplado integrado à experiência pós-diagnóstico (#807/#811–#813/#821)
+- Avaliação nativa do Google Play sem atrito (#664/#806)
+- Seção "Equipamento local" completa para Nokia GPON: WAN, LAN, Wi-Fi, laser da ONT (#794–#846)
+- Lista de dispositivos com selo "Nome confirmado pelo roteador" via dado real (#839/#844/#856/#869)
+- Publicado na trilha alpha do Play Console em 10/07/2026
+
+---
+
 ## v0.23.0 (versionCode 56) — 2026-07-05
 
 **Logos de operadoras, canais oficiais e instrumentação de analytics**

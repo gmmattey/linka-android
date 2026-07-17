@@ -11,8 +11,36 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
 ## [Unreleased]
 
+## [0.26.0] — 2026-07-17
+
+Acumula todo o trabalho desde a 0.25.0 (publicada na trilha alpha do Play Console em 10/07) — 7 dias de trabalho intenso do squad, ~100 PRs. Destaques: redesign completo de UI (Material 3 To-Be), motor de topologia de rede unificado, monetização nativa (AdMob) e integração com diagnóstico remoto.
+
+### Adicionado
+- **Redesign completo Material 3 To-Be** (8 fases, #939–#949): nova navegação (Ferramentas na tab bar, Perfil/Ajustes via avatar em vez de aba própria), Onboarding redesenhado em 2 telas, telas Início/Velocidade/Sinal/Ferramentas/Equipamento de internet (substitui Fibra/ONT)/Monitoramento redesenhadas, nova tela Jogos (teste de conexão direcionado por jogo), fundação de ícones Material Symbols (variable font, #1014)
+- **Motor de topologia de rede unificado** (5 fases, #975/#976, #986–#994): substitui 3 classificadores concorrentes (Home, Sinal→Redes, Recommendation Engine) por um único motor com contratos canônicos, catálogo OUI único com nível de validação, e correlação best-effort LAN + Wi-Fi + client snapshot na tela Dispositivos
+- **Monetização nativa (AdMob)**: anúncios nativos em Velocidade, Resultado, Dispositivos e Histórico, com elegibilidade por sinal contextual, consentimento UMP e fallback seguro (#555)
+- **Diagnóstico remoto**: `signallq-diagnostic-worker` migrado para o monorepo e ligado ao app, com diretório de operadoras (logo/contato) e fallback local versionado (#962/#965/#966/#969/#970/#972/#973)
+- Análise detalhada (tela 1a) humanizada pela IA, distinguindo laudo automático de análise pedida pelo usuário (#997/#1013/#1017)
+- Captura de banda Wi-Fi (2.4/5GHz) na medição de velocidade, refletida no histórico (#1035)
+- `AlertCard` acionável para sinal óptico abaixo do esperado na tela de Equipamento (#1033)
+- Regra filtrada para rede móvel no catálogo local do `coreRecommendation` (#999)
+
+### Corrigido
+- 6 bugs de layout achados na rodada de QA de 2026-07-17, verificados ao vivo em emulador antes de fechar (#1075/#1076/#1077/#1078/#1079/#1080/#1081): sobreposição de texto no card "Caminho da sua internet" da Home; seletor prototype-only (resíduo de protótipo do design system) sobrando em Ping e no sheet de permissão de localização; fallback de avatar divergente ("L" hardcoded vs. "?") entre dois componentes; `TabRow` da tela Sinal renderizando bloco sólido sem texto por falta de `tabIndicatorOffset`; TopBar de Equipamento de internet e Dispositivos sem inset de status bar; título de KPI cortado pelo badge de fonte no Admin
+- 6 bugs de implementação da tela Speed Test — Fase 2 da varredura de design (#1020)
+- Contraste WCAG e cor de veredito no Histórico; composables mortos removidos (#1029)
+- Divergências de estilo das sheets de Operadora 1a/1b vs. protótipo Fase 2 (#1021)
+- Nó AP/mesh na tela Sinal roteado com dado real do scan LAN, não mock (#1038)
+- Ações fantasma de `EquipamentoInternetScreen` ligadas a fluxos reais (#1037)
+- Timeout do motor de diagnóstico remoto ampliado de 5s para 42s (#1011)
+- Stub fake de "Modelos compatíveis" e seletor prototype-only removidos de `GatewayConnectionSheet` (#995/#1001)
+- Scan de dispositivos não trava mais indefinidamente (#887/#901)
+- Diversos fixes de consistência visual, cor fixa vs. token real, e código morto (#1024/#1028/#1030/#1032/#1034/#1039 e outros)
+
 ### Removido
 - Código morto do chat de diagnóstico IA (`ChatDiagnosticoIaScreen`, `ChatDiagnosticoIaViewModel`, `ChatDiagnosticoIaRepository`, `CotaIaRepository`, `LLMChatScreen` e domínio associado) — decisão de produto fechada em 2026-07-12: sem chat com IA no app. Nunca teve ponto de entrada em produção (`chatDiag`/`AppShellChatDiagState` eram instanciados mas nunca renderizados a partir de `MainActivity.kt`/`AppShell.kt`, confirmado em #215, #222 e #850). Tabelas Room `chat_sessions`/`chat_messages` e `ChatSessionDao` mantidos — ainda usados pelo `AdminSyncWorker` para sync de uso de IA legado ao Admin (#912)
+- Classificadores de topologia paralelos, superados pelo motor unificado (Fase 2C, #1059/#981)
+- Algoritmo de amostragem de ping consolidado num único `AnalisadorAmostragemPing` (#1019/#1034)
 
 ## [0.25.0] — 2026-07-10
 
