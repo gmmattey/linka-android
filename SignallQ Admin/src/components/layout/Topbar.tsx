@@ -61,9 +61,10 @@ export const Topbar: React.FC<TopbarProps> = ({
           breakpoints, não sobra estado que precise abrir a Sidebar como
           overlay (ver GH#1041). */}
       <div className="flex items-center gap-2 lg:gap-3.5 min-w-0">
-        {/* Environment Filter */}
+        {/* Environment Filter — segmented chip: radius fixo 20px (não pill),
+            ver DESIGN.md seção 5 "Segmented chip" / FASE1_TOKENS item 6 */}
         <div
-          className="flex p-0.5 rounded-xl"
+          className="flex p-0.5 rounded-[20px]"
           style={{
             backgroundColor: "var(--bg-surface)",
             border: "1px solid var(--border)",
@@ -89,9 +90,10 @@ export const Topbar: React.FC<TopbarProps> = ({
           ))}
         </div>
 
-        {/* Period selection — hidden on mobile */}
+        {/* Period selection — hidden on mobile. Mesmo padrão de segmented
+            chip (radius 20px) da Environment Filter acima */}
         <div
-          className="hidden md:flex items-center gap-0.5 p-0.5 rounded-xl"
+          className="hidden md:flex items-center gap-0.5 p-0.5 rounded-[20px]"
           style={{
             backgroundColor: "var(--bg-surface)",
             border: "1px solid var(--border)",
