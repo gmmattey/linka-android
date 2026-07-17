@@ -25,9 +25,9 @@ Voz: calorosa, direta, tranquilizadora — nunca um engenheiro de redes dando au
 
 1. **Jargão, depois tradução** — todo dado técnico (RSSI, jitter, dBm) vem acompanhado de um veredito em linguagem humana.
 2. **Sempre um próximo passo** — diagnóstico nunca termina em "isso está ruim" sem indicar o que fazer.
-3. **Uma cor de destaque, semântica clara** — violeta `#6C2BFF` para ação/marca; verde/âmbar/vermelho carregam significado de qualidade de conexão, nada mais.
-4. **Nada decorativo compete com o dado** — sem imagens, sem gradiente decorativo (só avatar e header de IA), sem textura.
-5. **App é o narrador, IA é a inteligência** — SignallQ (IA) tem superfície visual própria (sempre escura), separada do restante do app.
+3. **Uma cor de destaque, semântica clara** — violeta `#5B21D6` (claro) / `#D0BCFF` (escuro) para ação/marca; verde/âmbar/vermelho carregam significado de qualidade de conexão, nada mais.
+4. **Nada decorativo compete com o dado** — sem imagens, sem gradiente decorativo (só avatar de perfil), sem textura.
+5. **App é o narrador** — a superfície SignallQ (IA), com visual escuro próprio separado do restante do app, foi **descontinuada** no Fluxo de Telas To-Be (2026-07-13); não implementar rota ou componente novo para ela.
 
 ## Accessibility & Inclusion
 
