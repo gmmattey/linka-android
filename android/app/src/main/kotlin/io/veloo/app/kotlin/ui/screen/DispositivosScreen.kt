@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.CellTower
-import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.DevicesOther
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Laptop
@@ -134,21 +133,12 @@ fun DispositivosScreen(
             ) {
                 TopAppBar(
                     title = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.Devices,
-                                contentDescription = null,
-                                tint = c.textPrimary,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(Modifier.width(LkSpacing.xs))
-                            Text(
-                                "Dispositivos",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.W600,
-                                color = c.textPrimary,
-                            )
-                        }
+                        Text(
+                            "Dispositivos",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.W600,
+                            color = c.textPrimary,
+                        )
                     },
                     navigationIcon = {
                         if (onVoltar != null) {
