@@ -58,6 +58,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,6 +97,7 @@ import io.signallq.app.ui.component.LkSectionOverline
 import io.signallq.app.ui.component.LkSurfaceCard
 import io.signallq.app.ui.component.LocalDeviceSectionUiState
 import io.signallq.app.ui.component.mapLocalDeviceSectionUiState
+import kotlinx.coroutines.delay
 
 /** Janela de tolerância pós-reboot em que um erro de comunicação é explicado
  *  como "o equipamento está voltando" em vez do texto genérico de sessão
@@ -146,6 +148,12 @@ fun EquipamentoInternetScreen(
         remember(snapshotFibra, localDevice, modemHost, modemUsername, modemPassword) {
             mapAcessoEquipamento(snapshotFibra, localDevice, modemHost, modemUsername, modemPassword)
         }
+    // #1090 — mapAcessoEquipamento() nao conhece idle/conectando (ver KDoc da funcao: a tela
+    // decide "Carregando" antes de usar o valor), mas o retorno dela pra esses dois estados
+    // e SESSAO_EXPIRADA por eliminacao (nem erro, nem concluido). Sem esta flag, o subtitulo
+    // do TopAppBar usava acessoLabel(acesso) sem checar o estado real e mostrava "Sessão
+    // expirada" prematuramente durante a primeira tentativa de conexao (#1090).
+    val estaCarregando = snapshotFibra.estado == EstadoFibra.idle || snapshotFibra.estado == EstadoFibra.conectando
     val doubleNatSuspeito =
         remember(natStatus, snapshotFibra.gpon?.mode) {
             suspeitaDoubleNat(natStatus, snapshotFibra.gpon?.mode)
@@ -187,7 +195,7 @@ fun EquipamentoInternetScreen(
                                 color = c.textPrimary,
                             )
                             Text(
-                                acessoLabel(acesso),
+                                if (estaCarregando) "Conectando…" else acessoLabel(acesso),
                                 fontSize = 12.sp,
                                 color = c.textSecondary,
                             )
@@ -214,8 +222,13 @@ fun EquipamentoInternetScreen(
         },
     ) { padding ->
         when {
-            snapshotFibra.estado == EstadoFibra.idle || snapshotFibra.estado == EstadoFibra.conectando ->
-                EquipamentoCarregando(modifier = Modifier.padding(padding), c = c)
+            estaCarregando ->
+                EquipamentoCarregando(
+                    modifier = Modifier.padding(padding),
+                    c = c,
+                    onRetentar = onRetentar,
+                    onAbrirAjustes = onAbrirAjustes,
+                )
 
             acesso == AcessoEquipamento.LEITURA_COMPLETA ||
                 acesso == AcessoEquipamento.LEITURA_PARCIAL ||
@@ -246,10 +259,17 @@ fun EquipamentoInternetScreen(
     }
 }
 
+/** Tempo de espera antes de oferecer uma saida explicita da tela de carregamento (#1090)
+ *  — sem isso, uma tentativa de conexao que nunca resolve (nem sucesso, nem erro) travava
+ *  a tela indefinidamente em 5 skeletons vazios, sem nenhum botao de retomada. */
+private const val EQUIPAMENTO_CARREGANDO_TIMEOUT_MS = 12_000L
+
 @Composable
 private fun EquipamentoCarregando(
     modifier: Modifier = Modifier,
     c: LkTokens,
+    onRetentar: () -> Unit = {},
+    onAbrirAjustes: () -> Unit = {},
 ) {
     val pulsar =
         rememberInfiniteTransition(label = "equipamento_skeleton").animateFloat(
@@ -258,6 +278,11 @@ private fun EquipamentoCarregando(
             animationSpec = infiniteRepeatable(animation = tween(1400), repeatMode = RepeatMode.Reverse),
             label = "equipamento_skeleton_alpha",
         )
+    var demorandoDemais by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(EQUIPAMENTO_CARREGANDO_TIMEOUT_MS)
+        demorandoDemais = true
+    }
     Column(
         modifier = modifier.fillMaxSize().padding(LkSpacing.lg),
         verticalArrangement = Arrangement.spacedBy(LkSpacing.md),
@@ -271,6 +296,29 @@ private fun EquipamentoCarregando(
                         .clip(RoundedCornerShape(LkRadius.card))
                         .background(c.surfaceContainerHigh.copy(alpha = pulsar.value)),
             )
+        }
+        if (demorandoDemais) {
+            Spacer(Modifier.height(LkSpacing.sm))
+            Text(
+                "Isso está demorando mais que o esperado.",
+                fontSize = 13.sp,
+                color = c.textSecondary,
+            )
+            Button(
+                onClick = onRetentar,
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = c.primary),
+                shape = RoundedCornerShape(LkRadius.button),
+            ) {
+                Text("Tentar novamente", fontSize = 14.sp, fontWeight = FontWeight.W600)
+            }
+            OutlinedButton(
+                onClick = onAbrirAjustes,
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+                shape = RoundedCornerShape(LkRadius.button),
+            ) {
+                Text("Revisar configurações", fontSize = 14.sp)
+            }
         }
     }
 }
