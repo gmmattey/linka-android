@@ -731,6 +731,9 @@ private fun SimCard(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.W600,
                             color = tokens.textPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
                         )
                         if (sim.isDefaultData) {
                             MobileStatusBadge(
@@ -793,6 +796,8 @@ private fun SimCard(
                 text = "Falar com a $operadora",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.W600,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -1101,6 +1106,8 @@ private fun MobileDetailCard(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.W600,
                     color = tokens.textPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = body,
@@ -1180,6 +1187,8 @@ private fun MobileSnapshotCard(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.W600,
                         color = tokens.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = buildSnapshotMobileSummary(snapshot),
