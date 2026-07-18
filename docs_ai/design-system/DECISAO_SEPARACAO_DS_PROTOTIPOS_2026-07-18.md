@@ -50,10 +50,21 @@ nova (`#5B21D6`) — corrigindo de brinde o `_ds_bundle.js` stale.
    conteúdo rolável) e re-sincronizado. Resultado final da Fase 1: **14 componentes reutilizáveis**,
    todos working na paleta nova.
 
-### Fase 2 — opcional, futura
+### Fase 2 — CONCLUÍDA (2026-07-18)
 
-Mover os docs de fluxo para um projeto Claude Design dedicado ("SignallQ — Protótipos"), deixando
-`e77ea465` como DS puro, com o `/design-sync` fixado só nele.
+Executada **invertida** vs. o rascunho: como a API do `DesignSync` não renomeia projeto e mover ~170
+arquivos de protótipo (com binários) seria grande/arriscado, em vez de mover os fluxos, o **DS foi
+movido para um projeto novo** e o antigo virou o de protótipos.
+
+- Luiz renomeou `e77ea465` → **"SignallQ — Protótipos"** no claude.ai/design (rename só existe na UI).
+- Criado o projeto **`2d25d7a1-31b2-4ac3-881f-72dbc8f35a29` "SignallQ Design System"** com os 14
+  componentes reutilizáveis (push do `ds-bundle` local — 75 arquivos).
+- `config.json` repontado pro novo `projectId`; `conventions.md` atualizada.
+- Os 14 componentes + 13 previews removidos do painel do `e77ea465` (69 arquivos) — agora só fluxos.
+  `_ds_bundle.js`/`styles.css` mantidos lá como runtime dos protótipos (helmets referenciam).
+
+**Resultado:** DS puro (14 reutilizáveis) em `2d25d7a1`; protótipos (`tobe/`, `templates/`, `uploads/`)
+em `e77ea465`. O `/design-sync` agora fixa só o projeto do DS.
 
 ## Snapshot / segurança (antes do delete)
 

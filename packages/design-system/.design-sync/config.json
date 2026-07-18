@@ -1,5 +1,5 @@
 {
-  "projectId": "e77ea465-291f-4bf5-930c-a267680da04e",
+  "projectId": "2d25d7a1-31b2-4ac3-881f-72dbc8f35a29",
   "pkg": "@signallq/design-system",
   "shape": "package",
   "buildCmd": "npm run build",
