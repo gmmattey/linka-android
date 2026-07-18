@@ -45,10 +45,10 @@ nova (`#5B21D6`) — corrigindo de brinde o `_ds_bundle.js` stale.
 3. Upload (writes dos 13 reutilizáveis + bundle + styles) + **deletes de reconciliação** removendo
    `components/screens/**` + `components/sheets/**` do remoto (vestigiais — os fluxos usam `tobe/`, não
    elas; confirmado que não quebra nada).
-4. `SheetFrame` é reutilizável mas remote-only (sem `src` local). Como o bundle novo (13) deixou de
-   exportá-lo, o card dele quebraria — então foi **removido** do DS nesta passagem. **Follow-up:**
-   re-adicionar `src/layout/SheetFrame.tsx` (base em `tobe/primitives.jsx`) pra ele voltar working, na
-   paleta nova. Resultado final da Fase 1: **13 componentes reutilizáveis**.
+4. `SheetFrame` era remote-only (sem `src` local). `src/layout/SheetFrame.tsx` foi **re-adicionado**
+   (idioma `LK` do pacote, base no `tobe/primitives.jsx` — superfície baixa, cantos 28dp, alça,
+   conteúdo rolável) e re-sincronizado. Resultado final da Fase 1: **14 componentes reutilizáveis**,
+   todos working na paleta nova.
 
 ### Fase 2 — opcional, futura
 
