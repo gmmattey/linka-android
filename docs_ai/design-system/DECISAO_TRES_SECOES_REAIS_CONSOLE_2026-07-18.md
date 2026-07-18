@@ -3,7 +3,7 @@
 **Responsável:** Lia
 **Status:** ativo — decisão de design tomada e aplicada no cache local do protótipo; **push real
 para o Claude Design ainda pendente** (ver "Pendência de execução" no fim deste documento)
-**Última validação:** 2026-07-18
+**Última validação:** 2026-07-18 (versão 2 — correção de redistribuição temática)
 **Fonte de verdade:** projeto Claude Design `SignallQ Design System`
 (`e77ea465-291f-4bf5-930c-a267680da04e`), pasta `templates/signallq-admin-fluxo-tobe-md3/`
 **Contexto:** decisão do Luiz em 2026-07-18 — depois do Camilo aplicar
@@ -13,6 +13,42 @@ são seções ativas, com serviço, endpoint e dado real por trás. Decisão: ma
 **o protótipo é quem precisa alcançar o código**, não o contrário. Lia tem liberdade de decidir
 onde e como cada seção aparece — não é para colar o layout do React 1:1, é para desenhar no formato
 MD3 correto.
+
+## Versão 2 (2026-07-18) — correção de redistribuição temática
+
+Na versão 1 deste documento (seção 3 abaixo), a subseção "Uso do App — detalhamento" foi colocada
+inteira dentro do protótipo da tela **Ferramentas** (`Md3ToolsContent.dc.html`) — pelo motivo
+errado: era ali que o código React (`ToolsPage.tsx`) mantinha o bloco fisicamente. O Luiz corrigiu:
+o critério certo é o **tema real de cada pedaço de conteúdo**, não onde o React o hospeda
+fisicamente. `ToolsPage.tsx` importa componentes de `features/product-analytics/components/`
+dentro de si — isso não torna "Uso do App" um tema de Ferramentas, só significa que o React
+compõe o drill-down ali.
+
+Correção aplicada:
+- **Removida** de `Md3ToolsContent.dc.html` a subseção "Uso do App — detalhamento" inteira
+  (tabela de engajamento, cards de navegação, tabela de crashes, card de retenção). Ferramentas
+  voltou a ter só as 4 seções originais: Diagnósticos, Erros, Saúde do sistema, Configurações —
+  esse é o padrão intencional pré-existente (drill-down bruto de temas já resumidos em telas
+  próprias), não deve ganhar uma 5ª seção "Uso do App" só porque o React guarda o código lá.
+- **`MostUsedFeaturesTable`** (tabela "Engajamento por funcionalidade"), **`ScreenNavigationPanel`**
+  (cards "Navegação entre telas") e **`RetentionPanel`** (card "Contexto do cohort de retenção") —
+  tema real: **Uso do App** — movidos para `Md3ProductAnalyticsContent.dc.html`
+  (rota `/product-analytics`), como complemento às seções que já existiam lá (não como
+  substituição de placeholder "em breve" — "Funcionalidade mais usada"/"Retenção" já eram
+  visualizações reais e distintas, mantidas; o card de retenção D30/tempo-de-sessão passou a viver
+  dentro do mesmo card "Retenção" como complemento textual, não duplicado em card separado).
+- **`FeatureCrashTable`** (tabela "Crashes por funcionalidade") — tema real: **Problemas &
+  Incidentes** — movida para `Md3ErrorsContent.dc.html` (rota `/errors`), como bloco novo após
+  "Top Crashes" (distinto de "Erros por tela", que continua "em breve" — crash por funcionalidade
+  e erro por tela são recortes diferentes do mesmo domínio).
+- Decisão explícita: **não** adicionei uma versão drill-down enxuta de "Uso do App"/"Crashes" em
+  Ferramentas (opção que o Luiz deixou como julgamento meu, não obrigatória). Motivo: o próprio
+  erro desta correção nasceu de duplicar conteúdo por onde o código mora — inflar Ferramentas de
+  novo, mesmo que "enxuto", reintroduz o mesmo risco que acabei de corrigir. Ferramentas segue
+  fiel ao padrão original.
+
+Seções 1 e 2 abaixo (IA & Custos, Saúde do Sistema) **não mudaram** — já estavam no tema certo
+desde a versão 1, releitura do código confirmou.
 
 ---
 
@@ -74,50 +110,53 @@ correto antes desta sessão — só o `CloudflareUsagePanel` estava faltando).
 
 ---
 
-## 3. Ferramentas (`/tools`) — "Uso do App — detalhamento"
+## 3. Uso do App (`/product-analytics`) + Problemas & Incidentes (`/errors`) — os 4 componentes de "Uso do App — detalhamento" do React
+
+**Substitui a seção 3 original desta decisão** (que colocava tudo em Ferramentas por engano — ver
+"Versão 2" no topo do documento).
 
 **Código real:** `SignallQ Admin/src/features/tools/ToolsPage.tsx`, `ProductAnalyticsDetailSection`
-(linha 504-568). Reúne 4 componentes: `MostUsedFeaturesTable`, `ScreenNavigationPanel`,
-`FeatureCrashTable`, `RetentionPanel` — drill-down avançado do que a tela "Uso do App"
-(`/product-analytics`) já resume em KPIs.
+(linha 504-568) importa e renderiza 4 componentes cuja pasta física real é
+`SignallQ Admin/src/features/product-analytics/components/`: `MostUsedFeaturesTable.tsx`,
+`ScreenNavigationPanel.tsx`, `FeatureCrashTable.tsx`, `RetentionPanel.tsx`. O fato de `ToolsPage.tsx`
+importar e compor esses 4 componentes **não os torna tema de Ferramentas** — é só onde o React monta
+o drill-down. Cada componente tem tema próprio, resolvido por conteúdo:
 
-**Decisão de posição:** inserida entre "Erros — lista detalhada" e "Saúde do sistema —
-detalhamento", preservando a ordem relativa que o código real usa entre essas duas seções
-(`ErrorsDetailSection` → ... → `SystemHealthDetailSection`, com `ProductAnalyticsDetailSection` no
-meio). O protótipo hoje só tinha 4 seções (Diagnósticos, Erros, Saúde do sistema, Configurações);
-esta decisão não mexeu na seção "IA & Custos — detalhamento" que também existe no código
-(`AiCostDetailSection`, linha 451) — está fora do escopo desta tarefa (a Claudete listou
-especificamente 3 componentes, não essa 5ª seção do Ferramentas). Fica registrado aqui como
-pendência conhecida, não decisão tomada.
+- `MostUsedFeaturesTable` (tabela "Engajamento por funcionalidade": Speedtest/Diagnóstico IA —
+  sessões/conclusão/falha/tendência) → tema **Uso do App**.
+- `ScreenNavigationPanel` (cards "Navegação entre telas": views/saída por tela — Início/Velocidade)
+  → tema **Uso do App**.
+- `RetentionPanel` (cards "Contexto do cohort de retenção": Retenção D30, tempo médio de sessão) →
+  tema **Uso do App**.
+- `FeatureCrashTable` (tabela "Crashes por funcionalidade": Speedtest 3 crashes CRÍTICO,
+  Histórico 0 crashes CONFIÁVEL) → tema **Problemas & Incidentes**.
 
-**Decisão de formato — a mais retrabalhada das três, porque o React usa tokens errados:**
-os 4 componentes React (`MostUsedFeaturesTable.tsx`, `ScreenNavigationPanel.tsx`,
-`FeatureCrashTable.tsx`, `RetentionPanel.tsx`) usam classes Tailwind hardcoded (`zinc-900`,
-`emerald-400`, `red-400`, `amber-500`, `indigo-400`) em vez dos tokens do design system
-(`var(--text-primary)`, `var(--success)`, `var(--error)`, `var(--attention)`, `var(--primary)`).
-**Não copiei isso 1:1 no protótipo** — remapeei cada cor para o token MD3 tonal equivalente
-(`#E6E0E9` text-primary-dark, `#7DDB93` success-dark, `#FFB4AB` error-dark, `#FFB955`
-attention-dark, `#CFBCFF` primary-dark), porque o protótipo é a fonte de verdade visual e não deve
-herdar uma inconsistência do código. Isso é uma dívida de implementação para reportar ao Camilo (ver
-seção "Dívida encontrada" abaixo), não uma escolha de design.
+**Decisão de posição:**
+- Em `Md3ProductAnalyticsContent.dc.html`: tabela "Engajamento por funcionalidade" inserida como
+  bloco novo full-width logo após a grade "Retenção" + "Dispositivos mais ativos" (mantém a leitura
+  de cima pra baixo: KPIs → funcionalidade mais usada/funil → retenção/dispositivos → engajamento
+  detalhado). Card "Contexto do cohort de retenção" (D30 + tempo médio de sessão + nota de proxy de
+  inatividade) inserido **dentro** do card "Retenção" já existente, como complemento abaixo do
+  gráfico de barras D1/D7/D30 — mesmo tema, mesmo card, evita duplicar cabeçalho "Retenção".
+  Bloco "Navegação entre telas" inserido como última seção da tela (2 cards por tela, mesmo
+  conteúdo real do React: Início e Velocidade).
+- Em `Md3ErrorsContent.dc.html`: tabela "Crashes por funcionalidade" inserida como bloco novo
+  full-width logo após "Top Crashes" — mesma vizinhança temática (ambos tratam de crash), mas
+  descrição deixa claro que é um recorte diferente ("por funcionalidade" vs. "por assinatura de
+  stack trace" do Top Crashes) e que não substitui "Erros por tela" (que continua `Md3ComingSoonCard`
+  porque errros-por-tela genuinamente não tem dado real hoje — "crash por funcionalidade" tem).
 
-Estrutura visual escolhida (4 blocos empilhados, full-width, dentro da subseção):
-1. **Tabela** "Engajamento por funcionalidade" — mesma grade de colunas do código (Função / Sessões
-   / Conclusão / Falha / Tendência), reduzida a 5 colunas em vez das 7 do React (cortei Usuários
-   Únicos e Tempo Médio do preview — não é perda de dado real, é curadoria de amostra de protótipo,
-   igual ao padrão de 2-3 linhas de exemplo já usado no resto do `Md3ToolsContent.dc.html`).
-2. **Grade de 2 cards** "Navegação e fluxo de telas" — versão condensada do card por tela do React
-   (Views + Taxa de saída, barra de progresso), mesma lógica visual, menos verbosidade (o React
-   mostra 4 métricas + "próxima tela mais comum"; o protótipo mostra 2 métricas — suficiente para
-   comunicar o padrão visual sem replicar cada pixel do componente real).
-3. **Tabela** "Crashes por funcionalidade" — badge de severidade com as 3 cores semânticas
-   (crítico/atenção/confiável), mesmo padrão de badge `border-radius:999px` já usado no resto do
-   protótipo (ex.: badge "2 problemas" da seção Diagnósticos).
-4. **Card** "Contexto do cohort de retenção" — 2 stat-cards (Retenção D30, Tempo médio de sessão) +
-   nota de proxy de inatividade, mesmo padrão de card-dentro-de-card já usado no protótipo.
+**Decisão de formato — mesma correção de tokens da versão 1:** os 4 componentes React usam classes
+Tailwind hardcoded (`zinc-900`, `emerald-400`, `red-400`, `amber-500`, `indigo-400`) em vez dos
+tokens do design system. Mantive o remapeamento já feito na versão 1 para o token MD3 tonal
+equivalente (`#E6E0E9` text-primary-dark, `#7DDB93` success-dark, `#FFB4AB` error-dark, `#FFB955`
+attention-dark, `#CFBCFF` primary-dark) — dívida de implementação segue registrada para o Camilo
+(ver seção "Dívida encontrada" abaixo), sem mudança nesta versão 2.
 
-**Por que não virou card "em breve":** dado real, 4 serviços reais (`productAnalyticsService`)
-retornando dado de produção. Nenhuma razão para tratar como stub.
+Ferramentas (`Md3ToolsContent.dc.html`) voltou às 4 seções originais (Diagnósticos, Erros, Saúde do
+sistema, Configurações) — decisão explícita de **não** adicionar uma 5ª seção "Uso do App" ali, nem
+mesmo em versão enxuta (opção que o Luiz deixou a critério meu). Ver "Versão 2" no topo para o
+motivo.
 
 ---
 
@@ -142,17 +181,28 @@ equivalente — Claudete ou Camilo, verificar antes.
 
 ## Pendência de execução — IMPORTANTE
 
-As três seções foram desenhadas e **já aplicadas nos arquivos de conteúdo do protótipo salvos
+As seções foram desenhadas e **já aplicadas nos arquivos de conteúdo do protótipo salvos
 localmente** em
 `C:\Users\luizg\AppData\Local\Temp\claude\C--Projetos-SignallQ\5d8219ba-ac18-4262-a12f-7242ebb3ae31\scratchpad\admin-tobe-md3\`:
-- `Md3AiCostContent.dc.html` — card "Quota do free tier Gemini" adicionado.
-- `Md3SystemHealthContent.dc.html` — card "Uso do free tier Cloudflare" adicionado.
-- `Md3ToolsContent.dc.html` — subseção "Uso do App — detalhamento" adicionada.
+- `Md3AiCostContent.dc.html` — card "Quota do free tier Gemini" adicionado (versão 1, sem mudança
+  na versão 2).
+- `Md3SystemHealthContent.dc.html` — card "Uso do free tier Cloudflare" adicionado (versão 1, sem
+  mudança na versão 2).
+- `Md3ToolsContent.dc.html` — **versão 2:** subseção "Uso do App — detalhamento" (adicionada na
+  versão 1) foi **removida**; arquivo voltou às 4 seções originais.
+- `Md3ProductAnalyticsContent.dc.html` — **versão 2:** tabela "Engajamento por funcionalidade" e
+  bloco "Navegação entre telas" adicionados como seções novas; card "Contexto do cohort de
+  retenção" (D30 + tempo médio de sessão + nota de proxy) adicionado dentro do card "Retenção"
+  existente.
+- `Md3ErrorsContent.dc.html` — **versão 2:** tabela "Crashes por funcionalidade" adicionada como
+  seção nova após "Top Crashes".
 
-**Essa sessão da Lia não teve a tool `DesignSync` carregada** (ferramentas disponíveis nesta
-invocação: Read, Grep, Glob, Bash, Edit, Write, Agent — sem `DesignSync`), então **não foi possível
-executar o `write_files` real contra o projeto Claude Design** (`e77ea465-291f-4bf5-930c-a267680da04e`).
-O conteúdo acima está pronto para aplicar (`list_files`/`read` → `finalize_plan` → `write_files`,
-fluxo já documentado em sessões anteriores), mas falta uma sessão da Lia com `DesignSync`
-disponível para de fato subir esses 3 arquivos ao protótipo remoto. Não estou declarando "protótipo
-atualizado" sem essa etapa ter rodado de verdade — só a decisão de design e o conteúdo estão prontos.
+**Essa sessão da Lia não teve a tool `DesignSync` carregada de novo** (tentativa via `ToolSearch`
+com `select:DesignSync` e depois busca livre por `DesignSync` — ambas sem resultado), então **não
+foi possível executar o `write_files` real contra o projeto Claude Design**
+(`e77ea465-291f-4bf5-930c-a267680da04e`) nesta sessão também. O conteúdo acima está pronto para
+aplicar (`list_files`/`read` → `finalize_plan` → `write_files`, fluxo já documentado em sessões
+anteriores), mas segue faltando uma sessão da Lia com `DesignSync` disponível para de fato subir os
+5 arquivos (3 da versão 1 + 2 novos da versão 2) ao protótipo remoto. Não estou declarando
+"protótipo atualizado" sem essa etapa ter rodado de verdade — só a decisão de design e o conteúdo
+estão prontos, local, aguardando push real (mesma situação da versão 1, ainda sem resolução).
