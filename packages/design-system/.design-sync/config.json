@@ -5,5 +5,13 @@
   "buildCmd": "npm run build",
   "cssEntry": "./styles/tokens.css",
   "runtimeFontPrefixes": ["Roboto"],
-  "readmeHeader": ".design-sync/conventions.md"
+  "readmeHeader": ".design-sync/conventions.md",
+  "componentSrcMap": {
+    "AjustesScreen": null,
+    "HistoricoScreen": null,
+    "HomeScreen": null,
+    "SignallQScreen": null,
+    "SinalScreen": null,
+    "SpeedFlow": null
+  }
 }
