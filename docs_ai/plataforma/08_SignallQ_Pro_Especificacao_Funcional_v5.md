@@ -4,7 +4,12 @@
 
 ## Estado atual vs. Alvo
 
-Todo o **SignallQ Pro** descrito aqui é **🎯 ALVO** — o app não existe ainda (Canônico §1). É um aplicativo Android novo, `io.signallq.pro`, com Firebase e Play separados. Esta especificação define o produto desejado, não o implementado.
+O **SignallQ Pro** descrito aqui é majoritariamente **🎯 ALVO**, mas o app **já tem código real**:
+Fase 0 (esqueleto `:pro:app`) e Fase 1 (MVP0) foram implementadas e mergeadas — ver
+`docs_ai/plataforma/13_SignallQ_Pro_Arquitetura_e_Reaproveitamento_v1.md` para o estado real
+(telas, ViewModels, Room, Hilt já existentes em `android/pro/`). É um aplicativo Android,
+`io.signallq.pro`, com Firebase e Play separados. Esta especificação define o produto desejado
+por completo; partes dela já foram construídas, o restante ainda não.
 
 O que já é **✅ ATUAL** e serve de base: o **SignallQ** consumidor (`io.signallq.app`, repo `gmmattey/linka-android`) com seus motores de medição/diagnóstico reaproveitáveis, o **SignallQ Admin** (React/Vite, dentro do monorepo) que operará também o Pro, e os **Workers Cloudflare** já em produção. Os identificadores técnicos legados (`linkaKotlin.db`, `linkaPreferencias`, canais `linka_*`, repo `gmmattey/linka-android`) nunca são renomeados.
 

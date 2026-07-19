@@ -81,6 +81,12 @@ antigo) e serão corrigidos em fase separada de implementação, não nesta pass
 
 - `packages/design-system/` (gêmeo digital React) — Fase 1/Fase 2 de bottom sheets já mergeadas
   usando os valores antigos; precisa de rodada de correção de tokens.
+  > **Nota (2026-07-19):** a correção de 2026-07-18 (separação DS/protótipos, ver
+  > `docs_ai/design-system/DECISAO_SEPARACAO_DS_PROTOTIPOS_2026-07-18.md`) já tirou
+  > `packages/design-system/` da lista de "fora de escopo/desatualizado" — o pacote hoje sincroniza
+  > com o projeto Claude Design "SignallQ Design System" (`2d25d7a1-…`) e seus tokens já foram
+  > alinhados à paleta atual (`#5B21D6`/`#2851B8`) na consolidação de `docs_ai/DESIGN_SYSTEM.md`.
+  > Este item permanece só como registro histórico da decisão original.
 - `android/**/SignallQTheme.kt` (`LkColors`, `LkSpacing`, `LkRadius`, `signallQTypography`) —
   código de produção Android, fora do escopo de uma tarefa de documentação.
 - `.claude/skills/SignallQ-design/preview/*.html` — cards de referência visual do DS, ainda

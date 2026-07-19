@@ -29,7 +29,14 @@ Não confundir com a skill `SignallQ-design` (consumer, violeta `#5B21D6`) nem c
   - Escuro: Excelente/Bom `#32D978` · Atenção `#F5C451` · Fraco `#FF964F` · Crítico `#FF5F66` · Informação `#3D96FF`
 - **Gráficos (`--sqp-chart-*`):** séries download / upload / latência / jitter / perda + `grid` e `reference` (linha tracejada). Linhas limpas, preenchimento suave, grade discreta; fundo branco no claro, surface no escuro, sem glow.
 - **Cor nunca é o único sinal de estado** — sempre ícone + rótulo textual + valor. Estados semânticos: Excelente / Bom / Atenção / Fraco / Crítico / Não avaliado.
-- **Tipografia:** Google Sans Flex (fallback Roboto → system-ui), uma família em todas as telas. Grid 8dp; alvos de toque mínimos 48×48dp; ícone padrão 24dp (Material Symbols Outlined).
+- **Tipografia:** Google Sans Flex (fallback Roboto → system-ui), uma família em todas as telas.
+- **Grid e toque:** grid 8dp (passo fino 4dp para ícone/label); **alvo de toque mínimo 48×48dp em todo elemento acionável**, mesmo quando o ícone/conteúdo visual for menor (aplicar padding/`minimumInteractiveComponentSize()`); ícone padrão 24dp, ícone de chip/contexto 14–18dp (Material Symbols Outlined).
+- **Profundidade — 4 níveis (ver `docs_ai/plataforma/10_SignallQ_Pro_Design_System_v5.md` §4.1 para a versão completa):**
+  - **Nível 0 — Fundo** (`ProBackground` `#F7F9FC`): sem sombra, sem borda.
+  - **Nível 1 — Conteúdo agrupado** (`ProSurface` `#FFFFFF`, reaproveitado — sem token novo): cards, listas, métricas. Diferença tonal com o fundo já basta; borda só quando dois cards brancos ficam colados sem espaçamento.
+  - **Nível 2 — Interativo/destacado** (`ProSurfaceContainerHigh` `#E7ECF3` já existe + `ProSurfaceSelected` `#EAF2FF`, **novo**, ainda não implementado em código): selecionado, recomendação prioritária, controle em foco — sombra discreta, borda de destaque suave permitida.
+  - **Nível 3 — Sobreposto** (`ProSurfaceOverlay` **novo**, ainda não implementado + `ProScrim` **novo**, `rgba(0,0,0,.5)` claro / `.6` escuro): dialogs, bottom sheets, menus, tooltips — scrim + elevação clara, nunca em card comum.
+  - Regras: profundidade comunica hierarquia, nunca decoração; nunca borda+sombra+glow+gradiente juntos no mesmo elemento; sem glow permanente; sem glassmorphism como linguagem principal; card não-interativo nunca parece elevado.
 - **Selo PRO:** caixa alta, cantos arredondados. Nunca "SignallQPRO" como palavra única; nunca redesenhar o símbolo SignallQ.
 - **Copy PT-BR** com "você", sentence case em títulos, UPPERCASE em overlines, **sem emoji**. Métrica crua sempre com veredito humano. Linguagem em camadas: resumo simples para o cliente, detalhe técnico para o profissional.
 
