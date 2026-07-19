@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.signallq.pro.core.designsystem.EnvironmentCard
 import io.signallq.pro.core.designsystem.StateCard
 import io.signallq.pro.core.designsystem.StateCardVariant
+import io.signallq.pro.core.designsystem.corSurfaceOverlay
 
 private sealed interface DialogoAmbiente {
     data object Criar : DialogoAmbiente
@@ -152,6 +153,7 @@ private fun DialogoAmbienteHost(
         is DialogoAmbiente.Opcoes ->
             AlertDialog(
                 onDismissRequest = { onDialogoChange(null) },
+                containerColor = corSurfaceOverlay(),
                 title = { Text(dialogo.nome) },
                 text = {},
                 confirmButton = {

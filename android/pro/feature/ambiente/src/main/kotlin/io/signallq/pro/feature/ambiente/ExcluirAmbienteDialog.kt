@@ -4,6 +4,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import io.signallq.pro.core.designsystem.corSurfaceOverlay
 
 /**
  * Tela 2.9 -- confirmar exclusão. A recusa por medição associada é mostrada como erro
@@ -18,6 +19,7 @@ fun ExcluirAmbienteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = corSurfaceOverlay(),
         title = { Text("Excluir ambiente") },
         text = { Text("Tem certeza que deseja excluir \"$nomeAmbiente\"?") },
         confirmButton = {
