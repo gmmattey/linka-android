@@ -45,16 +45,56 @@ export function AdSlot({ format = 'horizontal', slot }: AdSlotProps) {
 
   return (
     <div
-      className="flex w-full flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed p-3 box-border"
+      className="flex w-full flex-col gap-2.5 rounded-2xl border p-3 box-border"
       style={{
         minHeight: format === 'square' ? 250 : 100,
-        borderColor: 'color-mix(in srgb, var(--border) 45%, transparent)',
-        background: 'var(--bg-secondary)',
+        borderColor: 'color-mix(in srgb, var(--border) 20%, transparent)',
+        background: 'var(--bg-card)',
       }}
     >
-      <div className="overline">Publicidade</div>
+      <div className="overline" style={{ color: 'var(--text-tertiary)' }}>
+        Publicidade
+      </div>
       <div ref={hostRef} className="flex w-full justify-center">
-        {!mounted && <div className="body-small">Espaço reservado — AdSense ainda não configurado</div>}
+        {/* Criativo simulado (não é anúncio real) — ativa sozinho assim que
+            ADSENSE_PUBLISHER_ID/ADSENSE_SLOT_RESULT forem configurados em
+            lib/config.ts, sem precisar tocar neste componente. Visual
+            genérico e neutro (nenhuma marca/produto real), só pra o slot
+            não aparecer como uma caixa vazia enquanto o AdSense real não
+            está ligado. */}
+        {!mounted && (
+          <div
+            className={`flex w-full items-center gap-3 rounded-xl p-3 ${format === 'square' ? 'flex-col text-center' : ''}`}
+            style={{ background: 'color-mix(in srgb, var(--border) 8%, transparent)' }}
+          >
+            <div
+              className="flex shrink-0 items-center justify-center rounded-lg"
+              style={{
+                width: format === 'square' ? 96 : 64,
+                height: format === 'square' ? 96 : 64,
+                background: 'color-mix(in srgb, var(--text-tertiary) 16%, transparent)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--text-tertiary)' }}>
+                image
+              </span>
+            </div>
+            <div className="flex flex-1 flex-col gap-1">
+              <div className="label-large">Conteúdo patrocinado</div>
+              <div className="body-small" style={{ color: 'var(--text-secondary)' }}>
+                Anúncios relevantes aparecem aqui.
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled
+              className="shrink-0 rounded-full border px-3 py-1.5 label-medium"
+              style={{ borderColor: 'color-mix(in srgb, var(--border) 40%, transparent)', color: 'var(--text-secondary)' }}
+            >
+              Saiba mais
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
