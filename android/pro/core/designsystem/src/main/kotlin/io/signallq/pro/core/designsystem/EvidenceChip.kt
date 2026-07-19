@@ -21,8 +21,8 @@ enum class EvidenceType { FOTO, NOTA }
 
 /**
  * Chip semantico de tipo de evidencia (foto ou nota textual) -- a nota e alternativa
- * valida quando a foto nao esta disponivel (handoff Fase 2, #1161: "evidencia visual nao
- * pode ser obrigatoria").
+ * válida quando a foto não está disponível (handoff Fase 2, #1161: "evidência visual não
+ * pode ser obrigatória").
  */
 @Composable
 fun EvidenceChip(
@@ -32,7 +32,7 @@ fun EvidenceChip(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(999.dp),
+        shape = RoundedCornerShape(ProRadius.pill),
         color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Row(

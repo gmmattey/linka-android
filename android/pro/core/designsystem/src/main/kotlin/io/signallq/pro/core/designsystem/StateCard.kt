@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudOff
@@ -24,15 +23,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 /**
- * Variante semantica do [StateCard] -- cobre os 4 estados transversais do Grupo 6 do
- * prototipo do Pro (vazio / carregando / erro recuperavel/offline / sucesso). Toda feature
- * consome este componente em vez de reimplementar o proprio estado (handoff Fase 2, #1161).
+ * Variante semântica do [StateCard] -- cobre os 4 estados transversais do Grupo 6 do
+ * protótipo do Pro (vazio / carregando / erro recuperável/offline / sucesso). Toda feature
+ * consome este componente em vez de reimplementar o próprio estado (handoff Fase 2, #1161).
  */
 enum class StateCardVariant { VAZIO, CARREGANDO, ERRO, SUCESSO }
 
 /**
- * Card unico para representar um estado transversal (vazio/erro/carregando/sucesso).
- * Nunca duplicar com banner/ilustracao adicional na mesma tela para o mesmo estado.
+ * Card único para representar um estado transversal (vazio/erro/carregando/sucesso).
+ * Nunca duplicar com banner/ilustração adicional na mesma tela para o mesmo estado.
  */
 @Composable
 fun StateCard(
@@ -46,7 +45,7 @@ fun StateCard(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(

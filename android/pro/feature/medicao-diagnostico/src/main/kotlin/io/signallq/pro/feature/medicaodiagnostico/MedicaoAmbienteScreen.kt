@@ -5,6 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.SignalCellularAlt
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -26,8 +31,8 @@ import io.signallq.pro.core.designsystem.StateCardVariant
 private const val DOWNLOAD_REFERENCIA_MBPS = 200.0
 
 /**
- * Tela 2.10 -- 1 gauge em destaque (download) + [ListRow] expansivel pras secundarias, NAO
- * grid de 6-7 cards de metrica (handoff Fase 2, #1161). Reaproveita o motor de speedtest
+ * Tela 2.10 -- 1 gauge em destaque (download) + [ListRow] expansível pras secundárias, NÃO
+ * grid de 6-7 cards de métrica (handoff Fase 2, #1161). Reaproveita o motor de speedtest
  * real do consumidor via [MedicaoAmbienteViewModel].
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +49,7 @@ fun MedicaoAmbienteScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Medicao do ambiente") }) },
+        topBar = { TopAppBar(title = { Text("Medição do ambiente") }) },
     ) { paddingValues ->
         Column(
             modifier =
@@ -60,12 +65,12 @@ fun MedicaoAmbienteScreen(
                     StateCard(
                         variant = StateCardVariant.CARREGANDO,
                         titulo = "Medindo (${uiState.progressoPercentual}%)",
-                        mensagem = "Testando velocidade, latencia e perda de pacotes da rede local.",
+                        mensagem = "Testando velocidade, latência e perda de pacotes da rede local.",
                     )
                 MedicaoAmbienteEstado.ERRO ->
                     StateCard(
                         variant = StateCardVariant.ERRO,
-                        titulo = "Medicao invalida",
+                        titulo = "Medição inválida",
                         mensagem = uiState.mensagemErro ?: "Tente novamente.",
                         acaoTexto = "Medir novamente",
                         onAcaoClick = viewModel::iniciarMedicao,
@@ -77,15 +82,31 @@ fun MedicaoAmbienteScreen(
                         veredito = veredictoDownload(uiState.downloadMbps),
                         progresso = (uiState.downloadMbps / DOWNLOAD_REFERENCIA_MBPS).toFloat().coerceIn(0f, 1f),
                     )
-                    ListRow(titulo = "Upload", subtitulo = "%.1f Mbps".format(uiState.uploadMbps))
-                    ListRow(titulo = "Latencia", subtitulo = "%.0f ms".format(uiState.latenciaMs))
-                    ListRow(titulo = "Jitter", subtitulo = "%.1f ms".format(uiState.jitterMs))
-                    ListRow(titulo = "Perda de pacotes", subtitulo = "%.1f%%".format(uiState.perdaPercentual))
+                    ListRow(
+                        titulo = "Upload",
+                        subtitulo = "%.1f Mbps".format(uiState.uploadMbps),
+                        icone = Icons.Outlined.CloudUpload,
+                    )
+                    ListRow(
+                        titulo = "Latência",
+                        subtitulo = "%.0f ms".format(uiState.latenciaMs),
+                        icone = Icons.Outlined.Timer,
+                    )
+                    ListRow(
+                        titulo = "Jitter",
+                        subtitulo = "%.1f ms".format(uiState.jitterMs),
+                        icone = Icons.Outlined.SignalCellularAlt,
+                    )
+                    ListRow(
+                        titulo = "Perda de pacotes",
+                        subtitulo = "%.1f%%".format(uiState.perdaPercentual),
+                        icone = Icons.Outlined.Warning,
+                    )
                     Button(
                         onClick = { onMedicaoConcluida(viewModel.ambienteId) },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("Continuar para diagnostico")
+                        Text("Continuar para diagnóstico")
                     }
                 }
             }

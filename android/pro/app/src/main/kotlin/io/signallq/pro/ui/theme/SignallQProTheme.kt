@@ -3,10 +3,11 @@ package io.signallq.pro.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import io.signallq.pro.core.designsystem.ProShapes
 
-// MVP0: so o esquema claro esta implementado — o modo escuro oficial (paridade total de
+// MVP0: só o esquema claro está implementado — o modo escuro oficial (paridade total de
 // hierarquia com o claro, ver skill signallq-pro-design) fica pra fase de UI real (Fase 2+),
-// nao e foco do esqueleto.
+// não é foco do esqueleto.
 private val ProLightColorScheme =
     lightColorScheme(
         primary = ProPrimary,
@@ -28,6 +29,8 @@ private val ProLightColorScheme =
 fun SignallQProTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = ProLightColorScheme,
+        typography = signallQProTypography,
+        shapes = ProShapes,
         content = content,
     )
 }

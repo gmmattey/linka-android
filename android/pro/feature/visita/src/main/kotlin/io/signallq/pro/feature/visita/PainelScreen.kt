@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -33,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.signallq.pro.core.designsystem.ProLogo
 import io.signallq.pro.core.designsystem.StateCard
 import io.signallq.pro.core.designsystem.StateCardVariant
 
@@ -43,8 +46,8 @@ private data class AcaoRapida(
 )
 
 /**
- * Tela 2.1 -- painel inicial. Lidera com "Proximos atendimentos" (lista, nao card) + 4
- * acoes rapidas em grid -- NAO replica os 3 cards de metrica de vaidade do prototipo
+ * Tela 2.1 -- painel inicial. Lidera com "Próximos atendimentos" (lista, não card) + 4
+ * ações rápidas em grid -- NÃO replica os 3 cards de métrica de vaidade do protótipo
  * (handoff Fase 2, #1161).
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,7 +64,11 @@ fun PainelScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("SignallQ Pro") }) },
+        topBar = {
+            TopAppBar(
+                title = { ProLogo(modifier = Modifier.width(120.dp).height(40.dp)) },
+            )
+        },
     ) { paddingValues ->
         Column(
             modifier =
@@ -81,7 +88,7 @@ fun PainelScreen(
                     ),
             )
 
-            Text(text = "Proximos atendimentos", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Próximos atendimentos", style = MaterialTheme.typography.titleMedium)
 
             when {
                 uiState.carregando ->
@@ -133,9 +140,7 @@ private fun AcoesRapidasGrid(acoes: List<AcaoRapida>) {
     ) {
         items(acoes) { acao ->
             Surface(
-                shape =
-                    androidx.compose.foundation.shape
-                        .RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.medium,
                 border =
                     androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.aspectRatio(1f).clickable(onClick = acao.onClick),

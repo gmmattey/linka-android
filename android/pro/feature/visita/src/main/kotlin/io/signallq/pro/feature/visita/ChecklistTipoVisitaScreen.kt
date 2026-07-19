@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,7 +46,7 @@ fun ChecklistTipoVisitaScreen(
                 StateCard(
                     variant = StateCardVariant.VAZIO,
                     titulo = "Sem checklist",
-                    mensagem = "Este tipo de visita nao possui roteiro padrao.",
+                    mensagem = "Este tipo de visita não possui roteiro padrão.",
                     modifier = Modifier.padding(16.dp),
                 )
             } else {
@@ -52,6 +54,7 @@ fun ChecklistTipoVisitaScreen(
                     items(uiState.itens, key = { it.id }) { item ->
                         ListRow(
                             titulo = item.descricao,
+                            icone = Icons.Outlined.Checklist,
                             onClick = { viewModel.alternarItem(item.id, !item.concluido) },
                             trailing = {
                                 Checkbox(
