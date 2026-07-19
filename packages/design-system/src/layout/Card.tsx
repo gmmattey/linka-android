@@ -7,15 +7,19 @@ export interface CardProps {
   onClick?: () => void;
 }
 
-/** Surface card: white background, 1px border, 16dp radius, flat (no shadow). */
+/**
+ * Surface card: separação do fundo por profundidade (tint de superfície, nível 1), sem borda.
+ * 16dp radius, flat (sem sombra — sombra só entra se um uso específico precisar reforçar o
+ * nível, ver `depthLevel1Shadow`). Nunca reintroduzir `border` aqui — é exatamente o padrão
+ * que criava contraste zero entre card e fundo no tema claro (bgCard == bgPrimary == #FFFFFF).
+ */
 export function Card({ children, style = {}, onClick }: CardProps) {
   const LK = useTokens();
   return (
     <div
       onClick={onClick}
       style={{
-        background: LK.bgCard,
-        border: `1px solid ${LK.border}`,
+        background: LK.depthLevel1Tint,
         borderRadius: LK.rCard,
         padding: 16,
         boxSizing: 'border-box',

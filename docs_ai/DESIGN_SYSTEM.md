@@ -285,15 +285,32 @@ estilo maior que `displaySmall`) — não reintroduzir sem validar com a Lia.
 | Situação | Solução recomendada |
 | --- | --- |
 | Agrupar conteúdo relacionado, sem ação direta | `surfaceContainer` (nível 1), sem borda, sem sombra |
-| Separar visualmente sem mudar o "peso" do bloco | hairline `1dp outlineVariant`, mesma superfície do fundo |
+| Separar container/card do fundo | **nunca borda** — diferença tonal de superfície (nível 1+), ver seção 6 |
+| Separar duas regiões adjacentes do mesmo tom (ex.: faixa de tabs e conteúdo abaixo) | hairline `1dp outlineVariant` é aceitável — não é separação de container, é divisor entre elementos sem profundidade própria |
 | Elemento interativo/selecionável | `surfaceContainerHigh` (nível 2) + leve elevação — nunca borda+sombra ao mesmo tempo sem justificativa |
 | Conteúdo já numa lista simples (linha única, texto+ícone) | **não usar card** — usar `LazyColumn` com divisor (`LkSheetDivider`) ou espaçamento, card aqui é ruído visual |
 | Dado é a própria tela (ex.: resultado de SpeedTest) | sem card — o fundo da tela já é a superfície |
 
 **Regra de "quando NÃO usar card":** se o conteúdo é uma única linha (ícone+texto+ação) dentro de
 uma lista maior, ou se o card não agrega nada além de "uma caixa ao redor de texto", prefira
-espaçamento e hairline a um card cheio. Card em excesso é a causa mais comum de poluição visual
-identificada em auditorias anteriores.
+espaçamento a um card cheio. Card em excesso é a causa mais comum de poluição visual identificada
+em auditorias anteriores.
+
+**Decisão do Luiz (2026-07-19) — borda nunca separa container do fundo.** Borda como recurso
+passivo de contêiner ("cara de IA", malacabado) está proibida em qualquer componente do Design
+System (consumer). A separação de um card/container em relação ao fundo é **sempre** por
+diferença tonal de profundidade (seção 6) — nunca por hairline. Borda continua permitida **só**
+quando é parte funcional da forma do próprio componente: campo de texto outlined, botão outlined,
+checkbox, switch (estado desligado), controle segmentado (outlined segmented button), indicador de
+seleção. Divisor funcional entre duas regiões adjacentes do mesmo tom (ex.: `Tabs` — a faixa de
+tabs e o conteúdo abaixo não têm profundidade diferente entre si) também é permitido, mas isso não
+é "separação de container do fundo" e não deve ser confundido com o padrão proibido.
+
+Achado corrigido nesta revisão (não é débito, já resolvido): `Card` (React, `packages/design-system/src/layout/Card.tsx`)
+usava `background: bgCard` que, no tema claro, valia exatamente o mesmo `#FFFFFF` do fundo da tela
+(`bgPrimary`) — a única coisa que separava o card do fundo era a borda de 1px. Corrigido trocando o
+fundo para `depthLevel1Tint` (`#F3EEFA` claro / `#211F26` escuro) e removendo a borda. Mesmo padrão
+corrigido em `BottomNav.tsx` (trocado `borderTop` por fundo `depthLevel1Tint`).
 
 ---
 
@@ -308,7 +325,7 @@ do consumer (`LkColors`/`colors_and_type.css`).
 | Nível | Papel | Token de superfície | Sombra/borda | Exemplo real no app |
 | --- | --- | --- | --- | --- |
 | **0 — Fundo da tela** | Plano base, não compete com o conteúdo | `surface` / `background` | Nenhuma | Fundo de `HomeScreen`, `SinalScreen` |
-| **1 — Conteúdo agrupado** | Cards comuns, métricas, listas | `surfaceContainer` | Sem sombra, ou quase imperceptível; borda hairline só quando necessário pra separação | Card de resumo, lista de dispositivos |
+| **1 — Conteúdo agrupado** | Cards comuns, métricas, listas | `surfaceContainer` | Sem sombra, ou quase imperceptível; **nunca borda** — separação é só pelo tint de superfície | Card de resumo, lista de dispositivos |
 | **2 — Conteúdo interativo/destacado** | Selecionado, recomendação prioritária, controles interativos | `surfaceContainerHigh` + `color.surface.selected` (novo — borda `primary`@25–30% quando selecionado) | Contraste tonal maior, pode ter borda de destaque suave e sombra discreta | `RecommendationEngineCard` em destaque, rede Wi-Fi conectada |
 | **3 — Sobreposto** | Dialogs, bottom sheets, menus, tooltips | `surfaceContainerHighest` | Sombra ou scrim controlado, contraste suficiente | `LkSheetFrame`, `ConfirmacaoDialog`, `LgpdConsentDialog` |
 
@@ -338,9 +355,16 @@ campo `scrim`). Valor alvo: `rgba(0,0,0,.5)` claro / `rgba(0,0,0,.6)` escuro.
 - Cards aninhados no máximo 2 níveis visuais (ex.: card nível 1 pode conter um chip/badge nível
   2, mas não um card nível 1 dentro de outro card nível 1).
 - Botão primário pode ter leve elevação, mas sem parecer desconectado do restante da tela.
-- Bottom nav é superfície acima do conteúdo, sem sombra pesada (hoje `tonalElevation = 0.dp` no
-  `NavigationBar` — aceitável enquanto a separação vier de hairline/tint, não deve ganhar sombra
-  dura no futuro).
+- Bottom nav é superfície acima do conteúdo, sem sombra pesada e **sem hairline** — a separação é
+  só por diferença de tint de superfície (`depthLevel1Tint`/`surfaceContainer`), nunca por borda.
+  React (`packages/design-system/src/layout/BottomNav.tsx`) corrigido em 2026-07-19 (removido
+  `borderTop`, fundo passou a `depthLevel1Tint`). **Débito identificado, não corrigido nesta
+  revisão** (fora do escopo — mexe em `.kt` de produção): o Kotlin (`AppShell.kt`, função que
+  monta o `NavigationBar`) já usa `containerColor = c.surfaceContainer` corretamente, mas ainda tem
+  `HorizontalDivider(color = c.outlineVariant, thickness = 1.dp)` logo acima da barra — é
+  exatamente o padrão de borda-como-separação-de-container que esta decisão elimina. Ajustar
+  requer tocar `AppShell.kt` (fora do escopo desta tarefa) — registrar/atualizar issue de higiene
+  quando essa mudança for priorizada.
 - Bottom sheets/modais com profundidade claramente superior à tela base (nível 3, sempre).
 
 ### Tema escuro
@@ -356,10 +380,13 @@ campo `scrim`). Valor alvo: `rgba(0,0,0,.5)` claro / `rgba(0,0,0,.6)` escuro.
 ### Tema claro
 
 - Diferença de branco/cinza-claro entre planos (confirmado: `surface = #FFFFFF`,
-  `surfaceContainer = #F3EEFA`, degradê suave).
+  `surfaceContainer = #F3EEFA`, degradê suave). É o tema onde o erro de "card some no fundo" é
+  mais fácil de acontecer (diferença tonal menor que no escuro) — checar sempre com o próprio
+  `bgCard`/token de fundo, nunca assumir que a borda vai disfarçar uma diferença tonal insuficiente.
 - Sombras leves, difusas, pouco opacas.
 - Evitar visual de vários cartões flutuando ao mesmo tempo na mesma tela.
-- Bordas sutis quando sombra não for necessária.
+- Nunca usar borda para compensar diferença tonal fraca — se o tint não for suficiente, o ajuste é
+  no valor do token (`depthLevel1Tint` etc.), não reintroduzir hairline.
 
 ### Critérios de aceite
 

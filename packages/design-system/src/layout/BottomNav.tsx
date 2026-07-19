@@ -20,15 +20,18 @@ export interface BottomNavProps {
   onChange?: (tab: TabId) => void;
 }
 
-/** 5-tab bottom navigation bar with accent highlight and pill indicator. */
+/**
+ * 5-tab bottom navigation bar with accent highlight and pill indicator.
+ * Separada do conteúdo por profundidade (tint de superfície, nível 1) — não por hairline.
+ * A barra é percebida como uma superfície acima do conteúdo, sem sombra pesada.
+ */
 export function BottomNav({ active = 'home', onChange }: BottomNavProps) {
   const LK = useTokens();
   return (
     <div
       style={{
         display: 'flex',
-        background: LK.bgPrimary,
-        borderTop: `1px solid ${LK.border}`,
+        background: LK.depthLevel1Tint,
         padding: '8px 4px 6px',
         flex: 'none',
       }}

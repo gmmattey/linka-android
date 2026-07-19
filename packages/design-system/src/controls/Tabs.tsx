@@ -8,7 +8,14 @@ export interface TabsProps {
   onChange?: (id: string) => void;
 }
 
-/** Tabs com sublinhado (nav topo dentro de uma tela, ex.: Wi-Fi / Canal / Móvel). */
+/**
+ * Tabs com sublinhado (nav topo dentro de uma tela, ex.: Wi-Fi / Canal / Móvel).
+ * A `borderBottom` do wrapper NÃO separa um container do fundo — tabs e o conteúdo abaixo
+ * ficam no mesmo tom de superfície, então não há profundidade para diferenciar por tint.
+ * É um divisor funcional entre a faixa de tabs e o conteúdo (mesmo papel do indicador de 3px
+ * de cada aba, só que para o grupo inteiro) — permitido pela regra de profundidade
+ * (ver docs_ai/DESIGN_SYSTEM.md, seção 6.4).
+ */
 export function Tabs({ options, value, onChange }: TabsProps) {
   const LK = useTokens();
   return (
