@@ -22,9 +22,9 @@ private const val ANGULO_VARREDURA_MAXIMO = 270f
 private const val ESPESSURA_TRACO_DP = 10
 
 /**
- * Gauge circular para a metrica dominante de uma medicao (ex.: download em Mbps) --
- * substitui grid de 6-7 cards de metrica por 1 destaque + [ListRow] expansivel pras
- * secundarias (handoff Fase 2, #1161).
+ * Gauge circular para a métrica dominante de uma medição (ex.: download em Mbps) --
+ * substitui grid de 6-7 cards de métrica por 1 destaque + [ListRow] expansível pras
+ * secundárias (handoff Fase 2, #1161).
  */
 @Composable
 fun QualityGauge(

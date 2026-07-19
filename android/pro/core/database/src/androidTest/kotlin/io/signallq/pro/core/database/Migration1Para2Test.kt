@@ -15,10 +15,10 @@ import java.io.IOException
 private const val TEST_DB = "pro-migration-1-2-test"
 
 /**
- * Issue #1166 -- gap real do MVP0: entidade `local` nao existia, `visita` nao tinha
- * `localId`. Valida que a migracao v1 -> v2 (1) cria a tabela `local` e backfilla um local
- * "Principal" por cliente ja existente, (2) preenche `visita.localId` a partir do local do
- * mesmo cliente sem perder nenhuma visita/cliente ja persistido.
+ * Issue #1166 -- gap real do MVP0: entidade `local` não existia, `visita` não tinha
+ * `localId`. Valida que a migração v1 -> v2 (1) cria a tabela `local` e backfilla um local
+ * "Principal" por cliente já existente, (2) preenche `visita.localId` a partir do local do
+ * mesmo cliente sem perder nenhuma visita/cliente já persistido.
  */
 @RunWith(AndroidJUnit4::class)
 class Migration1Para2Test {
@@ -80,9 +80,9 @@ class Migration1Para2Test {
     }
 
     /**
-     * Reproducao fiel de `migracaoLocal1Para2` (`ProDatabaseModule.kt`, privada ao modulo de
-     * producao) -- mesmo padrao de `Migration13Para14Test` no `:core:database` do consumidor
-     * (androidTest nao enxerga membros privados de outro source set).
+     * Reprodução fiel de `migracaoLocal1Para2` (`ProDatabaseModule.kt`, privada ao módulo de
+     * produção) -- mesmo padrão de `Migration13Para14Test` no `:core:database` do consumidor
+     * (androidTest não enxerga membros privados de outro source set).
      */
     private fun getMigracaoLocal1Para2() =
         object : Migration(1, 2) {

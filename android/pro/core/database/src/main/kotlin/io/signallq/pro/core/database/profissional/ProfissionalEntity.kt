@@ -4,8 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * Perfil local do profissional (tecnico) -- MVP0 sem backend/login (issue #1158, #1161).
- * Linha unica por dispositivo: [id] fixo em [ID_PERFIL_LOCAL].
+ * Perfil local do profissional (técnico) -- MVP0 sem backend/login (issue #1158, #1161).
+ * Linha única por dispositivo: [id] fixo em [ID_PERFIL_LOCAL].
  */
 @Entity(tableName = "profissional")
 data class ProfissionalEntity(

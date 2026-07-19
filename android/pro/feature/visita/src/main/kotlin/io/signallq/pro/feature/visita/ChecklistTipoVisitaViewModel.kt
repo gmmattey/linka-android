@@ -22,7 +22,7 @@ data class ChecklistTipoVisitaUiState(
         get() = if (itens.isEmpty()) 0f else itens.count { it.concluido }.toFloat() / itens.size
 }
 
-/** Tela 2.14 -- checklist por tipo de servico, densidade alta (ListRow, nao card por item). */
+/** Tela 2.14 -- checklist por tipo de serviço, densidade alta (ListRow, não card por item). */
 @HiltViewModel
 class ChecklistTipoVisitaViewModel
     @Inject

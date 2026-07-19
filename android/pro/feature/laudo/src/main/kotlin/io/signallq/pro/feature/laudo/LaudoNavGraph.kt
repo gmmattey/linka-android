@@ -16,9 +16,9 @@ object LaudoRoutes {
 }
 
 /**
- * Grafo da tela 3.2 (laudo tecnico). Recebe o mesmo `ambienteId` do Grupo 2 -- o
+ * Grafo da tela 3.2 (laudo técnico). Recebe o mesmo `ambienteId` do Grupo 2 -- o
  * [LaudoViewModel] deriva a visita a partir do ambiente e agrega todos os ambientes da
- * mesma visita, entao o laudo cobre a visita inteira, nao so o ambiente de origem.
+ * mesma visita, então o laudo cobre a visita inteira, não só o ambiente de origem.
  */
 fun NavGraphBuilder.laudoGraph() {
     navigation(startDestination = LaudoRoutes.LAUDO, route = LaudoRoutes.GRAFO) {

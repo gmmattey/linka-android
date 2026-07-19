@@ -18,9 +18,9 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Cobre o caso feliz (cliente salvo com nome/endereco) e o negativo (nome vazio bloqueia
- * sem chamar o repositorio) do cadastro rapido -- issue #1166: o cliente precisa nascer com
- * um local associado, e [ClienteRepository.criarCliente] agora exige o parametro `endereco`.
+ * Cobre o caso feliz (cliente salvo com nome/endereço) e o negativo (nome vazio bloqueia
+ * sem chamar o repositório) do cadastro rápido -- issue #1166: o cliente precisa nascer com
+ * um local associado, e [ClienteRepository.criarCliente] agora exige o parâmetro `endereco`.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class NovoClienteViewModelTest {

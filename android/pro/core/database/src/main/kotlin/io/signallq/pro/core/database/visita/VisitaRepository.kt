@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 import javax.inject.Inject
 
-/** Checklist padrao por tipo de visita (tela 2.14) -- MVP0 usa um roteiro fixo por tipo,
+/** Checklist padrão por tipo de visita (tela 2.14) -- MVP0 usa um roteiro fixo por tipo,
  *  sem editor de template (fora de escopo da Fase 2, issue #1161). */
 private val CHECKLIST_PADRAO: Map<TipoVisita, List<String>> =
     mapOf(
@@ -20,7 +20,7 @@ private val CHECKLIST_PADRAO: Map<TipoVisita, List<String>> =
             ),
         TipoVisita.MANUTENCAO to
             listOf(
-                "Diagnosticar reclamacao do cliente",
+                "Diagnosticar reclamação do cliente",
                 "Verificar cabeamento e conectores",
                 "Testar velocidade e estabilidade",
             ),
@@ -28,12 +28,12 @@ private val CHECKLIST_PADRAO: Map<TipoVisita, List<String>> =
             listOf(
                 "Mapear ambientes e equipamentos",
                 "Medir sinal por ambiente",
-                "Registrar evidencias fotograficas",
+                "Registrar evidências fotográficas",
             ),
         TipoVisita.SUPORTE to
             listOf(
-                "Ouvir reclamacao do cliente",
-                "Executar diagnostico rapido",
+                "Ouvir reclamação do cliente",
+                "Executar diagnóstico rápido",
                 "Definir causa raiz",
             ),
     )
@@ -56,10 +56,10 @@ class VisitaRepository
         fun observarRecentes(limite: Int = 10): Flow<List<VisitaEntity>> = visitaDao.observarRecentes(limite)
 
         /**
-         * Cria a visita + o checklist padrao do tipo escolhido. O local da visita e resolvido
+         * Cria a visita + o checklist padrão do tipo escolhido. O local da visita é resolvido
          * implicitamente a partir do cliente -- MVP0 garante que todo cliente tem exatamente um
-         * local "Principal" (`ClienteRepository.criarCliente`, issue #1166), entao nao ha tela
-         * de selecao de local separada por ora.
+         * local "Principal" (`ClienteRepository.criarCliente`, issue #1166), então não há tela
+         * de seleção de local separada por ora.
          * @return id da visita criada.
          */
         suspend fun criarVisita(

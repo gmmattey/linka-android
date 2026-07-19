@@ -23,8 +23,8 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Cobre o criterio de aceite "exclusao bloqueada por medicao associada" (handoff Fase 2,
- * #1161) -- o achado real que motivou este teste: sem ele, seria facil regredir a checagem
+ * Cobre o critério de aceite "exclusão bloqueada por medição associada" (handoff Fase 2,
+ * #1161) -- o achado real que motivou este teste: sem ele, seria fácil regredir a checagem
  * silenciosamente.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -67,7 +67,7 @@ class AmbientesViewModelTest {
             viewModel.excluirAmbiente("ambiente-1")
 
             assertEquals(
-                "Este ambiente tem medicoes registradas e nao pode ser excluido.",
+                "Este ambiente tem medições registradas e não pode ser excluído.",
                 viewModel.uiState.value.erroExclusaoBloqueada,
             )
             coVerify(exactly = 0) { ambienteRepository.excluir(any()) }

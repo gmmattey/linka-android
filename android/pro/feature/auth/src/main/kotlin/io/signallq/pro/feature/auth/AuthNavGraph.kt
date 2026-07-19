@@ -15,10 +15,10 @@ object AuthRoutes {
 }
 
 /**
- * Grafo de navegacao do Grupo 1 (trimmed) -- carregamento, apresentacao, cadastro do
- * profissional e permissoes. [onAutenticado] e chamado quando perfil + permissoes essenciais
- * estao prontos; quem compoe (`:pro:app`) decide o destino real (painel), respeitando a
- * regra de ouro "feature nao depende de feature" (#1161).
+ * Grafo de navegação do Grupo 1 (trimmed) -- carregamento, apresentação, cadastro do
+ * profissional e permissões. [onAutenticado] é chamado quando perfil + permissões essenciais
+ * estão prontos; quem compõe (`:pro:app`) decide o destino real (painel), respeitando a
+ * regra de ouro "feature não depende de feature" (#1161).
  */
 fun NavGraphBuilder.authGraph(
     navController: NavHostController,

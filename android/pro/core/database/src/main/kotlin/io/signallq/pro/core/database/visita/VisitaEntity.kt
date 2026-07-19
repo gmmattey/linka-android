@@ -8,16 +8,16 @@ enum class StatusVisita { EM_ANDAMENTO, CONCLUIDA, INTERROMPIDA }
 enum class TipoVisita { INSTALACAO, MANUTENCAO, VISTORIA, SUPORTE }
 
 /**
- * Etapa "macro" da visita, no nivel do fluxo geral -- nao confundir com o trabalho por
- * ambiente (medicao/diagnostico/evidencias), que acontece dentro de AMBIENTES e e
+ * Etapa "macro" da visita, no nível do fluxo geral -- não confundir com o trabalho por
+ * ambiente (medição/diagnóstico/evidências), que acontece dentro de AMBIENTES e é
  * rastreado por ambiente (`:pro:core:database` ambiente/medicao/diagnostico/evidencia),
- * nao no nivel da visita.
+ * não no nível da visita.
  */
 enum class EtapaVisita { CHECKLIST, AMBIENTES, CONCLUSAO }
 
 /**
- * Visita de um profissional a um cliente/local. [etapaAtual] e a chave da retomada de visita
- * interrompida (criterio de saida do MVP0, issue #1119) -- ao reabrir o app, a visita com
+ * Visita de um profissional a um cliente/local. [etapaAtual] é a chave da retomada de visita
+ * interrompida (critério de saída do MVP0, issue #1119) -- ao reabrir o app, a visita com
  * [status] EM_ANDAMENTO mais recente retoma direto nessa etapa.
  */
 @Entity(tableName = "visita")

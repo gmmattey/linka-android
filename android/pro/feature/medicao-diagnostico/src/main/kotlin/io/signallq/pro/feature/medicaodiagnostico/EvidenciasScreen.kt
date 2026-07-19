@@ -50,7 +50,7 @@ fun EvidenciasScreen(
         }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Evidencias") }) },
+        topBar = { TopAppBar(title = { Text("Evidências") }) },
     ) { paddingValues ->
         Column(
             modifier = modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
@@ -82,7 +82,7 @@ fun EvidenciasScreen(
             if (uiState.itens.isEmpty()) {
                 StateCard(
                     variant = StateCardVariant.VAZIO,
-                    titulo = "Nenhuma evidencia ainda",
+                    titulo = "Nenhuma evidência ainda",
                     mensagem = "Tire uma foto ou registre uma nota sobre este ambiente.",
                 )
             } else {

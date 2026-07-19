@@ -25,20 +25,20 @@ import javax.inject.Singleton
  * Compatibilidade de DI para reaproveitar `:featureSpeedtest` no Pro (issue #1161, Fase 2).
  *
  * `:featureSpeedtest` expõe `SpeedtestViewModel` (`@HiltViewModel`) — o processador de
- * agregacao do Hilt inclui esse ViewModel no grafo de QUALQUER app que tenha o modulo no
+ * agregação do Hilt inclui esse ViewModel no grafo de QUALQUER app que tenha o módulo no
  * classpath, mesmo que o Pro nunca chame `hiltViewModel<SpeedtestViewModel>()` (o Pro usa o
  * motor via `FeatureSpeedtestModulo.criarExecutorSpeedtest()` direto, sem Hilt). Sem estes
- * bindings o `:pro:app` nao compila (`Dagger/MissingBinding`).
+ * bindings o `:pro:app` não compila (`Dagger/MissingBinding`).
  *
- * `MonitorRede`/`NetworkCapabilitiesProvider`/`MonitorTelephony`/`DispatcherProvider` sao
- * infra genuinamente reutilizavel (`:coreNetwork`/`:coreTelephony`, zero acoplamento ao
+ * `MonitorRede`/`NetworkCapabilitiesProvider`/`MonitorTelephony`/`DispatcherProvider` são
+ * infra genuinamente reutilizável (`:coreNetwork`/`:coreTelephony`, zero acoplamento ao
  * consumidor) — instanciados de verdade, escopados ao processo do Pro.
- * `PreferenciasAppRepository` tambem e reutilizavel (`:coreDatastore`), mas grava num
- * DataStore proprio do processo do Pro -- nao compartilha arquivo com o consumidor (apps
+ * `PreferenciasAppRepository` também é reutilizável (`:coreDatastore`), mas grava num
+ * DataStore próprio do processo do Pro -- não compartilha arquivo com o consumidor (apps
  * diferentes, processos diferentes).
- * `AnalyticsHelper`/`AnalyticsTracker` usam no-op: o Pro ainda nao tem projeto Firebase
- * proprio configurado (pendente, issue #1158) -- `NoOpAnalyticsHelper` ja e o padrao oficial
- * do proprio `:coreNetwork` para uso fora do grafo Hilt do consumidor.
+ * `AnalyticsHelper`/`AnalyticsTracker` usam no-op: o Pro ainda não tem projeto Firebase
+ * próprio configurado (pendente, issue #1158) -- `NoOpAnalyticsHelper` já é o padrão oficial
+ * do próprio `:coreNetwork` para uso fora do grafo Hilt do consumidor.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -80,15 +80,15 @@ object ProSpeedtestCompatModule {
     @Singleton
     fun provideAnalyticsTracker(): AnalyticsTracker = NoOpAnalyticsTrackerPro
 
-    /** [SpeedtestViewModel] em si nunca e chamado pelo Pro -- so satisfaz o grafo agregado
-     *  do Hilt. `:pro:feature:medicao-diagnostico` cria seu proprio executor via
+    /** [SpeedtestViewModel] em si nunca é chamado pelo Pro -- só satisfaz o grafo agregado
+     *  do Hilt. `:pro:feature:medicao-diagnostico` cria seu próprio executor via
      *  [FeatureSpeedtestModulo] diretamente, sem depender deste binding. */
     @Provides
     fun provideExecutorSpeedtest(): ExecutorSpeedtest = FeatureSpeedtestModulo.criarExecutorSpeedtest()
 }
 
-/** Sem equivalente oficial em `:coreNetwork` (so [NoOpAnalyticsHelper] existe la) --
- *  no-op minimo proprio do Pro, mesmo espirito. */
+/** Sem equivalente oficial em `:coreNetwork` (só [NoOpAnalyticsHelper] existe lá) --
+ *  no-op mínimo próprio do Pro, mesmo espírito. */
 private object NoOpAnalyticsTrackerPro : AnalyticsTracker {
     override fun registrarFeatureUsada(
         featureId: String,

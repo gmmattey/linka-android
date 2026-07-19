@@ -65,7 +65,7 @@ class AmbientesViewModel
             viewModelScope.launch {
                 if (medicaoProRepository.temMedicaoValida(ambienteId)) {
                     erroExclusaoFlow.value =
-                        "Este ambiente tem medicoes registradas e nao pode ser excluido."
+                        "Este ambiente tem medições registradas e não pode ser excluído."
                     return@launch
                 }
                 val ambiente = ambienteRepository.buscarPorId(ambienteId) ?: return@launch

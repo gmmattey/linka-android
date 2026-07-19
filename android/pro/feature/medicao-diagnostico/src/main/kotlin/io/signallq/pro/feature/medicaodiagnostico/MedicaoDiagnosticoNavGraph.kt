@@ -24,8 +24,8 @@ object MedicaoDiagnosticoRoutes {
 }
 
 /**
- * Grafo das telas 2.10-2.12 e 2.15-2.16 (medicao/diagnostico/evidencias por ambiente).
- * [onConcluirAmbiente] volta pra lista de ambientes -- fornecida por quem compoe
+ * Grafo das telas 2.10-2.12 e 2.15-2.16 (medição/diagnóstico/evidências por ambiente).
+ * [onConcluirAmbiente] volta pra lista de ambientes -- fornecida por quem compõe
  * (`:pro:app`), sem depender de `:pro:feature:ambiente` diretamente (#1161).
  */
 fun NavGraphBuilder.medicaoDiagnosticoGraph(

@@ -7,17 +7,17 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Gera o HTML/CSS do laudo tecnico do Pro (tela 3.2). Funcao pura -- sem dependencia de
- * Android/Context, testavel em JVM -- delegada ao motor generico de paginacao
+ * Gera o HTML/CSS do laudo técnico do Pro (tela 3.2). Função pura -- sem dependência de
+ * Android/Context, testável em JVM -- delegada ao motor genérico de paginação
  * [io.signallq.app.core.relatorio.exportarHtmlComoPdf] (`:core:relatorio`) pelo
- * [LaudoViewModel]. Layout proprio do Pro (REWRITE esperado, doc 13 §3.4): nao herda o
+ * [LaudoViewModel]. Layout próprio do Pro (REWRITE esperado, doc 13 §3.4): não herda o
  * template do consumidor (`ExportadorHistoricoPDF.gerarHtml`).
  */
 internal object LaudoHtmlGenerator {
     private val formatadorData = SimpleDateFormat("dd/MM/yyyy 'as' HH:mm", Locale("pt", "BR"))
 
-    /** CSS extraido de [gerarHtml] para nao estourar o limiar de LongMethod do detekt --
-     *  string pura, sem interpolacao de dados da visita. */
+    /** CSS extraído de [gerarHtml] para não estourar o limiar de LongMethod do detekt --
+     *  string pura, sem interpolação de dados da visita. */
     private const val ESTILOS_CSS = """
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Arial', sans-serif; font-size: 12px; color: #1B1F27; margin: 24px; background: #fff; }
@@ -67,14 +67,14 @@ tbody td { padding: 6px 8px; border-bottom: 1px solid #E5E9F0; }
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laudo tecnico SignallQ Pro</title>
+  <title>Laudo técnico SignallQ Pro</title>
   <style>
 $ESTILOS_CSS
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>Laudo tecnico -- ${escapeHtml(dados.clienteNome)}</h1>
+    <h1>Laudo técnico -- ${escapeHtml(dados.clienteNome)}</h1>
     <p class="subtitle">${rotuloTipoVisita(dados.tipoVisita)} &nbsp;|&nbsp; Visita em: $dataVisita</p>
     <p class="subtitle">${localHtml(dados)}</p>
   </div>
@@ -85,11 +85,11 @@ $ESTILOS_CSS
       <div class="valor">${dados.ambientes.size}</div>
     </div>
     <div class="resumo-card">
-      <div class="label">Evidencias registradas</div>
+      <div class="label">Evidências registradas</div>
       <div class="valor">${dados.totalEvidencias}</div>
     </div>
     <div class="resumo-card">
-      <div class="label">Recomendacoes</div>
+      <div class="label">Recomendações</div>
       <div class="valor">${dados.totalAchados}</div>
     </div>
   </div>
@@ -105,7 +105,7 @@ $secoesAmbientes
     }
 
     private fun localHtml(dados: LaudoDados): String {
-        val endereco = dados.localEndereco.takeIf { it.isNotBlank() } ?: "Endereco nao informado"
+        val endereco = dados.localEndereco.takeIf { it.isNotBlank() } ?: "Endereço não informado"
         return "Local: ${escapeHtml(dados.localNome)} &nbsp;|&nbsp; ${escapeHtml(endereco)}"
     }
 
@@ -114,11 +114,11 @@ $secoesAmbientes
         val diagnostico = ambiente.diagnostico
         val tabelaMedicao =
             if (medicao == null) {
-                """    <p class="sem-dado">Nenhuma medicao registrada neste ambiente.</p>"""
+                """    <p class="sem-dado">Nenhuma medição registrada neste ambiente.</p>"""
             } else {
                 """    <table>
       <thead>
-        <tr><th>Download</th><th>Upload</th><th>Latencia</th><th>Jitter</th><th>Perda</th></tr>
+        <tr><th>Download</th><th>Upload</th><th>Latência</th><th>Jitter</th><th>Perda</th></tr>
       </thead>
       <tbody>
         <tr>
@@ -169,17 +169,19 @@ $achadosHtml
     </div>"""
     }
 
+    // Primeiro item do par e classe CSS (casa com .prioridade.critico/.atencao/.info no
+    // ESTILOS_CSS acima) -- nunca acentuar. Segundo item e o rotulo exibido no laudo.
     private fun prioridade(status: String): Pair<String, String> =
         when (status) {
-            "critical" -> "critico" to "Critico"
-            "attention" -> "atencao" to "Atencao"
+            "critical" -> "critico" to "Crítico"
+            "attention" -> "atencao" to "Atenção"
             else -> "info" to "Informativo"
         }
 
     private fun rotuloTipoVisita(tipo: TipoVisita): String =
         when (tipo) {
-            TipoVisita.INSTALACAO -> "Instalacao"
-            TipoVisita.MANUTENCAO -> "Manutencao"
+            TipoVisita.INSTALACAO -> "Instalação"
+            TipoVisita.MANUTENCAO -> "Manutenção"
             TipoVisita.VISTORIA -> "Vistoria"
             TipoVisita.SUPORTE -> "Suporte"
         }

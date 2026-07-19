@@ -24,9 +24,9 @@ object VisitaRoutes {
 }
 
 /**
- * Grafo do nucleo do Pro (Grupo 2, telas 2.1-2.5 e 2.13-2.14). Callbacks externos
- * (ambientes, ferramentas, clientes, perfil) sao fornecidos por quem compoe (`:pro:app`),
- * respeitando a regra de ouro "feature nao depende de feature" (#1161).
+ * Grafo do núcleo do Pro (Grupo 2, telas 2.1-2.5 e 2.13-2.14). Callbacks externos
+ * (ambientes, ferramentas, clientes, perfil) são fornecidos por quem compõe (`:pro:app`),
+ * respeitando a regra de ouro "feature não depende de feature" (#1161).
  */
 fun NavGraphBuilder.visitaGraph(
     navController: NavHostController,

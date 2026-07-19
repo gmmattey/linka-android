@@ -6,8 +6,8 @@ import io.signallq.pro.core.database.evidencia.EvidenciaEntity
 import io.signallq.pro.core.database.medicao.MedicaoProEntity
 import io.signallq.pro.core.database.visita.TipoVisita
 
-/** Agregado de um ambiente para compor o laudo -- une medicao, diagnostico/achados e
- *  evidencias do mesmo ambiente (todos ja persistidos nas telas 2.10-2.12/2.15-2.16). */
+/** Agregado de um ambiente para compor o laudo -- une medição, diagnóstico/achados e
+ *  evidências do mesmo ambiente (todos já persistidos nas telas 2.10-2.12/2.15-2.16). */
 data class LaudoAmbienteDados(
     val nome: String,
     val medicao: MedicaoProEntity?,
@@ -16,9 +16,9 @@ data class LaudoAmbienteDados(
     val evidencias: List<EvidenciaEntity>,
 )
 
-/** Agregado completo da visita usado para montar o laudo (tela 3.2). Traduz varias
- *  entidades de `:pro:core:database` num unico modelo de dominio, para que
- *  [LaudoHtmlGenerator] permaneca puro e testavel em JVM sem depender de Room. */
+/** Agregado completo da visita usado para montar o laudo (tela 3.2). Traduz várias
+ *  entidades de `:pro:core:database` num único modelo de domínio, para que
+ *  [LaudoHtmlGenerator] permaneça puro e testável em JVM sem depender de Room. */
 data class LaudoDados(
     val visitaId: String,
     val profissionalNome: String,

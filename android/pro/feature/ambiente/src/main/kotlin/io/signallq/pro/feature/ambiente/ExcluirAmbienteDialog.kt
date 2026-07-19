@@ -6,9 +6,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 
 /**
- * Tela 2.9 -- confirmar exclusao. A recusa por medicao associada e mostrada como erro
- * na propria [AmbientesScreen] (StateCard/erro), nao neste dialogo de confirmacao --
- * o bloqueio so e conhecido depois de tentar excluir (handoff Fase 2, #1161).
+ * Tela 2.9 -- confirmar exclusão. A recusa por medição associada é mostrada como erro
+ * na própria [AmbientesScreen] (StateCard/erro), não neste diálogo de confirmação --
+ * o bloqueio só é conhecido depois de tentar excluir (handoff Fase 2, #1161).
  */
 @Composable
 fun ExcluirAmbienteDialog(

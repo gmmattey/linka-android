@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Tela 1.2 do prototipo -- boas-vindas simples (reduzida do carrossel de vendas original,
+ * Tela 1.2 do protótipo -- boas-vindas simples (reduzida do carrossel de vendas original,
  * que pertence ao 1.9/1.10 cortados do MVP0 -- handoff Fase 2, #1161).
  */
 @Composable
@@ -42,12 +42,12 @@ fun ApresentacaoScreen(
             )
             Text(text = "Bem-vindo ao SignallQ Pro", style = MaterialTheme.typography.headlineSmall)
             Text(
-                text = "Diagnostico tecnico de rede para instaladores e tecnicos de campo.",
+                text = "Diagnóstico técnico de rede para instaladores e técnicos de campo.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Button(onClick = onContinuar, modifier = Modifier.padding(top = 16.dp)) {
-                Text("Comecar")
+                Text("Começar")
             }
         }
     }

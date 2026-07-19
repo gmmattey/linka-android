@@ -4,9 +4,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * Medicao de speedtest do Pro, associada a um ambiente. Nome com sufixo "Pro" para nao
+ * Medição de speedtest do Pro, associada a um ambiente. Nome com sufixo "Pro" para não
  * colidir mentalmente com `MedicaoEntity` do consumidor (`:coreDatabase`) -- bancos
- * totalmente separados, mas mesmo dominio de conceito.
+ * totalmente separados, mas mesmo domínio de conceito.
  */
 @Entity(tableName = "medicao_pro")
 data class MedicaoProEntity(
