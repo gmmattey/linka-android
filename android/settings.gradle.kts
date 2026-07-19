@@ -50,6 +50,9 @@ include(
     ":pro:feature:visita",
     ":pro:feature:ambiente",
     ":pro:feature:medicao-diagnostico",
+    // Fase 3 do MVP0 (issue #1164) -- laudo tecnico em PDF (Grupo 3, trimmed) reaproveitando
+    // o motor de paginacao HTML->PDF ja extraido na Fase 1 (":core:relatorio").
+    ":pro:feature:laudo",
 )
 
 project(":coreNetwork").projectDir    = File("core/network")
