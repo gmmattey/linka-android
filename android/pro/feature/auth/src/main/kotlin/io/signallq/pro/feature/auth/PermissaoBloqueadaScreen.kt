@@ -14,8 +14,8 @@ import io.signallq.pro.core.designsystem.StateCard
 import io.signallq.pro.core.designsystem.StateCardVariant
 
 /**
- * Tela 1.8 -- StateCard variante erro + botao para Ajustes do sistema. Um StateCard so,
- * sem duplicar com banner/ilustracao (handoff Fase 2, #1161).
+ * Tela 1.8 -- StateCard variante erro + botão para Ajustes do sistema. Um StateCard só,
+ * sem duplicar com banner/ilustração (handoff Fase 2, #1161).
  */
 @Composable
 fun PermissaoBloqueadaScreen(modifier: Modifier = Modifier) {
@@ -23,9 +23,9 @@ fun PermissaoBloqueadaScreen(modifier: Modifier = Modifier) {
     Scaffold { paddingValues ->
         StateCard(
             variant = StateCardVariant.ERRO,
-            titulo = "Permissao bloqueada",
+            titulo = "Permissão bloqueada",
             mensagem =
-                "Voce negou uma permissao essencial permanentemente. Abra os ajustes do " +
+                "Você negou uma permissão essencial permanentemente. Abra os ajustes do " +
                     "sistema para conceder manualmente.",
             acaoTexto = "Abrir ajustes",
             onAcaoClick = {

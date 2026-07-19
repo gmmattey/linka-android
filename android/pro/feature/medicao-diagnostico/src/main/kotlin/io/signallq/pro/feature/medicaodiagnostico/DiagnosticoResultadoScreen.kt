@@ -24,13 +24,13 @@ import io.signallq.pro.core.designsystem.StateCard
 import io.signallq.pro.core.designsystem.StateCardVariant
 
 /**
- * Tela 2.16 -- [RecommendationBlock] por achado (problema/impacto/acao/prioridade), mapeado
+ * Tela 2.16 -- [RecommendationBlock] por achado (problema/impacto/ação/prioridade), mapeado
  * direto de `DiagnosticResult` (`:core:diagnostico`). Estado "adequado" tem StateCard de
- * sucesso claro, nao fica vazio por omissao (handoff Fase 2, #1161).
+ * sucesso claro, não fica vazio por omissão (handoff Fase 2, #1161).
  *
  * Fim natural do fluxo de atendimento (issue #1164, Fase 3) -- [onVerLaudo] abre o laudo
- * tecnico (tela 3.2, `:pro:feature:laudo`) da visita inteira, sem interromper o caminho
- * original para Evidencias ([onConcluir]).
+ * técnico (tela 3.2, `:pro:feature:laudo`) da visita inteira, sem interromper o caminho
+ * original para Evidências ([onConcluir]).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +43,7 @@ fun DiagnosticoResultadoScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Resultado do diagnostico") }) },
+        topBar = { TopAppBar(title = { Text("Resultado do diagnóstico") }) },
     ) { paddingValues ->
         LazyColumn(
             modifier = modifier.fillMaxSize().padding(paddingValues).padding(16.dp),

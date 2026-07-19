@@ -29,7 +29,7 @@ data class NovaVisitaUiState(
     val visitaIdCriada: String? = null,
 )
 
-/** Tela 2.4 -- erro quando cliente/local nao selecionado (handoff Fase 2, #1161). */
+/** Tela 2.4 -- erro quando cliente/local não selecionado (handoff Fase 2, #1161). */
 @HiltViewModel
 class NovaVisitaViewModel
     @Inject

@@ -29,9 +29,9 @@ import io.signallq.pro.core.database.visita.VisitaDao
 import io.signallq.pro.core.database.visita.VisitaEntity
 
 /**
- * Banco Room greenfield do SignallQ Pro -- issue #1161 (Fase 2). Sem qualquer relacao com
+ * Banco Room greenfield do SignallQ Pro -- issue #1161 (Fase 2). Sem qualquer relação com
  * `linkaKotlin.db` do consumidor: produto, Firebase/Play e ciclo de vida de dados separados
- * (ver .claude/CLAUDE.md, "Nao-negociaveis por produto").
+ * (ver .claude/CLAUDE.md, "Não-negociáveis por produto").
  */
 @Database(
     entities = [

@@ -19,9 +19,9 @@ data class NovoClienteUiState(
 )
 
 /**
- * Tela 2.3 -- so o nome e obrigatorio (doc 09 §11: cadastro rapido). O cliente ganha um local
- * "Principal" junto no cadastro (issue #1166) -- endereco fica opcional aqui, "pode ser
- * concluido depois" (doc 09 §11), sem bloquear o fluxo rapido.
+ * Tela 2.3 -- só o nome é obrigatório (doc 09 §11: cadastro rápido). O cliente ganha um local
+ * "Principal" junto no cadastro (issue #1166) -- endereço fica opcional aqui, "pode ser
+ * concluído depois" (doc 09 §11), sem bloquear o fluxo rápido.
  */
 @HiltViewModel
 class NovoClienteViewModel

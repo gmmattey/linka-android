@@ -14,9 +14,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Cobre a logica real de [VisitaRepository]: criacao de checklist por tipo de visita e
- * retomada de visita interrompida (criterio de saida do MVP0, issue #1119). DAOs mockados
- * com mockk -- o comportamento do Room em si ja e coberto pela propria biblioteca.
+ * Cobre a lógica real de [VisitaRepository]: criação de checklist por tipo de visita e
+ * retomada de visita interrompida (critério de saída do MVP0, issue #1119). DAOs mockados
+ * com mockk -- o comportamento do Room em si já é coberto pela própria biblioteca.
  */
 class VisitaRepositoryTest {
     private val visitaDao = mockk<VisitaDao>(relaxed = true)

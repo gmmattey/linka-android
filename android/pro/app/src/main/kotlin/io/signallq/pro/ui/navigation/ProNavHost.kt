@@ -18,9 +18,9 @@ import io.signallq.pro.feature.visita.VisitaRoutes
 import io.signallq.pro.feature.visita.visitaGraph
 
 /**
- * Compoe os grafos dos feature modules do Grupo 1 (trimmed) e Grupo 2 do prototipo
- * (issue #1161, Fase 2). So navegacao e wiring de callbacks entre features aqui -- nenhuma
- * regra de negocio, nenhum `:pro:feature:*` depende de outro diretamente.
+ * Compõe os grafos dos feature modules do Grupo 1 (trimmed) e Grupo 2 do protótipo
+ * (issue #1161, Fase 2). Só navegação e wiring de callbacks entre features aqui -- nenhuma
+ * regra de negócio, nenhum `:pro:feature:*` depende de outro diretamente.
  */
 @Composable
 fun ProNavHost() {

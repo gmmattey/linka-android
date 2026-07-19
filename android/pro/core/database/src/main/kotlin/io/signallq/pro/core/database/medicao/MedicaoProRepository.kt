@@ -15,8 +15,8 @@ class MedicaoProRepository
 
         suspend fun temMedicaoValida(ambienteId: String): Boolean = dao.contarPorAmbiente(ambienteId) > 0
 
-        /** @return id da medicao salva. Nunca salva resultado invalido/contaminado como valido
-         *  (handoff Fase 2, #1161: "medicao invalida nao salva como resultado valido"). */
+        /** @return id da medição salva. Nunca salva resultado inválido/contaminado como válido
+         *  (handoff Fase 2, #1161: "medição inválida não salva como resultado válido"). */
         suspend fun salvarMedicaoValida(
             ambienteId: String,
             modo: String,

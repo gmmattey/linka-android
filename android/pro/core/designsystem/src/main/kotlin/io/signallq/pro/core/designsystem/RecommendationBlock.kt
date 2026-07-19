@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,7 +17,7 @@ import androidx.compose.ui.unit.dp
 enum class RecommendationPriority { INFO, ATENCAO, CRITICO }
 
 /**
- * Bloco problema/impacto/acao/prioridade -- usado pelo resultado de diagnostico (2.16).
+ * Bloco problema/impacto/ação/prioridade -- usado pelo resultado de diagnóstico (2.16).
  * Substitui card ad-hoc: mapeia direto de `DiagnosticResult` (:core:diagnostico).
  */
 @Composable
@@ -37,7 +36,7 @@ fun RecommendationBlock(
         }
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
@@ -70,7 +69,7 @@ fun RecommendationBlock(
 
 private fun rotuloPrioridade(prioridade: RecommendationPriority): String =
     when (prioridade) {
-        RecommendationPriority.CRITICO -> "Critico"
-        RecommendationPriority.ATENCAO -> "Atencao"
+        RecommendationPriority.CRITICO -> "Crítico"
+        RecommendationPriority.ATENCAO -> "Atenção"
         RecommendationPriority.INFO -> "Informativo"
     }

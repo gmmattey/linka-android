@@ -30,9 +30,9 @@ data class PermissoesUiState(
 }
 
 /**
- * Permissoes reais do sistema exigidas pelo Pro em campo: localizacao fina (scan Wi-Fi),
- * Wi-Fi proximo (Android 13+, mesmo contrato do [GerenciadorPermissoesRedeAndroid] do
- * consumidor) e camera (evidencias fotograficas, tela 2.12 -- exclusiva do Pro).
+ * Permissões reais do sistema exigidas pelo Pro em campo: localização fina (scan Wi-Fi),
+ * Wi-Fi próximo (Android 13+, mesmo contrato do [GerenciadorPermissoesRedeAndroid] do
+ * consumidor) e câmera (evidências fotográficas, tela 2.12 -- exclusiva do Pro).
  */
 @HiltViewModel
 class PermissoesViewModel
@@ -56,8 +56,8 @@ class PermissoesViewModel
                     add(
                         PermissaoItemUiState(
                             manifestPermission = Manifest.permission.ACCESS_FINE_LOCATION,
-                            titulo = "Localizacao",
-                            subtitulo = "Necessaria para escanear redes Wi-Fi proximas",
+                            titulo = "Localização",
+                            subtitulo = "Necessária para escanear redes Wi-Fi próximas",
                             concedida = redeSnapshot.localizacaoFina == EstadoPermissao.concedida,
                         ),
                     )
@@ -65,8 +65,8 @@ class PermissoesViewModel
                         add(
                             PermissaoItemUiState(
                                 manifestPermission = Manifest.permission.NEARBY_WIFI_DEVICES,
-                                titulo = "Dispositivos Wi-Fi proximos",
-                                subtitulo = "Necessaria para identificar equipamentos de rede",
+                                titulo = "Dispositivos Wi-Fi próximos",
+                                subtitulo = "Necessária para identificar equipamentos de rede",
                                 concedida = redeSnapshot.nearbyWifi == EstadoPermissao.concedida,
                             ),
                         )
@@ -74,8 +74,8 @@ class PermissoesViewModel
                     add(
                         PermissaoItemUiState(
                             manifestPermission = Manifest.permission.CAMERA,
-                            titulo = "Camera",
-                            subtitulo = "Necessaria para registrar evidencias fotograficas",
+                            titulo = "Câmera",
+                            subtitulo = "Necessária para registrar evidências fotográficas",
                             concedida = cameraConcedida,
                         ),
                     )

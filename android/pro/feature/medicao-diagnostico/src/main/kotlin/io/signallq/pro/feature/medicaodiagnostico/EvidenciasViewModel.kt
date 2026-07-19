@@ -25,7 +25,7 @@ data class EvidenciasUiState(
 )
 
 /**
- * Tela 2.12 -- evidencia visual (foto) OU nota textual, nunca obrigatoria uma sobre a
+ * Tela 2.12 -- evidência visual (foto) OU nota textual, nunca obrigatória uma sobre a
  * outra (handoff Fase 2, #1161: "permitir nota textual como alternativa").
  */
 @HiltViewModel

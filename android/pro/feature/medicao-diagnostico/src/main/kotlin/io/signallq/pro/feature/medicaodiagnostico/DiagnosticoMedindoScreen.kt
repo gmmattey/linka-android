@@ -17,7 +17,7 @@ import io.signallq.pro.core.designsystem.StateCard
 import io.signallq.pro.core.designsystem.StateCardVariant
 
 /**
- * Tela 2.15 -- explica o que sera analisado antes de comecar (handoff Fase 2, #1161),
+ * Tela 2.15 -- explica o que será analisado antes de começar (handoff Fase 2, #1161),
  * depois delega ao [DiagnosticoAmbienteViewModel] (motor real, `:core:diagnostico`).
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,20 +36,20 @@ fun DiagnosticoMedindoScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Diagnostico") }) },
+        topBar = { TopAppBar(title = { Text("Diagnóstico") }) },
     ) { paddingValues ->
         when (uiState.estado) {
             DiagnosticoAmbienteEstado.MEDINDO ->
                 StateCard(
                     variant = StateCardVariant.CARREGANDO,
-                    titulo = "Analisando a medicao",
-                    mensagem = "Avaliando velocidade, latencia e estabilidade da rede deste ambiente.",
+                    titulo = "Analisando a medição",
+                    mensagem = "Avaliando velocidade, latência e estabilidade da rede deste ambiente.",
                     modifier = modifier.fillMaxSize().padding(paddingValues).padding(24.dp),
                 )
             DiagnosticoAmbienteEstado.ERRO ->
                 StateCard(
                     variant = StateCardVariant.ERRO,
-                    titulo = "Nao foi possivel diagnosticar",
+                    titulo = "Não foi possível diagnosticar",
                     mensagem = uiState.mensagemErro ?: "Tente medir novamente.",
                     acaoTexto = "Tentar de novo",
                     onAcaoClick = viewModel::executarDiagnostico,

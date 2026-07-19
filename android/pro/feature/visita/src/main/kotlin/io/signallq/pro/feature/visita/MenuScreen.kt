@@ -21,7 +21,7 @@ private const val ITEM_CLIENTES = "clientes"
 private const val ITEM_FERRAMENTAS = "ferramentas"
 private const val ITEM_PERFIL = "perfil"
 
-/** Tela 2.2 -- menu do Pro, usando [Navbar] do design system (sem navegacao custom). */
+/** Tela 2.2 -- menu do Pro, usando [Navbar] do design system (sem navegação custom). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuScreen(

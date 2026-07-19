@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Chip semantico -- uso restrito a status real (tipo de visita, veredito de medicao,
- * prioridade de recomendacao). Nunca decorativo (handoff Fase 2, #1161).
+ * prioridade de recomendação). Nunca decorativo (handoff Fase 2, #1161).
  */
 enum class StatusChipTone { NEUTRO, POSITIVO, ATENCAO, CRITICO }
 
@@ -25,7 +25,7 @@ fun StatusChip(
     val (container, content) = tonalidade(tone)
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(999.dp),
+        shape = RoundedCornerShape(ProRadius.pill),
         color = container,
     ) {
         Text(

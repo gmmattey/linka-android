@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Sync
@@ -21,8 +20,8 @@ import androidx.compose.ui.unit.dp
 enum class SyncBannerVariant { OFFLINE, SINCRONIZACAO_PENDENTE }
 
 /**
- * Faixa fina de estado transversal para offline/sincronizacao pendente -- nao e um
- * [StateCard] (nao ocupa a tela, convive com conteudo real embaixo).
+ * Faixa fina de estado transversal para offline/sincronização pendente -- não é um
+ * [StateCard] (não ocupa a tela, convive com conteúdo real embaixo).
  */
 @Composable
 fun SyncBanner(
@@ -32,7 +31,7 @@ fun SyncBanner(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.tertiaryContainer,
     ) {
         Row(

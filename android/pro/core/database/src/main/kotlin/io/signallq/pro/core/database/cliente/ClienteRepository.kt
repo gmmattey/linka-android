@@ -19,12 +19,12 @@ class ClienteRepository
         suspend fun buscarPorId(id: String): ClienteEntity? = dao.buscarPorId(id)
 
         /**
-         * Cria o cliente e o local "Principal" associado, na MESMA transacao Room -- achado do
-         * Rhodolfo na PR #1167: sem transacao, morte do processo entre os dois inserts deixava
-         * um cliente persistido sem local, cenario alcancavel em producao (nao teorico) que
+         * Cria o cliente e o local "Principal" associado, na MESMA transação Room -- achado do
+         * Rhodolfo na PR #1167: sem transação, morte do processo entre os dois inserts deixava
+         * um cliente persistido sem local, cenário alcançável em produção (não teórico) que
          * quebra o invariante que [io.signallq.pro.core.database.visita.VisitaRepository]
          * assume (todo cliente tem >= 1 local). [endereco] pode ficar em branco (cadastro
-         * rapido, doc 09 §11: "endereco completo pode ser concluido depois").
+         * rápido, doc 09 §11: "endereço completo pode ser concluído depois").
          * @return id do cliente criado.
          */
         suspend fun criarCliente(

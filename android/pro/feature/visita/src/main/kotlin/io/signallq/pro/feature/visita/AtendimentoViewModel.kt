@@ -23,10 +23,10 @@ data class AtendimentoUiState(
 )
 
 /**
- * Tela 2.5 -- hub da visita. E aqui que a retomada de visita interrompida acontece de
- * verdade (criterio de saida do MVP0, issue #1119): ao abrir com um [visitaId] cuja
- * [StatusVisita] e EM_ANDAMENTO/INTERROMPIDA, mostra a etapa salva e o botao "Continuar"
- * leva direto pra ela -- nada e perdido.
+ * Tela 2.5 -- hub da visita. É aqui que a retomada de visita interrompida acontece de
+ * verdade (critério de saída do MVP0, issue #1119): ao abrir com um [visitaId] cuja
+ * [StatusVisita] é EM_ANDAMENTO/INTERROMPIDA, mostra a etapa salva e o botão "Continuar"
+ * leva direto pra ela -- nada é perdido.
  */
 @HiltViewModel
 class AtendimentoViewModel

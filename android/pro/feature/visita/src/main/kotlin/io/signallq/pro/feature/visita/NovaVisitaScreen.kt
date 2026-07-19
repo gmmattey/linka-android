@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -97,6 +99,7 @@ fun NovaVisitaScreen(
                     items(uiState.clientes, key = { it.id }) { cliente ->
                         ListRow(
                             titulo = cliente.nome,
+                            icone = Icons.Outlined.Person,
                             onClick = { viewModel.selecionarCliente(cliente.id) },
                             trailing = {
                                 RadioButton(

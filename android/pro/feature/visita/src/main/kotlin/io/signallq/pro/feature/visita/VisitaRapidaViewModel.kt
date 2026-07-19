@@ -23,7 +23,7 @@ data class VisitaRapidaUiState(
 )
 
 /**
- * Tela 2.13 -- modo de visita rapida. Reduz campos de verdade (so cliente, sem tipo/
+ * Tela 2.13 -- modo de visita rápida. Reduz campos de verdade (só cliente, sem tipo/
  * checklist): visita nasce em modoRapido=true, tipo fixo SUPORTE, etapa inicial AMBIENTES
  * (pula CHECKLIST) -- handoff Fase 2, #1161.
  */

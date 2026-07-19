@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MeetingRoom
 import androidx.compose.material.icons.outlined.MoreVert
@@ -23,8 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Card de ambiente -- uso legitimo de card: cada ambiente e 1 unidade de dado real da
- * visita (nao e metrica de vaidade). Handoff Fase 2 (#1161).
+ * Card de ambiente -- uso legítimo de card: cada ambiente é 1 unidade de dado real da
+ * visita (não é métrica de vaidade). Handoff Fase 2 (#1161).
  */
 @Composable
 fun EnvironmentCard(
@@ -36,7 +35,7 @@ fun EnvironmentCard(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {

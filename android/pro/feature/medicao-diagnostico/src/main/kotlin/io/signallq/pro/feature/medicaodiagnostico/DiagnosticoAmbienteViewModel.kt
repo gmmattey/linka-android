@@ -38,9 +38,9 @@ data class DiagnosticoAmbienteUiState(
 )
 
 /**
- * Telas 2.15-2.16 -- diagnostico usando o motor puro [DiagnosticRunner] (`:core:diagnostico`,
- * ja extraido na Fase 1). Analisa a ultima medicao valida do ambiente -- nao dispara novo
- * speedtest (handoff Fase 2, #1161: "explicar previamente o que sera medido" ja aconteceu
+ * Telas 2.15-2.16 -- diagnóstico usando o motor puro [DiagnosticRunner] (`:core:diagnostico`,
+ * já extraído na Fase 1). Analisa a última medição válida do ambiente -- não dispara novo
+ * speedtest (handoff Fase 2, #1161: "explicar previamente o que será medido" já aconteceu
  * na tela 2.10).
  */
 @HiltViewModel
@@ -68,7 +68,7 @@ class DiagnosticoAmbienteViewModel
                     _uiState.update {
                         it.copy(
                             estado = DiagnosticoAmbienteEstado.ERRO,
-                            mensagemErro = "Nenhuma medicao encontrada para este ambiente.",
+                            mensagemErro = "Nenhuma medição encontrada para este ambiente.",
                         )
                     }
                     return@launch

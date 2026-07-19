@@ -11,10 +11,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * [LaudoHtmlGenerator.gerarHtml] e funcao pura -- sem dependencia de Android/Context,
- * testada diretamente em JVM (mesma estrategia do `ExportadorHistoricoPDFTest` do
+ * [LaudoHtmlGenerator.gerarHtml] é função pura -- sem dependência de Android/Context,
+ * testada diretamente em JVM (mesma estratégia do `ExportadorHistoricoPDFTest` do
  * consumidor). Testa o caso feliz (ambiente com dado completo) e o caso negativo
- * (ambiente sem medicao/diagnostico -- laudo nao pode quebrar nem esconder a ausencia).
+ * (ambiente sem medição/diagnóstico -- laudo não pode quebrar nem esconder a ausência).
  */
 class LaudoHtmlGeneratorTest {
     private fun medicao() =
@@ -37,7 +37,7 @@ class LaudoHtmlGeneratorTest {
             medicaoId = "medicao-1",
             veredito = "Bom",
             scoreConexao = 82,
-            decisaoTitulo = "Conexao estavel",
+            decisaoTitulo = "Conexão estável",
             decisaoMensagem = "Sem problemas relevantes.",
             geradoEmEpochMs = 1_716_000_000_000L,
         )
@@ -46,8 +46,8 @@ class LaudoHtmlGeneratorTest {
         DiagnosticoAchadoProEntity(
             id = "achado-1",
             diagnosticoId = "diagnostico-1",
-            titulo = "Latencia elevada",
-            mensagem = "Latencia acima do esperado para o ambiente.",
+            titulo = "Latência elevada",
+            mensagem = "Latência acima do esperado para o ambiente.",
             recomendacao = "Reposicionar o roteador.",
             status = "critical",
             principal = true,
@@ -58,7 +58,7 @@ class LaudoHtmlGeneratorTest {
         val dados =
             LaudoDados(
                 visitaId = "visita-1",
-                profissionalNome = "Joao Tecnico",
+                profissionalNome = "João Técnico",
                 clienteNome = "Maria Cliente",
                 clienteTelefone = "11999999999",
                 localNome = "Principal",
@@ -89,13 +89,13 @@ class LaudoHtmlGeneratorTest {
         val html = LaudoHtmlGenerator.gerarHtml(dados)
 
         assertTrue(html.contains("Maria Cliente"))
-        assertTrue(html.contains("Joao Tecnico"))
+        assertTrue(html.contains("João Técnico"))
         assertTrue(html.contains("Sala"))
         assertTrue(html.contains("120.5 Mbps"))
         assertTrue(html.contains("Bom"))
-        assertTrue(html.contains("Latencia elevada"))
+        assertTrue(html.contains("Latência elevada"))
         assertTrue(html.contains("Reposicionar o roteador."))
-        assertTrue(html.contains("Critico"))
+        assertTrue(html.contains("Crítico"))
         assertTrue(html.contains("Rua das Flores, 123"))
     }
 
@@ -104,7 +104,7 @@ class LaudoHtmlGeneratorTest {
         val dados =
             LaudoDados(
                 visitaId = "visita-2",
-                profissionalNome = "Joao Tecnico",
+                profissionalNome = "João Técnico",
                 clienteNome = "Cliente Sem Dado",
                 clienteTelefone = null,
                 localNome = "Principal",
@@ -126,9 +126,9 @@ class LaudoHtmlGeneratorTest {
         val html = LaudoHtmlGenerator.gerarHtml(dados)
 
         assertTrue(html.contains("Quarto"))
-        assertTrue(html.contains("Nenhuma medicao registrada"))
+        assertTrue(html.contains("Nenhuma medição registrada"))
         assertTrue(html.contains("Nenhum problema relevante identificado"))
-        assertTrue(html.contains("Endereco nao informado"))
+        assertTrue(html.contains("Endereço não informado"))
         assertFalse(html.contains("null"))
     }
 }

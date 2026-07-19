@@ -38,8 +38,8 @@ import io.signallq.pro.core.designsystem.StatusChip
 import io.signallq.pro.core.designsystem.StatusChipTone
 
 /**
- * Tela 3.2 -- lista unica com [ListRow] + divisores finos por secao do laudo (resumo,
- * ambientes, evidencias, recomendacoes), nao 4 cards separados (correcao de design,
+ * Tela 3.2 -- lista única com [ListRow] + divisores finos por seção do laudo (resumo,
+ * ambientes, evidências, recomendações), não 4 cards separados (correção de design,
  * issue #1164 -- o prototipo original usava 1 card por secao, densidade desnecessaria).
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +51,7 @@ fun LaudoScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Laudo tecnico") }) },
+        topBar = { TopAppBar(title = { Text("Laudo técnico") }) },
         bottomBar = {
             if (uiState.estado == LaudoEstado.PRONTO) {
                 Column(
@@ -88,7 +88,7 @@ fun LaudoScreen(
                 Box(modifier = modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
                     StateCard(
                         variant = StateCardVariant.ERRO,
-                        titulo = "Nao foi possivel montar o laudo",
+                        titulo = "Não foi possível montar o laudo",
                         mensagem = uiState.mensagemErro ?: "Tente novamente.",
                         acaoTexto = "Tentar novamente",
                         onAcaoClick = viewModel::carregarLaudo,
@@ -129,7 +129,7 @@ private fun ConteudoLaudo(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 StatusChip(
-                    texto = if (pdfPronto) "Pronto" else "Nao gerado",
+                    texto = if (pdfPronto) "Pronto" else "Não gerado",
                     tone = if (pdfPronto) StatusChipTone.POSITIVO else StatusChipTone.NEUTRO,
                 )
             }
@@ -158,7 +158,7 @@ private fun ConteudoLaudo(
             )
             HorizontalDivider()
             ListRow(
-                titulo = "Recomendacoes",
+                titulo = "Recomendações",
                 subtitulo = "${dados.totalAchados} achado(s)",
                 icone = Icons.Outlined.TipsAndUpdates,
                 trailing = { IndicadorPresenca(dados.totalAchados > 0) },

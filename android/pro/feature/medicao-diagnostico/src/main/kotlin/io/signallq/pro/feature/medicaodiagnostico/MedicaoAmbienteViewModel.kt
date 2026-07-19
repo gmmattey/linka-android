@@ -32,10 +32,10 @@ data class MedicaoAmbienteUiState(
 )
 
 /**
- * Tela 2.10 -- reaproveita o motor de speedtest ja existente ([ExecutorSpeedtest]/
+ * Tela 2.10 -- reaproveita o motor de speedtest já existente ([ExecutorSpeedtest]/
  * `ExecutorSpeedtestCloudflare`, `:featureSpeedtest`) via [FeatureSpeedtestModulo] (factory
- * simples, sem acoplamento a Hilt do consumidor -- confirmado reuso limpo, #1161). Medicao
- * invalida (erro/contaminada) NUNCA e salva como resultado valido.
+ * simples, sem acoplamento a Hilt do consumidor -- confirmado reuso limpo, #1161). Medição
+ * inválida (erro/contaminada) NUNCA é salva como resultado válido.
  */
 @HiltViewModel
 class MedicaoAmbienteViewModel
@@ -65,7 +65,7 @@ class MedicaoAmbienteViewModel
                     _uiState.update {
                         it.copy(
                             estado = MedicaoAmbienteEstado.ERRO,
-                            mensagemErro = snapshot.erroMensagem ?: "Nao foi possivel concluir a medicao. Tente novamente.",
+                            mensagemErro = snapshot.erroMensagem ?: "Não foi possível concluir a medição. Tente novamente.",
                         )
                     }
                     return@launch

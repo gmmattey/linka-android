@@ -19,13 +19,13 @@ import java.io.IOException
 
 /**
  * Cobre a atomicidade de [ClienteRepository.criarCliente] -- achado do Rhodolfo na PR #1167
- * (issue #1166): cliente e local eram duas escritas Room nao atomicas; se o processo morresse
- * entre as duas, o cliente ficava persistido sem local, cenario alcancavel em producao (nao
- * teorico) que quebra o invariante que `VisitaRepository.criarVisita` assume.
+ * (issue #1166): cliente e local eram duas escritas Room não atômicas; se o processo morresse
+ * entre as duas, o cliente ficava persistido sem local, cenário alcançável em produção (não
+ * teórico) que quebra o invariante que `VisitaRepository.criarVisita` assume.
  *
- * Usa um banco Room real em memoria (Robolectric, nao mock) para o `ClienteDao` -- so assim e
- * possivel provar que a falha no segundo insert (local, mockado para lancar excecao) desfaz o
- * primeiro (cliente) via rollback real de transacao, nao apenas "o mock nao reclamou".
+ * Usa um banco Room real em memória (Robolectric, não mock) para o `ClienteDao` -- só assim é
+ * possível provar que a falha no segundo insert (local, mockado para lançar exceção) desfaz o
+ * primeiro (cliente) via rollback real de transação, não apenas "o mock não reclamou".
  */
 @RunWith(RobolectricTestRunner::class)
 class ClienteRepositoryTest {
@@ -70,7 +70,7 @@ class ClienteRepositoryTest {
             assertTrue("criarCliente deveria propagar a falha do segundo insert", propagouFalha)
             val clientesPersistidos = db.clienteDao().observarTodos().first()
             assertTrue(
-                "cliente nao pode ficar persistido orfao sem local quando o insert do local falha",
+                "cliente não pode ficar persistido órfão sem local quando o insert do local falha",
                 clientesPersistidos.isEmpty(),
             )
         }

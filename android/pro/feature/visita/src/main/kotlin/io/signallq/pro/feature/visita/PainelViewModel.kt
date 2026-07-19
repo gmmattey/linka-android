@@ -29,9 +29,9 @@ data class PainelUiState(
 }
 
 /**
- * Tela 2.1 -- painel do Pro. NAO replica os 3 cards de metrica de vaidade do prototipo
+ * Tela 2.1 -- painel do Pro. NÃO replica os 3 cards de métrica de vaidade do protótipo
  * (Atendimentos hoje/Clientes/Laudos emitidos, ver handoff Fase 2 #1161). Lidera com
- * "Proximos atendimentos" (lista) + as 4 acoes rapidas (ver [PainelScreen]).
+ * "Próximos atendimentos" (lista) + as 4 ações rápidas (ver [PainelScreen]).
  */
 @HiltViewModel
 class PainelViewModel

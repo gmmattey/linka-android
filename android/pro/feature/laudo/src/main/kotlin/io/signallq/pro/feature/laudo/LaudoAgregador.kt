@@ -13,12 +13,12 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
- * Agrega os dados ja persistidos da visita (cliente, local, ambientes, medicoes,
- * diagnosticos, evidencias) num unico [LaudoDados] para a tela 3.2. Extraido de
- * [LaudoViewModel] para nao concentrar repositorios demais no construtor do ViewModel (detekt
- * `LongParameterList`) e para isolar a orquestracao de montagem do laudo, no mesmo espirito de
- * `.claude/rules/higiene-e-padronizacao-repositorio.md` §4.2 (extrair orquestracao do
- * ViewModel para componente proprio).
+ * Agrega os dados já persistidos da visita (cliente, local, ambientes, medições,
+ * diagnósticos, evidências) num único [LaudoDados] para a tela 3.2. Extraído de
+ * [LaudoViewModel] para não concentrar repositórios demais no construtor do ViewModel (detekt
+ * `LongParameterList`) e para isolar a orquestração de montagem do laudo, no mesmo espírito de
+ * `.claude/rules/higiene-e-padronizacao-repositorio.md` §4.2 (extrair orquestração do
+ * ViewModel para componente próprio).
  */
 class LaudoAgregador
     @Inject
@@ -32,7 +32,7 @@ class LaudoAgregador
         private val diagnosticoProRepository: DiagnosticoProRepository,
         private val evidenciaRepository: EvidenciaRepository,
     ) {
-        /** @return `null` se o ambiente informado ou a visita associada nao existirem mais. */
+        /** @return `null` se o ambiente informado ou a visita associada não existirem mais. */
         suspend fun montar(ambienteId: String): LaudoDados? {
             val ambiente = ambienteRepository.buscarPorId(ambienteId)
             val visita = ambiente?.let { visitaRepository.buscarVisita(it.visitaId) }

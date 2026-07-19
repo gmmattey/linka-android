@@ -51,8 +51,8 @@ private sealed interface DialogoAmbiente {
 }
 
 /**
- * Telas 2.6-2.9 -- lista de ambientes com criar/renomear/excluir. [EnvironmentCard] e uso
- * legitimo de card (1 ambiente = 1 unidade de dado real, handoff Fase 2, #1161).
+ * Telas 2.6-2.9 -- lista de ambientes com criar/renomear/excluir. [EnvironmentCard] é uso
+ * legítimo de card (1 ambiente = 1 unidade de dado real, handoff Fase 2, #1161).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +92,7 @@ fun AmbientesScreen(
                 StateCard(
                     variant = StateCardVariant.VAZIO,
                     titulo = "Nenhum ambiente ainda",
-                    mensagem = "Adicione um ambiente para comecar a medir.",
+                    mensagem = "Adicione um ambiente para começar a medir.",
                     acaoTexto = "Novo ambiente",
                     onAcaoClick = { dialogo = DialogoAmbiente.Criar },
                     modifier = Modifier.padding(24.dp).align(Alignment.Center),
@@ -117,7 +117,7 @@ fun AmbientesScreen(
             if (uiState.erroExclusaoBloqueada != null) {
                 StateCard(
                     variant = StateCardVariant.ERRO,
-                    titulo = "Nao foi possivel excluir",
+                    titulo = "Não foi possível excluir",
                     mensagem = uiState.erroExclusaoBloqueada.orEmpty(),
                     acaoTexto = "Entendi",
                     onAcaoClick = viewModel::limparErroExclusao,

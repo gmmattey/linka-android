@@ -30,13 +30,13 @@ private fun rotuloEtapa(etapa: EtapaVisita): String =
     when (etapa) {
         EtapaVisita.CHECKLIST -> "Checklist"
         EtapaVisita.AMBIENTES -> "Ambientes"
-        EtapaVisita.CONCLUSAO -> "Conclusao"
+        EtapaVisita.CONCLUSAO -> "Conclusão"
     }
 
 /**
  * Tela 2.5 -- hub do atendimento. TopBar (cliente/tipo), StatusChip da etapa e indicador
- * de progresso por etapa com rotulo (nao barra generica) -- handoff Fase 2, #1161.
- * "Continuar" leva pra etapa salva -- e a retomada de visita interrompida na pratica.
+ * de progresso por etapa com rótulo (não barra genérica) -- handoff Fase 2, #1161.
+ * "Continuar" leva pra etapa salva -- é a retomada de visita interrompida na prática.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

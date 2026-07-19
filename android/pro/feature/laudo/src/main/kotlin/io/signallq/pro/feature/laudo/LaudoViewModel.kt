@@ -28,11 +28,11 @@ data class LaudoUiState(
 )
 
 /**
- * Tela 3.2 -- monta o laudo a partir dos dados ja persistidos da visita (cliente, ambientes,
- * medicoes, diagnosticos, evidencias, via [LaudoAgregador]) e gera o PDF via
- * [exportarHtmlComoPdf] (`:core:relatorio`). Sem entidade Room propria para o laudo em si
- * (nenhuma `LaudoEntity`) -- o PDF e efemero, regenerado sob demanda a cada "Gerar PDF"
- * (decisao de escopo do MVP0: versionar/historiar laudos e feature de MVP1, doc 09 linha 238
+ * Tela 3.2 -- monta o laudo a partir dos dados já persistidos da visita (cliente, ambientes,
+ * medições, diagnósticos, evidências, via [LaudoAgregador]) e gera o PDF via
+ * [exportarHtmlComoPdf] (`:core:relatorio`). Sem entidade Room própria para o laudo em si
+ * (nenhuma `LaudoEntity`) -- o PDF é efêmero, regenerado sob demanda a cada "Gerar PDF"
+ * (decisão de escopo do MVP0: versionar/historiar laudos é feature de MVP1, doc 09 linha 238
  * do pacote de plataforma).
  */
 @HiltViewModel
@@ -59,7 +59,7 @@ class LaudoViewModel
                 val dados = laudoAgregador.montar(ambienteId)
                 if (dados == null) {
                     _uiState.update {
-                        it.copy(estado = LaudoEstado.ERRO, mensagemErro = "Nao foi possivel localizar os dados da visita.")
+                        it.copy(estado = LaudoEstado.ERRO, mensagemErro = "Não foi possível localizar os dados da visita.")
                     }
                     return@launch
                 }
@@ -88,7 +88,7 @@ class LaudoViewModel
                     it.copy(
                         gerandoPdf = false,
                         pdfUri = uri,
-                        mensagemErro = if (!sucesso) "Nao foi possivel gerar o PDF do laudo. Tente novamente." else null,
+                        mensagemErro = if (!sucesso) "Não foi possível gerar o PDF do laudo. Tente novamente." else null,
                     )
                 }
             }

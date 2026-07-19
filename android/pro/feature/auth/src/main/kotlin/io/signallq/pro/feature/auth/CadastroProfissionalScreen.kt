@@ -22,7 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * Substitui a tela 1.5 (Criar conta) -- cadastro local do profissional, SEM backend
- * (decisao registrada na issue #1158). So o nome e obrigatorio; logo e opcional e usado
+ * (decisão registrada na issue #1158). Só o nome é obrigatório; logo é opcional e usado
  * depois no laudo (Fase 3).
  */
 @OptIn(ExperimentalMaterial3Api::class)

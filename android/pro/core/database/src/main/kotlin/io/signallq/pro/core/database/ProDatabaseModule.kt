@@ -21,10 +21,10 @@ import io.signallq.pro.core.database.visita.VisitaDao
 import javax.inject.Singleton
 
 /**
- * Issue #1166: cria a tabela `local` (ausente ate aqui) e backfilla um local "Principal" por
- * cliente ja existente -- os dados de dev/teste anteriores a essa migracao nao tinham
- * endereco, entao o backfill usa string vazia (unico valor disponivel) em vez de perder a
- * visita/cliente. `visita.localId` e resolvido por join com o `local` recem-criado do mesmo
+ * Issue #1166: cria a tabela `local` (ausente até aqui) e backfilla um local "Principal" por
+ * cliente já existente -- os dados de dev/teste anteriores a essa migração não tinham
+ * endereço, então o backfill usa string vazia (único valor disponível) em vez de perder a
+ * visita/cliente. `visita.localId` é resolvido por join com o `local` recém-criado do mesmo
  * cliente (MVP0: um cliente tem exatamente um local nesse momento).
  */
 private val migracaoLocal1Para2 =
