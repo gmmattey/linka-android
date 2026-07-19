@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application")
+    id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.kapt")
@@ -8,6 +8,11 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
+// Grupo 2 do prototipo do Pro -- medicao do ambiente, walk test, evidencias e diagnostico
+// (telas 2.10-2.12, 2.15-2.16), issue #1161 Fase 2. Reaproveita o motor de speedtest
+// (ExecutorSpeedtest/ExecutorSpeedtestCloudflare, :featureSpeedtest) e o dominio de
+// diagnostico puro (:core:diagnostico) ja extraidos na Fase 1.
+
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     filter {
         exclude("**/*.kts")
@@ -15,53 +20,21 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 }
 
 android {
-    namespace = "io.signallq.pro"
+    namespace = "io.signallq.pro.feature.medicaodiagnostico"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "io.signallq.pro"
         minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
-        // Contador PROPRIO do Pro (libs.versions.toml: proVersionCode/proVersionName) —
-        // nunca reusar o contador do consumidor (":app"). Ver nota no catalogo de versoes.
-        versionCode = libs.versions.proVersionCode.get().toInt()
-        versionName = libs.versions.proVersionName.get()
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        debug {
-            // MVP0 roda local/emulador/APK debug — sem Firebase/Play do Pro ainda
-            // (conta nova pendente de aprovacao do Luiz, ver issue #1158).
-        }
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-            // Sem signingConfig ainda — release do Pro fora de escopo do MVP0 (sem
-            // Play Console/keystore proprios definidos, issue #1158).
-        }
     }
 
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        encoding = "UTF-8"
-    }
-
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
     }
 }
 
@@ -91,25 +64,18 @@ ktlint {
 }
 
 dependencies {
-    // Fase 2 (issue #1161) -- feature modules do Grupo 1 (trimmed) e Grupo 2 do prototipo.
-    // :pro:app so compoe os grafos de navegacao de cada feature em ProNavHost -- nenhuma
-    // regra de negocio aqui.
     implementation(project(":pro:core:designsystem"))
     implementation(project(":pro:core:database"))
-    implementation(project(":pro:feature:auth"))
-    implementation(project(":pro:feature:cliente"))
-    implementation(project(":pro:feature:visita"))
-    implementation(project(":pro:feature:ambiente"))
-    implementation(project(":pro:feature:medicao-diagnostico"))
+    implementation(project(":featureSpeedtest"))
+    implementation(project(":core:diagnostico"))
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
-    implementation(libs.activity.compose)
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.hilt.navigation.compose)
@@ -121,9 +87,6 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(platform(libs.compose.bom))
-    testImplementation(libs.compose.ui.test.junit4)
-    debugImplementation(libs.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

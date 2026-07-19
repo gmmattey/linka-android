@@ -41,6 +41,15 @@ include(
     ":pro:app",
     ":core:relatorio",
     ":core:diagnostico",
+    // Fase 2 do MVP0 (issue #1161) — design system e persistencia compartilhados do Pro +
+    // feature modules do Grupo 1 (trimmed) e Grupo 2 do prototipo.
+    ":pro:core:designsystem",
+    ":pro:core:database",
+    ":pro:feature:auth",
+    ":pro:feature:cliente",
+    ":pro:feature:visita",
+    ":pro:feature:ambiente",
+    ":pro:feature:medicao-diagnostico",
 )
 
 project(":coreNetwork").projectDir    = File("core/network")
