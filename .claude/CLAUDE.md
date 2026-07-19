@@ -30,7 +30,7 @@ pequeno, seguro e relacionado à tarefa, ou registrá-lo em uma issue quando amp
 ## Identidade
 
 - App: **SignallQ** -- diagnostico de conectividade Android.
-- Estrutura: **monorepo** — `android/` (Kotlin), `integrations/` (Cloudflare), `scripts/`, `docs_ai/`.
+- Estrutura: **monorepo** — `android/` (Kotlin), `integrations/` (Cloudflare), `SignallQ Admin/` (Console), `SignallQ Site/` (site institucional), `scripts/`, `docs_ai/`.
 - Package/applicationId/namespace: **`io.signallq.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). Renomeado de `io.veloo.app` em 2026-06-28 (antes de qualquer publicacao na Play Store).
 - Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
 - Versao atual: **0.26.0** (versionCode 62), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
@@ -57,6 +57,7 @@ A squad opera **tres produtos** sob o **mesmo fluxo de trabalho** (piloto automa
 | **SignallQ** (consumer) | **ATUAL** -- 0.26.0/vc62, 16 modulos | Kotlin/Compose/M3, `io.signallq.app`, primary violeta `#5B21D6` / secondary azul `#2851B8` | skill `/SignallQ-design`; projeto Claude Design `2d25d7a1-…` | `consumer/android/vX.Y.Z` -> Play (internal->alpha…) |
 | **SignallQ Pro** | **ALVO** -- app nao existe (spec/design) | Kotlin/Compose/M3 (alvo), `io.signallq.pro`, Firebase/Play proprios, identidade **azul `#0B6CFF`** (marca) + ciano `#006B76` + roxo `#6558E8` de apoio, 2 temas oficiais | skill `/signallq-pro-design`; projeto Claude Design `77a19317-…` (fonte visual viva); `docs_ai/plataforma/08..11_*` | `pro/android/vX.Y.Z` (futuro) |
 | **SignallQ Admin** (Console) | **ATUAL** -- React 19/Vite 6/TS 5.8/Tailwind 4 | `SignallQ Admin/` + `signallq-admin-worker` (backend); 13 tabelas D1 reais; 5 workers Cloudflare | design da Lia (Claude Design); `docs_ai/plataforma/07_*` | Cloudflare Pages / ambiente protegido |
+| **SignallQ Site** (institucional) | **ATUAL** -- React 19/Vite 6/TS 5.8/Tailwind 4 | `SignallQ Site/`; teste de velocidade real (Cloudflare `__down`/`__up`), historico local (IndexedDB), Pages Function de telemetria (`functions/api/track.ts` -> `signallq-admin-worker`) | design da Lia (protótipo Claude Design, projeto `e77ea465-…`); ver `SignallQ Site/CLAUDE.md` | Cloudflare Pages, projeto `signallq` (signallq.pages.dev) |
 
 Nao-negociaveis por produto:
 - **SignallQ Pro esta em fase de spec/design -- nao criar codigo Android do Pro sem instrucao explicita do Luiz** (2026-07-18). O trabalho atual do Pro e documentacao, design (protótipo/skill) e planejamento de MVP1, nao implementacao.
