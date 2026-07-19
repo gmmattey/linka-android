@@ -1,10 +1,10 @@
 package io.signallq.app.ui.screen
 
+import io.signallq.app.core.diagnostico.topology.model.NatStatus
 import io.signallq.app.core.network.contracts.gateway.AcessoEquipamento
 import io.signallq.app.core.network.contracts.localdevice.DeviceType
 import io.signallq.app.core.network.contracts.localdevice.LocalNetworkDeviceSnapshot
 import io.signallq.app.core.network.contracts.localdevice.SupportLevel
-import io.signallq.app.feature.diagnostico.topology.model.NatStatus
 import io.signallq.app.feature.fibra.EstadoFibra
 import io.signallq.app.feature.fibra.SnapshotFibra
 import io.signallq.app.ui.component.dadosParciais

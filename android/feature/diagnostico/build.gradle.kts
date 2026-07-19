@@ -64,6 +64,9 @@ dependencies {
     implementation(project(":coreDatastore"))
     implementation(project(":coreNetwork"))
     implementation(project(":coreRecommendation"))
+    // Dominio de causa-raiz extraido (issue #1157 Fase 1a) — FindingEngine, ScoreEngine,
+    // DiagnosticInput/Report/Result, engines por dominio, topology/model+correlation+internet.
+    implementation(project(":core:diagnostico"))
     implementation(libs.timber)
     implementation(libs.okhttp)
     implementation(libs.androidx.datastore.preferences)

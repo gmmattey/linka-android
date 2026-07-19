@@ -1,9 +1,9 @@
 package io.signallq.app.feature.diagnostico.remote
 
-import io.signallq.app.feature.diagnostico.BandaWifi
-import io.signallq.app.feature.diagnostico.ConnectionType
-import io.signallq.app.feature.diagnostico.DiagnosticInput
-import io.signallq.app.feature.diagnostico.banda
+import io.signallq.app.core.diagnostico.BandaWifi
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.banda
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -121,8 +121,12 @@ internal object DiagnosticSnapshotMapper {
         // loadedLatencyMs = latencia sob carga = latencia idle + delta de bufferbloat
         // ja medido localmente. O worker deriva bufferbloat do delta entre os dois
         // campos (nao ha campo "bufferbloatMs" direto no contrato remoto).
-        if (internet.latencyMs != null && internet.bufferbloatMs != null) {
-            o.put("loadedLatencyMs", internet.latencyMs + internet.bufferbloatMs)
+        // Captura em val local: smart cast de propriedade nullable declarada em outro
+        // modulo (DiagnosticInput agora em :core:diagnostico) nao e permitido direto.
+        val latenciaMs = internet.latencyMs
+        val bufferbloatMs = internet.bufferbloatMs
+        if (latenciaMs != null && bufferbloatMs != null) {
+            o.put("loadedLatencyMs", latenciaMs + bufferbloatMs)
         }
         if (o.length() == 0) return null
         return o

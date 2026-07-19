@@ -96,6 +96,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import io.signallq.app.R
+import io.signallq.app.core.diagnostico.BandaWifi
+import io.signallq.app.core.diagnostico.DadoCanal
+import io.signallq.app.core.diagnostico.NivelCongestionamento
+import io.signallq.app.core.diagnostico.RedeWifiVizinha
+import io.signallq.app.core.diagnostico.SnapshotEspectroCanal
+import io.signallq.app.core.diagnostico.WifiChannelDiagnosticEngine
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.WifiLinkSnapshot
 import io.signallq.app.core.network.contracts.topologia.NivelConfianca
@@ -108,14 +114,8 @@ import io.signallq.app.core.telephony.MovelSnapshot
 import io.signallq.app.feature.devices.DispositivoRede
 import io.signallq.app.feature.devices.chaveApelido
 import io.signallq.app.feature.devices.encontrarDispositivoPorBssid
-import io.signallq.app.feature.diagnostico.BandaWifi
 import io.signallq.app.feature.diagnostico.CanalStrings
 import io.signallq.app.feature.diagnostico.CanalTextGenerator
-import io.signallq.app.feature.diagnostico.DadoCanal
-import io.signallq.app.feature.diagnostico.NivelCongestionamento
-import io.signallq.app.feature.diagnostico.RedeWifiVizinha
-import io.signallq.app.feature.diagnostico.SnapshotEspectroCanal
-import io.signallq.app.feature.diagnostico.WifiChannelDiagnosticEngine
 import io.signallq.app.feature.wifi.ConfiancaTopologia
 import io.signallq.app.feature.wifi.GrupoRedeWifi
 import io.signallq.app.feature.wifi.RedeClassificada

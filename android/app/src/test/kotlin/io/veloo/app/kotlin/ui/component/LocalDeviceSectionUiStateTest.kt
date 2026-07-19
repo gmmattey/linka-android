@@ -1,5 +1,6 @@
 package io.signallq.app.ui.component
 
+import io.signallq.app.core.diagnostico.DiagnosticStatus
 import io.signallq.app.core.network.contracts.gateway.EquipmentClassification
 import io.signallq.app.core.network.contracts.localdevice.ClientSnapshot
 import io.signallq.app.core.network.contracts.localdevice.DataFreshness
@@ -14,7 +15,6 @@ import io.signallq.app.core.network.contracts.localdevice.SupportLevel
 import io.signallq.app.core.network.contracts.localdevice.WanSnapshot
 import io.signallq.app.core.network.contracts.localdevice.WifiRadioSnapshot
 import io.signallq.app.core.network.contracts.localdevice.WifiSnapshot
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

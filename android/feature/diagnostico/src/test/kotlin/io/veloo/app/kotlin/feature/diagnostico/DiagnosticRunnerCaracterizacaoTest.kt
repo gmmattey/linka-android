@@ -1,6 +1,15 @@
 package io.signallq.app.feature.diagnostico
 
-import io.signallq.app.feature.diagnostico.topology.model.NatStatus
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticRunner
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.MobileDiagnosticInput
+import io.signallq.app.core.diagnostico.RedeWifiVizinha
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiScanDiagnosticInput
+import io.signallq.app.core.diagnostico.topology.model.NatStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -54,7 +63,9 @@ class DiagnosticRunnerCaracterizacaoTest {
             ),
         )
 
-        val r = DiagnosticRunner.run(input)
+        // A partir da extracao (Fase 1a): gerarRecomendacoes precisa ser explicito, pois
+        // RecommendationEngine ficou em :featureDiagnostico e nao e mais o default do runner.
+        val r = DiagnosticRunner.run(input, gerarRecomendacoes = RecommendationEngine::recomendar)
 
         assertTrue("esperava REC-01 nas recomendacoes do report", r.recomendacoes.any { it.id == "REC-01" })
     }

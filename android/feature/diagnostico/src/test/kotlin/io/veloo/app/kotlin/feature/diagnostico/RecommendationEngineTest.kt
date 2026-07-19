@@ -1,5 +1,21 @@
 package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.BandaWifi
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticResult
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.DnsDiagnosticInput
+import io.signallq.app.core.diagnostico.FibraDiagnosticInput
+import io.signallq.app.core.diagnostico.FindingEngine
+import io.signallq.app.core.diagnostico.FindingResult
+import io.signallq.app.core.diagnostico.HistoricalDiagnosticInput
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.MobileDiagnosticInput
+import io.signallq.app.core.diagnostico.RedeWifiVizinha
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiQualityResult
+import io.signallq.app.core.diagnostico.WifiScanDiagnosticInput
 import io.signallq.app.core.network.contracts.topologia.NivelConfianca
 import io.signallq.app.core.network.contracts.topologia.PapelTopologia
 import org.junit.Assert.assertEquals

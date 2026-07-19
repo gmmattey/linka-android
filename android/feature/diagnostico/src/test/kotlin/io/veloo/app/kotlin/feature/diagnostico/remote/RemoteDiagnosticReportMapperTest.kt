@@ -1,6 +1,6 @@
 package io.signallq.app.feature.diagnostico.remote
 
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.DiagnosticStatus
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

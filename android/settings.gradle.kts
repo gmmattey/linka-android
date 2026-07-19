@@ -40,6 +40,7 @@ include(
     // — sem override de projectDir, ao contrario dos aliases flat legados abaixo.
     ":pro:app",
     ":core:relatorio",
+    ":core:diagnostico",
 )
 
 project(":coreNetwork").projectDir    = File("core/network")

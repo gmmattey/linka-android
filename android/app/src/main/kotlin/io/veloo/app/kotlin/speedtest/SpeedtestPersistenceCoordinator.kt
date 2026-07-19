@@ -2,13 +2,13 @@
 
 import io.signallq.app.core.database.MedicaoDao
 import io.signallq.app.core.database.MedicaoEntity
+import io.signallq.app.core.diagnostico.BandaWifi
+import io.signallq.app.core.diagnostico.DiagnosticReport
+import io.signallq.app.core.diagnostico.DiagnosticStatus
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.MonitorRede
 import io.signallq.app.core.telephony.MonitorTelephony
-import io.signallq.app.feature.diagnostico.BandaWifi
 import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
-import io.signallq.app.feature.diagnostico.DiagnosticReport
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
 import io.signallq.app.feature.diagnostico.EstadoDiagnostico
 import io.signallq.app.feature.speedtest.EstadoExecucaoSpeedtest
 import io.signallq.app.feature.speedtest.ExecutorSpeedtest

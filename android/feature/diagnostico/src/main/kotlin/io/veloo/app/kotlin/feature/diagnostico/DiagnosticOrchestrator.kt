@@ -1,5 +1,13 @@
 package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticArea
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticRunner
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.FibraDiagnosticInput
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
 import io.signallq.app.core.network.AnalyticsHelper
 import io.signallq.app.core.network.NoOpAnalyticsHelper
 import io.signallq.app.feature.diagnostico.remote.RemoteDiagnosticRepository

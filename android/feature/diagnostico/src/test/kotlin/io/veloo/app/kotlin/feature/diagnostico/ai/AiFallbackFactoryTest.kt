@@ -1,8 +1,8 @@
 ﻿package io.signallq.app.feature.diagnostico.ai
 
-import io.signallq.app.feature.diagnostico.DiagnosticReport
-import io.signallq.app.feature.diagnostico.DiagnosticResult
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.DiagnosticReport
+import io.signallq.app.core.diagnostico.DiagnosticResult
+import io.signallq.app.core.diagnostico.DiagnosticStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

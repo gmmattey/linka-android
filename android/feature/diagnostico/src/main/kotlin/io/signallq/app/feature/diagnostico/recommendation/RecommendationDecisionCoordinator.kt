@@ -1,11 +1,11 @@
 package io.signallq.app.feature.diagnostico.recommendation
 
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticReport
 import io.signallq.app.core.recommendation.RecommendationDecision
 import io.signallq.app.core.recommendation.RecommendationEngine
 import io.signallq.app.core.recommendation.RecommendationFeedbackType
 import io.signallq.app.core.recommendation.RecommendationFlags
-import io.signallq.app.feature.diagnostico.DiagnosticInput
-import io.signallq.app.feature.diagnostico.DiagnosticReport
 import io.signallq.app.feature.diagnostico.RecommendationRequestMapper
 import javax.inject.Inject
 

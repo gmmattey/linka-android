@@ -50,10 +50,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.signallq.app.core.diagnostico.topology.model.NatStatus
 import io.signallq.app.core.network.contracts.fibra.ClassificadorSaudeGpon
 import io.signallq.app.core.network.contracts.gateway.AcessoEquipamento
 import io.signallq.app.core.network.contracts.localdevice.LocalNetworkDeviceSnapshot
-import io.signallq.app.feature.diagnostico.topology.model.NatStatus
 import io.signallq.app.feature.fibra.EstadoFibra
 import io.signallq.app.feature.fibra.SnapshotFibra
 import io.signallq.app.ui.LkRadius

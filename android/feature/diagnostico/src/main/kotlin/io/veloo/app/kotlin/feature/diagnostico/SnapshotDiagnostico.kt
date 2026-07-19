@@ -1,5 +1,8 @@
 ﻿package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticReport
+
 data class SnapshotDiagnostico(
     val estado: EstadoDiagnostico,
     val relatorio: DiagnosticReport?,

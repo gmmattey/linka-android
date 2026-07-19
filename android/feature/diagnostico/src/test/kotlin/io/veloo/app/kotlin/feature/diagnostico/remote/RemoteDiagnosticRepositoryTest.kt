@@ -1,10 +1,10 @@
 package io.signallq.app.feature.diagnostico.remote
 
-import io.signallq.app.feature.diagnostico.ConnectionType
-import io.signallq.app.feature.diagnostico.DiagnosticInput
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
-import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
-import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse

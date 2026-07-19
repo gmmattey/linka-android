@@ -1,7 +1,7 @@
 ﻿package io.signallq.app.feature.diagnostico.pulse
 
-import io.signallq.app.feature.diagnostico.DiagnosticReport
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.DiagnosticReport
+import io.signallq.app.core.diagnostico.DiagnosticStatus
 
 object ContextAccumulator {
 

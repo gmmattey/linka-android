@@ -52,6 +52,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.FibraDiagnosticInput
+import io.signallq.app.core.diagnostico.FibraSignalQualityEngine
 import io.signallq.app.core.network.contracts.gateway.EquipmentClassification
 import io.signallq.app.core.network.contracts.localdevice.ClientSnapshot
 import io.signallq.app.core.network.contracts.localdevice.DataFreshness
@@ -59,9 +62,6 @@ import io.signallq.app.core.network.contracts.localdevice.DeviceType
 import io.signallq.app.core.network.contracts.localdevice.DeviceWarningType
 import io.signallq.app.core.network.contracts.localdevice.LocalNetworkDeviceSnapshot
 import io.signallq.app.core.network.contracts.localdevice.SupportLevel
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
-import io.signallq.app.feature.diagnostico.FibraDiagnosticInput
-import io.signallq.app.feature.diagnostico.FibraSignalQualityEngine
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.SignallQTheme

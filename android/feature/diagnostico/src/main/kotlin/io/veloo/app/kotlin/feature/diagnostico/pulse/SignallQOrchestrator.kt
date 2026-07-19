@@ -9,12 +9,12 @@ import io.signallq.app.core.network.GatewayLatencyMeasurer
 import io.signallq.app.core.network.MonitorRede
 import io.signallq.app.core.network.NetworkCapabilitiesProvider
 import io.signallq.app.core.network.NoOpAnalyticsHelper
-import io.signallq.app.feature.diagnostico.ConnectionType
-import io.signallq.app.feature.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
 import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
 import io.signallq.app.feature.diagnostico.EstadoDiagnostico
-import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
-import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
 import io.signallq.app.feature.diagnostico.ai.AI_PROMPT_VERSION
 import io.signallq.app.feature.diagnostico.ai.AdditionalAiContext
 import io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository
@@ -845,7 +845,7 @@ class SignallQOrchestrator(
 
     private suspend fun callAi(
         trigger: String,
-        report: io.signallq.app.feature.diagnostico.DiagnosticReport?,
+        report: io.signallq.app.core.diagnostico.DiagnosticReport?,
         connectionType: ConnectionType,
         additionalContext: String?,
         input: DiagnosticInput? = null,
@@ -1109,7 +1109,7 @@ class SignallQOrchestrator(
     private fun dispararIngestDiagnostico(
         sessionId: String,
         connectionType: ConnectionType,
-        relatorio: io.signallq.app.feature.diagnostico.DiagnosticReport?,
+        relatorio: io.signallq.app.core.diagnostico.DiagnosticReport?,
         speedtestResult: io.signallq.app.feature.speedtest.ResultadoSpeedtest?,
         /** Frequencia Wi-Fi em MHz — null se movel ou indisponivel (Samsung One UI apos reconexao). */
         wifiFrequenciaMhz: Int? = null,
@@ -1129,11 +1129,11 @@ class SignallQOrchestrator(
             // ruim/critico/inconclusivo). Mapeia a decisao real do motor local.
             val status = when (relatorio?.decisao?.status) {
                 null -> "failed"
-                io.signallq.app.feature.diagnostico.DiagnosticStatus.ok -> "excelente"
-                io.signallq.app.feature.diagnostico.DiagnosticStatus.info -> "bom"
-                io.signallq.app.feature.diagnostico.DiagnosticStatus.attention -> "regular"
-                io.signallq.app.feature.diagnostico.DiagnosticStatus.critical -> "critico"
-                io.signallq.app.feature.diagnostico.DiagnosticStatus.inconclusive -> "inconclusivo"
+                io.signallq.app.core.diagnostico.DiagnosticStatus.ok -> "excelente"
+                io.signallq.app.core.diagnostico.DiagnosticStatus.info -> "bom"
+                io.signallq.app.core.diagnostico.DiagnosticStatus.attention -> "regular"
+                io.signallq.app.core.diagnostico.DiagnosticStatus.critical -> "critico"
+                io.signallq.app.core.diagnostico.DiagnosticStatus.inconclusive -> "inconclusivo"
             }
             val deviceId = runCatching { deviceIdProvider() }.getOrDefault("unknown")
             val distChannel = runCatching { distChannelProvider() }.getOrDefault("unknown")
@@ -1151,8 +1151,8 @@ class SignallQOrchestrator(
                     rep.fibraResultados + rep.dnsResultados + rep.historicoResultados +
                     rep.wifiCanalResultados)
                     .filter {
-                        it.status == io.signallq.app.feature.diagnostico.DiagnosticStatus.critical ||
-                            it.status == io.signallq.app.feature.diagnostico.DiagnosticStatus.attention
+                        it.status == io.signallq.app.core.diagnostico.DiagnosticStatus.critical ||
+                            it.status == io.signallq.app.core.diagnostico.DiagnosticStatus.attention
                     }
                     .map { idParaIssueLabel(it.id) }
             } ?: emptyList()
@@ -1220,7 +1220,7 @@ class SignallQOrchestrator(
         }
     }
 
-    private fun mapSignallQState(report: io.signallq.app.feature.diagnostico.DiagnosticReport?): SignallQState {
+    private fun mapSignallQState(report: io.signallq.app.core.diagnostico.DiagnosticReport?): SignallQState {
         if (report == null) return SignallQState.AwaitingInput
         return when {
             report.temCritico -> SignallQState.Critical
