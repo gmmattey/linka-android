@@ -1,11 +1,12 @@
 package io.signallq.app.feature.diagnostico.remote
 
-import io.signallq.app.feature.diagnostico.DiagnosticArea
-import io.signallq.app.feature.diagnostico.DiagnosticInput
-import io.signallq.app.feature.diagnostico.DiagnosticReport
-import io.signallq.app.feature.diagnostico.DiagnosticRunner
-import io.signallq.app.feature.diagnostico.GameReadinessClassifier
-import io.signallq.app.feature.diagnostico.UsageProfileClassifier
+import io.signallq.app.core.diagnostico.DiagnosticArea
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticReport
+import io.signallq.app.core.diagnostico.DiagnosticRunner
+import io.signallq.app.core.diagnostico.GameReadinessClassifier
+import io.signallq.app.core.diagnostico.UsageProfileClassifier
+import io.signallq.app.feature.diagnostico.RecommendationEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -67,7 +68,7 @@ class RemoteDiagnosticRepository(
         val remotePayload = evaluateRemote(input)
         if (remotePayload == null) {
             Timber.i("RemoteDiagnosticRepository: remoto indisponivel, usando motor local")
-            return DiagnosticRunner.run(input, enabledAreas)
+            return DiagnosticRunner.run(input, enabledAreas, gerarRecomendacoes = RecommendationEngine::recomendar)
         }
 
         return try {
@@ -82,7 +83,7 @@ class RemoteDiagnosticRepository(
             )
         } catch (t: Throwable) {
             Timber.w(t, "RemoteDiagnosticRepository: falha ao mapear resposta remota, usando motor local")
-            DiagnosticRunner.run(input, enabledAreas)
+            DiagnosticRunner.run(input, enabledAreas, gerarRecomendacoes = RecommendationEngine::recomendar)
         }
     }
 

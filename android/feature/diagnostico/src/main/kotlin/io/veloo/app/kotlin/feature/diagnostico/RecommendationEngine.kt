@@ -1,5 +1,18 @@
 package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.BandaWifi
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticResult
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.FibraSignalQualityEngine
+import io.signallq.app.core.diagnostico.FindingEngine
+import io.signallq.app.core.diagnostico.FindingResult
+import io.signallq.app.core.diagnostico.GameReadinessClassifier
+import io.signallq.app.core.diagnostico.MetricClassifier
+import io.signallq.app.core.diagnostico.MetricStatus
+import io.signallq.app.core.diagnostico.WifiChannelDiagnosticEngine
+import io.signallq.app.core.diagnostico.banda
 import io.signallq.app.core.network.contracts.topologia.NivelConfianca
 import io.signallq.app.core.network.contracts.topologia.PapelTopologia
 
@@ -92,7 +105,8 @@ object RecommendationEngine {
         val ssid = wifi.ssid
         val redes5Ghz = if (ssid != null) {
             input.wifiScan?.redes.orEmpty().filter {
-                it.ssid == ssid && it.frequenciaMhz != null && it.frequenciaMhz >= 5000
+                val freq = it.frequenciaMhz
+                it.ssid == ssid && freq != null && freq >= 5000
             }
         } else {
             emptyList()

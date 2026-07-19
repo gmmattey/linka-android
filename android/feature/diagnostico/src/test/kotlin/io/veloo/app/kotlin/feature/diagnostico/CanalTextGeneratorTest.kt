@@ -1,5 +1,8 @@
 ﻿package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.DadoCanal
+import io.signallq.app.core.diagnostico.NivelCongestionamento
+import io.signallq.app.core.diagnostico.SnapshotEspectroCanal
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

@@ -1,5 +1,12 @@
 package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticRunner
+import io.signallq.app.core.diagnostico.DnsDiagnosticInput
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.MobileDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
 import io.signallq.app.core.recommendation.DiagnosticTag
 import io.signallq.app.core.recommendation.NetworkContextType
 import org.junit.Assert.assertEquals

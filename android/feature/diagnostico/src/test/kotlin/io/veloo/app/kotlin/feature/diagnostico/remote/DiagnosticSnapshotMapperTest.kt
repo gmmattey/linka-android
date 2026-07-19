@@ -1,13 +1,13 @@
 package io.signallq.app.feature.diagnostico.remote
 
-import io.signallq.app.feature.diagnostico.ConnectionType
-import io.signallq.app.feature.diagnostico.DiagnosticInput
-import io.signallq.app.feature.diagnostico.DnsDiagnosticInput
-import io.signallq.app.feature.diagnostico.FibraDiagnosticInput
-import io.signallq.app.feature.diagnostico.HistoricalDiagnosticInput
-import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
-import io.signallq.app.feature.diagnostico.MobileDiagnosticInput
-import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DnsDiagnosticInput
+import io.signallq.app.core.diagnostico.FibraDiagnosticInput
+import io.signallq.app.core.diagnostico.HistoricalDiagnosticInput
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.MobileDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test

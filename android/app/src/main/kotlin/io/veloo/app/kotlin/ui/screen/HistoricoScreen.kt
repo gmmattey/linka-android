@@ -62,10 +62,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.signallq.app.core.database.MedicaoEntity
+import io.signallq.app.core.diagnostico.BandaWifi
+import io.signallq.app.core.diagnostico.MetricClassifier
+import io.signallq.app.core.diagnostico.MetricStatus
 import io.signallq.app.core.network.EstadoConexao
-import io.signallq.app.feature.diagnostico.BandaWifi
-import io.signallq.app.feature.diagnostico.MetricClassifier
-import io.signallq.app.feature.diagnostico.MetricStatus
 import io.signallq.app.feature.history.ResumoHistorico
 import io.signallq.app.ui.FiltroConexaoHistorico
 import io.signallq.app.ui.LkRadius

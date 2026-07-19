@@ -52,6 +52,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.FibraDiagnosticInput
+import io.signallq.app.core.diagnostico.FibraSignalQualityEngine
 import io.signallq.app.core.network.contracts.gateway.EquipmentClassification
 import io.signallq.app.core.network.contracts.localdevice.ClientSnapshot
 import io.signallq.app.core.network.contracts.localdevice.DataFreshness
@@ -59,9 +62,6 @@ import io.signallq.app.core.network.contracts.localdevice.DeviceType
 import io.signallq.app.core.network.contracts.localdevice.DeviceWarningType
 import io.signallq.app.core.network.contracts.localdevice.LocalNetworkDeviceSnapshot
 import io.signallq.app.core.network.contracts.localdevice.SupportLevel
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
-import io.signallq.app.feature.diagnostico.FibraDiagnosticInput
-import io.signallq.app.feature.diagnostico.FibraSignalQualityEngine
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.SignallQTheme
@@ -523,7 +523,7 @@ private data class SegurancaWifiTraduzida(
 
 /** Traduz `WifiRadioSnapshot.criptografia` (dado bruto do parser do equipamento,
  *  nao do scan do WifiManager) — mesma logica de `contains` case-insensitive de
- *  [io.signallq.app.feature.wifi.ScannerRedesWifi] (`ScanResult.paraRedeVizinha`),
+ *  [io.signallq.app.core.network.wifi.ScannerRedesWifi] (`ScanResult.paraRedeVizinha`),
  *  aplicada ao vocabulario dos firmwares (ex.: TP-Link reporta "psk" isolado). */
 private fun traduzirSegurancaWifiRadio(raw: String?): SegurancaWifiTraduzida? {
     val valor = raw?.trim().orEmpty()

@@ -2,8 +2,8 @@ package io.signallq.app.ui.screen
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import io.signallq.app.core.network.EstadoConexao
-import io.signallq.app.feature.wifi.EstadoScanWifi
-import io.signallq.app.feature.wifi.SnapshotScanWifi
+import io.signallq.app.core.network.wifi.EstadoScanWifi
+import io.signallq.app.core.network.wifi.SnapshotScanWifi
 import io.signallq.app.ui.SignallQTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

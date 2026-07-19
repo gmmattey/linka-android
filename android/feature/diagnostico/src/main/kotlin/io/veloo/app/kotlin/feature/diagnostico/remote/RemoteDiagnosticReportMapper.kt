@@ -1,13 +1,13 @@
 package io.signallq.app.feature.diagnostico.remote
 
-import io.signallq.app.feature.diagnostico.DiagnosticReport
-import io.signallq.app.feature.diagnostico.DiagnosticResult
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
-import io.signallq.app.feature.diagnostico.EvidenceScore
-import io.signallq.app.feature.diagnostico.GameReadinessClassifier
-import io.signallq.app.feature.diagnostico.Provenance
-import io.signallq.app.feature.diagnostico.ScoreResult
-import io.signallq.app.feature.diagnostico.UsageProfileClassifier
+import io.signallq.app.core.diagnostico.DiagnosticReport
+import io.signallq.app.core.diagnostico.DiagnosticResult
+import io.signallq.app.core.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.EvidenceScore
+import io.signallq.app.core.diagnostico.GameReadinessClassifier
+import io.signallq.app.core.diagnostico.Provenance
+import io.signallq.app.core.diagnostico.ScoreResult
+import io.signallq.app.core.diagnostico.UsageProfileClassifier
 import org.json.JSONArray
 import org.json.JSONObject
 

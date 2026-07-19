@@ -78,11 +78,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.signallq.app.core.diagnostico.DiagnosticStatus
 import io.signallq.app.core.network.contracts.localdevice.LocalNetworkDeviceSnapshot
 import io.signallq.app.core.recommendation.RecommendationDecision
 import io.signallq.app.core.recommendation.RecommendationFeedbackType
 import io.signallq.app.core.recommendation.RecommendationType
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
 import io.signallq.app.feature.diagnostico.SnapshotDiagnostico
 import io.signallq.app.feature.diagnostico.ai.ordenadasPorPrioridade
 import io.signallq.app.feature.speedtest.ResultadoSpeedtest

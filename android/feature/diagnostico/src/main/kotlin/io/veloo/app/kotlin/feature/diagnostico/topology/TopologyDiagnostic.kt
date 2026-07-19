@@ -1,17 +1,17 @@
 ﻿package io.signallq.app.feature.diagnostico.topology
 
 import android.content.Context
-import io.signallq.app.feature.diagnostico.topology.correlation.NatClassifier
-import io.signallq.app.feature.diagnostico.topology.correlation.TopologyTracer
-import io.signallq.app.feature.diagnostico.topology.internet.GeoIpResolver
-import io.signallq.app.feature.diagnostico.topology.internet.PublicIpResolver
+import io.signallq.app.core.diagnostico.topology.correlation.NatClassifier
+import io.signallq.app.core.diagnostico.topology.correlation.TopologyTracer
+import io.signallq.app.core.diagnostico.topology.internet.GeoIpResolver
+import io.signallq.app.core.diagnostico.topology.internet.PublicIpResolver
 import io.signallq.app.feature.diagnostico.topology.lan.GatewayResolver
 import io.signallq.app.feature.diagnostico.topology.lan.MeshDetector
 import io.signallq.app.feature.diagnostico.topology.lan.OuiVendorLookup
 import io.signallq.app.feature.diagnostico.topology.lan.UpnpIgdDiscovery
 import io.signallq.app.feature.diagnostico.topology.lan.UpnpSoapClient
-import io.signallq.app.feature.diagnostico.topology.model.DeviceInfo
-import io.signallq.app.feature.diagnostico.topology.model.NetworkTopology
+import io.signallq.app.core.diagnostico.topology.model.DeviceInfo
+import io.signallq.app.core.diagnostico.topology.model.NetworkTopology
 import io.signallq.app.core.network.contracts.wifi.RedeVizinha
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

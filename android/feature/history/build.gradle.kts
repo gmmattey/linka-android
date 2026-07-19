@@ -32,6 +32,8 @@ kotlin {
 
 dependencies {
     implementation(project(":coreDatabase"))
+    // Motor de paginacao HTML->PDF via WebView (issue #1157 Fase 1b).
+    implementation(project(":core:relatorio"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)

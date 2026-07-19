@@ -1,6 +1,6 @@
 ﻿package io.signallq.app.feature.diagnostico.topology.lan
 
-import io.signallq.app.feature.diagnostico.topology.model.DeviceInfo
+import io.signallq.app.core.diagnostico.topology.model.DeviceInfo
 import io.signallq.app.core.network.contracts.wifi.RedeVizinha
 
 class MeshDetector(private val ouiLookup: OuiVendorLookup) {

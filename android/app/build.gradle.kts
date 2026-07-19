@@ -291,6 +291,9 @@ dependencies {
     implementation(project(":featureFibra"))
     implementation(project(":featureHistory"))
     implementation(project(":featureSettings"))
+    // Dominio de causa-raiz extraido de :featureDiagnostico (issue #1157 Fase 1a) — DiagnosticReport/
+    // DiagnosticInput/DiagnosticStatus etc sao consumidos direto por telas e ViewModels do :app.
+    implementation(project(":core:diagnostico"))
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

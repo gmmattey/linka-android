@@ -1,5 +1,8 @@
 package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticReport
 import io.signallq.app.core.recommendation.DeviceContext
 import io.signallq.app.core.recommendation.DiagnosticMetrics
 import io.signallq.app.core.recommendation.DiagnosticTag

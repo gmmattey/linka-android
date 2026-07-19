@@ -1,5 +1,7 @@
 ﻿package io.signallq.app.feature.diagnostico
 
+import io.signallq.app.core.diagnostico.DiagnosticArea
+
 data class DiagSignalSelection(
     val velocidade: Boolean = true,
     val wifiSinal: Boolean = true,

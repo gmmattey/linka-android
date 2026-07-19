@@ -1,5 +1,6 @@
 ﻿package io.signallq.app.feature.diagnostico.ai
 
+import io.signallq.app.core.diagnostico.ConnectionType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -509,7 +510,7 @@ class AiDiagnosisRepositoryTest {
     private fun fakeDiagnosisAiContext(): DiagnosisAiContext = DiagnosisAiContext(
         schemaVersion = "5",
         generatedAtEpochMs = 1700000000000L,
-        connectionType = io.signallq.app.feature.diagnostico.ConnectionType.wifi,
+        connectionType = io.signallq.app.core.diagnostico.ConnectionType.wifi,
         evidencias = emptyList(),
     )
 
@@ -657,7 +658,7 @@ class AiDiagnosisRepositoryTest {
         val ctx = DiagnosisAiContext(
             schemaVersion = "5",
             generatedAtEpochMs = 1700000000000L,
-            connectionType = io.signallq.app.feature.diagnostico.ConnectionType.wifi,
+            connectionType = io.signallq.app.core.diagnostico.ConnectionType.wifi,
             metricasAtuais = AiMetricasAtuais(
                 downloadMbps = 294.0,
                 uploadMbps = 411.0,
@@ -698,7 +699,7 @@ class AiDiagnosisRepositoryTest {
         val ctx = DiagnosisAiContext(
             schemaVersion = "5",
             generatedAtEpochMs = 1700000000000L,
-            connectionType = io.signallq.app.feature.diagnostico.ConnectionType.wifi,
+            connectionType = io.signallq.app.core.diagnostico.ConnectionType.wifi,
             metricasAtuais = AiMetricasAtuais(
                 downloadMbps = 294.0,
                 rttGatewayMs = 12,
@@ -729,7 +730,7 @@ class AiDiagnosisRepositoryTest {
         val ctx = DiagnosisAiContext(
             schemaVersion = "5",
             generatedAtEpochMs = 1700000000000L,
-            connectionType = io.signallq.app.feature.diagnostico.ConnectionType.wifi,
+            connectionType = io.signallq.app.core.diagnostico.ConnectionType.wifi,
             achadosLocais = null,
         )
         val json = repo.contextToJson(ctx).toString()

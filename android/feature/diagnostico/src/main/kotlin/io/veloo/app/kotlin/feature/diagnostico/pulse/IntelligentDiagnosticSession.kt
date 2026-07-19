@@ -1,6 +1,6 @@
 ﻿package io.signallq.app.feature.diagnostico.pulse
 
-import io.signallq.app.feature.diagnostico.DiagnosticReport
+import io.signallq.app.core.diagnostico.DiagnosticReport
 
 data class IntelligentDiagnosticSession(
     val sessionId: String,

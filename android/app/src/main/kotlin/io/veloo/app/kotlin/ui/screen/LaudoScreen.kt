@@ -51,7 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import io.signallq.app.core.database.MedicaoEntity
-import io.signallq.app.feature.diagnostico.DiagnosticStatus
+import io.signallq.app.core.diagnostico.DiagnosticStatus
 import io.signallq.app.feature.diagnostico.SnapshotDiagnostico
 import io.signallq.app.ui.LkColors
 import io.signallq.app.ui.LkRadius

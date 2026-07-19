@@ -11,6 +11,18 @@ import io.signallq.app.core.database.ApelidoDispositivoEntity
 import io.signallq.app.core.database.MedicaoEntity
 import io.signallq.app.core.database.SignallQDatabase
 import io.signallq.app.core.datastore.PreferenciasAppRepository
+import io.signallq.app.core.diagnostico.ConnectionType
+import io.signallq.app.core.diagnostico.DiagnosticInput
+import io.signallq.app.core.diagnostico.DiagnosticReport
+import io.signallq.app.core.diagnostico.DnsDiagnosticInput
+import io.signallq.app.core.diagnostico.FibraDiagnosticInput
+import io.signallq.app.core.diagnostico.InternetDiagnosticInput
+import io.signallq.app.core.diagnostico.MobileDiagnosticInput
+import io.signallq.app.core.diagnostico.RedeWifiVizinha
+import io.signallq.app.core.diagnostico.WifiDiagnosticInput
+import io.signallq.app.core.diagnostico.WifiScanDiagnosticInput
+import io.signallq.app.core.diagnostico.banda
+import io.signallq.app.core.diagnostico.topology.model.NatStatus
 import io.signallq.app.core.network.AnalyticsHelper
 import io.signallq.app.core.network.AnalyticsTracker
 import io.signallq.app.core.network.DispatcherProvider
@@ -24,6 +36,7 @@ import io.signallq.app.core.network.contracts.topologia.PapelTopologia
 import io.signallq.app.core.network.contracts.wifi.RedeVizinha
 import io.signallq.app.core.network.contracts.wifi.channel.freqToChannel
 import io.signallq.app.core.network.topologia.engine.TopologiaRedeEngine
+import io.signallq.app.core.network.wifi.ScannerRedesWifi
 import io.signallq.app.core.permissions.GerenciadorPermissoesRede
 import io.signallq.app.core.recommendation.RecommendationDecision
 import io.signallq.app.core.recommendation.RecommendationFeedbackType
@@ -38,18 +51,8 @@ import io.signallq.app.feature.devices.ResultadoCorrelacaoTopologia
 import io.signallq.app.feature.devices.ScannerDispositivos
 import io.signallq.app.feature.devices.SnapshotScanDispositivos
 import io.signallq.app.feature.devices.correlacionarDispositivoComTopologia
-import io.signallq.app.feature.diagnostico.ConnectionType
-import io.signallq.app.feature.diagnostico.DiagnosticInput
 import io.signallq.app.feature.diagnostico.DiagnosticOrchestrator
-import io.signallq.app.feature.diagnostico.DiagnosticReport
-import io.signallq.app.feature.diagnostico.DnsDiagnosticInput
 import io.signallq.app.feature.diagnostico.EstadoDiagnostico
-import io.signallq.app.feature.diagnostico.FibraDiagnosticInput
-import io.signallq.app.feature.diagnostico.InternetDiagnosticInput
-import io.signallq.app.feature.diagnostico.MobileDiagnosticInput
-import io.signallq.app.feature.diagnostico.RedeWifiVizinha
-import io.signallq.app.feature.diagnostico.WifiDiagnosticInput
-import io.signallq.app.feature.diagnostico.WifiScanDiagnosticInput
 import io.signallq.app.feature.diagnostico.ai.AdditionalAiContext
 import io.signallq.app.feature.diagnostico.ai.AiDiagnosisRepository
 import io.signallq.app.feature.diagnostico.ai.AiDiagnosisState
@@ -59,12 +62,10 @@ import io.signallq.app.feature.diagnostico.ai.AiMovelInfo
 import io.signallq.app.feature.diagnostico.ai.AiRedeVizinha
 import io.signallq.app.feature.diagnostico.ai.AiTesteHistorico
 import io.signallq.app.feature.diagnostico.ai.DiagnosisAiContextFactory
-import io.signallq.app.feature.diagnostico.banda
 import io.signallq.app.feature.diagnostico.ingest.AdminIngestRepository
 import io.signallq.app.feature.diagnostico.pulse.SignallQOrchestrator
 import io.signallq.app.feature.diagnostico.recommendation.RecommendationDecisionCoordinator
 import io.signallq.app.feature.diagnostico.topology.TopologyDiagnostic
-import io.signallq.app.feature.diagnostico.topology.model.NatStatus
 import io.signallq.app.feature.dns.AvaliadorCoerenciaDns
 import io.signallq.app.feature.dns.BenchmarkDns
 import io.signallq.app.feature.dns.DiagnosticoCoerenciaDns
@@ -77,7 +78,6 @@ import io.signallq.app.feature.history.ObservadorHistoricoRoom
 import io.signallq.app.feature.history.ResumoHistorico
 import io.signallq.app.feature.speedtest.ExecutorSpeedtest
 import io.signallq.app.feature.speedtest.ModoSpeedtest
-import io.signallq.app.feature.wifi.ScannerRedesWifi
 import io.signallq.app.monitoramento.MonitoramentoScheduler
 import io.signallq.app.network.IspInfoCache
 import io.signallq.app.notificacao.SignallQNotificationHelper
@@ -1766,7 +1766,7 @@ class MainViewModel
                 try {
                     val connectionType =
                         snap.input?.connectionType
-                            ?: io.signallq.app.feature.diagnostico.ConnectionType.desconhecido
+                            ?: io.signallq.app.core.diagnostico.ConnectionType.desconhecido
                     val extra = coletarContextoAdicionalIa()
                     val ctx =
                         DiagnosisAiContextFactory.fromRaw(

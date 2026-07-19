@@ -1,6 +1,6 @@
 ﻿package io.signallq.app.ui.screen
 
-import io.signallq.app.feature.diagnostico.DiagnosticResult
+import io.signallq.app.core.diagnostico.DiagnosticResult
 import io.signallq.app.feature.fibra.DeviceInfoFibra
 import io.signallq.app.feature.fibra.EstadoFibra
 import io.signallq.app.feature.fibra.GponStatus

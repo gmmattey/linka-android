@@ -19,13 +19,20 @@
 
 ## Estado atual vs. Alvo
 
+**Atualização 2026-07-19 (Camilo, issue #1157):** Fase 0 (esqueleto `:pro:app`) e Fase 1 completa
+(1a domínio de diagnóstico, 1b engine de PDF, 1c adapters Wi-Fi) implementadas e mergeadas via PR
+#1159. Fase 1a — a de maior risco real, motor de diagnóstico do consumidor que entra em produção
+em 07/08 — só foi executada após a Claudete autorizar explicitamente com testes de caracterização
+end-to-end escritos e verdes ANTES de mover qualquer arquivo do núcleo, e reconfirmados verdes
+depois (mesma asserção, zero mudança de comportamento). Tabela abaixo atualizada linha a linha.
+
 | Componente | Estado | Fato verificado nesta sessão |
 |---|---|---|
-| SignallQ Pro (app) | 🎯 **ALVO** | Não existe nenhuma linha de código Android do Pro. Confirmado: não há pasta `pro/` nem módulo `:pro*` em `android/settings.gradle.kts`. |
-| Motor de causa raiz (`FindingEngine` + domínio de diagnóstico) | ✅ **ATUAL**, preso em `:featureDiagnostico` | ~40-50 arquivos Kotlin puro (zero `android.*`) dentro do pacote `feature.diagnostico`, mais 6 arquivos com dependência Android real que não migram (ver §3.1). |
-| Amostragem estatística de speedtest | ✅ **ATUAL**, preso em `:featureSpeedtest` | `AnalisadorAmostragemPing.kt` puro e trivial de mover; `executarModoTriplo` é método privado com estado mutável dentro de uma classe de 1431 linhas — não trivial (ver §3.2). |
-| Adapters Wi-Fi (scan/canal) | ✅ **ATUAL**, parcialmente em `:coreNetwork`, parcialmente em `:featureWifi` | `RedeVizinha`/`ChannelEvaluator`/`ChannelCandidates`/`ChannelEvalModels`/`FrequencyUtils` já migraram para `:coreNetwork` (typealias/delegate deixados em `:featureWifi`); `ScannerRedesWifi`/`ScanResultAdapter` ainda presos em `:featureWifi`. |
-| Engine de PDF (laudo) | ✅ **ATUAL**, preso em `:featureHistory` | `PdfPrintHelper.kt` é 100% reaproveitável como está; `ExportadorHistoricoPDF.exportarComWebView()` tem acoplamento raso (só a assinatura) ao schema do consumidor. |
+| SignallQ Pro (app) | ✅ **Fase 0 pronta** | Módulo `:pro:app` existe (`android/pro/app/`), `io.signallq.pro`, Compose/Hilt/M3 mínimo, NavHost com rota placeholder. `assembleDebug`/`ktlintCheck`/`detekt` verdes. PR #1159. |
+| Motor de causa raiz (`FindingEngine` + domínio de diagnóstico) | ✅ **Fase 1a pronta** — migrado para `:core:diagnostico` (novo módulo) | Closure real de **29 arquivos** (engines + `DiagnosticInput/Report/Result/Status` + `DadoCanal`/`NivelCongestionamento`/`SnapshotEspectroCanal` + topology/model+correlation+internet) + 17 testes movidos. Único acoplamento circular real — `DiagnosticRunner.run()` chamava `RecommendationEngine.recomendar()` direto — resolvido por inversão de dependência (parâmetro `gerarRecomendacoes`, default vazio seguro; único chamador de produção `RemoteDiagnosticRepository` passa `RecommendationEngine::recomendar` explícito). ~70 arquivos com import mecanicamente atualizado em `:featureDiagnostico` e `:app`. Teste de caracterização (`DiagnosticRunnerCaracterizacaoTest.kt`) escrito antes da extração, 5/5 verde antes e depois — zero regressão de comportamento confirmada. |
+| Amostragem estatística de speedtest | ✅ **ATUAL**, preso em `:featureSpeedtest` | `AnalisadorAmostragemPing.kt` puro e trivial de mover; `executarModoTriplo` é método privado com estado mutável dentro de uma classe de 1431 linhas — não trivial (ver §3.2). Não tocado nesta rodada (fora do escopo da issue #1157). |
+| Adapters Wi-Fi (scan/canal) | ✅ **Fase 1c pronta** — migrado para `:coreNetwork` | `ScannerRedesWifi`, `ScanResultAdapter` (`ScanResult.toNeighbor()`) e `SnapshotScanWifi`/`EstadoScanWifi` movidos para `io.signallq.app.core.network.wifi` (PR #1159). Achado: `toNeighbor()` é código morto — `WifiChannelDiagnosticEngine` usa mapper próprio, nunca chama essa extensão; movido como estava (doc pediu mover, não remover). `RedeVizinha`/`ChannelEvaluator`/`ChannelCandidates`/`ChannelEvalModels`/`FrequencyUtils` já estavam em `:coreNetwork` desde antes (typealias/delegate em `:featureWifi`). |
+| Engine de PDF (laudo) | ✅ **Fase 1b pronta** — migrado para `:core:relatorio` (novo módulo) | `PdfPrintHelper.kt` movido como estava (zero acoplamento). Motor de paginação WebView extraído para `exportarHtmlComoPdf(html, arquivo, context)` — assinatura trocada de `medicoes: List<MedicaoEntity>` para `html: String`, exatamente como o plano previa. `ExportadorHistoricoPDF.exportarComWebView()` em `:featureHistory` virou wrapper fino (gera HTML + delega). `gerarHtml()` NÃO migrou (REWRITE fica pra Fase 3 do Pro, layout de laudo é outro). |
 | `coreRecommendation` (monetização) | ✅ **ATUAL**, módulo próprio | Não confundir com `RecommendationEngine.kt` de `featureDiagnostico` (14 regras REC-01..14 de causa-raiz). Ver §3.1 nota. |
 | Módulo/repositório do Pro | 🎯 **ALVO** — decisão registrada nesta sessão | Nasce dentro do `linka-android` atual, não espera o monorepo `signallq-platform` (ver §1). |
 | `signallq-isp` (`ChamadoCanônico`) | ✅ **ATUAL**, repo privado `7AgentsStudio/signallq-isp` | Auditado com evidência real (`src/shared/chamado.ts`, `diagnostico.ts`, `functions/api/erp/chamado.ts`) — idempotência confirmada forte; "versionado" era leitura imprecisa (é tolerant-reader aditivo, sem `schema_version`). Ver §3.5. |
@@ -101,9 +108,90 @@ Classificação conforme `02_..._Especificacao_Tecnica_v5.md` §3.2 (REUSE / ADA
 
 **O que precisa mudar estruturalmente:** mover o pacote quase inteiro para `:core:diagnostico` (novo), **exceto** 6 arquivos que ficam em `:featureDiagnostico` por dependerem de Android/rede real ou DI: `topology/lan/GatewayResolver.kt`, `topology/lan/OuiVendorLookup.kt`, `topology/lan/UpnpIgdDiscovery.kt` (socket/rede real), `topology/TopologyDiagnostic.kt`, `di/DiagnosticoModule.kt` (Hilt — precisa de rewiring dos bindings para o novo módulo), `pulse/SignallQOrchestrator.kt`. Os testes (que espelham o pacote) migram junto.
 
-**Esforço: M** (não P) — avaliação do Camilo: mecanicamente repetitivo (mover arquivo, trocar package, ajustar import) mas o volume de arquivos + testes + rewiring de Hilt + confirmar que nada em `:app` ou outras features quebra puxa para Média.
+**Esforço: M, revisado para M/G apos mapeamento real em 2026-07-19** (closure de 29 arquivos +
+~70 consumidores externos confirmados por grep e pelo compilador, ver §3.1.1) — mecanicamente
+repetitivo (mover arquivo, trocar package, ajustar import, resolver 1 dependencia circular via
+inversao de dependencia no `DiagnosticRunner`). **Executado e mergeado em 2026-07-19** (mesmo
+dia do mapeamento, apos autorização explícita da Claudete com exigência de testes de
+caracterização antes de tocar no núcleo) — ver §3.1.1 para o registro completo.
 
 **Nota sobre `RecommendationEngine.kt` de `featureDiagnostico` (14 regras REC-01..14):** também Kotlin puro, também no pacote, mas **não é candidato automático de extração pura** — ele gera recomendação em linguagem simplificada para o consumidor final. Doc `01_..._Arquitetura_v5.md` §8.2 já registra que consumer e Pro compartilham "contrato e motor", mas "prompt/apresentação separados" — então a base (`FindingResult`) migra para `:core:diagnostico`, mas o Pro constrói sua própria camada de apresentação técnica sobre ela, sem herdar as 14 regras REC-01..14 como estão (elas são calibradas para o usuário final leigo, não para o técnico profissional). Não confundir com `coreRecommendation` (módulo separado, é sobre monetização — `RecommendationEngineCard`, catálogo, cooldown — zero relação com causa-raiz).
+
+#### 3.1.1 Closure exato mapeado e executado (2026-07-19, Camilo — issue #1157, PR #1159)
+
+Investigação por import estático (grep, não estimativa) sobre `android/feature/diagnostico/src/main/kotlin/.../feature/diagnostico/`, reconferindo peça a peça a hipótese de "~40-50 arquivos" da sessão anterior. Resultado: **o núcleo autocontido tem 29 arquivos** (menor que a hipótese, mas mais preciso), e a extração está bloqueada não por dificuldade técnica no núcleo em si, mas pelo número de **arquivos externos ao núcleo que o referenciam** (66, ver abaixo) — cada um precisa de import atualizado (mudança de pacote `feature.diagnostico` → `core.diagnostico`, tipos deixam de estar no mesmo pacote implícito).
+
+**Núcleo autocontido — 29 arquivos, zero `import android.*`, fecha em si mesmo (validado):**
+
+```
+FindingEngine.kt · ScoreEvidenceBuilder.kt · ScoreEngine.kt · EvidenceProvenance.kt ·
+DiagnosticRunner.kt · InternetDiagnosticEngine.kt · WifiSignalQualityEngine.kt ·
+MobileSignalDiagnosticEngine.kt · FibraSignalQualityEngine.kt · DnsDiagnosticEngine.kt ·
+HistoricalDegradationEngine.kt · WifiChannelDiagnosticEngine.kt · GameReadinessClassifier.kt ·
+UsageProfileClassifier.kt · MetricClassifier.kt · DiagnosticInput.kt · DiagnosticReport.kt ·
+DiagnosticResult.kt · DiagnosticStatus.kt · DadoCanal.kt · NivelCongestionamento.kt ·
+SnapshotEspectroCanal.kt · topology/model/NetworkTopology.kt · topology/model/SsdpResponse.kt ·
+topology/model/UpnpDeviceInfo.kt · topology/correlation/NatClassifier.kt ·
+topology/correlation/TopologyTracer.kt · topology/internet/GeoIpResolver.kt ·
+topology/internet/PublicIpResolver.kt
+```
+
+`DiagnosticStatus.kt`, `DadoCanal.kt`, `NivelCongestionamento.kt` e `SnapshotEspectroCanal.kt` não
+estavam na lista original da sessão de 18/07 — são dependências reais descobertas (`DiagnosticStatus`
+usado em 14 dos arquivos do núcleo; os outros três são tipos auxiliares de
+`WifiChannelDiagnosticEngine`). Confirmado por grep, não suposição.
+
+**Acoplamento real que a extração precisa resolver — `DiagnosticRunner` chama `RecommendationEngine`:**
+`DiagnosticRunner.run()` (linha 77) chama `RecommendationEngine.recomendar(input, achados)` direto —
+mas `RecommendationEngine` fica em `:featureDiagnostico` (não migra, é REC-01..14 do consumidor, ver
+nota acima). Migrar `DiagnosticRunner` sem resolver isso cria dependência circular
+(`:core:diagnostico` → `:featureDiagnostico` → `:core:diagnostico`). Solução de inversão de
+dependência já desenhada (não implementada): trocar a chamada direta por um parâmetro
+`gerarRecomendacoes: (DiagnosticInput, FindingResult) -> List<DiagnosticResult>` com default
+`{ _, _ -> emptyList() }` (seguro — nenhum teste existente do núcleo verifica `report.recomendacoes`,
+confirmado por grep). Único chamador de produção real de `DiagnosticRunner.run()` é
+`remote/RemoteDiagnosticRepository.kt` (2 call sites, linhas 70/85) — fica em `:featureDiagnostico`,
+precisa passar `gerarRecomendacoes = RecommendationEngine::recomendar` explicitamente pra não haver
+regressão silenciosa de comportamento (recomendações sumindo em produção).
+
+**Consumidores fora do núcleo — mapeados e corrigidos.** Grep aplicado
+`(DiagnosticInput|DiagnosticReport|DiagnosticResult|DiagnosticStatus|FindingEngine|FindingResult|
+ScoreEngine|...)` contra o repo inteiro, excluindo o próprio núcleo — retornou ~70 arquivos reais
+(confirmados pelo compilador, não só grep, incluindo alguns que o grep inicial não pegou —
+`topology/lan/MeshDetector.kt`/`UpnpParser.kt`/`UpnpIgdDiscovery.kt` referenciavam `DeviceInfo`/
+`UpnpDeviceInfo`/`SsdpResponse` de `topology/model`, que também fazia parte do núcleo), divididos em
+dois grupos:
+1. **Dentro de `:featureDiagnostico`, fora do núcleo** — `ai/*`, `pulse/*` (exceto
+   `SignallQOrchestrator.kt`, exceção conhecida), `remote/*`, `recommendation/*`,
+   `RecommendationEngine.kt`, `RecommendationRequestMapper.kt`, `DiagnosticOrchestrator.kt`,
+   `topology/lan/*` — import atualizado (mesmo pacote antes, pacotes diferentes depois).
+2. **Em `:app`** — telas, ViewModels e mappers que constroem/consomem `DiagnosticInput`/`DiagnosticReport`
+   (`MainViewModel.kt`, `SinalScreen.kt`, `ResultadoVelocidadeScreen.kt`, `LaudoScreen.kt`,
+   `EquipamentoInternetScreen.kt` etc.) — mesmo tratamento.
+
+Nenhum desses ~70 era tecnicamente complexo (100% mecânico: adicionar import, dois ajustes de
+smart-cast cross-módulo), mas o volume exigiu execução com validação incremental real — build +
+teste a cada módulo (`:core:diagnostico` isolado → `:featureDiagnostico` → `:app` → suite
+completa), não tudo de uma vez.
+
+**Executado em 2026-07-19 (mesma sessão do mapeamento, autorizado pela Claudete):**
+1. `:core:diagnostico` criado (`android/core/diagnostico/`), Kotlin puro, sem dependência Android real.
+2. 29 arquivos do núcleo + 17 testes movidos para `io.signallq.app.core.diagnostico` (+ subpacotes
+   `topology.model`/`topology.correlation`/`topology.internet`). Nenhum teste movido referenciava
+   `RecommendationEngine`/`recomendacoes` — todos usam o default seguro `gerarRecomendacoes = { _, _ -> emptyList() }`.
+3. `DiagnosticRunner.run()` ganhou o parâmetro `gerarRecomendacoes`; os 2 call sites de produção em
+   `RemoteDiagnosticRepository.kt` passam `RecommendationEngine::recomendar` explicitamente.
+4. ~70 arquivos fora do núcleo (`:featureDiagnostico` e `:app`) com import corrigido em lotes,
+   validado a cada lote via erro real do compilador (`grep "^e:"` na saída do `compileDebugKotlin`),
+   não por suposição de quais arquivos precisavam de ajuste.
+5. `:featureDiagnostico` e `:app` ganharam `implementation(project(":core:diagnostico"))`.
+6. `di/DiagnosticoModule.kt` não precisou de rewiring de bindings Hilt — não referenciava nenhum
+   tipo do núcleo diretamente.
+7. Validado: `:core:diagnostico:testDebugUnitTest` (17 testes, standalone) → `:featureDiagnostico`
+   compile+test → `:app` compile+test → `./gradlew test` (suite completa) + `assembleDebug` (`:app`
+   e `:pro:app`) → `:app` `ktlintCheck`/`detekt`. Teste de caracterização
+   (`DiagnosticRunnerCaracterizacaoTest.kt`, escrito antes da extração) reexecutado depois: 5/5
+   verde, nenhuma asserção alterada.
 
 ### 3.2 Amostragem estatística e "Modo Triplo" do Speedtest
 

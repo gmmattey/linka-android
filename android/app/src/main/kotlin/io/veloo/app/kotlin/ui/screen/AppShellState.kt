@@ -2,6 +2,7 @@
 
 import androidx.compose.runtime.Stable
 import io.signallq.app.ads.AdsFlags
+import io.signallq.app.core.network.wifi.SnapshotScanWifi
 import io.signallq.app.core.recommendation.RecommendationDecision
 import io.signallq.app.core.recommendation.RecommendationFeedbackType
 import io.signallq.app.feature.devices.ResultadoCorrelacaoTopologia
@@ -11,7 +12,6 @@ import io.signallq.app.feature.diagnostico.ai.AiAcaoRecomendada
 import io.signallq.app.feature.speedtest.ModoSpeedtest
 import io.signallq.app.feature.speedtest.SnapshotExecucaoSpeedtest
 import io.signallq.app.feature.wifi.RedeVizinha
-import io.signallq.app.feature.wifi.SnapshotScanWifi
 
 /**
  * Agrupa parametros do speedtest para reduzir a assinatura do AppShell.
