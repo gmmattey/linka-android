@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { ADSENSE_PUBLISHER_ID, ADSENSE_SLOT_RESULT } from '../lib/config'
 
+// Nome da CSS var lida pelo `PwaToastStack` pra nunca sobrepor este banner —
+// achado do Rhodolfo (QA de PR #1186): o AdBanner entrou depois da spec da
+// Lia, que só coordenava a colisão entre os dois toasts entre si.
+const AD_BANNER_HEIGHT_VAR = '--ad-banner-height'
+
 // Rodapé de anúncio simulado das 3 telas do fluxo do PWA (Velocidade,
 // Resultado, Histórico) — substitui o antigo `AdSlot.tsx` (card com ícone de
 // imagem quebrada e botão "Saiba mais" desabilitado com aparência clicável,
@@ -10,8 +15,33 @@ import { ADSENSE_PUBLISHER_ID, ADSENSE_SLOT_RESULT } from '../lib/config'
 // AdSense real por trás quando ADSENSE_PUBLISHER_ID/ADSENSE_SLOT_RESULT
 // estiverem configurados — só a apresentação do placeholder muda.
 export function AdBanner() {
+  const rootRef = useRef<HTMLDivElement>(null)
   const hostRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
+
+  // Publica a altura real do banner numa CSS var no <html> pro
+  // `PwaToastStack` conseguir se posicionar acima dele, e não por cima.
+  // Zera ao desmontar (troca de rota) pra não vazar altura pra páginas sem banner.
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+
+    const publicarAltura = () => {
+      document.documentElement.style.setProperty(AD_BANNER_HEIGHT_VAR, `${el.offsetHeight}px`)
+    }
+
+    publicarAltura()
+
+    // jsdom (testes) não implementa ResizeObserver — a altura publicada no
+    // mount já cobre o caso, só perde reação a resize/orientação em teste.
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(publicarAltura) : null
+    observer?.observe(el)
+
+    return () => {
+      observer?.disconnect()
+      document.documentElement.style.setProperty(AD_BANNER_HEIGHT_VAR, '0px')
+    }
+  }, [])
 
   useEffect(() => {
     if (mounted || !hostRef.current) return
@@ -42,7 +72,7 @@ export function AdBanner() {
   }, [mounted])
 
   return (
-    <div className="mt-auto w-full px-5 pb-5 pt-3 box-border">
+    <div ref={rootRef} className="mt-auto w-full px-5 pb-5 pt-3 box-border">
       <div className="flex w-full items-center gap-2.5 rounded-xl p-3 box-border" style={{ background: 'var(--bg-secondary)' }}>
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
