@@ -1,6 +1,9 @@
-﻿package io.signallq.app.feature.wifi.channel
+package io.signallq.app.core.network.wifi
 
 import android.net.wifi.ScanResult
+import io.signallq.app.core.network.contracts.wifi.channel.ChannelWidth
+import io.signallq.app.core.network.contracts.wifi.channel.Neighbor
+import io.signallq.app.core.network.contracts.wifi.channel.freqToChannel
 
 // Adapter Android — arquivo separado do core testável.
 // Converte ScanResult (API Android) para Neighbor (modelo core puro).
@@ -13,7 +16,7 @@ fun ScanResult.toNeighbor(): Neighbor? {
         ScanResult.CHANNEL_WIDTH_80MHZ -> ChannelWidth.W80
         ScanResult.CHANNEL_WIDTH_160MHZ -> ChannelWidth.W160
         ScanResult.CHANNEL_WIDTH_80MHZ_PLUS_MHZ -> ChannelWidth.W80 // 80+80; usa centerFreq0 + centerFreq1
-        5 -> ChannelWidth.W320                                        // CHANNEL_WIDTH_320MHZ (API 33+)
+        5 -> ChannelWidth.W320 // CHANNEL_WIDTH_320MHZ (API 33+)
         else -> ChannelWidth.W20
     }
 

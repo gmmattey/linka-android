@@ -7,10 +7,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.contracts.wifi.SegurancaWifi
+import io.signallq.app.core.network.wifi.EstadoScanWifi
+import io.signallq.app.core.network.wifi.SnapshotScanWifi
 import io.signallq.app.feature.devices.DispositivoRede
-import io.signallq.app.feature.wifi.EstadoScanWifi
 import io.signallq.app.feature.wifi.RedeVizinha
-import io.signallq.app.feature.wifi.SnapshotScanWifi
 import io.signallq.app.ui.SignallQTheme
 import org.junit.Rule
 import org.junit.Test

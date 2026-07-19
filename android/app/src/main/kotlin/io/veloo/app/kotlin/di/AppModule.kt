@@ -30,6 +30,7 @@ import io.signallq.app.core.network.DispatcherProvider
 import io.signallq.app.core.network.FeatureFlagProvider
 import io.signallq.app.core.network.MonitorRede
 import io.signallq.app.core.network.NetworkCapabilitiesProvider
+import io.signallq.app.core.network.wifi.ScannerRedesWifi
 import io.signallq.app.core.permissions.CorePermissionsModulo
 import io.signallq.app.core.permissions.GerenciadorPermissoesRede
 import io.signallq.app.core.recommendation.analytics.RecommendationAnalyticsTracker
@@ -45,7 +46,6 @@ import io.signallq.app.feature.fibra.FeatureFibraModulo
 import io.signallq.app.feature.speedtest.ExecutorSpeedtest
 import io.signallq.app.feature.speedtest.FeatureSpeedtestModulo
 import io.signallq.app.feature.wifi.FeatureWifiModulo
-import io.signallq.app.feature.wifi.ScannerRedesWifi
 import io.signallq.app.featureflags.FeatureFlagManager
 import io.signallq.app.featureflags.FeatureFlagRepository
 import io.signallq.app.network.IspInfoCache

@@ -28,6 +28,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    // ScannerRedesWifi (movido de :featureWifi, issue #1157 Fase 1c) loga via Timber.
+    implementation(libs.timber)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)

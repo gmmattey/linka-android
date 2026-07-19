@@ -523,7 +523,7 @@ private data class SegurancaWifiTraduzida(
 
 /** Traduz `WifiRadioSnapshot.criptografia` (dado bruto do parser do equipamento,
  *  nao do scan do WifiManager) — mesma logica de `contains` case-insensitive de
- *  [io.signallq.app.feature.wifi.ScannerRedesWifi] (`ScanResult.paraRedeVizinha`),
+ *  [io.signallq.app.core.network.wifi.ScannerRedesWifi] (`ScanResult.paraRedeVizinha`),
  *  aplicada ao vocabulario dos firmwares (ex.: TP-Link reporta "psk" isolado). */
 private fun traduzirSegurancaWifiRadio(raw: String?): SegurancaWifiTraduzida? {
     val valor = raw?.trim().orEmpty()

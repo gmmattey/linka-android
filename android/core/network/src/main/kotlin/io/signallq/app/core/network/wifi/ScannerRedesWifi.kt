@@ -1,4 +1,4 @@
-﻿package io.signallq.app.feature.wifi
+package io.signallq.app.core.network.wifi
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,7 +7,8 @@ import android.content.IntentFilter
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Build
-import timber.log.Timber
+import io.signallq.app.core.network.contracts.wifi.RedeVizinha
+import io.signallq.app.core.network.contracts.wifi.SegurancaWifi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import kotlin.coroutines.resume
 
 private const val TIMEOUT_SCAN_MS = 10_000L

@@ -24,6 +24,7 @@ import io.signallq.app.core.network.contracts.topologia.PapelTopologia
 import io.signallq.app.core.network.contracts.wifi.RedeVizinha
 import io.signallq.app.core.network.contracts.wifi.channel.freqToChannel
 import io.signallq.app.core.network.topologia.engine.TopologiaRedeEngine
+import io.signallq.app.core.network.wifi.ScannerRedesWifi
 import io.signallq.app.core.permissions.GerenciadorPermissoesRede
 import io.signallq.app.core.recommendation.RecommendationDecision
 import io.signallq.app.core.recommendation.RecommendationFeedbackType
@@ -77,7 +78,6 @@ import io.signallq.app.feature.history.ObservadorHistoricoRoom
 import io.signallq.app.feature.history.ResumoHistorico
 import io.signallq.app.feature.speedtest.ExecutorSpeedtest
 import io.signallq.app.feature.speedtest.ModoSpeedtest
-import io.signallq.app.feature.wifi.ScannerRedesWifi
 import io.signallq.app.monitoramento.MonitoramentoScheduler
 import io.signallq.app.network.IspInfoCache
 import io.signallq.app.notificacao.SignallQNotificationHelper

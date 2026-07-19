@@ -5,9 +5,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.contracts.wifi.SegurancaWifi
-import io.signallq.app.feature.wifi.EstadoScanWifi
+import io.signallq.app.core.network.wifi.EstadoScanWifi
+import io.signallq.app.core.network.wifi.SnapshotScanWifi
 import io.signallq.app.feature.wifi.RedeVizinha
-import io.signallq.app.feature.wifi.SnapshotScanWifi
 import io.signallq.app.ui.SignallQTheme
 import org.junit.Rule
 import org.junit.Test
@@ -18,7 +18,7 @@ import org.robolectric.annotation.Config
 /**
  * Regressão (#893): um erro de scan temporário não pode apagar a última lista
  * de redes válida nem tomar a tela inteira quando já existe dado pra mostrar.
- * Antes desta correção, [io.signallq.app.feature.wifi.ScannerRedesWifi.escanear]
+ * Antes desta correção, [io.signallq.app.core.network.wifi.ScannerRedesWifi.escanear]
  * zerava `redes` no estado `erro`, e o `CanalTab` sempre tomava a tela inteira
  * nesse estado — mesmo com dado em cache.
  */

@@ -101,6 +101,8 @@ import io.signallq.app.core.network.WifiLinkSnapshot
 import io.signallq.app.core.network.contracts.topologia.NivelConfianca
 import io.signallq.app.core.network.contracts.topologia.PapelTopologia
 import io.signallq.app.core.network.topologia.engine.TopologiaRedeEngine
+import io.signallq.app.core.network.wifi.EstadoScanWifi
+import io.signallq.app.core.network.wifi.SnapshotScanWifi
 import io.signallq.app.core.telephony.MovelSimSnapshot
 import io.signallq.app.core.telephony.MovelSnapshot
 import io.signallq.app.feature.devices.DispositivoRede
@@ -115,12 +117,10 @@ import io.signallq.app.feature.diagnostico.RedeWifiVizinha
 import io.signallq.app.feature.diagnostico.SnapshotEspectroCanal
 import io.signallq.app.feature.diagnostico.WifiChannelDiagnosticEngine
 import io.signallq.app.feature.wifi.ConfiancaTopologia
-import io.signallq.app.feature.wifi.EstadoScanWifi
 import io.signallq.app.feature.wifi.GrupoRedeWifi
 import io.signallq.app.feature.wifi.RedeClassificada
 import io.signallq.app.feature.wifi.RedeVizinha
 import io.signallq.app.feature.wifi.SegurancaWifi
-import io.signallq.app.feature.wifi.SnapshotScanWifi
 import io.signallq.app.feature.wifi.TipoTopologia
 import io.signallq.app.ui.BancoOperadoras
 import io.signallq.app.ui.LkColors

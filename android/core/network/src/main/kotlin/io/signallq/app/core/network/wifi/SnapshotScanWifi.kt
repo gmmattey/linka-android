@@ -1,4 +1,6 @@
-﻿package io.signallq.app.feature.wifi
+package io.signallq.app.core.network.wifi
+
+import io.signallq.app.core.network.contracts.wifi.RedeVizinha
 
 enum class EstadoScanWifi { idle, scanning, concluido, erro }
 
