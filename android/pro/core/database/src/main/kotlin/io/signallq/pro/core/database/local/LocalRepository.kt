@@ -11,6 +11,8 @@ class LocalRepository
     ) {
         fun observarPorCliente(clienteId: String): Flow<List<LocalEntity>> = dao.observarPorCliente(clienteId)
 
+        fun observarTodos(): Flow<List<LocalEntity>> = dao.observarTodos()
+
         suspend fun buscarPorId(id: String): LocalEntity? = dao.buscarPorId(id)
 
         suspend fun buscarPrimeiroPorCliente(clienteId: String): LocalEntity? = dao.buscarPrimeiroPorCliente(clienteId)

@@ -11,13 +11,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,10 +25,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.signallq.pro.core.database.visita.TipoVisita
 import io.signallq.pro.core.designsystem.ListRow
+import io.signallq.pro.core.designsystem.ProButton
 import io.signallq.pro.core.designsystem.StateCard
 import io.signallq.pro.core.designsystem.StateCardVariant
 import io.signallq.pro.core.designsystem.StatusChip
 import io.signallq.pro.core.designsystem.StatusChipTone
+import io.signallq.pro.core.designsystem.TopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +47,7 @@ fun NovaVisitaScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Nova visita") }) },
+        topBar = { TopBar(titulo = "Nova visita", leading = null) },
     ) { paddingValues ->
         Column(
             modifier =
@@ -121,12 +121,11 @@ fun NovaVisitaScreen(
                 )
             }
 
-            Button(
+            ProButton(
+                texto = "Iniciar visita",
                 onClick = viewModel::iniciarVisita,
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-            ) {
-                Text("Iniciar visita")
-            }
+            )
         }
     }
 }
@@ -134,7 +133,8 @@ fun NovaVisitaScreen(
 // #1180 -- chip mostrava o nome cru do enum (INSTALACAO, MANUTENCAO...). Mesmo mapeamento
 // de LaudoHtmlGenerator.rotuloTipoVisita, duplicado aqui porque feature:visita e feature:laudo
 // nao podem depender uma da outra (lei de dependencia :feature* -> :core* apenas).
-private fun rotuloTipoVisita(tipo: TipoVisita): String =
+// Visibilidade de pacote (nao private) para ser reaproveitado por PainelViewModel, mesmo modulo.
+internal fun rotuloTipoVisita(tipo: TipoVisita): String =
     when (tipo) {
         TipoVisita.INSTALACAO -> "Instalação"
         TipoVisita.MANUTENCAO -> "Manutenção"
