@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { classifyJitter, classifyLatency, classifyUpload, interpretUseCases, type Classificacao } from '../../lib/classification'
+import { listRecords } from '../../lib/historyStore'
+import { buildRecommendations, type Recommendation } from '../../lib/recommendations'
 import { FEATURE_SPEEDTEST_COMPARTILHOU, trackFeatureUsed } from '../../lib/telemetry'
 import type { SpeedTestResult } from '../../lib/speedEngine'
+import { RecommendationsCard } from './RecommendationsCard'
 
 const NIVEL_COR: Record<string, string> = {
   success: 'var(--success)',
@@ -38,6 +41,22 @@ interface ResultPanelProps {
 export function ResultPanel({ result, downloadVerdict, onRetry }: ResultPanelProps) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    listRecords()
+      .then((history) => {
+        if (!cancelled) setRecommendations(buildRecommendations(result, history))
+      })
+      .catch(() => {
+        // histórico é best-effort — sem ele, o motor ainda roda só com o resultado atual
+        if (!cancelled) setRecommendations(buildRecommendations(result, []))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [result])
 
   const upload = classifyUpload(result.upload.mbps)
   const latency = classifyLatency(result.latency.ms)
@@ -158,6 +177,8 @@ export function ResultPanel({ result, downloadVerdict, onRetry }: ResultPanelPro
           ))}
         </div>
       )}
+
+      <RecommendationsCard recommendations={recommendations} onRepeatTest={onRetry} />
 
       <div className="mt-1.5 flex w-full max-w-[460px] flex-col items-center gap-3.5">
         <button
