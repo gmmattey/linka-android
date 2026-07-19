@@ -7,7 +7,9 @@
 // sem override, os defaults abaixo mandam o site mostrar estados claros de
 // "ainda não configurado" em vez de link quebrado ou anúncio vazio.
 
-export const SIGNALLQ_BETA_DOWNLOAD_URL: string = import.meta.env.VITE_SIGNALLQ_BETA_DOWNLOAD_URL || ''
+export const SIGNALLQ_BETA_DOWNLOAD_URL: string =
+  import.meta.env.VITE_SIGNALLQ_BETA_DOWNLOAD_URL ||
+  'https://play.google.com/store/apps/details?id=io.signallq.app&hl=en-US&ah=CaFxCv25P6rZGNKL-Jy-IZbxwmw'
 
 export const ADSENSE_PUBLISHER_ID: string = import.meta.env.VITE_ADSENSE_PUBLISHER_ID || ''
 export const ADSENSE_SLOT_RESULT: string = import.meta.env.VITE_ADSENSE_SLOT_RESULT || ''
