@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEstadoRede } from './useEstadoRede'
 import { addRecord, resultToRecord } from '../lib/historyStore'
 import { createSpeedTest, SpeedTestError, type SpeedTestPhase, type SpeedTestResult } from '../lib/speedEngine'
 import { FEATURE_SPEEDTEST_COMPLETOU, FEATURE_SPEEDTEST_INICIADO, trackFeatureUsed } from '../lib/telemetry'
@@ -36,6 +37,12 @@ export function useSpeedTest() {
   const [liveValue, setLiveValue] = useState(0)
   const [phaseResults, setPhaseResults] = useState<PhaseResults>({})
   const [result, setResult] = useState<SpeedTestResult | null>(null)
+
+  const { revalidarAgora } = useEstadoRede()
+  const revalidarAgoraRef = useRef(revalidarAgora)
+  useEffect(() => {
+    revalidarAgoraRef.current = revalidarAgora
+  }, [revalidarAgora])
 
   const engineRef = useRef<ReturnType<typeof createSpeedTest> | null>(null)
   const tabIdRef = useRef(Math.random().toString(36).slice(2))
@@ -96,6 +103,18 @@ export function useSpeedTest() {
       setPhaseResults({})
       setResult(null)
       trackFeatureUsed(FEATURE_SPEEDTEST_INICIADO)
+
+      // Checagem ativa antes de medir: navigator.onLine sozinho não detecta
+      // Wi-Fi conectado sem internet real (ex.: portal cativo) — evita esperar
+      // o motor de medição falhar por timeout pra só então mostrar a mensagem
+      // de "sem conexão".
+      const rede = await revalidarAgoraRef.current()
+      if (!rede.internet) {
+        phaseRef.current = 'sem-conexao'
+        setPhase('sem-conexao')
+        releaseLock()
+        return
+      }
 
       const STEP_ORDER: FasePainel[] = ['latencia', 'download', 'upload']
       const engine = createSpeedTest()
