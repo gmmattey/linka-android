@@ -282,12 +282,21 @@ Herdadas do canônico (`00_CANONICO_v5.md` §8), ainda abertas: preço do Pro, d
 - ~~Acesso ao repo `linka-speedtest`~~ — não era bloqueio de permissão (conta `gmmattey` já tinha `admin` via `gh`). Camilo clonou e auditou: `PacketLossPlugin.java` revelou um **gap real de capacidade** (medição de perda de pacotes por UDP dedicado, que o motor Kotlin nativo não tem — hoje é estimativa por timeout HTTP, `ExecutorSpeedtestCloudflare.kt:1235`). Decisão de produto pendente: o Pro quer medição de perda "grau ISP" via UDP dedicado no MVP1/MVP2? Não decidido nesta sessão — registrar como candidato a issue de produto, não arquitetural.
 - ~~Acesso ao repo privado `7AgentsStudio/signallq-isp`~~ — mesma causa (acesso já existia). `ChamadoCanônico` confirmado com arquivo:linha (§3.5): idempotência forte confirmada, mas "versionado" era leitura imprecisa — é tolerant-reader aditivo sem `schema_version` explícito.
 
+**Resolvida em 19/07/2026:**
+
+- ~~Contador de `versionCode` separado para o Pro~~ — `proVersionCode`/`proVersionName` já existiam
+  em `libs.versions.toml` desde a Fundação, mas não estavam sendo incrementados a cada build (4
+  APKs de teste saíram todos como `1`/`0.1.0`, apesar de conteúdo diferente — achado do Luiz
+  em 19/07). Convenção fixada: mesma regra do consumidor (nunca gerar/distribuir APK sem
+  incrementar `proVersionCode` antes; `proVersionName` sobe em marco funcional real, fica em
+  `0.x.y` até o primeiro release em trilha real). Todo APK do Pro entregue pra teste manual segue
+  o nome `SignallQPro-{proVersionName}-{proVersionCode}.apk`.
+
 **Ainda abertas:**
 
-1. **Contador de `versionCode` separado para o Pro** em `libs.versions.toml` (ou catálogo próprio) — decisão de engenharia pendente antes do primeiro build, não arquitetural.
-2. **CI por produto** (`release.yml`/`promote-release.yml`/`firebase-distribution.yml` hoje são só do consumer) precisa de variante ou path-scoping para o Pro antes do primeiro release — registrar como próximo passo de engenharia.
-3. **Refactor de `ExecutorSpeedtestCloudflare`** (extração da state machine do "Modo Triplo") precisa de testes de caracterização dedicados antes de qualquer mudança — não é decisão, é sequenciamento de trabalho futuro.
-4. **Decisão de produto: medição de perda de pacotes via UDP dedicado no Pro** (achado do `PacketLossPlugin.java`, acima) — registrar como possível item de roadmap MVP1/MVP2, não decidir aqui.
+1. **CI por produto** (`release.yml`/`promote-release.yml`/`firebase-distribution.yml` hoje são só do consumer) precisa de variante ou path-scoping para o Pro antes do primeiro release — registrar como próximo passo de engenharia.
+2. **Refactor de `ExecutorSpeedtestCloudflare`** (extração da state machine do "Modo Triplo") precisa de testes de caracterização dedicados antes de qualquer mudança — não é decisão, é sequenciamento de trabalho futuro.
+3. **Decisão de produto: medição de perda de pacotes via UDP dedicado no Pro** (achado do `PacketLossPlugin.java`, acima) — registrar como possível item de roadmap MVP1/MVP2, não decidir aqui.
 
 ---
 
