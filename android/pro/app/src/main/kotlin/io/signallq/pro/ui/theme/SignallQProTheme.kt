@@ -26,6 +26,7 @@ private val ProLightColorScheme =
         surfaceContainerHigh = ProSurfaceContainerHigh,
         outline = ProOutline,
         inverseSurface = ProInverseSurface,
+        scrim = ProScrim,
     )
 
 private val ProDarkColorScheme =
@@ -60,6 +61,7 @@ private val ProDarkColorScheme =
         outlineVariant = ProDarkOutlineVariant,
         inverseSurface = ProDarkInverseSurface,
         inverseOnSurface = ProDarkInverseOnSurface,
+        scrim = ProScrimDark,
     )
 
 @Composable

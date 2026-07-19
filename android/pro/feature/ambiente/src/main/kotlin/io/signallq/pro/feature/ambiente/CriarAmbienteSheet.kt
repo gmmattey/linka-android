@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.signallq.pro.core.designsystem.corSurfaceOverlay
 
 /** Tela 2.6 -- criar ambiente. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,7 +27,7 @@ fun CriarAmbienteSheet(
 ) {
     var nome by remember { mutableStateOf("") }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = corSurfaceOverlay()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),

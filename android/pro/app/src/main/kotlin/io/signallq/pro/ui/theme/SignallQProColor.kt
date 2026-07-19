@@ -64,3 +64,17 @@ val ProDarkInverseOnSurface = Color(0xFF0D2124)
 // ja existia sem uso; `ProSuccessDark` completa o par claro/escuro (issue #1176: "excelente/
 // bom" = #32D978 no escuro).
 val ProSuccessDark = Color(0xFF32D978)
+
+// Tokens de profundidade (issue #1170 item 3, doc 10_SignallQ_Pro_Design_System_v5.md secao
+// 4.1) -- Nivel 2 (selecionado) e Nivel 3 (sobreposto: dialog/bottom sheet/menu/tooltip).
+// Nivel 0 (`ProBackground`) e Nivel 1 (`ProSurface`) ja existiam antes desta issue. Nao tem
+// slot nativo em `ColorScheme` (exceto `scrim`, ver `SignallQProTheme.kt`) -- consumidas
+// direto pelos componentes que precisarem, mesmo padrao de `ProSuccess`/`ProWarning`.
+val ProSurfaceSelected = Color(0xFFEAF2FF)
+val ProDarkSurfaceSelected = Color(0xFF1A2C42)
+
+val ProSurfaceOverlay = Color(0xFFFFFFFF)
+val ProDarkSurfaceOverlay = Color(0xFF20262E)
+
+val ProScrim = Color(0x80000000)
+val ProScrimDark = Color(0x99000000)

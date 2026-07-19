@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.signallq.pro.core.designsystem.corSurfaceOverlay
 
 /** Tela 2.7 -- renomear ambiente. */
 @Composable
@@ -21,6 +22,7 @@ fun RenomearAmbienteDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = corSurfaceOverlay(),
         title = { Text("Renomear ambiente") },
         text = {
             OutlinedTextField(value = nome, onValueChange = { nome = it })
