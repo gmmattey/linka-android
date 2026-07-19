@@ -31,6 +31,7 @@ object MedicaoDiagnosticoRoutes {
 fun NavGraphBuilder.medicaoDiagnosticoGraph(
     navController: NavHostController,
     onConcluirAmbiente: () -> Unit,
+    onVerLaudo: (ambienteId: String) -> Unit,
 ) {
     navigation(startDestination = MedicaoDiagnosticoRoutes.MEDICAO, route = MedicaoDiagnosticoRoutes.GRAFO) {
         composable(MedicaoDiagnosticoRoutes.MEDICAO, arguments = MedicaoDiagnosticoRoutes.argumentos()) { backStackEntry ->
@@ -71,6 +72,7 @@ fun NavGraphBuilder.medicaoDiagnosticoGraph(
                         MedicaoDiagnosticoRoutes.EVIDENCIAS.replace("{$ARG_AMBIENTE_ID}", ambienteId),
                     )
                 },
+                onVerLaudo = { onVerLaudo(ambienteId) },
             )
         }
         composable(MedicaoDiagnosticoRoutes.EVIDENCIAS, arguments = MedicaoDiagnosticoRoutes.argumentos()) {

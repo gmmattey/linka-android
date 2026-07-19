@@ -101,6 +101,7 @@ dependencies {
     implementation(project(":pro:feature:visita"))
     implementation(project(":pro:feature:ambiente"))
     implementation(project(":pro:feature:medicao-diagnostico"))
+    implementation(project(":pro:feature:laudo"))
     // Compat de DI para reaproveitar :featureSpeedtest (ver ProSpeedtestCompatModule.kt) --
     // infra generica reutilizavel, zero acoplamento ao consumidor.
     implementation(project(":coreNetwork"))
