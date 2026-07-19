@@ -91,6 +91,23 @@ ktlint {
 }
 
 dependencies {
+    // Fase 2 (issue #1161) -- feature modules do Grupo 1 (trimmed) e Grupo 2 do prototipo.
+    // :pro:app so compoe os grafos de navegacao de cada feature em ProNavHost -- nenhuma
+    // regra de negocio aqui.
+    implementation(project(":pro:core:designsystem"))
+    implementation(project(":pro:core:database"))
+    implementation(project(":pro:feature:auth"))
+    implementation(project(":pro:feature:cliente"))
+    implementation(project(":pro:feature:visita"))
+    implementation(project(":pro:feature:ambiente"))
+    implementation(project(":pro:feature:medicao-diagnostico"))
+    // Compat de DI para reaproveitar :featureSpeedtest (ver ProSpeedtestCompatModule.kt) --
+    // infra generica reutilizavel, zero acoplamento ao consumidor.
+    implementation(project(":coreNetwork"))
+    implementation(project(":coreTelephony"))
+    implementation(project(":coreDatastore"))
+    implementation(project(":featureSpeedtest"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -101,6 +118,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.hilt.navigation.compose)
     debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.hilt.android)
