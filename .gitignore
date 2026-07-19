@@ -3,6 +3,7 @@
 .idea/
 .wrangler/
 .dart_tool/
+.impeccable/
 
 build/
 **/build/

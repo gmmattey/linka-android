@@ -31,4 +31,4 @@ Voz: calorosa, direta, tranquilizadora — nunca um engenheiro de redes dando au
 
 ## Accessibility & Inclusion
 
-Sem WCAG level formal declarado. Seguir boas práticas Material 3: contraste de texto, touch target mínimo 56dp, sem depender só de cor para status (ícone + cor + palavra sempre juntos).
+Sem WCAG level formal declarado. Seguir boas práticas Material 3: contraste de texto, touch target mínimo 48dp (padrão MD3/Android — corrigido em 2026-07-19, ver `docs_ai/DESIGN_SYSTEM.md` seção 11), sem depender só de cor para status (ícone + cor + palavra sempre juntos).

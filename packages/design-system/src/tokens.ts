@@ -20,6 +20,15 @@ export const LK = {
   inverseSurface: '#313033', inverseOnSurface: '#F4EFF4',
   scrim: 'rgba(0,0,0,.5)',
 
+  // ---- Profundidade (4 níveis — ver docs_ai/DESIGN_SYSTEM.md seção 6) ----
+  // level0 fundo · level1 conteúdo agrupado · level2 interativo/destacado · level3 sobreposto.
+  // Sombra é reforço discreto, nunca a forma principal de separação — tint de superfície vem primeiro.
+  depthLevel0Tint: '#FFFFFF', depthLevel0Shadow: 'none',
+  depthLevel1Tint: '#F3EEFA', depthLevel1Shadow: 'none',
+  depthLevel2Tint: '#ECE5F5', depthLevel2Shadow: '0 1px 3px rgba(0,0,0,.12)',
+  depthLevel3Tint: '#E6DDF2', depthLevel3Shadow: '0 4px 12px rgba(0,0,0,.20)',
+  surfaceSelectedBg: '#ECE5F5', surfaceSelectedBorder: 'rgba(91,33,214,.28)', // primary @28%
+
   // ---- Shape (radius por componente) ----
   rCard: 16, rBtn: 20, rField: 12, rSheet: 28, rDialog: 24, rPill: 999,
 
@@ -55,6 +64,12 @@ export const LK_DARK: TokenSet = {
   outline: '#948F99', outlineVariant: '#49454F',
   inverseSurface: '#E6E0E9', inverseOnSurface: '#313033',
   scrim: 'rgba(0,0,0,.6)',
+
+  depthLevel0Tint: '#131217', depthLevel0Shadow: 'none',
+  depthLevel1Tint: '#211F26', depthLevel1Shadow: 'none',
+  depthLevel2Tint: '#2B2930', depthLevel2Shadow: '0 1px 3px rgba(0,0,0,.30)',
+  depthLevel3Tint: '#36343B', depthLevel3Shadow: '0 4px 12px rgba(0,0,0,.40)',
+  surfaceSelectedBg: '#2B2930', surfaceSelectedBorder: 'rgba(208,188,255,.28)', // primary @28%
 
   rCard: 16, rBtn: 20, rField: 12, rSheet: 28, rDialog: 24, rPill: 999,
   font: "'Google Sans Flex', 'Google Sans', 'Roboto', system-ui, sans-serif",
