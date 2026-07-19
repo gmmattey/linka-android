@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.signallq.pro.core.database.ambiente.AmbienteRepository
 import io.signallq.pro.core.database.medicao.MedicaoProRepository
+import io.signallq.pro.core.database.visita.VisitaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +33,7 @@ class AmbientesViewModel
         savedStateHandle: SavedStateHandle,
         private val ambienteRepository: AmbienteRepository,
         private val medicaoProRepository: MedicaoProRepository,
+        private val visitaRepository: VisitaRepository,
     ) : ViewModel() {
         val visitaId: String = checkNotNull(savedStateHandle["visitaId"])
 
@@ -73,5 +75,9 @@ class AmbientesViewModel
 
         fun limparErroExclusao() {
             erroExclusaoFlow.value = null
+        }
+
+        fun concluirVisita() {
+            viewModelScope.launch { visitaRepository.concluirVisita(visitaId) }
         }
     }

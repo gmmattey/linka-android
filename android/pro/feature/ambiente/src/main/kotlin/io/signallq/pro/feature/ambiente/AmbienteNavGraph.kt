@@ -15,16 +15,15 @@ object AmbienteRoutes {
 
 fun NavGraphBuilder.ambienteGraph(
     onAbrirAmbiente: (ambienteId: String) -> Unit,
-    onConcluirVisita: (visitaId: String) -> Unit,
+    onConcluirVisita: () -> Unit,
 ) {
     composable(
         AmbienteRoutes.AMBIENTES,
         arguments = listOf(navArgument(ARG_VISITA_ID) { type = NavType.StringType }),
-    ) { backStackEntry ->
-        val visitaId = checkNotNull(backStackEntry.arguments?.getString(ARG_VISITA_ID))
+    ) {
         AmbientesScreen(
             onAbrirAmbiente = onAbrirAmbiente,
-            onConcluirVisita = { onConcluirVisita(visitaId) },
+            onConcluirVisita = onConcluirVisita,
         )
     }
 }

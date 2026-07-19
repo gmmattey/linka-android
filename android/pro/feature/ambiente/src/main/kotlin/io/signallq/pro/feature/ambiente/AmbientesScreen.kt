@@ -70,7 +70,12 @@ fun AmbientesScreen(
             TopAppBar(
                 title = { Text("Ambientes") },
                 actions = {
-                    TextButton(onClick = onConcluirVisita) {
+                    TextButton(
+                        onClick = {
+                            viewModel.concluirVisita()
+                            onConcluirVisita()
+                        },
+                    ) {
                         Text("Concluir")
                     }
                 },

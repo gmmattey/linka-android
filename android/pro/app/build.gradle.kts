@@ -101,6 +101,12 @@ dependencies {
     implementation(project(":pro:feature:visita"))
     implementation(project(":pro:feature:ambiente"))
     implementation(project(":pro:feature:medicao-diagnostico"))
+    // Compat de DI para reaproveitar :featureSpeedtest (ver ProSpeedtestCompatModule.kt) --
+    // infra generica reutilizavel, zero acoplamento ao consumidor.
+    implementation(project(":coreNetwork"))
+    implementation(project(":coreTelephony"))
+    implementation(project(":coreDatastore"))
+    implementation(project(":featureSpeedtest"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.ktx)
