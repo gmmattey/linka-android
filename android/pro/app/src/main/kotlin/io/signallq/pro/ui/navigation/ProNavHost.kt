@@ -10,6 +10,8 @@ import io.signallq.pro.feature.auth.AuthRoutes
 import io.signallq.pro.feature.auth.authGraph
 import io.signallq.pro.feature.cliente.ClienteRoutes
 import io.signallq.pro.feature.cliente.clienteGraph
+import io.signallq.pro.feature.laudo.LaudoRoutes
+import io.signallq.pro.feature.laudo.laudoGraph
 import io.signallq.pro.feature.medicaodiagnostico.MedicaoDiagnosticoRoutes
 import io.signallq.pro.feature.medicaodiagnostico.medicaoDiagnosticoGraph
 import io.signallq.pro.feature.visita.VisitaRoutes
@@ -58,7 +60,9 @@ fun ProNavHost() {
         medicaoDiagnosticoGraph(
             navController = navController,
             onConcluirAmbiente = { navController.popBackStack(AmbienteRoutes.AMBIENTES, inclusive = false) },
+            onVerLaudo = { ambienteId -> navController.navigate(LaudoRoutes.laudo(ambienteId)) },
         )
+        laudoGraph()
     }
 }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -26,11 +27,16 @@ import io.signallq.pro.core.designsystem.StateCardVariant
  * Tela 2.16 -- [RecommendationBlock] por achado (problema/impacto/acao/prioridade), mapeado
  * direto de `DiagnosticResult` (`:core:diagnostico`). Estado "adequado" tem StateCard de
  * sucesso claro, nao fica vazio por omissao (handoff Fase 2, #1161).
+ *
+ * Fim natural do fluxo de atendimento (issue #1164, Fase 3) -- [onVerLaudo] abre o laudo
+ * tecnico (tela 3.2, `:pro:feature:laudo`) da visita inteira, sem interromper o caminho
+ * original para Evidencias ([onConcluir]).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiagnosticoResultadoScreen(
     onConcluir: () -> Unit,
+    onVerLaudo: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DiagnosticoAmbienteViewModel = hiltViewModel(),
 ) {
@@ -70,6 +76,11 @@ fun DiagnosticoResultadoScreen(
             item {
                 Button(onClick = onConcluir, modifier = Modifier.fillMaxWidth()) {
                     Text("Concluir")
+                }
+            }
+            item {
+                OutlinedButton(onClick = onVerLaudo, modifier = Modifier.fillMaxWidth()) {
+                    Text("Ver laudo")
                 }
             }
         }
