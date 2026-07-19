@@ -3,7 +3,6 @@ package io.signallq.pro.feature.visita
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,9 +17,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Receipt
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,9 +32,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.signallq.pro.core.database.visita.TipoVisita
 import io.signallq.pro.core.designsystem.ProLogo
 import io.signallq.pro.core.designsystem.StateCard
 import io.signallq.pro.core.designsystem.StateCardVariant
+import io.signallq.pro.core.designsystem.VisitCard
 
 private data class AcaoRapida(
     val titulo: String,
@@ -106,22 +105,29 @@ fun PainelScreen(
                         onAcaoClick = onNovoAtendimento,
                     )
                 else -> {
-                    Column {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         uiState.visitaEmAndamento?.let { resumo ->
-                            AtendimentoResumoRow(
-                                resumo = resumo,
-                                destaque = true,
-                                onClick = { onRetomarAtendimento(resumo.visitaId) },
+                            VisitCard(
+                                nomeCliente = resumo.clienteNome,
+                                nomeLocal = resumo.nomeLocal,
+                                objetivo = rotuloTipoVisita(TipoVisita.valueOf(resumo.tipo)),
+                                statusLabel = resumo.statusLabel,
+                                statusTone = resumo.statusTone,
+                                horario = resumo.horario,
+                                onContinuar = { onRetomarAtendimento(resumo.visitaId) },
+                                labelContinuar = "Retomar",
                             )
-                            HorizontalDivider()
                         }
                         uiState.proximosAtendimentos.forEach { resumo ->
-                            AtendimentoResumoRow(
-                                resumo = resumo,
-                                destaque = false,
-                                onClick = { onRetomarAtendimento(resumo.visitaId) },
+                            VisitCard(
+                                nomeCliente = resumo.clienteNome,
+                                nomeLocal = resumo.nomeLocal,
+                                objetivo = rotuloTipoVisita(TipoVisita.valueOf(resumo.tipo)),
+                                statusLabel = resumo.statusLabel,
+                                statusTone = resumo.statusTone,
+                                horario = resumo.horario,
+                                onContinuar = { onRetomarAtendimento(resumo.visitaId) },
                             )
-                            HorizontalDivider()
                         }
                     }
                 }
@@ -163,35 +169,6 @@ private fun AcoesRapidasGrid(acoes: List<AcaoRapida>) {
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun AtendimentoResumoRow(
-    resumo: AtendimentoResumoUiState,
-    destaque: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column {
-            Text(text = resumo.clienteNome, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = resumo.tipo,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (destaque) {
-            Button(onClick = onClick) { Text("Retomar") }
         }
     }
 }

@@ -14,6 +14,10 @@ interface LocalDao {
     @Query("SELECT * FROM local WHERE clienteId = :clienteId ORDER BY criadoEmEpochMs ASC")
     fun observarPorCliente(clienteId: String): Flow<List<LocalEntity>>
 
+    /** Usado pelo Painel para resolver [LocalEntity.nome] de visitas recentes sem 1 query por item. */
+    @Query("SELECT * FROM local")
+    fun observarTodos(): Flow<List<LocalEntity>>
+
     /** MVP0: cliente tem exatamente um local -- usado para resolver o local implicito da
      *  visita quando so existe um (issue #1166). */
     @Query("SELECT * FROM local WHERE clienteId = :clienteId ORDER BY criadoEmEpochMs ASC LIMIT 1")
