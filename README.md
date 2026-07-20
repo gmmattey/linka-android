@@ -58,6 +58,77 @@ A separação existe para manter responsabilidades claras:
 | **SignallQ Pro** | Profissionais de redes e suporte | Executar atendimentos e gerar evidências e relatórios |
 | **SignallQ Admin** | Operação interna | Acompanhar a saúde e a evolução dos produtos |
 
+## Organização do repositório
+
+O projeto é organizado como um **monorepositório modular**. Isso permite manter os produtos separados, com ciclos e experiências próprias, sem duplicar fundamentos técnicos que podem ser compartilhados com segurança.
+
+A visão pública da estrutura é:
+
+```text
+/
+├── android/
+│   ├── app/        # aplicativo SignallQ para consumidores
+│   ├── pro/        # aplicativo e módulos exclusivos do SignallQ Pro
+│   ├── core/       # fundamentos reutilizáveis entre produtos Android
+│   └── feature/    # funcionalidades modulares do aplicativo consumidor
+├── SignallQ Admin/ # aplicação web interna e independente
+├── integrations/  # pontos de integração com serviços externos
+└── docs/           # documentação de produto e engenharia
+```
+
+Essa árvore é uma visão simplificada. A organização interna pode evoluir conforme os produtos amadurecem, mas a separação de responsabilidades deve permanecer:
+
+- cada produto possui sua própria aplicação, navegação e experiência;
+- funcionalidades são divididas em módulos menores, evitando aplicações monolíticas;
+- componentes genéricos podem ser compartilhados;
+- fluxos, regras e interfaces específicas permanecem no produto ao qual pertencem;
+- o Admin opera de forma independente dos aplicativos Android.
+
+## Compartilhamento de módulos
+
+SignallQ e SignallQ Pro são aplicativos distintos, com identidade, público, instalação, versionamento e evolução próprios. Eles não são cópias um do outro, mas também não precisam reconstruir do zero tudo o que já foi validado.
+
+O compartilhamento segue uma regra simples: **reutilizar a capacidade técnica; preservar a experiência e a regra de negócio de cada produto**.
+
+### O que pode ser compartilhado
+
+Quando um módulo é genérico, testável e não depende da experiência de um produto específico, ele pode atender aos dois aplicativos Android. Exemplos públicos incluem:
+
+- fundamentos de conectividade e comunicação de rede;
+- acesso seguro a recursos e permissões do aparelho;
+- abstrações de telefonia e estado da conexão;
+- preferências e armazenamento local genérico;
+- motores de medição reutilizáveis, como o teste de velocidade;
+- contratos e modelos comuns de diagnóstico;
+- componentes básicos para geração de resultados e relatórios;
+- ferramentas comuns de qualidade, testes e observabilidade.
+
+### O que permanece separado
+
+A reutilização não deve criar um aplicativo híbrido ou acoplar os produtos artificialmente. Permanecem separados:
+
+- navegação, telas, textos e identidade visual de cada produto;
+- fluxo do consumidor no SignallQ;
+- clientes, visitas, ambientes, evidências e atendimento profissional no Pro;
+- persistência de dados específica de cada experiência;
+- regras comerciais, monetização e ciclo de lançamento;
+- autenticação e recursos exclusivos do produto profissional;
+- interfaces e ferramentas internas do Admin.
+
+### Como os produtos se relacionam
+
+| Camada | SignallQ | SignallQ Pro | SignallQ Admin |
+|---|---|---|---|
+| **Experiência e interface** | Própria para consumidores | Própria para profissionais | Própria para operação interna |
+| **Medições de conectividade** | Utiliza módulos técnicos | Reutiliza módulos aplicáveis | Acompanha resultados operacionais autorizados |
+| **Diagnóstico** | Orientado ao usuário final | Aplicado ao atendimento técnico | Acompanha qualidade e evolução, sem executar o fluxo dos apps |
+| **Relatórios** | Resultado simples e compartilhável | Laudo profissional e evidências | Visões operacionais internas |
+| **Código compartilhado** | Fundamentos Android reutilizáveis | Consome fundamentos compatíveis | Aplicação web independente; integração por contratos controlados |
+
+O Admin não importa telas ou módulos Android. A relação com os aplicativos ocorre por interfaces controladas e dados necessários à operação, mantendo limites claros entre produto, plataforma e administração.
+
+Esse modelo reduz duplicação, melhora a consistência das medições e permite corrigir ou evoluir uma capacidade comum sem transformar SignallQ e SignallQ Pro no mesmo produto.
+
 ## O que torna o SignallQ diferente
 
 Muitas ferramentas mostram métricas. O SignallQ quer conectar essas métricas ao problema real do usuário.
@@ -78,13 +149,14 @@ Isso significa combinar medições, contexto e orientação para responder pergu
 - **Medição com contexto:** um número isolado raramente conta a história completa.
 - **Privacidade e responsabilidade:** dados e acessos devem ser tratados com o mínimo necessário.
 - **Separação de produtos:** consumidor, profissional e operação interna possuem necessidades diferentes.
+- **Reutilização sem acoplamento:** módulos comuns devem reduzir duplicação sem apagar os limites entre produtos.
 - **Evolução baseada em evidências:** decisões de produto devem considerar testes, telemetria, feedback e uso real.
 
 ## Estado do projeto
 
 O ecossistema está em desenvolvimento ativo. Funcionalidades, disponibilidade e escopo podem mudar conforme os produtos avançam em validação, testes e preparação para lançamento.
 
-Este repositório concentra o desenvolvimento do aplicativo Android SignallQ e componentes relacionados. O SignallQ Pro é tratado como produto distinto, mesmo quando componentes reutilizáveis ou fundamentos técnicos possam ser compartilhados entre os produtos.
+Este repositório concentra o desenvolvimento dos aplicativos Android SignallQ e SignallQ Pro, seus módulos compartilháveis e componentes relacionados. O SignallQ Admin permanece como aplicação interna independente dentro do mesmo repositório.
 
 ## Escopo público e segurança
 
