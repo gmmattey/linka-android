@@ -354,17 +354,24 @@ novos. Antes de abrir `Agent` novo ou PR nova, todo agente confere:
 
 ## Modo Piloto Automatico
 
-Quando a tarefa for bem delimitada, os agentes operam em piloto automatico:
+Quando a tarefa for bem delimitada, os agentes operam em piloto automatico. **Juninho triages issues novas antes de qualquer agente de implementação (Camilo/Lia/Rhodolfo) começar.**
 
-1. Entender a issue
-2. Planejar
-3. Executar
-4. Validar
-5. Atualizar a issue no GitHub
-6. Abrir PR se houver codigo
-7. Registrar resumo
-8. Comunicar via GitHub/Slack se aplicavel
-9. Pedir intervencao apenas se houver bloqueio real
+**0. Triagem inicial (Juninho)** — pra issues novas:
+   - Lê o corpo completo, resume escopo, identifica produto e área
+   - Sinaliza se envolve tela/copy (exigindo Lia) antes da implementação
+   - Estima pontos como primeiro palpite (Claudete calibra)
+   - Procura duplicatas com `gh issue list --search`
+   - Reporta achados brevemente — Claudete refina
+
+**1. Entender a issue**
+**2. Planejar**
+**3. Executar**
+**4. Validar**
+**5. Atualizar a issue no GitHub**
+**6. Abrir PR se houver codigo**
+**7. Registrar resumo**
+**8. Comunicar via GitHub/Slack se aplicavel**
+**9. Pedir intervencao apenas se houver bloqueio real**
 
 ### Classificacao de tamanho
 
