@@ -20,7 +20,9 @@
       "Bash(ls \"C:/Users/luizg/.claude/plans/\" 2>/dev/null || echo \"directory does not exist\")",
       "Bash(cd \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\SignallQ Disign_v2\\\\\\\\screens\")",
       "Bash(head -50 \"C:\\\\\\\\Users\\\\\\\\luizg\\\\\\\\Downloads\\\\\\\\SignallQ Disign_v2\\\\\\\\app.jsx\")",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "mcp__Claude_Code_Remote__delete_trigger",
+      "mcp__Claude_Code_Remote__send_later"
     ],
     "defaultMode": "bypassPermissions"
   },

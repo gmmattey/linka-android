@@ -170,7 +170,13 @@ Nao-negociaveis:
 - Icones Material Symbols (Outlined, variable font), tipo unica Google Sans Flex (fallback Roboto) em todos os estilos, grid 8dp (8 degraus: xs 4 / sm 8 / md 12 / base 16 / lg 20 / xl 24 / xxl 32 / xxxl 40), radius por componente (Card 16px / SheetFrame 28px / Button 20px / Field 12px / Chip-Badge 999px / Dialog 24px), flat (elevacao tonal, sem sombra dura)
 - Superficie SignallQ (IA) e DESCONTINUADA no To-Be -- nao implementar rota/componente novo
 - Copy em PT-BR com voce, sentence case em titulos, UPPERCASE em overlines, SEM emoji -- decisao de produto, nao afetada pelo MD3
-- Metrica crua sempre acompanhada de veredito humano (Excelente/Bom/Regular/Fraco/Forte)
+- Metrica crua sempre acompanhada de veredito humano. Vocabulario canonico e o do motor de
+  diagnostico (`MetricStatus`, `core/diagnostico/MetricClassifier.kt`, decisao de arquitetura ja
+  fechada): **excelente/bom/regular/ruim/critico/inconclusivo**. "Fraco/Forte" e vocabulario
+  proprio das barrinhas de sinal Wi-Fi (SignalBars), nao um padrao geral de veredito de metrica --
+  nao usar fora desse contexto (correcao 2026-07-20, apos auditoria de design encontrar
+  `ResultadoVelocidadeScreen.kt` sem veredito e o texto antigo desta regra divergente do
+  vocabulario ja implementado).
 - Separador inline: ponto medio
 
 Referencia rapida de tokens: `.claude/skills/SignallQ-design/HANDOFF_README.md`.
@@ -202,7 +208,8 @@ usa o projeto online:
 | Projeto Claude Design | ID | Papel |
 |---|---|---|
 | **SignallQ Design System** | `2d25d7a1-31b2-4ac3-881f-72dbc8f35a29` | DS puro — 25 componentes (primitivos + interativos + marca `<Logo>` + `SignallQThemeProvider`), paleta `#5B21D6`, dark mode via `useTokens()`. É o que o `/design-sync` fixa e o agente de design consome. |
-| **SignallQ — Protótipos** | `e77ea465-291f-4bf5-930c-a267680da04e` | Fluxos do app + Admin (`tobe/`, `templates/`). Renomeado do antigo DS; segue tipo Design System por limitação de plataforma (tipo é imutável), mas hospeda só protótipo. |
+| **SignallQ app Android** | `a86ffca9-2851-4c99-b8e0-a94aec66b33f` | Protótipo 1:1 do app Android consumer, arquivo `SignallQ App.dc.html` (importa os componentes ao vivo via `x-import` do DS `2d25d7a1-...`, sincronizado em `_ds/signallq-design-system-2d25d7a1-.../`). Substitui o `e77ea465-...` como fonte de protótipo do app a partir de 2026-07-20. **Não contém o SignallQ Admin** — tipo `PROJECT_TYPE_PROJECT` (não Design System), então não aparece em listagens filtradas por tipo Design System. Também hospeda `SignallQ WebApp.dc.html` (escopo/dono ainda não confirmado — não presumir que é o site institucional sem checar). |
+| **SignallQ — Protótipos** (`e77ea465-291f-4bf5-930c-a267680da04e`) | superseded (app) | Cobria "Fluxos do app + Admin" antes de 2026-07-20. Para o app, ver `a86ffca9-...` acima. **Cobertura de Admin não confirmada como migrada** — projeto ainda existe e recebeu updates recentes; até confirmação em contrário, não presumir que os protótipos de Admin sumiram, mas também não tratar mais este ID como fonte corrente do app. |
 | **SignallQ PRO - Design System** | `77a19317-ea64-4e47-b55c-578eca776c09` | DS **separado** do SignallQ PRO (versão pra profissionais de telecom/instaladores). Marca/paleta próprias — não misturar com o DS consumer. |
 
 URL de cada um: `https://claude.ai/design/p/<ID>`. Read/write via a tool `DesignSync` (ver memória
