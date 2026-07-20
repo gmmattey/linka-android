@@ -1168,11 +1168,11 @@ private fun RowScope.AppNavItem(
         },
         colors =
             NavigationBarItemDefaults.colors(
-                selectedIconColor = c.onSecondaryContainer,
+                selectedIconColor = c.onPrimaryContainer,
                 unselectedIconColor = c.onSurfaceVariant,
                 selectedTextColor = c.onSurface,
                 unselectedTextColor = c.onSurfaceVariant,
-                indicatorColor = c.secondaryContainer,
+                indicatorColor = c.primaryContainer,
             ),
     )
 }
