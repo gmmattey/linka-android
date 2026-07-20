@@ -1,6 +1,6 @@
 # Notificações do Squad SIGNALLQ — Slack + Discord
 
-Os 11 agentes do squad notificam o usuário em cada handoff via scripts em `scripts/`.
+Os 5 agentes ativos do squad notificam o usuário em cada handoff via scripts em `scripts/`.
 
 ## Como funciona
 
@@ -16,7 +16,7 @@ Os 11 agentes do squad notificam o usuário em cada handoff via scripts em `scri
 scripts/notify.sh <agente> "<mensagem>" <tipo> [--para <outroAgente>]
 ```
 
-- `agente`: claudete, claudio, camilo, lia, gema, marcelo, nina, taisa, bernardo, otavio
+- `agente`: claudete, camilo, lia, rhodolfo, juninho
 - `tipo`: `progress` | `success` | `info` | `warning` | `error`
 - `--para <agente>`: opcional, indica handoff
 

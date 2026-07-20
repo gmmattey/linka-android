@@ -4,23 +4,23 @@
 > Decisão de fluxo: `docs_ai/decisions/ADR-006-workflow-squad-5-agentes.md`.
 > Versão: v0.23.0 · 2026-07-05.
 
-## Gate único: Gema
+## Gate único: Rhodolfo
 
-**Gema** é o gate único de Done: review de código, QA, release e higiene. Não há revisor de arquitetura separado (Claudete absorveu a decisão de arquitetura) nem revisor de docs separado (Gema absorveu Nina/Taisa).
+**Rhodolfo** é o gate único de Done: review de código, QA, release e higiene. Não há revisor de arquitetura separado (Claudete absorveu a decisão de arquitetura) nem revisor de docs separado (Rhodolfo absorveu Nina/Taisa).
 
 ## Processo
 
 1. **Gatilho** — Camilo, Felipe ou Lia concluem a implementação.
 2. **Checks** — `.\android\gradlew.bat lint` e `test` (Android) ou `npm run lint`/`npm run build` (Admin) devem passar.
-3. **Review da Gema** — bugs, regressões, risco técnico, testes faltando, aderência ao design system e higiene (changelog, bump de versão, docs).
+3. **Review do Rhodolfo** — bugs, regressões, risco técnico, testes faltando, aderência ao design system e higiene (changelog, bump de versão, docs).
 4. **UX condicional** — Lia valida o entregável visual quando a mudança foi de tela/fluxo.
 5. **Veredito** — `Aprovado` / `Aprovado com ressalvas` / `Reprovado`.
 
 ## Limite de loop
 
-Ciclo Gema → implementador tem no máximo **2 rodadas**. Na 3ª divergência, escala para a **Claudete** decidir (aceitar débito, repriorizar ou reescopar). Evita ping-pong infinito.
+Ciclo Rhodolfo → implementador tem no máximo **2 rodadas**. Na 3ª divergência, escala para a **Claudete** decidir (aceitar débito, repriorizar ou reescopar). Evita ping-pong infinito.
 
-## O que a Gema não faz
+## O que o Rhodolfo não faz
 
 - Não implementa correções — devolve ao implementador.
 - Decisão de arquitetura vai para a Claudete.

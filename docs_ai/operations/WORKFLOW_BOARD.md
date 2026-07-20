@@ -14,8 +14,8 @@ scripts/agent-handoff.sh <agente> <evento> <issue#> "<msg>" [--para <outroAgente
 |---|---|---|
 | `start` | Em andamento | Agente puxou a issue da fila e começou |
 | `handoff` | Em andamento | Passou bastão para outro agente que vai continuar implementação |
-| `review` | Em review | Implementação pronta, Gema revisa |
-| `docs` | Docs & Higiene | Gema aprovou, Nina/Taisa atualizam changelog/docs |
+| `review` | Em review | Implementação pronta, Rhodolfo revisa |
+| `docs` | Docs & Higiene | Rhodolfo aprovou, documentação atualizada |
 | `done` | Done | Higiene fechada — issue é fechada no GitHub |
 | `block` | (mantém) | Bloqueado por dependência ou decisão pendente |
 | `refine` | Triagem | Devolve para Claudete porque tarefa está mal definida |
@@ -30,14 +30,14 @@ scripts/agent-handoff.sh camilo start 3 "Hilt: começando setup do plugin + modu
 # Marcelo entregando mapeamento para o Camilo
 scripts/agent-handoff.sh marcelo handoff 3 "DI manual mapeado em 7 arquivos" --para camilo
 
-# Camilo terminou — Gema revisa
+# Camilo terminou — Rhodolfo revisa
 scripts/agent-handoff.sh camilo review 3 "implementação pronta, build verde"
 
-# Gema aprovou — Nina entra
-scripts/agent-handoff.sh gema docs 3 "aprovado sem ressalvas" --para nina
+# Rhodolfo aprovou — documentação atualizada
+scripts/agent-handoff.sh rhodolfo docs 3 "aprovado sem ressalvas, changelog atualizado"
 
-# Nina fechou a entrega
-scripts/agent-handoff.sh nina done 3 "v0.9.2 publicado, changelog atualizado"
+# Entrega fechada
+scripts/agent-handoff.sh rhodolfo done 3 "v0.9.2 publicado, entrega completa"
 
 # Refactor virou monstro — Claudete redivide
 scripts/agent-handoff.sh camilo refine 4 "task gigante demais, precisa quebrar em 3" --para claudete
@@ -90,8 +90,8 @@ Sem isso, o workflow vira no-op (`if: secrets.PROJECT_PAT != ''`).
 Triagem (Claudete refina)
   └─ ready  → Pronta para dev (agent:claudete + status:agent-ready)
      └─ start (Camilo)  → Em andamento (agent:camilo + status:in-progress)
-        └─ review  → Em review (agent:gema + status:waiting-review)
-           └─ docs  → Docs & Higiene (agent:nina)
+        └─ review  → Em review (agent:rhodolfo + status:waiting-review)
+           └─ docs  → Docs & Higiene (agent:rhodolfo)
               └─ done  → Done (issue fechada)
 ```
 
