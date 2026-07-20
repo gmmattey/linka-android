@@ -198,6 +198,29 @@ Ao tocar nele:
 5. cada etapa independente deve ter seu próprio arquivo (ex.: `JogoEtapa1Screen.kt`, `JogoEtapa2Screen.kt`) ou componente reutilizável;
 6. crie testes de caracterização antes de extrações com risco de comportamento de fluxo ou estado.
 
+### 4.8b `SinalScreen.kt`
+
+Caminho real: `android/app/src/main/kotlin/io/veloo/app/kotlin/ui/screen/SinalScreen.kt` —
+**3503 linhas** (acima do limiar de "dívida crítica" da seção 7; era 3672 antes da primeira
+extração incremental, PR #1237). Concentra as três abas da tela Sinal (Móvel, Canal, Wi-Fi),
+cada uma com Composables, sheets de detalhe e, até #1237, também toda a lógica de
+classificação/topologia/banda misturada com composição visual.
+
+A PR #1237 (#1207/#1209) deu o primeiro passo de separação: funções puras de classificação de
+topologia, ícone, banda e segurança (sem nenhum `@Composable`) foram extraídas para
+`SinalTopologiaHelpers.kt` (mesmo pacote, ~190 linhas). As três seções Composable (Móvel/Canal/
+Wi-Fi) continuam no arquivo principal — extraí-las é o próximo passo, de risco maior por mexer
+em estado e composição visual.
+
+Ao tocar nele:
+1. identifique qual aba (Móvel/Canal/Wi-Fi) ou sheet está sendo modificada;
+2. não adicione nova função de classificação/topologia diretamente no Composable — coloque em
+   `SinalTopologiaHelpers.kt` (ou um helper próprio, se for de outro domínio) como função pura;
+3. prefira separar por aba quando extrair Composables: `SinalMovelSection.kt`,
+   `SinalCanalSection.kt`, `SinalWifiSection.kt` são os nomes-alvo sugeridos;
+4. mantenha em `SinalScreen.kt` apenas a composição do Scaffold, TabRow e delegação das abas;
+5. crie testes de caracterização antes de extrações com risco de comportamento visual ou estado.
+
 ### 4.9 Identificação de topologia e dispositivos
 
 Quando encontrar motores, heurísticas ou classificadores concorrentes:
