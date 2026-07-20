@@ -42,9 +42,8 @@
         </activity>
 
         <!-- AdMob (issue #555): App ID de producao (Luiz criou a conta AdMob em 2026-07-20).
-             PENDENTE: Ad Unit ID de anuncio nativo (NATIVE_TESTE em ads/AdUnitIds.kt) ainda
-             esta em modo teste, Luiz ainda nao passou o(s) Ad Unit ID(s) de Native Advanced,
-             nao trocar sem instrucao explicita. -->
+             Os 5 Ad Unit IDs de anuncio nativo por slot (ver ads/AdUnitIds.kt) tambem
+             ja sao reais. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-5542349230926522~3068481614" />
