@@ -2,9 +2,7 @@ package io.signallq.app.ui.component
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +39,10 @@ import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.ResolvedOperadoraContact
 import io.signallq.app.ui.ResolvedOperadoraIdentity
 import io.signallq.app.ui.whatsappUrl
+
+// Verde oficial da marca WhatsApp -- mesma exceção intencional documentada em
+// OperadoraBottomSheet.kt (não é um token do DS, é cor de identidade de terceiro).
+private val whatsappGreen = Color(0xFF25D366)
 
 /**
  * Card de contato da operadora — GH#965/#970. [identidade] alimenta so o badge visual
@@ -63,13 +65,8 @@ fun OperadoraContactCard(
     val c = LocalLkTokens.current
     val context = LocalContext.current
 
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.bgSecondary)
-                .padding(LkSpacing.lg),
+    LkSurfaceCard(
+        modifier = modifier.fillMaxWidth(),
     ) {
         if (contato != null && contato.hasAnyContact) {
             // Estado: operadora reconhecida (local ou via diretorio remoto)
@@ -137,14 +134,14 @@ fun OperadoraContactCard(
                         imageVector = Icons.Outlined.Chat,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = c.success,
+                        tint = whatsappGreen,
                     )
                     Spacer(Modifier.width(LkSpacing.xs))
                     Text(
                         text = stringResource(R.string.operadora_contact_whatsapp),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.W600,
-                        color = c.success,
+                        color = whatsappGreen,
                     )
                 }
             }

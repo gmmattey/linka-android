@@ -60,6 +60,7 @@ import io.signallq.app.ui.LkTokens
 import io.signallq.app.ui.LocalLkTokens
 import io.signallq.app.ui.component.LkSectionOverline
 import io.signallq.app.ui.component.LkStatusDot
+import io.signallq.app.ui.component.LkSurfaceCard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -457,13 +458,8 @@ private fun LaudoSection(
     c: LkTokens,
     content: @Composable () -> Unit,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(LkRadius.card))
-                .background(c.surfaceContainer)
-                .padding(LkSpacing.lg),
+    LkSurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
     ) {
         LkSectionOverline(titulo)
         Spacer(Modifier.height(LkSpacing.sm))

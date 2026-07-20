@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -422,7 +423,7 @@ private fun OutraOperadoraRow(operadora: ContatoOperadora) {
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.PhoneAndroid,
+                        imageVector = Icons.Outlined.Chat,
                         contentDescription = stringResource(R.string.cd_abrir_whatsapp),
                         tint = Color.White,
                         modifier = Modifier.size(18.dp),
