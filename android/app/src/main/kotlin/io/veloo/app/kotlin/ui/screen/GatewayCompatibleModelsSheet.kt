@@ -131,7 +131,7 @@ private fun CompatibleModelCard(
                 Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(c.primary.copy(alpha = 0.14f)),
+                    .background(c.primary.copy(alpha = 0.12f)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().height(44.dp),

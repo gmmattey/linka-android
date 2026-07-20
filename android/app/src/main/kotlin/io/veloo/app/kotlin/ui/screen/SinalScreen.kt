@@ -30,8 +30,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.outlined.Cable
 import androidx.compose.material.icons.outlined.CellTower
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -41,6 +39,8 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SignalCellularAlt
@@ -825,7 +825,7 @@ private fun mobileSignalQuality(
             MobileInsight(
                 label = "Indisponível",
                 description = "O Android não expôs a intensidade deste chip agora.",
-                color = LkColors.accentBlue,
+                color = c.secondary,
             )
         rsrpDbm >= -90 ->
             MobileInsight(
@@ -888,7 +888,7 @@ private fun mobileConnectionType(
             MobileInsight(
                 label = "Móvel",
                 description = "Tecnologia não identificada pelo Android neste momento.",
-                color = LkColors.accentBlue,
+                color = c.secondary,
             )
     }
 }
@@ -960,7 +960,7 @@ private fun snapshotSignalQuality(
                 MobileInsight(
                     label = "Sem leitura",
                     description = "O Android não forneceu leitura precisa do sinal neste momento.",
-                    color = LkColors.accentBlue,
+                    color = c.secondary,
                 )
             rsrp >= -90 ->
                 MobileInsight(
@@ -1017,7 +1017,7 @@ private fun snapshotConnectionType(
             MobileInsight(
                 label = "Móvel",
                 description = "Tecnologia não identificada pelo Android neste momento.",
-                color = LkColors.accentBlue,
+                color = c.secondary,
             )
     }
 }
@@ -1464,12 +1464,7 @@ private fun RedesTab(
                             Modifier
                                 .padding(horizontal = LkSpacing.lg)
                                 .clip(RoundedCornerShape(LkRadius.card))
-                                .background(c.success.copy(alpha = 0.12f))
-                                .border(
-                                    1.dp,
-                                    c.success.copy(alpha = 0.24f),
-                                    RoundedCornerShape(LkRadius.card),
-                                ),
+                                .background(c.success.copy(alpha = 0.12f)),
                     ) {
                         GrupoRedeTree(
                             ssid = connectedNetwork.ssid ?: "Rede oculta",
@@ -1993,7 +1988,7 @@ private fun OtherNetworkGroupItem(
                 }
                 Spacer(Modifier.width(LkSpacing.sm))
                 Icon(
-                    imageVector = if (rede.seguranca == SegurancaWifi.aberta) Icons.Filled.LockOpen else Icons.Filled.Lock,
+                    imageVector = if (rede.seguranca == SegurancaWifi.aberta) Icons.Outlined.LockOpen else Icons.Outlined.Lock,
                     contentDescription = if (rede.seguranca == SegurancaWifi.aberta) stringResource(R.string.cd_rede_aberta) else stringResource(R.string.cd_rede_protegida),
                     tint = c.textTertiary,
                     modifier = Modifier.size(16.dp),
@@ -2146,7 +2141,7 @@ private fun NetworkListItem(
         }
         Spacer(Modifier.width(LkSpacing.sm))
         Icon(
-            imageVector = if (isOpen) Icons.Filled.LockOpen else Icons.Filled.Lock,
+            imageVector = if (isOpen) Icons.Outlined.LockOpen else Icons.Outlined.Lock,
             contentDescription = if (isOpen) stringResource(R.string.cd_rede_aberta) else stringResource(R.string.cd_rede_protegida),
             tint = c.textTertiary,
             modifier = Modifier.size(16.dp),
@@ -2251,7 +2246,7 @@ private fun NetworkDetailSheet(
     LkSheetFrame {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector = if (rede.seguranca == SegurancaWifi.aberta) Icons.Filled.LockOpen else Icons.Filled.Lock,
+                imageVector = if (rede.seguranca == SegurancaWifi.aberta) Icons.Outlined.LockOpen else Icons.Outlined.Lock,
                 contentDescription = null,
                 tint = c.primary,
                 modifier = Modifier.size(20.dp),
@@ -2268,7 +2263,7 @@ private fun NetworkDetailSheet(
 
         LkSheetInfoRow(
             label = "Sinal",
-            value = "${rede.rssiDbm} dBm — ${signalQuality(rede.rssiDbm, bandaDetail)}",
+            value = "${rede.rssiDbm} dBm · ${signalQuality(rede.rssiDbm, bandaDetail)}",
             valueColor = signalColor(rede.rssiDbm, bandaDetail, c),
         )
         LkSheetDivider()
@@ -2547,7 +2542,6 @@ private fun CanalTab(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(LkRadius.card))
                         .background(c.surfaceContainer)
-                        .border(1.dp, c.outlineVariant, RoundedCornerShape(LkRadius.card))
                         .padding(LkSpacing.lg),
                 horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm),
                 verticalAlignment = Alignment.Top,
@@ -2583,7 +2577,6 @@ private fun CanalTab(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(LkRadius.card))
                             .background(c.surfaceContainer)
-                            .border(1.dp, c.outlineVariant, RoundedCornerShape(LkRadius.card))
                             .padding(LkSpacing.md),
                 ) {
                     SpectrumChart(
@@ -3593,11 +3586,26 @@ private fun ChannelDetailSheet(
         LkSheetDivider()
         Spacer(Modifier.height(LkSpacing.lg))
 
-        LkSheetSectionTitle(title = "Detalhes Técnicos")
+        LkSheetSectionTitle(title = "Detalhes técnicos")
         Spacer(Modifier.height(LkSpacing.md))
         LkSheetInfoRow(label = "Banda", value = espectro.banda)
         LkSheetDivider()
-        LkSheetInfoRow(label = "Sinal Máximo", value = "${dado.maxRssiDbm ?: "—"} dBm")
+        val maxRssi = dado.maxRssiDbm
+        val bandaMaxRssi =
+            when {
+                espectro.banda.contains("5") -> BandaWifi.ghz5
+                espectro.banda.contains("2.4") -> BandaWifi.ghz24
+                else -> BandaWifi.desconhecida
+            }
+        LkSheetInfoRow(
+            label = "Sinal máximo",
+            value =
+                if (maxRssi != null) {
+                    "$maxRssi dBm · ${signalQuality(maxRssi, bandaMaxRssi)}"
+                } else {
+                    "— dBm"
+                },
+        )
     }
 }
 

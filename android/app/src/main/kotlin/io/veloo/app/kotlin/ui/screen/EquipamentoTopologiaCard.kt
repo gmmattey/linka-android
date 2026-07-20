@@ -124,7 +124,7 @@ private fun CompactTopologyNode(
                 Modifier
                     .size(34.dp)
                     .clip(CircleShape)
-                    .background(if (highlighted) c.primary.copy(alpha = 0.16f) else c.surfaceContainerHigh),
+                    .background(if (highlighted) c.primary.copy(alpha = 0.12f) else c.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -156,7 +156,7 @@ private fun TopologyNodeRow(
                 Modifier
                     .size(34.dp)
                     .clip(CircleShape)
-                    .background(if (node.highlighted) c.primary.copy(alpha = 0.16f) else c.surfaceContainerHigh),
+                    .background(if (node.highlighted) c.primary.copy(alpha = 0.12f) else c.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
