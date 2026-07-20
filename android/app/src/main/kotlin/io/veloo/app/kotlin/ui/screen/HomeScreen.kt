@@ -2550,7 +2550,7 @@ private fun CellularInfoSheet(
 
         Spacer(Modifier.height(LkSpacing.lg))
 
-        LkSurfaceCard(outlined = true) {
+        LkSurfaceCard {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

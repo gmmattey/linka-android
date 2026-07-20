@@ -850,7 +850,6 @@ private fun EtapaErro(
     ) {
         LkSurfaceCard(
             modifier = Modifier.fillMaxWidth(),
-            outlined = true,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(

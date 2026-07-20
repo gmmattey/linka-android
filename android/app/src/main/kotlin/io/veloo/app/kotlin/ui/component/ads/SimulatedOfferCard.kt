@@ -47,7 +47,7 @@ fun SimulatedOfferCard(
 ) {
     val c = LocalLkTokens.current
 
-    LkSurfaceCard(modifier = modifier.fillMaxWidth(), outlined = true) {
+    LkSurfaceCard(modifier = modifier.fillMaxWidth()) {
         AdBadge(source = NativeAdSource.SIMULATED)
         Spacer(Modifier.height(LkSpacing.sm))
         Row(
@@ -104,7 +104,7 @@ fun SimulatedOfferRow(
 ) {
     val c = LocalLkTokens.current
 
-    LkSurfaceCard(modifier = modifier.fillMaxWidth(), outlined = true) {
+    LkSurfaceCard(modifier = modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier =
@@ -164,7 +164,6 @@ fun SimulatedOfferListRow(
 
     LkSurfaceCard(
         modifier = modifier.fillMaxWidth().clickable { },
-        outlined = true,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
