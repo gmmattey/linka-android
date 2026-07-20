@@ -157,7 +157,7 @@ fun DispositivosScreen(
                             } else {
                                 Icon(
                                     imageVector = Icons.Outlined.Refresh,
-                                    contentDescription = "Escanear Rede",
+                                    contentDescription = "Escanear rede",
                                     tint = c.textPrimary,
                                 )
                             }
@@ -1003,7 +1003,7 @@ private fun EmptyStateDispositivos(
                     onClick = onRefresh,
                     colors = ButtonDefaults.buttonColors(containerColor = c.primary),
                 ) {
-                    Text("Escanear Rede")
+                    Text("Escanear rede")
                 }
             }
         }

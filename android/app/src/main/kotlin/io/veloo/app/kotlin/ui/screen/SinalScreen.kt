@@ -2309,7 +2309,7 @@ private fun NetworkDetailSheet(
 
         LkSheetInfoRow(
             label = "Sinal",
-            value = "${rede.rssiDbm} dBm — ${signalQuality(rede.rssiDbm, bandaDetail)}",
+            value = "${rede.rssiDbm} dBm · ${signalQuality(rede.rssiDbm, bandaDetail)}",
             valueColor = signalColor(rede.rssiDbm, bandaDetail, c),
         )
         LkSheetDivider()
@@ -3632,11 +3632,26 @@ private fun ChannelDetailSheet(
         LkSheetDivider()
         Spacer(Modifier.height(LkSpacing.lg))
 
-        LkSheetSectionTitle(title = "Detalhes Técnicos")
+        LkSheetSectionTitle(title = "Detalhes técnicos")
         Spacer(Modifier.height(LkSpacing.md))
         LkSheetInfoRow(label = "Banda", value = espectro.banda)
         LkSheetDivider()
-        LkSheetInfoRow(label = "Sinal Máximo", value = "${dado.maxRssiDbm ?: "—"} dBm")
+        val maxRssi = dado.maxRssiDbm
+        val bandaMaxRssi =
+            when {
+                espectro.banda.contains("5") -> BandaWifi.ghz5
+                espectro.banda.contains("2.4") -> BandaWifi.ghz24
+                else -> BandaWifi.desconhecida
+            }
+        LkSheetInfoRow(
+            label = "Sinal máximo",
+            value =
+                if (maxRssi != null) {
+                    "$maxRssi dBm · ${signalQuality(maxRssi, bandaMaxRssi)}"
+                } else {
+                    "— dBm"
+                },
+        )
     }
 }
 

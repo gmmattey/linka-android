@@ -171,8 +171,8 @@ fun MinhaConexaoSheet(
                 )
             }
 
-            // Seção: Velocidade Contratada
-            MinhaConexaoSectionCard(c = c, title = "Velocidade Contratada") {
+            // Seção: Velocidade contratada
+            MinhaConexaoSectionCard(c = c, title = "Velocidade contratada") {
                 Row(horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
                     OutlinedTextField(
                         value = downMbpsEdit,

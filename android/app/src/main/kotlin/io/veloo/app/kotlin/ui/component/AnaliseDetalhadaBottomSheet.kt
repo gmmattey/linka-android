@@ -190,7 +190,7 @@ private fun AnaliseDetalhadaConteudo(
                 ) {
                     Column(modifier = Modifier.padding(LkSpacing.lg)) {
                         Overline(
-                            texto = state.problemaRelatado?.let { "Diagnóstico — $it" } ?: "Diagnóstico geral",
+                            texto = state.problemaRelatado?.let { "Diagnóstico · $it" } ?: "Diagnóstico geral",
                             color = c.textTertiary,
                         )
                         Spacer(Modifier.height(LkSpacing.sm))
