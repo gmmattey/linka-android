@@ -170,7 +170,13 @@ Nao-negociaveis:
 - Icones Material Symbols (Outlined, variable font), tipo unica Google Sans Flex (fallback Roboto) em todos os estilos, grid 8dp (8 degraus: xs 4 / sm 8 / md 12 / base 16 / lg 20 / xl 24 / xxl 32 / xxxl 40), radius por componente (Card 16px / SheetFrame 28px / Button 20px / Field 12px / Chip-Badge 999px / Dialog 24px), flat (elevacao tonal, sem sombra dura)
 - Superficie SignallQ (IA) e DESCONTINUADA no To-Be -- nao implementar rota/componente novo
 - Copy em PT-BR com voce, sentence case em titulos, UPPERCASE em overlines, SEM emoji -- decisao de produto, nao afetada pelo MD3
-- Metrica crua sempre acompanhada de veredito humano (Excelente/Bom/Regular/Fraco/Forte)
+- Metrica crua sempre acompanhada de veredito humano. Vocabulario canonico e o do motor de
+  diagnostico (`MetricStatus`, `core/diagnostico/MetricClassifier.kt`, decisao de arquitetura ja
+  fechada): **excelente/bom/regular/ruim/critico/inconclusivo**. "Fraco/Forte" e vocabulario
+  proprio das barrinhas de sinal Wi-Fi (SignalBars), nao um padrao geral de veredito de metrica --
+  nao usar fora desse contexto (correcao 2026-07-20, apos auditoria de design encontrar
+  `ResultadoVelocidadeScreen.kt` sem veredito e o texto antigo desta regra divergente do
+  vocabulario ja implementado).
 - Separador inline: ponto medio
 
 Referencia rapida de tokens: `.claude/skills/SignallQ-design/HANDOFF_README.md`.
