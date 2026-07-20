@@ -880,7 +880,10 @@ private fun textoNatUdp(tipo: NatUdpTipo): Pair<String, String> =
     }
 
 /** Cor do chip por estado — tom neutro/informativo, nunca reusa [VerdictTone]. */
-private fun corNatUdp(tipo: NatUdpTipo, c: LkTokens): Color =
+private fun corNatUdp(
+    tipo: NatUdpTipo,
+    c: LkTokens,
+): Color =
     when (tipo) {
         NatUdpTipo.ABERTO -> c.success
         NatUdpTipo.MODERADO -> c.textSecondary
