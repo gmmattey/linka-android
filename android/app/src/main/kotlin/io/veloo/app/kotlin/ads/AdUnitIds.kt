@@ -3,31 +3,49 @@ package io.signallq.app.ads
 /**
  * Ad Unit IDs de anuncio nativo (AdMob) -- issue #555.
  *
- * BLOQUEIO EXTERNO (nao e tarefa de codigo): o Luiz ainda precisa criar o app real no
- * console AdMob e gerar os Ad Unit IDs de producao. Ate la, usamos os IDs de teste
- * publicos do Google (https://developers.google.com/admob/android/test-ads) -- servem
- * anuncio de amostra real (nao clique fantasma, nao view em branco) sem gerar
- * impressao/clique faturavel nem risco de suspensao de conta por trafego invalido.
+ * Conta AdMob real criada pelo Luiz (App ID em producao no AndroidManifest desde
+ * 2026-07-20). Cada slot tem seu proprio bloco de anuncio nativo real no console AdMob,
+ * criado em 2026-07-20 -- granularidade de relatorio por tela, cada Ad Unit ID abaixo
+ * mapeia 1:1 para um bloco.
  *
- * NUNCA usar estes IDs de teste em build de release publicado na Play Store, e NUNCA
- * clicar repetidamente em anuncio de producao durante teste manual (risco de banimento
- * da conta AdMob por trafego invalido).
+ * NUNCA clicar repetidamente em anuncio de producao durante teste manual (risco de
+ * banimento da conta AdMob por trafego invalido).
  */
 object AdUnitIds {
-    /** ID de app AdMob de teste (usado no AndroidManifest ate existir conta real). */
-    const val APPLICATION_ID_TESTE = "ca-app-pub-3940256099942544~3347511713"
+    /** Ad Unit ID real: tela ociosa do Speedtest (bloco "signallq_native_speedtest_idle"). */
+    const val NATIVE_VELOCIDADE = "ca-app-pub-5542349230926522/8560335657"
 
-    /** Ad Unit ID de teste para anuncio nativo avancado (Native Advanced). */
-    const val NATIVE_TESTE = "ca-app-pub-3940256099942544/2247696110"
+    /** Ad Unit ID real: ResultadoVelocidadeScreen (bloco "signallq_native_resultado_velocidade"). */
+    const val NATIVE_RESULTADO = "ca-app-pub-5542349230926522/6784365342"
+
+    /** Ad Unit ID real: tela Dispositivos (bloco "signallq_native_dispositivos"). */
+    const val NATIVE_DISPOSITIVOS = "ca-app-pub-5542349230926522/1723610350"
+
+    /** Ad Unit ID real: tela Historico (bloco "signallq_native_historico"). */
+    const val NATIVE_HISTORICO = "ca-app-pub-5542349230926522/1600055495"
+
+    /** Ad Unit ID real: fluxo de Jogos (bloco "signallq_native_jogos"). */
+    const val NATIVE_JOGOS = "ca-app-pub-5542349230926522/2573657593"
 
     /**
-     * Resolve o Ad Unit ID de anuncio nativo por slot. Por ora todas as 4 telas usam
-     * o mesmo Ad Unit de teste -- quando o Luiz criar a conta real, cada tela pode
-     * ganhar seu proprio Ad Unit ID de producao (granularidade de relatorio por tela),
-     * substituindo aqui sem tocar nas telas que consomem este objeto.
+     * ID de app e Ad Unit ID de teste publicos do Google
+     * (https://developers.google.com/admob/android/test-ads). Nao usados pelo fluxo de
+     * producao -- mantidos so como referencia para debug manual local (ex.: testar
+     * carregamento de anuncio sem gerar impressao/clique faturavel real). Nunca usar
+     * em build de release publicado na Play Store.
      */
+    const val APPLICATION_ID_TESTE = "ca-app-pub-3940256099942544~3347511713"
+
+    /** Ver [APPLICATION_ID_TESTE]. */
+    const val NATIVE_TESTE = "ca-app-pub-3940256099942544/2247696110"
+
+    /** Resolve o Ad Unit ID de anuncio nativo real por slot. */
     fun para(slot: AdSlot): String =
         when (slot) {
-            AdSlot.VELOCIDADE, AdSlot.RESULTADO, AdSlot.DISPOSITIVOS, AdSlot.HISTORICO, AdSlot.JOGOS -> NATIVE_TESTE
+            AdSlot.VELOCIDADE -> NATIVE_VELOCIDADE
+            AdSlot.RESULTADO -> NATIVE_RESULTADO
+            AdSlot.DISPOSITIVOS -> NATIVE_DISPOSITIVOS
+            AdSlot.HISTORICO -> NATIVE_HISTORICO
+            AdSlot.JOGOS -> NATIVE_JOGOS
         }
 }
