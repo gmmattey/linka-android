@@ -710,7 +710,6 @@ private fun LocalDeviceEmptyCard(
             Modifier
                 .fillMaxWidth()
                 .semantics(mergeDescendants = true) {},
-        outlined = true,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -751,7 +750,7 @@ private fun LocalDeviceConectadoContent(
     var detalhesExpandidos by remember { mutableStateOf(false) }
     val statusColor = statusParaCor(state.resumoStatus, c)
 
-    LkSurfaceCard(modifier = Modifier.fillMaxWidth(), outlined = true) {
+    LkSurfaceCard(modifier = Modifier.fillMaxWidth()) {
         // Cabecalho: nome do equipamento + tipo (GH#538, deixa claro se e ONT ou
         // roteador antes de qualquer dado tecnico) + nivel de suporte.
         Row(verticalAlignment = Alignment.CenterVertically) {

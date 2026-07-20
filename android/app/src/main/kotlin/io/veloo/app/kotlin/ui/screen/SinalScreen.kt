@@ -706,7 +706,7 @@ private fun SimCard(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
     ) {
-        LkSurfaceCard(modifier = Modifier.fillMaxWidth(), outlined = true) {
+        LkSurfaceCard(modifier = Modifier.fillMaxWidth()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
@@ -1089,7 +1089,7 @@ private fun MobileDetailCard(
     accent: Color,
     tokens: LkTokens,
 ) {
-    LkSurfaceCard(modifier = Modifier.fillMaxWidth(), outlined = true) {
+    LkSurfaceCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
@@ -1179,7 +1179,7 @@ private fun MobileSnapshotCard(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(LkSpacing.sm),
     ) {
-        LkSurfaceCard(modifier = Modifier.fillMaxWidth(), outlined = true) {
+        LkSurfaceCard(modifier = Modifier.fillMaxWidth()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(LkSpacing.md),
@@ -1724,7 +1724,7 @@ private fun GrupoRedeTree(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(LkRadius.card)),
     ) {
-        LkSurfaceCard(modifier = Modifier.fillMaxWidth(), outlined = true) {
+        LkSurfaceCard(modifier = Modifier.fillMaxWidth()) {
             // Raiz: SSID da rede
             Row(
                 verticalAlignment = Alignment.CenterVertically,
