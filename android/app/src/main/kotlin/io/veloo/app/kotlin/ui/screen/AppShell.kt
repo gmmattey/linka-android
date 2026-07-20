@@ -112,6 +112,10 @@ private enum class Overlay {
 
     // GH#936 — Fase 7: reorganização 6a-6f concluída (ver AjustesScreen.kt).
     Perfil,
+
+    // GH#1201 — nova ferramenta "Sinal WiFi", indicador dinâmico de RSSI/PHY/padrão via
+    // polling manual (ver #1176 do Pro).
+    SinalWifi,
 }
 
 /**
@@ -417,6 +421,10 @@ fun AppShell(
     val onAbrirJogosOverlay: () -> Unit = {
         if (Overlay.Jogos !in overlayStack) overlayStack.add(Overlay.Jogos)
     }
+    // GH#1201 — nova ferramenta "Sinal WiFi" no hub Ferramentas.
+    val onAbrirSinalWifiOverlay: () -> Unit = {
+        if (Overlay.SinalWifi !in overlayStack) overlayStack.add(Overlay.SinalWifi)
+    }
     val onAbrirDnsOverlay: () -> Unit = {
         if (Overlay.Dns !in overlayStack) overlayStack.add(Overlay.Dns)
     }
@@ -656,6 +664,7 @@ fun AppShell(
                             onAbrirLaudo = onAbrirLaudoOverlay,
                             onAbrirMonitoramento = onAbrirMonitoramentoOverlay,
                             onAbrirJogos = onAbrirJogosOverlay,
+                            onAbrirSinalWifi = onAbrirSinalWifiOverlay,
                         )
                 }
             }
@@ -894,6 +903,7 @@ fun AppShell(
                 onAbrirLaudo = onAbrirLaudoOverlay,
                 onAbrirMonitoramento = onAbrirMonitoramentoOverlay,
                 onAbrirJogos = onAbrirJogosOverlay,
+                onAbrirSinalWifi = onAbrirSinalWifiOverlay,
             )
         }
 
@@ -925,6 +935,21 @@ fun AppShell(
                 tipoConexaoAtual = snapshotRede.estadoConexao,
                 wifiLinkSnapshot = snapshotRede.wifiLinkSnapshot,
                 onVoltar = { overlayStack.remove(Overlay.Jogos) },
+            )
+        }
+
+        // GH#1201 — nova ferramenta "Sinal WiFi" (indicador dinâmico de RSSI/PHY/padrão).
+        AnimatedVisibility(
+            visible = Overlay.SinalWifi in overlayStack,
+            modifier = Modifier.zIndex(rememberOverlayZIndex(Overlay.SinalWifi, overlayStack)),
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+        ) {
+            SinalWifiScreen(
+                temPermissaoLocalizacao = temPermissaoLocalizacao,
+                localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
+                onSolicitarPermissaoLocalizacao = onSolicitarPermissaoLocalizacao,
+                onVoltar = { overlayStack.remove(Overlay.SinalWifi) },
             )
         }
 

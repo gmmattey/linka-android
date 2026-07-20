@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.NetworkCheck
+import androidx.compose.material.icons.outlined.NetworkWifi
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -72,6 +73,7 @@ fun FerramentasScreen(
     onAbrirLaudo: () -> Unit = {},
     onAbrirMonitoramento: () -> Unit = {},
     onAbrirJogos: () -> Unit = {},
+    onAbrirSinalWifi: () -> Unit = {},
 ) {
     val c = LocalLkTokens.current
 
@@ -84,6 +86,7 @@ fun FerramentasScreen(
             onAbrirLaudo,
             onAbrirMonitoramento,
             onAbrirJogos,
+            onAbrirSinalWifi,
         ) {
             buildList {
                 add(
@@ -140,6 +143,16 @@ fun FerramentasScreen(
                         titulo = "Jogos",
                         descricao = "Games multiplayer e dicas para PS5, Xbox e PC",
                         onClick = onAbrirJogos,
+                    ),
+                )
+                // GH#1201 — nova ferramenta "Sinal WiFi": indicador dinâmico de RSSI/PHY/padrão
+                // via polling manual (versão contida do Walk Test do SignallQ Pro, ver #1176).
+                add(
+                    FerramentaItem(
+                        icon = Icons.Outlined.NetworkWifi,
+                        titulo = "Sinal WiFi",
+                        descricao = "Veja o sinal, a velocidade e o padrão Wi-Fi em tempo real",
+                        onClick = onAbrirSinalWifi,
                     ),
                 )
             }
