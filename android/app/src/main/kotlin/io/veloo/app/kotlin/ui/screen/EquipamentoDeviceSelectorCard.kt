@@ -88,7 +88,7 @@ internal fun DeviceSelectorCard(
     var expandido by remember { mutableStateOf(false) }
     val selecionado = paineis.first { it.id == selecionadoId }
 
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
         LkSectionOverline(text = "Equipamento")
         OutlinedButton(
             onClick = { expandido = !expandido },
@@ -96,7 +96,7 @@ internal fun DeviceSelectorCard(
             shape = RoundedCornerShape(LkRadius.input),
         ) {
             Text(
-                text = "${selecionado.vendor} ${selecionado.modelo} — ${selecionado.papel}",
+                text = "${selecionado.vendor} ${selecionado.modelo} · ${selecionado.papel}",
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Start,
                 color = c.textPrimary,
@@ -124,18 +124,18 @@ internal fun DeviceSelectorCard(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .background(if (ativo) c.secondaryContainer else c.surfaceContainerLow)
+                                .background(if (ativo) c.primaryContainer else c.surfaceContainerLow)
                                 .clickable {
                                     onSelecionar(painel.id)
                                     expandido = false
-                                }.padding(horizontal = 14.dp, vertical = 12.dp),
+                                }.padding(horizontal = LkSpacing.base, vertical = LkSpacing.md),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "${painel.vendor} ${painel.modelo} — ${painel.papel}",
+                            text = "${painel.vendor} ${painel.modelo} · ${painel.papel}",
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (ativo) c.onSecondaryContainer else c.textPrimary,
+                            color = if (ativo) c.onPrimaryContainer else c.textPrimary,
                         )
                     }
                     if (index < paineis.lastIndex) {

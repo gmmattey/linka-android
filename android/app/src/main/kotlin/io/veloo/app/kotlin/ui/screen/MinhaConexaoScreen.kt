@@ -281,9 +281,9 @@ private fun MinhaConexaoSugestaoChip(
     Box(
         modifier =
             Modifier
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(LkRadius.pill))
                 .background(c.primary.copy(alpha = 0.14f))
-                .border(1.dp, c.primary.copy(alpha = 0.30f), RoundedCornerShape(8.dp))
+                .border(1.dp, c.primary.copy(alpha = 0.30f), RoundedCornerShape(LkRadius.pill))
                 .semantics { role = Role.Button }
                 .clickable(onClick = onClick)
                 .padding(horizontal = LkSpacing.md, vertical = LkSpacing.xs),

@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
 
@@ -120,7 +121,7 @@ internal fun PreferenciasSheet(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = fieldColors,
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(LkRadius.input),
             )
             if (limiteInput.isBlank()) {
                 Text(

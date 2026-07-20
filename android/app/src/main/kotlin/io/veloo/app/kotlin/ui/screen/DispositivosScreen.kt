@@ -656,7 +656,7 @@ private fun DeviceDetailSheet(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = fieldColors,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(LkRadius.input),
                     )
                     Spacer(Modifier.height(LkSpacing.sm))
                     Button(
@@ -848,7 +848,7 @@ fun MeshApSheet(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = fieldColors,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(LkRadius.input),
                     )
                     Spacer(Modifier.height(LkSpacing.sm))
                     Button(

@@ -519,7 +519,7 @@ private fun DnsBloco4Guia(
         Row(
             modifier =
                 Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(LkRadius.input))
                     .clickable { onAbrirGuiaCompleto() }
                     .padding(vertical = LkSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
