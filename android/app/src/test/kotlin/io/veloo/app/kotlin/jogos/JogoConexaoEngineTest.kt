@@ -2,6 +2,8 @@ package io.signallq.app.jogos
 
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.WifiLinkSnapshot
+import io.signallq.app.feature.diagnostico.topology.lan.NatUdpResultado
+import io.signallq.app.feature.diagnostico.topology.lan.NatUdpTipo
 import io.signallq.app.feature.speedtest.PingResultado
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -145,5 +147,41 @@ class JogoConexaoEngineTest {
             )
         assertFalse(resultado.avisos.any { it.contains("ping real", ignoreCase = true) })
         assertTrue(resultado.avisos.any { it.contains("estimativa", ignoreCase = true) })
+    }
+
+    @Test
+    fun `natUdpResultado chega intacto em ResultadoTesteJogo sem afetar nivel avisos ou recomendacoes`() {
+        // Metricas perfeitas -- nivel esperado EXCELENTE independente do NAT.
+        val medicao = PingResultado(latenciaMs = 20.0, jitterMs = 2.0, perdaPercentual = 0.0, amostras = 24)
+        val natUdp = NatUdpResultado(NatUdpTipo.RESTRITO)
+
+        val resultado =
+            JogoConexaoEngine.avaliar(
+                jogo = fortnite,
+                plataforma = Plataforma.PC,
+                medicao = medicao,
+                tipoConexaoAtual = EstadoConexao.wifi,
+                wifiLinkSnapshot = null,
+                natUdpResultado = natUdp,
+            )
+
+        assertEquals(natUdp, resultado.natUdp)
+        assertEquals(NivelResultado.EXCELENTE, resultado.nivel)
+        assertFalse(resultado.avisos.any { it.contains("NAT", ignoreCase = true) })
+        assertFalse(resultado.recomendacoes.any { it.contains("NAT", ignoreCase = true) })
+    }
+
+    @Test
+    fun `natUdpResultado nulo por padrao quando nao informado`() {
+        val medicao = PingResultado(latenciaMs = 20.0, jitterMs = 2.0, perdaPercentual = 0.0, amostras = 24)
+        val resultado =
+            JogoConexaoEngine.avaliar(
+                jogo = fortnite,
+                plataforma = Plataforma.PC,
+                medicao = medicao,
+                tipoConexaoAtual = EstadoConexao.wifi,
+                wifiLinkSnapshot = null,
+            )
+        assertEquals(null, resultado.natUdp)
     }
 }

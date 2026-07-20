@@ -2,6 +2,7 @@ package io.signallq.app.jogos
 
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.WifiLinkSnapshot
+import io.signallq.app.feature.diagnostico.topology.lan.NatUdpResultado
 import io.signallq.app.feature.speedtest.PingResultado
 
 /** Nivel final do teste — mesmos 4 estados do spec (Excelente/Boa/Atencao/Ruim), rotulos
@@ -23,6 +24,7 @@ data class ResultadoTesteJogo(
     val tipoConexaoAtual: EstadoConexao,
     val avisos: List<String>,
     val recomendacoes: List<String>,
+    val natUdp: NatUdpResultado? = null,
 )
 
 /**
@@ -45,6 +47,11 @@ data class ResultadoTesteJogo(
  * saturacao de banda). Recomendacao de bufferbloat so aparece se um valor for
  * explicitamente fornecido (fica pronta pra quando/se o app plugar uma leitura real) —
  * limitação documentada na issue #935.
+ *
+ * `natUdp` (issue #1200, [io.signallq.app.feature.diagnostico.topology.lan.StunNatProbe])
+ * e um campo informativo isolado — NAO entra em `avisos`/`recomendacoes` nem influencia
+ * `nivel`, mesmo principio "NAT nunca rebaixa o veredito sozinho" ja usado em
+ * [io.signallq.app.core.diagnostico.GameReadinessClassifier.evidenciaNat].
  */
 object JogoConexaoEngine {
     fun avaliar(
@@ -54,6 +61,7 @@ object JogoConexaoEngine {
         tipoConexaoAtual: EstadoConexao,
         wifiLinkSnapshot: WifiLinkSnapshot?,
         bufferbloatMs: Double? = null,
+        natUdpResultado: NatUdpResultado? = null,
     ): ResultadoTesteJogo {
         val thresholds = jogo.perfil.thresholds()
 
@@ -90,6 +98,7 @@ object JogoConexaoEngine {
                     tipoConexaoAtual = tipoConexaoAtual,
                     bufferbloatMs = bufferbloatMs,
                 ),
+            natUdp = natUdpResultado,
         )
     }
 
