@@ -270,6 +270,22 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // GH#1265 — onStart() confere `viewModel.onboardingConcluido.value == true` de
+            // forma SINCRONA, mas esse StateFlow comeca em `null` (#895) ate o DataStore emitir
+            // o valor real (assincrono, so apos o primeiro coletor inscrever). Numa cold-start
+            // genuina (processo recem-criado pelo SO, nao so reativado do background) o onStart()
+            // roda antes desse valor real chegar -- reproduzido em device/emulador: o card
+            // "Caminho da sua internet" ficava preso em "Buscando.../Conectando..." indefinidamente
+            // (nao so mais lento), porque `iniciarRotinasNaoSpeedtest()` nunca era chamado por
+            // nenhum dos 3 gatilhos (onStart, callback de permissao do onboarding, termino de
+            // speedtest). Este efeito reage ao MESMO valor de `onboardingConcluido` (coletado
+            // acima via collectAsStateWithLifecycle) assim que ele chega a `true` de verdade --
+            // seguro chamar de novo mesmo se onStart() ja tiver disparado, pois cada rotina
+            // interna ja tem guard proprio (scannerDispositivosDisparado, ispInfoColetada etc).
+            LaunchedEffect(onboardingConcluido) {
+                if (onboardingConcluido == true) viewModel.iniciarRotinasNaoSpeedtest()
+            }
+
             val connectedBssid = snapshotRede.wifiLinkSnapshot?.bssid
             val connectedNetwork =
                 if (connectedBssid != null) {
