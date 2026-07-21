@@ -140,7 +140,9 @@ o prompt antigo porque o deploy nunca tinha sido confirmado de fato.
 
 ## Regra de WIP — OBRIGATÓRIA
 
-Rhodolfo executa no máximo 1 review/entrega ativa por vez. Se houver review em progresso, a próxima task vai para `.claude/tasks/queue/rhodolfo/`.
+Rhodolfo executa no máximo 1 review/entrega ativa por vez. Na prática (não existe diretório
+`.claude/tasks/queue/` no repo — dispatch real é via tool `Agent` em background, retomado por
+`SendMessage`): Claudete segura review nova pro Rhodolfo até a atual fechar/pausar/liberar.
 
 ## Escalada de modelo
 

@@ -33,7 +33,7 @@ pequeno, seguro e relacionado à tarefa, ou registrá-lo em uma issue quando amp
 - Estrutura: **monorepo** — `android/` (Kotlin), `integrations/` (Cloudflare), `SignallQ Admin/` (Console), `SignallQ Site/` (site institucional), `scripts/`, `docs_ai/`.
 - Package/applicationId/namespace: **`io.signallq.app`** -- identificador tecnico, **NAO renomear jamais** (quebra Firebase/assinatura). Renomeado de `io.veloo.app` em 2026-06-28 (antes de qualquer publicacao na Play Store).
 - Marca anterior: Linka -> Veloo -> **SignallQ** (rebrand em 0.16.0).
-- Versao atual: **0.26.0** (versionCode 62), em `android/gradle/libs.versions.toml`. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
+- Versao atual: **0.29.0** (versionCode 65), em `android/gradle/libs.versions.toml` -- confirmar sempre nesse arquivo antes de citar, muda a cada release. minSdk 24, targetSdk 36, compileSdk 37, JVM 17.
 - **Android Stack**: Kotlin, Jetpack Compose, Hilt, Room, DataStore, WorkManager.
 - 16 modulos Gradle: `app` + core(6): `coreNetwork`, `coreDatabase`, `coreDatastore`, `coreTelephony`, `corePermissions`, `coreRecommendation` + feature(9): `featureHome`, `featureSpeedtest`, `featureWifi`, `featureDevices`, `featureDns`, `featureFibra`, `featureDiagnostico`, `featureHistory`, `featureSettings`.
 - `coreRecommendation` (issue #790): Recommendation Engine desacoplado do motor de diagnostico — engine deterministica que ranqueia recomendacoes (`free_tip`/`tutorial`/`configuration`/`affiliate_product`/`partner_offer`/`operator_offer`/`native_ad_fallback`) por tags de diagnostico, com cooldown/frequencia e contrato de analytics. Ja integrado a UI via `RecommendationEngineCard` em `ResultadoVelocidadeScreen.kt` (GH#813) — nao integrado a AdMob/afiliados reais ainda. Nao confundir com o `RecommendationEngine` de `featureDiagnostico` (gera as 14 regras (REC-01..REC-14) de dicas praticas do diagnostico local, sem monetizacao/catalogo).
@@ -54,13 +54,13 @@ A squad opera **tres produtos** sob o **mesmo fluxo de trabalho** (piloto automa
 
 | Produto | Estado | Stack / identificador | Design (fonte) | Release |
 |---|---|---|---|---|
-| **SignallQ** (consumer) | **ATUAL** -- 0.26.0/vc62, 16 modulos | Kotlin/Compose/M3, `io.signallq.app`, primary violeta `#5B21D6` / secondary azul `#2851B8` | skill `/SignallQ-design`; projeto Claude Design `2d25d7a1-…` | `consumer/android/vX.Y.Z` -> Play (internal->alpha…) |
-| **SignallQ Pro** | **EM ANDAMENTO** -- `android/pro/` ja existe em codigo (94 arquivos `.kt`, Fase 0/1 do MVP0 mergeadas via PR #1159/#1157), telas navegaveis (Painel, Atendimento, NovaVisita, Laudo etc.) | Kotlin/Compose/M3, `io.signallq.pro`, Firebase/Play proprios, identidade **azul `#0B6CFF`** (marca) + ciano `#006B76` + roxo `#6558E8` de apoio, 2 temas oficiais | skill `/signallq-pro-design`; projeto Claude Design `77a19317-…` (fonte visual viva); `docs_ai/plataforma/08..11_*`, `13_SignallQ_Pro_Arquitetura_e_Reaproveitamento_v1.md` | `pro/android/vX.Y.Z` (futuro) |
+| **SignallQ** (consumer) | **ATUAL** -- versao real em `libs.versions.toml` (ver Identidade acima, muda a cada release), 16 modulos | Kotlin/Compose/M3, `io.signallq.app`, primary violeta `#5B21D6` / secondary azul `#2851B8` | skill `/SignallQ-design`; projeto Claude Design `2d25d7a1-…` | `consumer/android/vX.Y.Z` -> Play (internal->alpha…) |
+| **SignallQ Pro** | **EM ANDAMENTO** -- `android/pro/` com codigo real e em crescimento continuo (112+ arquivos `.kt` em 2026-07-21, Fases 0-3 do MVP0 mergeadas: design system, persistencia, auth, cliente, visita, ambiente, medicao-diagnostico, laudo -- ver `android/settings.gradle.kts` pros modulos reais e issues #1157/#1159/#1161/#1164 pro historico), telas navegaveis (Painel, Atendimento, NovaVisita, Laudo etc.) | Kotlin/Compose/M3, `io.signallq.pro`, Firebase/Play proprios, identidade **azul `#0B6CFF`** (marca) + ciano `#006B76` + roxo `#6558E8` de apoio, 2 temas oficiais | skill `/signallq-pro-design`; projeto Claude Design `77a19317-…` (fonte visual viva); `docs_ai/plataforma/08..11_*`, `13_SignallQ_Pro_Arquitetura_e_Reaproveitamento_v1.md` | `pro/android/vX.Y.Z` (futuro) |
 | **SignallQ Admin** (Console) | **ATUAL** -- React 19/Vite 6/TS 5.8/Tailwind 4 | `SignallQ Admin/` + `signallq-admin-worker` (backend); 13 tabelas D1 reais; 5 workers Cloudflare | design da Lia (Claude Design); `docs_ai/plataforma/07_*` | Cloudflare Pages / ambiente protegido |
 | **SignallQ Site** (institucional) | **ATUAL** -- React 19/Vite 6/TS 5.8/Tailwind 4 | `SignallQ Site/`; teste de velocidade real (Cloudflare `__down`/`__up`), historico local (IndexedDB), Pages Function de telemetria (`functions/api/track.ts` -> `signallq-admin-worker`) | design da Lia (protótipo Claude Design, projeto `e77ea465-…`); ver `SignallQ Site/CLAUDE.md` | Cloudflare Pages, projeto `signallq` (signallq.pages.dev) |
 
 Nao-negociaveis por produto:
-- **SignallQ Pro ja tem codigo real (Fase 0/1 do MVP0, `android/pro/`, PR #1159/#1157) -- mas qualquer ampliacao de escopo alem do que ja foi aprovado (novas fases do MVP0, MVP1, mudanca arquitetural) continua exigindo instrucao explicita do Luiz** (regra original de 2026-07-18, escopo do "ja existe" atualizado em 2026-07-19). Nao presumir autonomia total so porque o app deixou de ser so spec/design.
+- **SignallQ Pro ja tem codigo real e substancial (Fases 0-3 do MVP0, `android/pro/`, 112+ arquivos -- NAO e mais "so spec/design", ver linha da tabela acima) -- mas qualquer ampliacao de escopo alem do que ja foi aprovado (novas fases do MVP0, MVP1, mudanca arquitetural) continua exigindo instrucao explicita do Luiz** (regra original de 2026-07-18, escopo do "ja existe" atualizado em 2026-07-19, confirmado ainda vigente em 2026-07-21 apos auditoria). Corrigir qualquer persona/doc que ainda diga "Pro sem codigo Android" -- e um erro factual desatualizado, nao mais o estado real.
 - **Nunca misturar marca/paleta entre produtos:** consumer e violeta (`#5B21D6`); Pro e azul (`#0B6CFF`, com ciano `#006B76` e roxo `#6558E8` de apoio). `#6C2BFF` e a antiga paleta teal-dominante do Pro (`#006B73` como primary) estao **mortos**. Paleta do Pro evolui no projeto Claude Design `77a19317` -- fonte da verdade visual, reler antes de desenhar.
 - **Release e identidade sao separados por produto** (applicationId, Firebase, Play listing, tag, canal). Uma mudanca num produto nao incrementa versao de outro.
 - **SignallQ Nethal** e alvo de plataforma, mas hoje vive em **repo separado** (`gmmattey/nethal`) com **squad propria** -- fora do escopo desta squad; so entra aqui quando/se for internalizado no monorepo-alvo.
@@ -511,10 +511,17 @@ Rotinas que NAO devem existir: email diario, automacao Slack fora do GitHub, das
 
 ## Contexto Tecnico
 
-> Estado do codigo -- atualizado em 2026-07-05 (v0.23.0).
+> **Desatualizado (snapshot de 2026-07-05, v0.23.0) -- nao confiar na contagem abaixo.** O
+> volume de PRs desde entao (rebrand, redesign MD3, motor de topologia, Pro Fases 0-3, lote de
+> bugs P0 de 2026-07-20) tornou qualquer numero fixo obsoleto rapido. Pra contagem real, rodar
+> `find android -path "*/src/test/*" -name "*Test.kt" | wc -l` (ou equivalente) em vez de citar
+> um numero desta secao.
 
 **Testes**
-- ~66 arquivos de teste unitario. JUnit4 + Robolectric + coroutines-test + room-testing em `android/*/src/test/`. 3 androidTest de Room/DAO. Rodar: `.\android\gradlew.bat test`.
+- JUnit4 + Robolectric + coroutines-test + room-testing em `android/*/src/test/`. androidTest de Room/DAO tambem existem. Rodar: `.\android\gradlew.bat test`.
+- 16 modulos do consumer (ver "Identidade") + `:core:diagnostico`/`:core:relatorio` (compartilhados
+  com o Pro, ver `android/settings.gradle.kts`) + 11 modulos proprios do `:pro:*` -- nao presumir
+  que "16 modulos" cobre o monorepo inteiro, e so o escopo consumer.
 
 **Documentacao**
 - Doc viva em `docs_ai/` (ai/, design-system/, functional/, operations/, technical/). Obsoleto em `docs/_archive/` e `docs_ai/_archive/`. Indice: `docs_ai/README.md`.
