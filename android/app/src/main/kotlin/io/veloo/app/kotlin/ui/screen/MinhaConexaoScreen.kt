@@ -29,6 +29,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.signallq.app.feature.settings.ValidadorCidadeUf
+import io.signallq.app.feature.settings.ValidadorVelocidadeContratada
 import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
@@ -83,33 +86,87 @@ private val ESTADOS_BRASILEIROS =
     )
 
 /**
+ * GH#1249 (recorte de #1227, item C) — banner mostrado quando o provedor detectado nesta rede
+ * diverge do salvo E o usuário já confirmou o valor salvo explicitamente antes (senão a
+ * sobrescrita é silenciosa, sem banner nenhum — ver [io.signallq.app.feature.settings.DetectorDivergenciaPerfilConexao]).
+ */
+@Composable
+fun MinhaConexaoDivergenciaBanner(
+    c: LkTokens,
+    provedorDetectado: String,
+    onUsarDetectado: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(LkRadius.card))
+                .background(c.primary.copy(alpha = 0.08f))
+                .padding(LkSpacing.md),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "Detectamos $provedorDetectado nesta rede.",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.W600,
+                color = c.textPrimary,
+            )
+            Text(
+                "Usar este provedor?",
+                style = MaterialTheme.typography.bodySmall,
+                color = c.textSecondary,
+            )
+        }
+        TextButton(onClick = onUsarDetectado) {
+            Text("Usar", color = c.primary, fontWeight = FontWeight.W600)
+        }
+    }
+}
+
+/**
  * Sheet de edicao de "Minha conexao" -- unificado com o mesmo padrao de bottom sheet
  * usado por PerfilEditSheet (drag handle + Column com scroll), em vez de tela cheia
  * separada. Poucos campos (operadora, velocidade, localizacao) cabem bem em sheet.
+ *
+ * GH#1249 (recorte de #1227) — `estadoUf`/`cidadeNome`/velocidades agora nullable (campo vazio
+ * é estado explícito de "sem dado", nunca mais `0`/string vazia tratados como preenchidos), com
+ * validação inline via [ValidadorVelocidadeContratada]/[ValidadorCidadeUf] — "Salvar" fica
+ * desabilitado enquanto houver erro.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MinhaConexaoSheet(
-    operadora: String,
-    estadoUf: String,
-    cidadeNome: String,
-    velocidadeContratadaDownMbps: Int,
-    velocidadeContratadaUpMbps: Int,
+    operadora: String?,
+    estadoUf: String?,
+    cidadeNome: String?,
+    velocidadeContratadaDownMbps: Int?,
+    velocidadeContratadaUpMbps: Int?,
     operadoraAutodetectada: String?,
-    onSalvar: (operadora: String, estadoUf: String, cidadeNome: String, downMbps: Int, upMbps: Int) -> Unit,
+    onSalvar: (operadora: String?, estadoUf: String?, cidadeNome: String?, downMbps: Int?, upMbps: Int?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val c = LocalLkTokens.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var operadoraEdit by remember(operadora) { mutableStateOf(operadora) }
-    var estadoUfEdit by remember(estadoUf) { mutableStateOf(estadoUf) }
-    var cidadeEdit by remember(cidadeNome) { mutableStateOf(cidadeNome) }
+    var operadoraEdit by remember(operadora) { mutableStateOf(operadora.orEmpty()) }
+    var estadoUfEdit by remember(estadoUf) { mutableStateOf(estadoUf.orEmpty()) }
+    var cidadeEdit by remember(cidadeNome) { mutableStateOf(cidadeNome.orEmpty()) }
     var downMbpsEdit by remember(velocidadeContratadaDownMbps) {
-        mutableStateOf(if (velocidadeContratadaDownMbps > 0) velocidadeContratadaDownMbps.toString() else "")
+        mutableStateOf(velocidadeContratadaDownMbps?.toString().orEmpty())
     }
     var upMbpsEdit by remember(velocidadeContratadaUpMbps) {
-        mutableStateOf(if (velocidadeContratadaUpMbps > 0) velocidadeContratadaUpMbps.toString() else "")
+        mutableStateOf(velocidadeContratadaUpMbps?.toString().orEmpty())
     }
+
+    // GH#1249 -- validação inline. Campo vazio é sempre válido (null); só valida quando há valor.
+    val downMbpsValor = downMbpsEdit.toIntOrNull()
+    val upMbpsValor = upMbpsEdit.toIntOrNull()
+    val downMbpsErro = !ValidadorVelocidadeContratada.ehValida(downMbpsValor)
+    val upMbpsErro = !ValidadorVelocidadeContratada.ehValida(upMbpsValor)
+    val cidadeUfErro = !ValidadorCidadeUf.ehCombinacaoValida(cidadeEdit, estadoUfEdit)
+    val formularioValido = !downMbpsErro && !upMbpsErro && !cidadeUfErro
+
     val fieldColors =
         OutlinedTextFieldDefaults.colors(
             focusedBorderColor = c.primary,
@@ -117,6 +174,16 @@ fun MinhaConexaoSheet(
             focusedLabelColor = c.primary,
             unfocusedLabelColor = c.textSecondary,
             cursorColor = c.primary,
+            focusedTextColor = c.textPrimary,
+            unfocusedTextColor = c.textPrimary,
+        )
+    val fieldColorsErro =
+        OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = c.error,
+            unfocusedBorderColor = c.error,
+            focusedLabelColor = c.error,
+            unfocusedLabelColor = c.error,
+            cursorColor = c.error,
             focusedTextColor = c.textPrimary,
             unfocusedTextColor = c.textPrimary,
         )
@@ -174,26 +241,48 @@ fun MinhaConexaoSheet(
             // Seção: Velocidade contratada
             MinhaConexaoSectionCard(c = c, title = "Velocidade contratada") {
                 Row(horizontalArrangement = Arrangement.spacedBy(LkSpacing.sm)) {
-                    OutlinedTextField(
-                        value = downMbpsEdit,
-                        onValueChange = { downMbpsEdit = it.filter { ch -> ch.isDigit() } },
-                        label = { Text("Download (Mbps)") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = fieldColors,
-                        singleLine = true,
-                        shape = RoundedCornerShape(LkRadius.input),
-                    )
-                    OutlinedTextField(
-                        value = upMbpsEdit,
-                        onValueChange = { upMbpsEdit = it.filter { ch -> ch.isDigit() } },
-                        label = { Text("Upload (Mbps)") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = fieldColors,
-                        singleLine = true,
-                        shape = RoundedCornerShape(LkRadius.input),
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        OutlinedTextField(
+                            value = downMbpsEdit,
+                            onValueChange = { downMbpsEdit = it.filter { ch -> ch.isDigit() } },
+                            label = { Text("Download (Mbps)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = if (downMbpsErro) fieldColorsErro else fieldColors,
+                            isError = downMbpsErro,
+                            singleLine = true,
+                            shape = RoundedCornerShape(LkRadius.input),
+                        )
+                        if (downMbpsErro) {
+                            Text(
+                                "Informe um valor entre 1 e ${ValidadorVelocidadeContratada.LIMITE_SUPERIOR_MBPS} Mbps",
+                                color = c.error,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(top = 2.dp, start = 4.dp),
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        OutlinedTextField(
+                            value = upMbpsEdit,
+                            onValueChange = { upMbpsEdit = it.filter { ch -> ch.isDigit() } },
+                            label = { Text("Upload (Mbps)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = if (upMbpsErro) fieldColorsErro else fieldColors,
+                            isError = upMbpsErro,
+                            singleLine = true,
+                            shape = RoundedCornerShape(LkRadius.input),
+                        )
+                        if (upMbpsErro) {
+                            Text(
+                                "Informe um valor entre 1 e ${ValidadorVelocidadeContratada.LIMITE_SUPERIOR_MBPS} Mbps",
+                                color = c.error,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(top = 2.dp, start = 4.dp),
+                            )
+                        }
+                    }
                 }
             }
 
@@ -210,21 +299,31 @@ fun MinhaConexaoSheet(
                     onValueChange = { cidadeEdit = it },
                     label = { Text("Cidade") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = fieldColors,
+                    colors = if (cidadeUfErro) fieldColorsErro else fieldColors,
+                    isError = cidadeUfErro,
                     singleLine = true,
                     shape = RoundedCornerShape(LkRadius.input),
                 )
+                if (cidadeUfErro) {
+                    Text(
+                        "Informe cidade e UF juntas, ou deixe as duas em branco",
+                        color = c.error,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(top = 2.dp, start = 4.dp),
+                    )
+                }
             }
 
             // Botão Salvar
             Button(
+                enabled = formularioValido,
                 onClick = {
                     onSalvar(
-                        operadoraEdit.trim(),
-                        estadoUfEdit,
-                        cidadeEdit.trim(),
-                        downMbpsEdit.toIntOrNull() ?: 0,
-                        upMbpsEdit.toIntOrNull() ?: 0,
+                        operadoraEdit.trim().takeIf { it.isNotBlank() },
+                        estadoUfEdit.takeIf { it.isNotBlank() },
+                        cidadeEdit.trim().takeIf { it.isNotBlank() },
+                        downMbpsValor,
+                        upMbpsValor,
                     )
                     onDismiss()
                 },

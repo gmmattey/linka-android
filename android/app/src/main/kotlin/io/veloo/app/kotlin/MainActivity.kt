@@ -202,10 +202,10 @@ class MainActivity : ComponentActivity() {
             val operadora = perfilProvedor.operadora
             val planoInternet = perfilProvedor.planoInternet
             val regiao = perfilProvedor.regiao
-            val estadoUf = perfilProvedor.estadoUf
-            val cidadeNome = perfilProvedor.cidadeNome
-            val ispConfirmado = perfilProvedor.ispConfirmado
             val limiteAlertaMbps = perfilProvedor.limiteAlertaMbps
+            // GH#1249 -- perfil de conexao por rede (substitui estadoUf/cidadeNome/
+            // velocidadeContratadaDown-UpMbps/ispConfirmado globais na tela de Ajustes).
+            val connectionProfileAtual = viewModel.connectionProfileAtual.collectAsStateWithLifecycle().value
 
             val speedtestMovel = viewModel.preferenciasSpeedtestMovel.collectAsStateWithLifecycle().value
             val speedtestPermiteHeavyMovel = speedtestMovel.permiteHeavy
@@ -394,9 +394,10 @@ class MainActivity : ComponentActivity() {
                         operadora = operadora,
                         planoInternet = planoInternet,
                         regiao = regiao,
-                        estadoUf = estadoUf,
-                        cidadeNome = cidadeNome,
-                        ispConfirmado = ispConfirmado,
+                        connectionProfileAtual = connectionProfileAtual,
+                        onSalvarConnectionProfile = { providerFixed, down, up, cidade, uf, userConfirmed ->
+                            viewModel.salvarConnectionProfileAtual(providerFixed, down, up, cidade, uf, userConfirmed)
+                        },
                         limiteAlertaMbps = limiteAlertaMbps,
                         dnsResolverIp = snapshotRede.dnsServidores.firstOrNull(),
                         historico = historico,
@@ -460,10 +461,6 @@ class MainActivity : ComponentActivity() {
                         onDefinirNotificacaoRssiAtiva = { viewModel.definirNotificacaoRssiAtiva(it) },
                         onDefinirNotificacaoSemInternetAtiva = { viewModel.definirNotificacaoSemInternetAtiva(it) },
                         onSalvarPerfil = { nome, fotoUri -> viewModel.salvarPerfil(nome, fotoUri) },
-                        onSalvarDadosProvedor = { op, plano, reg -> viewModel.salvarDadosProvedor(op, plano, reg) },
-                        onSalvarEstadoCidade = { uf, cidade -> viewModel.salvarEstadoCidade(uf, cidade) },
-                        onConfirmarIsp = { op -> viewModel.confirmarIspDetectado(op) },
-                        onDispensarBannerIsp = { viewModel.dispensarBannerIsp() },
                         onSalvarLimiteAlerta = { limite -> viewModel.salvarLimiteAlerta(limite) },
                         movelSnapshot = movelSnapshot,
                         simsAtivos = simsAtivos,
@@ -472,16 +469,6 @@ class MainActivity : ComponentActivity() {
                         temPermissaoLocalizacao = temPermissaoLocalizacao,
                         localizacaoBloqueadaPermanentemente = localizacaoBloqueadaPermanentemente,
                         onSolicitarPermissaoLocalizacao = { solicitarPermissaoLocalizacaoContextual() },
-                        velocidadeContratadaDownMbps = perfilProvedor.velocidadeContratadaDownMbps,
-                        velocidadeContratadaUpMbps = perfilProvedor.velocidadeContratadaUpMbps,
-                        onSalvarVelocidadeContratada = { down, up ->
-                            viewModel.salvarVelocidadeContratada(down, up)
-                        },
-                        onSalvarConexaoDadosCompletos = { op, uf, cidade, down, up ->
-                            viewModel.salvarDadosProvedor(op, "", "")
-                            viewModel.salvarEstadoCidade(uf, cidade)
-                            viewModel.salvarVelocidadeContratada(down, up)
-                        },
                         anatelBannerDismissed = anatelBannerDismissed,
                         onDispensarBannerAnatel = { viewModel.dispensarBannerAnatel() },
                         historicoFiltrado = historicoFiltrado,

@@ -155,6 +155,24 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
   físico acontecer — não removido, só desligado (#1213, este item fecha; validação de reboot em
   hardware físico do G-1425G-B continua não realizada nesta sessão e não deve ser considerada
   fechada — ver comentário na issue)
+- Ajustes ("Minha conexão"): provedor fixo, plano contratado (download/upload) e cidade/UF
+  deixam de viver em chaves DataStore globais e passam a ser um `ConnectionProfilePersistido`
+  por rede (`networkId` via BSSID/SSID em Wi-Fi, operadora do SIM ativo em rede móvel) — trocar
+  de rede não perde nem mistura mais o cadastro de outra rede, com migração automática do valor
+  legado global só na primeira vez que nenhum perfil existir. Divergência entre provedor salvo e
+  detectado nesta rede passa a ser tratada de verdade: sobrescrita silenciosa quando o usuário
+  nunca confirmou o valor salvo, banner "Detectamos [provedor]. Usar este provedor?" quando
+  confirmou explicitamente antes — nunca mais descarta uma escolha deliberada sem avisar. "Plano
+  contratado" passa a exibir download E upload (antes só download aparecia mesmo com os dois
+  cadastrados). Velocidade contratada ganha validação inline (rejeita zero/negativo/valores
+  absurdos, aceita preenchimento parcial como null explícito, nunca mais `0` ambíguo); cidade e
+  UF não podem mais ser salvas em combinação inválida (uma preenchida sem a outra) sem aviso —
+  validação geográfica completa (cidade pertence à UF) fica pra quando houver um catálogo real
+  (IBGE), fora de escopo desta rodada. Removido código órfão adjacente: banner de confirmação de
+  ISP autodetectado (`ispDetectado`/`ispConfirmado`/`onConfirmarIsp`/`onDispensarBannerIsp`) e o
+  callback duplicado `onSalvarConexaoDadosCompletos` nunca tinham consumidor real — substituídos
+  pelo banner de divergência, que de fato funciona (#1249, recorte de #1227; UI de "Permissões e
+  acesso"/"Privacidade e anúncios"/"Suporte e sobre" seguem em issues própria — #1252)
 
 ### Investigado (sem mudança de código shipada)
 - Gate de QA visual (#1245): tentativa de resolver via Paparazzi (screenshot testing headless)

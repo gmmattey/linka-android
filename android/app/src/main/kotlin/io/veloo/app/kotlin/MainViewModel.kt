@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.signallq.app.core.database.ApelidoDispositivoEntity
 import io.signallq.app.core.database.MedicaoEntity
 import io.signallq.app.core.database.SignallQDatabase
+import io.signallq.app.core.datastore.ConnectionProfilePersistido
 import io.signallq.app.core.datastore.PreferenciasAppRepository
 import io.signallq.app.core.diagnostico.ConnectionType
 import io.signallq.app.core.diagnostico.DiagnosticInput
@@ -90,7 +91,9 @@ import io.signallq.app.ui.GatewayInfo
 import io.signallq.app.ui.HistoryPoint
 import io.signallq.app.ui.IspInfo
 import io.signallq.app.ui.screen.AnalisadorState
+import io.signallq.app.ui.screen.resolverNetworkIdAtual
 import io.signallq.app.ui.state.UiState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -102,6 +105,8 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -113,6 +118,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+import io.signallq.app.ui.ConnectionType as UiConnectionType
 
 @HiltViewModel
 class MainViewModel
@@ -481,6 +487,91 @@ class MainViewModel
                     SharingStarted.WhileSubscribed(5_000),
                     PreferenciasPerfilProvedorUiState(),
                 )
+        }
+
+        // GH#1249 (recorte de #1227) — "Minha conexao" em Ajustes passa a ler/gravar um
+        // ConnectionProfilePersistido por rede (core/datastore) em vez das chaves DataStore
+        // globais acima (operadora/velocidadeContratadaDown-UpMbps/estadoUf/cidadeNome). As
+        // chaves globais continuam existindo só pra migracao (migrarPerfilGlobalLegado).
+
+        /** Sinal manual pra recarregar [connectionProfileAtual] apos um salvamento (as chamadas
+         * de leitura do repositorio sao suspend, nao Flow — nao ha outra forma de "empurrar"
+         * uma atualizacao sem re-observar a rede). */
+        private val connectionProfileRefreshTrigger = MutableStateFlow(0)
+
+        /**
+         * networkId da rede atual (Wi-Fi via BSSID/SSID, movel via operadora do SIM ativo).
+         * Ethernet/desconhecido ficam null — ver KDoc de [resolverNetworkIdAtual].
+         */
+        val networkIdAtual: StateFlow<String?> by lazy {
+            combine(monitorRede.snapshotFlow, monitorTelephony.snapshotFlow) { rede, movel ->
+                resolverNetworkIdAtual(
+                    connectionType = UiConnectionType.parse(rede.estadoConexao.name),
+                    ssid = rede.wifiLinkSnapshot?.ssid,
+                    bssid = rede.wifiLinkSnapshot?.bssid,
+                    operadoraMovelAtiva = movel?.operadora,
+                )
+            }.distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+        }
+
+        /**
+         * Perfil de conexao persistido pra rede atual — null quando a rede nao tem sinal
+         * estavel (Ethernet) ou quando nunca foi salvo nada pra ela. Migra o valor legado
+         * global automaticamente só na primeira vez que NENHUM perfil existir ainda (nunca
+         * reaplica o plano residencial em redes diferentes depois disso — critério de aceite
+         * de #1249: "rede diferente não reutiliza automaticamente o plano residencial").
+         */
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val connectionProfileAtual: StateFlow<ConnectionProfilePersistido?> by lazy {
+            combine(networkIdAtual, connectionProfileRefreshTrigger) { id, _ -> id }
+                .flatMapLatest { id ->
+                    flow {
+                        if (id == null) {
+                            emit(null)
+                            return@flow
+                        }
+                        var perfil = preferenciasAppRepository.buscarConnectionProfile(id)
+                        if (perfil == null && preferenciasAppRepository.buscarTodosConnectionProfiles().isEmpty()) {
+                            val migrado = preferenciasAppRepository.migrarPerfilGlobalLegado(id)
+                            if (migrado != null) {
+                                preferenciasAppRepository.salvarConnectionProfile(migrado)
+                                perfil = migrado
+                            }
+                        }
+                        emit(perfil)
+                    }
+                }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+        }
+
+        /**
+         * Salva o [ConnectionProfilePersistido] da rede atual. Sem rede com sinal estavel
+         * (Ethernet/desconhecido), nao ha onde persistir — noop silencioso (mesma politica
+         * defensiva do resto do arquivo, nunca lanca excecao por estado de rede transitorio).
+         */
+        fun salvarConnectionProfileAtual(
+            providerFixed: String?,
+            contractedDownloadMbps: Int?,
+            contractedUploadMbps: Int?,
+            city: String?,
+            state: String?,
+            userConfirmed: Boolean,
+        ) {
+            val id = networkIdAtual.value ?: return
+            viewModelScope.launch {
+                preferenciasAppRepository.salvarConnectionProfile(
+                    ConnectionProfilePersistido(
+                        networkId = id,
+                        providerFixed = providerFixed,
+                        contractedDownloadMbps = contractedDownloadMbps,
+                        contractedUploadMbps = contractedUploadMbps,
+                        city = city,
+                        state = state,
+                        userConfirmed = userConfirmed,
+                    ),
+                )
+                connectionProfileRefreshTrigger.value++
+            }
         }
 
         /** Controles de speedtest em rede movel: 2 flows para 1 subscricao. */
@@ -1324,54 +1415,19 @@ class MainViewModel
             }
         }
 
-        fun salvarDadosProvedor(
-            op: String,
-            plano: String,
-            reg: String,
-        ) {
-            viewModelScope.launch {
-                preferenciasAppRepository.definirOperadora(op)
-                preferenciasAppRepository.definirPlanoInternet(plano)
-                preferenciasAppRepository.definirRegiao(reg)
-            }
-        }
+        // GH#1249 (recorte de #1227) — salvarDadosProvedor/salvarEstadoCidade/
+        // salvarVelocidadeContratada/confirmarIspDetectado/dispensarBannerIsp removidos: eram
+        // órfãos de fato (única chamada de cada um vinha do mesmo fluxo de "Minha conexão" em
+        // AjustesScreen.kt, que agora usa salvarConnectionProfileAtual, per-rede, em vez de
+        // chave DataStore global — ver ConnectionProfilePersistido/DetectorDivergenciaPerfilConexao).
+        // `operadora` (chave global) continua existindo só pra alimentar o relatório de
+        // diagnóstico (LaudoScreen) e a migração inicial (migrarPerfilGlobalLegado) — fica
+        // congelada no último valor salvo antes desta mudança, não recebe escrita nova; migrar
+        // LaudoScreen pra também ler o perfil por rede é trabalho futuro, fora do escopo de #1249.
 
         fun salvarUltimaVersaoVista(versao: String) {
             viewModelScope.launch {
                 preferenciasAppRepository.definirUltimaVersaoVista(versao)
-            }
-        }
-
-        fun salvarEstadoCidade(
-            estadoUf: String,
-            cidadeNome: String,
-        ) {
-            viewModelScope.launch {
-                preferenciasAppRepository.definirEstadoUf(estadoUf)
-                preferenciasAppRepository.definirCidadeNome(cidadeNome)
-            }
-        }
-
-        fun salvarVelocidadeContratada(
-            downMbps: Int,
-            upMbps: Int,
-        ) {
-            viewModelScope.launch {
-                preferenciasAppRepository.definirVelocidadeContratadaDownMbps(downMbps)
-                preferenciasAppRepository.definirVelocidadeContratadaUpMbps(upMbps)
-            }
-        }
-
-        fun confirmarIspDetectado(operadora: String) {
-            viewModelScope.launch {
-                preferenciasAppRepository.definirOperadora(operadora)
-                preferenciasAppRepository.definirIspConfirmado(true)
-            }
-        }
-
-        fun dispensarBannerIsp() {
-            viewModelScope.launch {
-                preferenciasAppRepository.definirIspConfirmado(true)
             }
         }
 
