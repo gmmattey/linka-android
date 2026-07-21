@@ -545,6 +545,7 @@ restrito a handoff-only em 2026-07-16 — nunca orquestra fan-out, so escala pra
 | Review de Bloqueios | 2-3x por semana | Claudete | Lista curta com recomendacao para o Luiz |
 | Release Readiness | Por milestone/release | Claudete + Rhodolfo | Checklist no GitHub/Notion |
 | Docs Sync | Semanal ou por milestone | Rhodolfo | Notion atualizado |
+| Auditoria de docs desatualizados | Semanal (segunda 9h BRT, cron cloud `trig_01B5kB1CmPnF3Kd4GJy8wQp7`) | Rhodolfo (agente cloud automatizado) | `.claude/CLAUDE.md`, personas e `docs_ai/` cruzados contra estado real do repo (versao, contagem de modulos/arquivos, agente ativo, mecanismo que existe de fato); correcao pequena direto via PR, achado maior vira issue no GitHub |
 
 Rotinas que NAO devem existir: email diario, automacao Slack fora do GitHub, dashboards pagos, Play Console antes de M3.
 
