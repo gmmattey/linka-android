@@ -48,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +66,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.signallq.app.R
+import io.signallq.app.feature.settings.ResultadoDivergenciaPerfilConexao
 import io.signallq.app.ui.LkRadius
 import io.signallq.app.ui.LkSpacing
 import io.signallq.app.ui.LkTokens
@@ -114,16 +116,12 @@ fun AjustesScreen(
     val appVersion = perfil.appVersion
     val nomeUsuario = perfil.nomeUsuario
     val fotoUriUsuario = perfil.fotoUriUsuario
-    val operadora = provedor.operadora
     val planoInternet = provedor.planoInternet
     val regiao = provedor.regiao
-    val estadoUf = provedor.estadoUf
-    val cidadeNome = provedor.cidadeNome
-    val ispDetectado = provedor.ispDetectado
-    val ispConfirmado = provedor.ispConfirmado
-    val velocidadeContratadaDownMbps = provedor.velocidadeContratadaDownMbps
-    val velocidadeContratadaUpMbps = provedor.velocidadeContratadaUpMbps
-    val operadoraAutodetectada = provedor.operadoraAutodetectada
+    // GH#1249 -- "Minha conexao" agora e espelho do perfil por rede, nao mais de chaves
+    // globais soltas (operadora/estadoUf/cidadeNome/velocidadeContratada*/ispDetectado/
+    // ispConfirmado saíram daqui).
+    val minhaConexao = provedor.minhaConexao
     val monitoramentoAtivo = monitoramento.monitoramentoAtivo
     // GH#1099 — modemHost/modemUsername/modemPassword/modemPermanecerConectado/
     // gatewayIpDetectado/conectarGateway/onGatewayConectado removidos daqui: só existiam
@@ -137,11 +135,7 @@ fun AjustesScreen(
 
     // aliases de lambdas — mantém corpo interno sem alteração
     val onSalvarPerfil = perfil.onSalvarPerfil
-    val onSalvarDadosProvedor = provedor.onSalvarDadosProvedor
-    val onSalvarEstadoCidade = provedor.onSalvarEstadoCidade
-    val onConfirmarIsp = provedor.onConfirmarIsp
-    val onDispensarBannerIsp = provedor.onDispensarBannerIsp
-    val onSalvarVelocidadeContratada = provedor.onSalvarVelocidadeContratada
+    val onSalvarConnectionProfile = provedor.onSalvarConnectionProfile
     val speedtestPermiteHeavyMovel = dadosMoveis.speedtestPermiteHeavyMovel
     val speedtestMbConsumidosMes = dadosMoveis.speedtestMbConsumidosMes
     val onSetSpeedtestPermiteHeavyMovel = dadosMoveis.onSetSpeedtestPermiteHeavyMovel
@@ -244,14 +238,56 @@ fun AjustesScreen(
             }
 
             item { SectionHeader(stringResource(R.string.ajustes_minha_conexao), c) }
+            // GH#1249 item C -- divergência entre provedor salvo e detectado nesta rede. Só
+            // aparece quando o usuário já confirmou explicitamente o valor salvo (senão o
+            // LaunchedEffect abaixo já sobrescreve silenciosamente, sem perguntar nada).
+            val divergenciaConfirmada =
+                minhaConexao.divergencia as? ResultadoDivergenciaPerfilConexao.DivergenciaConfirmadaPeloUsuario
+            if (divergenciaConfirmada != null) {
+                item {
+                    MinhaConexaoDivergenciaBanner(
+                        c = c,
+                        provedorDetectado = divergenciaConfirmada.detectado,
+                        onUsarDetectado = {
+                            onSalvarConnectionProfile(
+                                divergenciaConfirmada.detectado,
+                                minhaConexao.contractedDownloadMbps,
+                                minhaConexao.contractedUploadMbps,
+                                minhaConexao.city,
+                                minhaConexao.state,
+                                true,
+                            )
+                        },
+                    )
+                }
+                item { Spacer(Modifier.height(8.dp)) }
+            }
+            // GH#1249 item C -- divergência sem confirmação prévia do usuário: aplica o valor
+            // detectado silenciosamente, sem sheet/banner nenhum.
+            val atualizavelSilenciosamente =
+                minhaConexao.divergencia as? ResultadoDivergenciaPerfilConexao.AtualizavelSilenciosamente
+            if (atualizavelSilenciosamente != null) {
+                item {
+                    LaunchedEffect(atualizavelSilenciosamente) {
+                        onSalvarConnectionProfile(
+                            atualizavelSilenciosamente.detectado,
+                            minhaConexao.contractedDownloadMbps,
+                            minhaConexao.contractedUploadMbps,
+                            minhaConexao.city,
+                            minhaConexao.state,
+                            false,
+                        )
+                    }
+                }
+            }
             item {
                 SettingsSectionCard(c = c) {
                     ValueSettingRow(
                         c = c,
                         icon = Icons.Outlined.Business,
                         label = "Operadora",
-                        value = operadora.ifBlank { "Adicionar" },
-                        isPlaceholder = operadora.isBlank(),
+                        value = minhaConexao.providerFixed?.ifBlank { null } ?: "Adicionar",
+                        isPlaceholder = minhaConexao.providerFixed.isNullOrBlank(),
                         onClick = { showMinhaConexaoSheet = true },
                     )
                     HorizontalDivider(color = c.border, thickness = 1.dp)
@@ -261,13 +297,14 @@ fun AjustesScreen(
                         label = "Plano contratado",
                         value =
                             when {
-                                velocidadeContratadaDownMbps > 0 && velocidadeContratadaUpMbps > 0 ->
-                                    "$velocidadeContratadaDownMbps Mbps"
+                                minhaConexao.contractedDownloadMbps != null && minhaConexao.contractedUploadMbps != null ->
+                                    "${minhaConexao.contractedDownloadMbps} ↓ / ${minhaConexao.contractedUploadMbps} ↑ Mbps"
                                 planoInternet.isNotBlank() -> planoInternet
                                 else -> "Adicionar"
                             },
                         isPlaceholder =
-                            !(velocidadeContratadaDownMbps > 0 && velocidadeContratadaUpMbps > 0) &&
+                            minhaConexao.contractedDownloadMbps == null &&
+                                minhaConexao.contractedUploadMbps == null &&
                                 planoInternet.isBlank(),
                         onClick = { showMinhaConexaoSheet = true },
                     )
@@ -278,11 +315,12 @@ fun AjustesScreen(
                         label = "Cidade",
                         value =
                             when {
-                                cidadeNome.isNotBlank() && estadoUf.isNotBlank() -> "$cidadeNome, $estadoUf"
+                                !minhaConexao.city.isNullOrBlank() && !minhaConexao.state.isNullOrBlank() ->
+                                    "${minhaConexao.city}, ${minhaConexao.state}"
                                 regiao.isNotBlank() -> regiao
                                 else -> "Adicionar"
                             },
-                        isPlaceholder = !(cidadeNome.isNotBlank() && estadoUf.isNotBlank()) && regiao.isBlank(),
+                        isPlaceholder = minhaConexao.city.isNullOrBlank() && minhaConexao.state.isNullOrBlank() && regiao.isBlank(),
                         onClick = { showMinhaConexaoSheet = true },
                     )
                 }
@@ -412,16 +450,21 @@ fun AjustesScreen(
 
     if (showMinhaConexaoSheet) {
         MinhaConexaoSheet(
-            operadora = operadora,
-            estadoUf = estadoUf,
-            cidadeNome = cidadeNome,
-            velocidadeContratadaDownMbps = velocidadeContratadaDownMbps,
-            velocidadeContratadaUpMbps = velocidadeContratadaUpMbps,
-            operadoraAutodetectada = operadoraAutodetectada,
+            operadora = minhaConexao.providerFixed,
+            estadoUf = minhaConexao.state,
+            cidadeNome = minhaConexao.city,
+            velocidadeContratadaDownMbps = minhaConexao.contractedDownloadMbps,
+            velocidadeContratadaUpMbps = minhaConexao.contractedUploadMbps,
+            // GH#1249 -- a sugestão de operadora detectada agora vem do mesmo detector de
+            // divergência usado no banner (nunca duplica outra fonte de detecção).
+            operadoraAutodetectada =
+                (minhaConexao.divergencia as? ResultadoDivergenciaPerfilConexao.AtualizavelSilenciosamente)?.detectado
+                    ?: (minhaConexao.divergencia as? ResultadoDivergenciaPerfilConexao.DivergenciaConfirmadaPeloUsuario)?.detectado,
             onSalvar = { op, uf, cidade, down, up ->
-                onSalvarDadosProvedor(op, planoInternet, regiao)
-                onSalvarEstadoCidade(uf, cidade)
-                onSalvarVelocidadeContratada(down, up)
+                // Salvamento explícito pela sheet = confirmação explícita do usuário
+                // (userConfirmed = true) -- futuras divergências passam a exigir confirmação
+                // em vez de sobrescrever silenciosamente (ver DetectorDivergenciaPerfilConexao).
+                onSalvarConnectionProfile(op, down, up, cidade, uf, true)
             },
             onDismiss = { showMinhaConexaoSheet = false },
         )

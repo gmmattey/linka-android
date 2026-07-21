@@ -56,6 +56,7 @@ import io.signallq.app.R
 import io.signallq.app.ads.AdSlot
 import io.signallq.app.bssidElegivelParaAutoconexao
 import io.signallq.app.core.database.MedicaoEntity
+import io.signallq.app.core.datastore.ConnectionProfilePersistido
 import io.signallq.app.core.diagnostico.topology.model.NatStatus
 import io.signallq.app.core.network.EstadoConexao
 import io.signallq.app.core.network.SnapshotRede
@@ -195,12 +196,25 @@ fun AppShell(
     onDefinirAnaliseAvancada: (Boolean) -> Unit,
     nomeUsuario: String,
     fotoUriUsuario: String?,
+    // GH#1249 (recorte de #1227) — estadoUf/cidadeNome/velocidadeContratada*/ispConfirmado
+    // saíram daqui: viraram ConnectionProfilePersistido por rede em vez de chave DataStore
+    // global. `operadora` (legado, global) continua existindo só porque LaudoScreen ainda
+    // consome esse valor no relatório de diagnóstico — fora do escopo desta issue (Ajustes/
+    // "Minha conexão" já usa o perfil por rede via `connectionProfileAtual` abaixo).
+    // planoInternet/regiao seguem como fallback de exibição legado (nunca tiveram campo editável
+    // na UI, ver KDoc de AjustesProvedorState).
     operadora: String,
     planoInternet: String,
     regiao: String,
-    estadoUf: String,
-    cidadeNome: String,
-    ispConfirmado: Boolean,
+    connectionProfileAtual: ConnectionProfilePersistido?,
+    onSalvarConnectionProfile: (
+        providerFixed: String?,
+        downloadMbps: Int?,
+        uploadMbps: Int?,
+        cidade: String?,
+        uf: String?,
+        userConfirmed: Boolean,
+    ) -> Unit,
     limiteAlertaMbps: Int,
     onLimparHistorico: () -> Unit,
     onApagarDadosLocais: () -> Unit,
@@ -216,10 +230,6 @@ fun AppShell(
     onDefinirNotificacaoRssiAtiva: (Boolean) -> Unit,
     onDefinirNotificacaoSemInternetAtiva: (Boolean) -> Unit,
     onSalvarPerfil: (nome: String, fotoUri: String?) -> Unit,
-    onSalvarDadosProvedor: (operadora: String, plano: String, regiao: String) -> Unit,
-    onSalvarEstadoCidade: (estadoUf: String, cidadeNome: String) -> Unit,
-    onConfirmarIsp: (operadora: String) -> Unit,
-    onDispensarBannerIsp: () -> Unit,
     onSalvarLimiteAlerta: (Int) -> Unit,
     movelSnapshot: MovelSnapshot?,
     simsAtivos: List<MovelSimSnapshot> = emptyList(),
@@ -228,17 +238,6 @@ fun AppShell(
     temPermissaoLocalizacao: Boolean = true,
     localizacaoBloqueadaPermanentemente: Boolean = false,
     onSolicitarPermissaoLocalizacao: () -> Unit = {},
-    // Issue #85 — Minha Conexão
-    velocidadeContratadaDownMbps: Int = 0,
-    velocidadeContratadaUpMbps: Int = 0,
-    onSalvarVelocidadeContratada: (downMbps: Int, upMbps: Int) -> Unit = { _, _ -> },
-    onSalvarConexaoDadosCompletos: (
-        operadora: String,
-        estadoUf: String,
-        cidadeNome: String,
-        downMbps: Int,
-        upMbps: Int,
-    ) -> Unit = { _, _, _, _, _ -> },
     // #82 — Banner Anatel dismissível
     anatelBannerDismissed: Boolean = false,
     onDispensarBannerAnatel: () -> Unit = {},
@@ -966,6 +965,20 @@ fun AppShell(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         ) {
+            // GH#1249 -- provedor "detectado" pra comparar com o ConnectionProfilePersistido da
+            // rede atual: ISP resolvido por IP em Wi-Fi/Ethernet, operadora do SIM ativo em rede
+            // móvel (requisito B -- rede móvel nunca sobrescreve o cadastro da internet fixa,
+            // porque cada uma tem seu próprio networkId/perfil, nunca o mesmo registro).
+            val providerDetectadoAtual =
+                when (snapshotRede.estadoConexao) {
+                    EstadoConexao.wifi -> ispInfoData?.isp
+                    EstadoConexao.movel -> movelSnapshot?.operadora
+                    else -> null
+                }
+            val minhaConexaoUiState =
+                remember(connectionProfileAtual, providerDetectadoAtual) {
+                    mapMinhaConexaoUiState(connectionProfileAtual, providerDetectadoAtual)
+                }
             AjustesScreen(
                 perfil =
                     AjustesPerfilState(
@@ -977,21 +990,10 @@ fun AppShell(
                     ),
                 provedor =
                     AjustesProvedorState(
-                        operadora = operadora,
                         planoInternet = planoInternet,
                         regiao = regiao,
-                        estadoUf = estadoUf,
-                        cidadeNome = cidadeNome,
-                        ispDetectado = ispInfoData?.isp,
-                        ispConfirmado = ispConfirmado,
-                        velocidadeContratadaDownMbps = velocidadeContratadaDownMbps,
-                        velocidadeContratadaUpMbps = velocidadeContratadaUpMbps,
-                        operadoraAutodetectada = movelSnapshot?.operadora,
-                        onSalvarDadosProvedor = onSalvarDadosProvedor,
-                        onSalvarEstadoCidade = onSalvarEstadoCidade,
-                        onConfirmarIsp = onConfirmarIsp,
-                        onDispensarBannerIsp = onDispensarBannerIsp,
-                        onSalvarVelocidadeContratada = onSalvarVelocidadeContratada,
+                        minhaConexao = minhaConexaoUiState,
+                        onSalvarConnectionProfile = onSalvarConnectionProfile,
                     ),
                 monitoramento =
                     AjustesMonitoramentoState(

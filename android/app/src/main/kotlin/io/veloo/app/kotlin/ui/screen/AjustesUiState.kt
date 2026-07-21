@@ -11,22 +11,25 @@ data class AjustesPerfilState(
     val onSalvarPerfil: (nome: String, fotoUri: String?) -> Unit,
 )
 
+/**
+ * GH#1249 (recorte de #1227) — "Minha conexão" passa a ser espelho do
+ * [io.signallq.app.core.datastore.ConnectionProfilePersistido] da rede atual ([minhaConexao]),
+ * não mais de chaves DataStore globais. `planoInternet`/`regiao` seguem como fallback de
+ * exibição legado — nunca tiveram campo editável nesta tela (só eram reescritos, sem mudança,
+ * a cada "Salvar" do fluxo antigo); mantidos só como leitura, sem novo ponto de escrita.
+ */
 data class AjustesProvedorState(
-    val operadora: String,
     val planoInternet: String,
     val regiao: String,
-    val estadoUf: String,
-    val cidadeNome: String,
-    val ispDetectado: String?,
-    val ispConfirmado: Boolean,
-    val velocidadeContratadaDownMbps: Int = 0,
-    val velocidadeContratadaUpMbps: Int = 0,
-    val operadoraAutodetectada: String? = null,
-    val onSalvarDadosProvedor: (operadora: String, plano: String, regiao: String) -> Unit,
-    val onSalvarEstadoCidade: (estadoUf: String, cidadeNome: String) -> Unit,
-    val onConfirmarIsp: (operadora: String) -> Unit,
-    val onDispensarBannerIsp: () -> Unit,
-    val onSalvarVelocidadeContratada: (downMbps: Int, upMbps: Int) -> Unit = { _, _ -> },
+    val minhaConexao: MinhaConexaoUiState,
+    val onSalvarConnectionProfile: (
+        providerFixed: String?,
+        downloadMbps: Int?,
+        uploadMbps: Int?,
+        cidade: String?,
+        uf: String?,
+        userConfirmed: Boolean,
+    ) -> Unit,
 )
 
 data class AjustesMonitoramentoState(
