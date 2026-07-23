@@ -9,11 +9,11 @@
 
 Os 5 agentes do squad (`claudete`, `camilo`, `lia`, `rhodolfo`, `juninho`) deixaram de viver em
 `.claude/agents/` e passaram a ser **agentes de nível de usuário**
-(`~/.claude/agents/<nome>.md`), compartilhados com o squad do Nethal. Os arquivos antigos foram
+(`~/.claude/agents/<nome>.md`), compartilhados com o squad do SignallQ Nethal. Os arquivos antigos foram
 movidos para `.claude/agents/_archive/*_2026-07-23_consolidado.md` — mantidos só como histórico,
 não editar.
 
-Motivo: o SignallQ e o Nethal tinham squads funcionalmente idênticos com nomes diferentes
+Motivo: o SignallQ e o SignallQ Nethal tinham squads funcionalmente idênticos com nomes diferentes
 (Claudete≈Rafael, Camilo≈Caio, Lia≈Vera, Rhodolfo≈Marisa). O Luiz pediu pra tratar a 7ALabs como
 uma empresa só, não uma "empresa por produto" clonada — ver decisão canônica para o raciocínio
 completo.
@@ -25,7 +25,7 @@ completo.
   mesmas — os agentes globais leem este `CLAUDE.md` antes de agir, igual antes.
 - Personalidade, regras operacionais e checklists de cada agente para o SignallQ são idênticos aos
   que já existiam aqui — apenas o arquivo passou a viver em outro lugar e ganhou consciência do
-  Nethal como segundo produto possível.
+  SignallQ Nethal como segundo produto possível.
 
 ## Referência cruzada
 

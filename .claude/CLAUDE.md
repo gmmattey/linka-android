@@ -8,7 +8,7 @@ Na conversa principal, responda sempre como **Claudete** (PM & Tech Lead do Sign
 
 **Consolidação de squad (2026-07-23):** Claudete, Camilo, Lia, Rhodolfo e Juninho deixaram de ser
 agentes só deste repo — agora são **agentes de nível de usuário** (`~/.claude/agents/<nome>.md`),
-compartilhados com o squad do Nethal (que teve seu squad próprio aposentado no mesmo movimento).
+compartilhados com o squad do SignallQ Nethal (que teve seu squad próprio aposentado no mesmo movimento).
 Os arquivos antigos ficam em `.claude/agents/_archive/*_2026-07-23_consolidado.md`, só como
 histórico. Ver `docs_ai/decisions/DECISAO_CONSOLIDACAO_SQUAD_7ALABS_2026-07-23.md`.
 
@@ -69,9 +69,9 @@ Nao-negociaveis por produto:
 - **SignallQ Pro ja tem codigo real e substancial em `android/pro/` (NAO e mais "so spec/design" -- estado/progresso real: ver issues #1157/#1159/#1161/#1164 e `android/settings.gradle.kts`) -- mas qualquer ampliacao de escopo alem do que ja foi aprovado (novas fases do MVP0, MVP1, mudanca arquitetural) continua exigindo instrucao explicita do Luiz.** Corrigir qualquer persona/doc que ainda diga "Pro sem codigo Android" -- e um erro factual desatualizado, nao mais o estado real.
 - **Nunca misturar marca/paleta entre produtos:** consumer e violeta, Pro e azul. Nao fixar hex aqui -- cada paleta evolui no seu projeto Claude Design (fonte da verdade visual, reler antes de desenhar): [SignallQ Design System](https://claude.ai/design/p/2d25d7a1-31b2-4ac3-881f-72dbc8f35a29) (consumer), [SignallQ PRO - Design System](https://claude.ai/design/p/77a19317-ea64-4e47-b55c-578eca776c09) (Pro).
 - **Release e identidade sao separados por produto** (applicationId, Firebase, Play listing, tag, canal). Uma mudanca num produto nao incrementa versao de outro.
-- **SignallQ Nethal** e alvo de plataforma, mas hoje vive em **repo separado** (`gmmattey/nethal`) com **squad propria** -- fora do escopo desta squad; so entra aqui quando/se for internalizado no monorepo-alvo.
+- **SignallQ Nethal** e alvo de plataforma, mas hoje vive em **repo separado** (`gmmattey/signallq-nethal`) com **squad propria** -- fora do escopo desta squad; so entra aqui quando/se for internalizado no monorepo-alvo.
 
-O monorepo-alvo `signallq-platform` (que unifica os tres + Portal + Nethal) e **proposta** -- hoje o codigo vive no `SignallQ` (+ `SignallQ Admin/` dentro dele) e em repos separados. Ver `docs_ai/plataforma/01_..._Arquitetura_v5.md` e `00_CHANGELOG_e_Validacao_Cruzada_v5.md` para o gap doc-vs-realidade validado.
+O monorepo-alvo `signallq-platform` (que unifica os tres + Portal + SignallQ Nethal) e **proposta** -- hoje o codigo vive no `SignallQ` (+ `SignallQ Admin/` dentro dele) e em repos separados. Ver `docs_ai/plataforma/01_..._Arquitetura_v5.md` e `00_CHANGELOG_e_Validacao_Cruzada_v5.md` para o gap doc-vs-realidade validado.
 
 ---
 
@@ -220,7 +220,7 @@ se ninguém atualizar de fora.
 
 **Agentes agora vivem em `~/.claude/agents/` (2026-07-23), não mais em `.claude/agents/` deste
 repo.** Claudete, Camilo, Lia, Rhodolfo e Juninho são um quadro único da 7ALabs, compartilhado com
-o Nethal — cada um lê este `CLAUDE.md` para se contextualizar ao SignallQ especificamente. Detalhe
+o SignallQ Nethal — cada um lê este `CLAUDE.md` para se contextualizar ao SignallQ especificamente. Detalhe
 da consolidação: `docs_ai/decisions/DECISAO_CONSOLIDACAO_SQUAD_7ALABS_2026-07-23.md`. Validacao de
 device/rede e planejamento tecnico continuam como skills (`/regras-android`,
 `/regras-diagnostico-rede`); busca de codigo e documentacao sao nativas/skill (`/gerar-docs`).
