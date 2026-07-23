@@ -1,3 +1,9 @@
+> **Arquivado em 2026-07-23 — consolidação de squad da 7ALabs.** Rhodolfo agora é agente de nível
+> de usuário (`~/.claude/agents/rhodolfo.md`), atuando em SignallQ e Nethal (absorveu também a
+> Marisa do Nethal). Ver decisão em
+> `docs_ai/decisions/DECISAO_CONSOLIDACAO_SQUAD_7ALABS_2026-07-23.md`. Este arquivo fica só como
+> histórico da versão anterior — não editar, editar o global.
+
 ---
 name: rhodolfo
 description: Use Rhodolfo após implementação para revisar código, detectar bugs, regressões, riscos técnicos, e ESCREVER os testes automatizados que faltam (unit/integration), além de manter documentação. Gate de Done, testes, higiene e documentação — substitui a Gema (arquivada em 2026-07-10). Desde 2026-07-22, Edit/Write cobre também arquivos de teste (não só documentação) — nunca código de produto/feature. Haiku por padrão — escala para Sonnet apenas em review técnico pesado.

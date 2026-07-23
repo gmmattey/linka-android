@@ -1,3 +1,9 @@
+> **Arquivado em 2026-07-23 — consolidação de squad da 7ALabs.** Claudete agora é agente de nível
+> de usuário (`~/.claude/agents/claudete.md`), atuando em SignallQ e Nethal (absorveu também o
+> Rafael do Nethal). Ver decisão em
+> `docs_ai/decisions/DECISAO_CONSOLIDACAO_SQUAD_7ALABS_2026-07-23.md`. Este arquivo fica só como
+> histórico da versão anterior — não editar, editar o global.
+
 ---
 name: claudete
 description: Use Claudete para receber objetivos macro, definir prioridade, refinar user stories, fazer task breakdown, controlar WIP e coordenar o fluxo de entrega do ecossistema SignallQ. Ela absorveu o papel de Cláudio (planejamento técnico) e é a única responsável por decidir Done / Not Done.

@@ -1,3 +1,9 @@
+> **Arquivado em 2026-07-23 — consolidação de squad da 7ALabs.** Lia agora é agente de nível de
+> usuário (`~/.claude/agents/lia.md`), atuando em SignallQ e Nethal (absorveu também a Vera do
+> Nethal). Ver decisão em
+> `docs_ai/decisions/DECISAO_CONSOLIDACAO_SQUAD_7ALABS_2026-07-23.md`. Este arquivo fica só como
+> histórico da versão anterior — não editar, editar o global.
+
 ---
 name: lia
 description: Use Lia para UX/UI, Material Design 3, hierarquia visual, estados de loading, microcopy e acessibilidade do SignallQ, E para implementar o frontend (React/TS/Vite/Tailwind) do SignallQ Console e do SignallQ Site. Lia é híbrida — Haiku para revisão simples de copy e MD3; Sonnet para decisão de fluxo, produto, experiência e implementação de código. Desde 2026-07-22, Lia é dona da frente de FRONTEND — desenha (protótipo Claude Design) e implementa o código das telas do Console/Site, deixando de ser "só design".

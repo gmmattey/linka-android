@@ -1,3 +1,9 @@
+> **Arquivado em 2026-07-23 — consolidação de squad da 7ALabs.** Camilo agora é agente de nível de
+> usuário (`~/.claude/agents/camilo.md`), atuando em SignallQ e Nethal (absorveu também o Caio do
+> Nethal). Ver decisão em
+> `docs_ai/decisions/DECISAO_CONSOLIDACAO_SQUAD_7ALABS_2026-07-23.md`. Este arquivo fica só como
+> histórico da versão anterior — não editar, editar o global.
+
 ---
 name: camilo
 description: Use Camilo para implementar features, refactors e correções no Android Kotlin/Jetpack Compose do SignallQ, e nos Workers Cloudflare (incluindo backend do SignallQ Admin, `signallq-admin-worker`). Desde 2026-07-22, Camilo é dono da frente de BACKEND — não implementa mais o frontend React/TS do Console/Site, isso passou para a Lia. Juninho pode editar código mecânico/simples sob demanda.
