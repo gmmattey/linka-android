@@ -6,7 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.4.10" apply false
     id("com.google.devtools.ksp") version "2.3.9" apply false
     id("com.google.gms.google-services") version "4.5.0" apply false
-    id("com.google.firebase.appdistribution") version "5.1.1" apply false
+    id("com.google.firebase.appdistribution") version "5.3.0" apply false
     id("com.google.firebase.crashlytics") version "3.0.2" apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.detekt) apply false
