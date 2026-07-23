@@ -4,12 +4,13 @@
 - **Última validação:** 2026-07-23
 - **Escopo:** conteúdo público (Play Store / landing page)
 
-> **[a confirmar com Luiz]** — o app já integra Google Mobile Ads SDK (AdMob) e `NativeAd` em
-> várias telas (`app/build.gradle.kts`, issue #555; confirmado em código, não removido nem
-> debug-only), mas a resposta "O SignallQ é gratuito?" abaixo promete "sem anúncios". Não
-> corrigido nesta limpeza por ser afirmação pública de produto/monetização — decisão de negócio,
-> não erro de documentação. Reconciliar antes da próxima atualização deste FAQ ou do listing da
-> Play Store.
+> **Verificado em 2026-07-23:** o app tem AdMob/`NativeAd` integrado no código (issue #555), mas
+> `AdsFlagsManager`/`AdsRemoteConfigRepository` mantêm a chave mestra `ads_native_enabled` desligada
+> por padrão até Luiz criar as chaves no Firebase Remote Config (ver comentário em
+> `android/app/src/main/kotlin/io/veloo/app/kotlin/ads/AdsRemoteConfigRepository.kt`) — nenhum
+> usuário vê anúncio hoje. **"Sem anúncios" abaixo é verdade no estado atual.** Atualizar este FAQ,
+> `PLAY_STORE_LISTING.md`, `docs_ai/legal/TERMS_OF_USE.md` e `TermosDeUsoScreen.kt` no dia em que as
+> chaves forem ligadas — não antes.
 
 ## Geral
 
