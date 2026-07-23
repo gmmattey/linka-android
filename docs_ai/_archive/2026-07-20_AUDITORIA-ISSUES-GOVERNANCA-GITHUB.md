@@ -1,3 +1,10 @@
+> **Arquivado em 2026-07-23.** Motivo: proposta nunca aprovada/executada e superada pela decisão real
+> de 2026-07-21 (hierarquia Épico > Feature > Task por 4 GitHub Projects segmentados por produto —
+> `SignallQ` #10, `SignallQ PRO` #11, `SignallQ Admin` #12, `SignallQ Site` #13 — ver
+> `.claude/CLAUDE.md`, seção "Fontes da Verdade"). Este documento também referencia o repo legado
+> `gmmattey/linka-android`, renomeado desde então para `7ALabs/SignallQ`. Mantido só como registro
+> histórico do diagnóstico de backlog feito em 20/07/2026.
+
 # Auditoria de Issues — GitHub `gmmattey/linka-android`
 
 - **Status:** proposta para aprovação humana; nenhuma alteração remota executada.

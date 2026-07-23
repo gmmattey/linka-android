@@ -140,7 +140,11 @@ tratar o campo plano como definitivo.
 
 ## Design System
 
-Toda UI segue o **SignallQ Design System** (`.claude/skills/SignallQ-design/`, Material 3, paleta violeta -- fonte viva: [SignallQ Design System](https://claude.ai/design/p/2d25d7a1-31b2-4ac3-881f-72dbc8f35a29)). Nao-negociaveis: Material 3, tokens `colors_and_type.css`/`SignallQTheme.kt`, cópia em PT-BR sem emoji, vocabulário canônico `excelente/bom/regular/ruim/crítico/inconclusivo`. Ver `docs_ai/design-system/` para detalhe completo e `.claude/skills/SignallQ-design/HANDOFF_README.md` para referência rápida de tokens.
+Toda UI segue o **SignallQ Design System** (`.claude/skills/SignallQ-design/`, Material 3, paleta violeta -- fonte viva: [SignallQ Design System](https://claude.ai/design/p/2d25d7a1-31b2-4ac3-881f-72dbc8f35a29)). Nao-negociaveis: Material 3, tokens `colors_and_type.css`/`SignallQTheme.kt`, cópia em PT-BR sem emoji, vocabulário canônico `excelente/bom/regular/ruim/crítico/inconclusivo`. Ver `docs_ai/design-system/` para detalhe completo e `.claude/skills/SignallQ-design/HANDOFF_README.md` para referência rápida de tokens. O mesmo projeto tem `templates/` com a estrutura de secao obrigatoria para Especificacao Funcional/Tecnica/Arquitetura -- ver `.claude/rules/higiene-e-padronizacao-repositorio.md`, secao 10, "Templates de documento".
+
+### Onde fica cada "design system" (mirrors de skill, decisao 2026-07-23)
+
+`.claude/skills/` e a **fonte canonica** de toda skill (nao so design). `.agents/skills/` (formato agnostico de agente) e `.github/skills/` (Copilot) sao **espelhos gerados**, nunca editados direto -- editar so em `.claude/skills/` e rodar `scripts/sync-skills-mirrors.sh` depois (ou `--check` pra so validar se estao sincronizados, sem escrever nada). Excecao: `.agents/skills/impeccable/agents/*.toml|*.yaml` sao arquivos proprios daquele formato de agente, sem equivalente na fonte canonica -- o script preserva, nunca apaga.
 
 ---
 
