@@ -14,6 +14,13 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 ### Adicionado
 - Firebase Analytics (GA4): user properties `environment`, `dist_channel` e `build_type`, setadas uma vez por sessão (`MainActivity.onCreate` → `registrarSessionStart`), reaproveitando `DistributionChannel.kt` (mesma fonte já usada pelo envio a `/ingest/analytics`). Permite segmentar eventos de debug/release/produção que hoje chegam misturados ao GA4 (#1360).
 
+### Corrigido
+- `NativeAdCard` (Resultado do diagnóstico, Histórico, Jogos) sem `MediaView`: AdMob native ad
+  validator (debug) apontava "1 implementation issue found" sobre o card de anúncio nativo — o
+  `NativeAdView` registrava headline/body/icon/CTA mas nunca um `mediaView`, asset principal do
+  criativo exigido pelo SDK. Altura calculada pela `aspectRatio` do `mediaContent`, com fallback
+  16:9 quando o criativo não informa proporção (#1356).
+
 ## [0.30.2] — 2026-07-24
 
 ### Corrigido
