@@ -1843,6 +1843,187 @@ async function handleFirebaseStatus(_req: Request, env: Env): Promise<Response> 
   }, 200, env);
 }
 
+// --- GH#1344: Firebase Management API + Remote Config ---
+// Mesma credencial já usada por GA4/BigQuery (FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY,
+// getFirebaseAccessToken() com scope "cloud-platform" já incluso). Permissão confirmada via
+// chamada real em 2026-07-24 (200 em ambas) — ver docs_ai/decisions/
+// DECISAO_STATUS_CREDENCIAIS_GOOGLE_PLAY_FIREBASE_2026-07-24.md.
+
+interface FirebaseSourceRecord {
+  provider: "firebase";
+  service: string;
+  apiVersion: string;
+  resource: string;
+  endpoint: string;
+}
+
+interface FirebaseManagementSyncState {
+  syncedAt: string;
+  source: FirebaseSourceRecord;
+  project: { projectId: string; projectNumber: string; displayName: string; state: string } | null;
+  androidApps: Array<{ appId: string; displayName: string; packageName: string; state: string }>;
+}
+
+async function readFirebaseManagementSyncState(env: Env): Promise<FirebaseManagementSyncState | null> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'firebase_management_sync'"
+  ).first<{ value: string }>();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value) as FirebaseManagementSyncState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeFirebaseManagementSyncState(env: Env, state: FirebaseManagementSyncState): Promise<void> {
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('firebase_management_sync', ?, ?)"
+  ).bind(JSON.stringify(state), nowSec()).run();
+}
+
+async function handleFirebaseManagementStatus(_req: Request, env: Env): Promise<Response> {
+  const hasCredentials = !!(env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+  const syncState = await readFirebaseManagementSyncState(env);
+  return json({
+    source: "worker",
+    projectId: env.FIREBASE_PROJECT_ID,
+    status: hasCredentials ? "connected" : "disabled",
+    hasCredentials,
+    lastSyncTimestamp: syncState?.syncedAt ?? null,
+    project: syncState?.project ?? null,
+    androidApps: syncState?.androidApps ?? [],
+  }, 200, env);
+}
+
+async function handleFirebaseManagementSync(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ status: "not_configured", message: "FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY não configurados." }, 200, env);
+  }
+  try {
+    const token = await getFirebaseAccessToken(env);
+    const projectResp = await fetch(
+      `https://firebase.googleapis.com/v1beta1/projects/${env.FIREBASE_PROJECT_ID}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!projectResp.ok) {
+      const errText = await projectResp.text();
+      await logError(env, 'firebase-management', `project_${projectResp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar projeto (HTTP ${projectResp.status}).` }, 200, env);
+    }
+    const projectData = await projectResp.json() as { projectId: string; projectNumber: string; displayName: string; state: string };
+
+    const appsResp = await fetch(
+      `https://firebase.googleapis.com/v1beta1/projects/${env.FIREBASE_PROJECT_ID}/androidApps`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!appsResp.ok) {
+      const errText = await appsResp.text();
+      await logError(env, 'firebase-management', `apps_${appsResp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar androidApps (HTTP ${appsResp.status}).` }, 200, env);
+    }
+    const appsData = await appsResp.json() as { apps?: Array<{ appId: string; displayName: string; packageName: string; state: string }> };
+
+    const syncedAt = new Date().toISOString();
+    const state: FirebaseManagementSyncState = {
+      syncedAt,
+      source: {
+        provider: "firebase", service: "firebase_management", apiVersion: "v1beta1",
+        resource: `projects/${env.FIREBASE_PROJECT_ID}`,
+        endpoint: `https://firebase.googleapis.com/v1beta1/projects/${env.FIREBASE_PROJECT_ID}`,
+      },
+      project: {
+        projectId: projectData.projectId,
+        projectNumber: projectData.projectNumber,
+        displayName: projectData.displayName,
+        state: projectData.state,
+      },
+      androidApps: (appsData.apps ?? []).map(a => ({
+        appId: a.appId, displayName: a.displayName, packageName: a.packageName, state: a.state,
+      })),
+    };
+    await writeFirebaseManagementSyncState(env, state);
+    return json({ status: "ok", ...state }, 200, env);
+  } catch (e) {
+    await logError(env, 'firebase-management', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ status: "error", message: String(e) }, 200, env);
+  }
+}
+
+interface RemoteConfigSyncState {
+  syncedAt: string;
+  source: FirebaseSourceRecord;
+  parameterCount: number;
+  parameterKeys: string[];
+}
+
+async function readRemoteConfigSyncState(env: Env): Promise<RemoteConfigSyncState | null> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'firebase_remote_config_sync'"
+  ).first<{ value: string }>();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value) as RemoteConfigSyncState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeRemoteConfigSyncState(env: Env, state: RemoteConfigSyncState): Promise<void> {
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('firebase_remote_config_sync', ?, ?)"
+  ).bind(JSON.stringify(state), nowSec()).run();
+}
+
+async function handleRemoteConfigStatus(_req: Request, env: Env): Promise<Response> {
+  const hasCredentials = !!(env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+  const syncState = await readRemoteConfigSyncState(env);
+  return json({
+    source: "worker",
+    projectId: env.FIREBASE_PROJECT_ID,
+    status: hasCredentials ? "connected" : "disabled",
+    hasCredentials,
+    lastSyncTimestamp: syncState?.syncedAt ?? null,
+    parameterCount: syncState?.parameterCount ?? 0,
+    parameterKeys: syncState?.parameterKeys ?? [],
+  }, 200, env);
+}
+
+async function handleRemoteConfigSync(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ status: "not_configured", message: "FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY não configurados." }, 200, env);
+  }
+  const endpoint = `https://firebaseremoteconfig.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/remoteConfig`;
+  try {
+    const token = await getFirebaseAccessToken(env);
+    const resp = await fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      await logError(env, 'firebase-remote-config', `template_${resp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar template (HTTP ${resp.status}).` }, 200, env);
+    }
+    const data = await resp.json() as { parameters?: Record<string, unknown> };
+    const parameterKeys = Object.keys(data.parameters ?? {});
+
+    const syncedAt = new Date().toISOString();
+    const state: RemoteConfigSyncState = {
+      syncedAt,
+      source: {
+        provider: "firebase", service: "remote_config", apiVersion: "v1",
+        resource: `projects/${env.FIREBASE_PROJECT_ID}/remoteConfig`,
+        endpoint,
+      },
+      parameterCount: parameterKeys.length,
+      parameterKeys,
+    };
+    await writeRemoteConfigSyncState(env, state);
+    return json({ status: "ok", ...state }, 200, env);
+  } catch (e) {
+    await logError(env, 'firebase-remote-config', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ status: "error", message: String(e) }, 200, env);
+  }
+}
+
 // --- GH#761: integração real com Google Play (Android Publisher API) ---
 
 const GOOGLE_PLAY_PACKAGE_NAME = "io.signallq.app";
@@ -2155,6 +2336,142 @@ async function handleGooglePlayTracksBackfill(_req: Request, env: Env): Promise<
     }, 200, env);
   } catch (e) {
     await logError(env, 'google-play', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ status: "error", message: String(e) }, 200, env);
+  }
+}
+
+// --- GH#1342: Play Developer Reporting API v1beta1 (Android Vitals — ANR rate) ---
+// Mesma service account/chave do #761 (GOOGLE_PLAY_CLIENT_EMAIL/GOOGLE_PLAY_PRIVATE_KEY),
+// scope adicional `playdeveloperreporting`. Permissão confirmada via chamada real em
+// 2026-07-24 (200 com freshnessInfo real) — ver docs_ai/decisions/
+// DECISAO_STATUS_CREDENCIAIS_GOOGLE_PLAY_FIREBASE_2026-07-24.md.
+//
+// `source` estruturado por registro (provider/service/apiVersion/resource/endpoint) —
+// nunca uma string solta — pra permitir isolar cada fonte na UI sem fundir com outras
+// (ex.: nunca somar/misturar com crash rate do Firebase Crashlytics).
+
+interface PlayVitalsSource {
+  provider: "google_play";
+  service: "play_developer_reporting";
+  apiVersion: "v1beta1";
+  resource: string;
+  endpoint: string;
+}
+
+interface PlayVitalsSyncState {
+  syncedAt: string;
+  source: PlayVitalsSource;
+  freshnessInfo: unknown;
+  anrRatePercent: number | null;
+  aggregationPeriod: string;
+  rangeStart: string;
+  rangeEnd: string;
+}
+
+async function readPlayVitalsSyncState(env: Env): Promise<PlayVitalsSyncState | null> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'google_play_vitals_sync'"
+  ).first<{ value: string }>();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value) as PlayVitalsSyncState;
+  } catch {
+    return null;
+  }
+}
+
+async function writePlayVitalsSyncState(env: Env, state: PlayVitalsSyncState): Promise<void> {
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('google_play_vitals_sync', ?, ?)"
+  ).bind(JSON.stringify(state), nowSec()).run();
+}
+
+async function handlePlayVitalsStatus(_req: Request, env: Env): Promise<Response> {
+  const hasCredentials = !!(env.GOOGLE_PLAY_CLIENT_EMAIL && env.GOOGLE_PLAY_PRIVATE_KEY);
+  const syncState = await readPlayVitalsSyncState(env);
+  return json({
+    source: "worker",
+    packageName: GOOGLE_PLAY_PACKAGE_NAME,
+    status: hasCredentials ? "connected" : "disabled",
+    hasCredentials,
+    lastSyncTimestamp: syncState?.syncedAt ?? null,
+    anrRatePercent: syncState?.anrRatePercent ?? null,
+    rangeStart: syncState?.rangeStart ?? null,
+    rangeEnd: syncState?.rangeEnd ?? null,
+  }, 200, env);
+}
+
+function ymd(date: Date): { year: number; month: number; day: number } {
+  return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+}
+
+async function handlePlayVitalsSync(_req: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_PLAY_CLIENT_EMAIL || !env.GOOGLE_PLAY_PRIVATE_KEY) {
+    return json({ status: "not_configured", message: "GOOGLE_PLAY_CLIENT_EMAIL/GOOGLE_PLAY_PRIVATE_KEY não configurados." }, 200, env);
+  }
+  const resource = `apps/${GOOGLE_PLAY_PACKAGE_NAME}/anrRateMetricSet`;
+  const base = `https://playdeveloperreporting.googleapis.com/v1beta1/${resource}`;
+  try {
+    const token = await getGooglePlayAccessToken(env, "https://www.googleapis.com/auth/playdeveloperreporting");
+
+    // Freshness primeiro — confirma que a fonte está acessível e até quando os dados chegam,
+    // sem assumir um range fixo de datas que pode não ter dado disponível ainda.
+    const metricSetResp = await fetch(base, { headers: { Authorization: `Bearer ${token}` } });
+    if (!metricSetResp.ok) {
+      const errText = await metricSetResp.text();
+      await logError(env, 'google-play-vitals', `metricset_${metricSetResp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar anrRateMetricSet (HTTP ${metricSetResp.status}).` }, 200, env);
+    }
+    const metricSet = await metricSetResp.json() as {
+      freshnessInfo?: { freshnesses?: Array<{ aggregationPeriod?: string; latestEndTime?: { year: number; month: number; day: number } }> };
+    };
+    const daily = metricSet.freshnessInfo?.freshnesses?.find(f => f.aggregationPeriod === "DAILY");
+    if (!daily?.latestEndTime) {
+      return json({ status: "error", message: "freshnessInfo sem aggregationPeriod DAILY — sem dado disponível ainda." }, 200, env);
+    }
+    const endDate = new Date(Date.UTC(daily.latestEndTime.year, daily.latestEndTime.month - 1, daily.latestEndTime.day));
+    const startDate = new Date(endDate);
+    startDate.setUTCDate(startDate.getUTCDate() - 6); // janela de 7 dias terminando no último dia com dado
+
+    const queryResp = await fetch(`${base}:query`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        timelineSpec: { aggregationPeriod: "DAILY", startTime: ymd(startDate), endTime: ymd(endDate) },
+        metrics: ["anrRate"],
+        pageSize: 100,
+      }),
+    });
+    if (!queryResp.ok) {
+      const errText = await queryResp.text();
+      await logError(env, 'google-play-vitals', `query_${queryResp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar anrRateMetricSet:query (HTTP ${queryResp.status}).` }, 200, env);
+    }
+    const queryData = await queryResp.json() as { rows?: Array<{ metrics?: Array<{ metric?: string; decimalValue?: { value?: string } }> }> };
+    const values: number[] = [];
+    for (const row of queryData.rows ?? []) {
+      for (const m of row.metrics ?? []) {
+        if (m.metric === "anrRate" && m.decimalValue?.value) values.push(Number(m.decimalValue.value));
+      }
+    }
+    const anrRatePercent = values.length
+      ? Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10000) / 100
+      : null;
+
+    const syncedAt = new Date().toISOString();
+    const state: PlayVitalsSyncState = {
+      syncedAt,
+      source: { provider: "google_play", service: "play_developer_reporting", apiVersion: "v1beta1", resource, endpoint: `${base}:query` },
+      freshnessInfo: metricSet.freshnessInfo ?? null,
+      anrRatePercent,
+      aggregationPeriod: "DAILY",
+      rangeStart: startDate.toISOString().slice(0, 10),
+      rangeEnd: endDate.toISOString().slice(0, 10),
+    };
+    await writePlayVitalsSyncState(env, state);
+    return json({ status: "ok", ...state }, 200, env);
+  } catch (e) {
+    await logError(env, 'google-play-vitals', String(e), e instanceof Error ? (e.stack ?? '') : '');
     return json({ status: "error", message: String(e) }, 200, env);
   }
 }
@@ -3633,6 +3950,12 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/integrations\/google-play\/tracks\/status$/,   handler: handleGooglePlayTracksStatus },
   { method: "POST", pattern: /^\/admin\/integrations\/google-play\/tracks\/sync$/,     handler: handleGooglePlayTracksSync },
   { method: "POST", pattern: /^\/admin\/integrations\/google-play\/tracks\/backfill$/, handler: handleGooglePlayTracksBackfill },
+  { method: "GET",  pattern: /^\/admin\/integrations\/google-play\/vitals\/status$/,  handler: handlePlayVitalsStatus },
+  { method: "POST", pattern: /^\/admin\/integrations\/google-play\/vitals\/sync$/,    handler: handlePlayVitalsSync },
+  { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/management\/status$/,     handler: handleFirebaseManagementStatus },
+  { method: "POST", pattern: /^\/admin\/integrations\/firebase\/management\/sync$/,       handler: handleFirebaseManagementSync },
+  { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/remote-config\/status$/,  handler: handleRemoteConfigStatus },
+  { method: "POST", pattern: /^\/admin\/integrations\/firebase\/remote-config\/sync$/,    handler: handleRemoteConfigSync },
   { method: "GET",  pattern: /^\/admin\/analytics\/product$/,                   handler: withErrorLogging('analytics', handleProductAnalytics) },
   { method: "GET",  pattern: /^\/admin\/analytics\/battery$/,                   handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/settings$/,                             handler: handleSettings },
@@ -3685,6 +4008,21 @@ const SCHEDULED_SYNC_JOBS: Array<{
   {
     name: 'google-play-tracks',
     run: (env) => handleGooglePlayTracksSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'google-play-vitals',
+    run: (env) => handlePlayVitalsSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'firebase-management',
+    run: (env) => handleFirebaseManagementSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'firebase-remote-config',
+    run: (env) => handleRemoteConfigSync(new Request('https://internal/scheduled-sync'), env),
     isError: (data) => data.status === 'error',
   },
 ];
