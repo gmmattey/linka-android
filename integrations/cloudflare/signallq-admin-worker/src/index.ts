@@ -2024,6 +2024,160 @@ async function handleRemoteConfigSync(_req: Request, env: Env): Promise<Response
   }
 }
 
+// --- GH#1344: Firebase App Check + App Distribution ---
+// Mesma credencial (FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY). Firebase App Check API
+// habilitada e papel "Administrador do Firebase" concedido no IAM em 2026-07-24 (ação do Luiz),
+// destravando o 403 anterior — ver docs_ai/decisions/
+// DECISAO_STATUS_CREDENCIAIS_GOOGLE_PLAY_FIREBASE_2026-07-24.md.
+
+const FIREBASE_PROJECT_NUMBER = "741421457740";
+const FIREBASE_ANDROID_APP_ID = "1:741421457740:android:a8658a91308fba058fefe9";
+
+interface AppCheckSyncState {
+  syncedAt: string;
+  source: FirebaseSourceRecord;
+  services: unknown;
+}
+
+async function readAppCheckSyncState(env: Env): Promise<AppCheckSyncState | null> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'firebase_app_check_sync'"
+  ).first<{ value: string }>();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value) as AppCheckSyncState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeAppCheckSyncState(env: Env, state: AppCheckSyncState): Promise<void> {
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('firebase_app_check_sync', ?, ?)"
+  ).bind(JSON.stringify(state), nowSec()).run();
+}
+
+async function handleAppCheckStatus(_req: Request, env: Env): Promise<Response> {
+  const hasCredentials = !!(env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+  const syncState = await readAppCheckSyncState(env);
+  return json({
+    source: "worker",
+    projectId: env.FIREBASE_PROJECT_ID,
+    status: hasCredentials ? "connected" : "disabled",
+    hasCredentials,
+    lastSyncTimestamp: syncState?.syncedAt ?? null,
+    services: syncState?.services ?? null,
+  }, 200, env);
+}
+
+async function handleAppCheckSync(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ status: "not_configured", message: "FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY não configurados." }, 200, env);
+  }
+  const endpoint = `https://firebaseappcheck.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/services`;
+  try {
+    const token = await getFirebaseAccessToken(env);
+    const resp = await fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      await logError(env, 'firebase-app-check', `services_${resp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar App Check (HTTP ${resp.status}).` }, 200, env);
+    }
+    const services = await resp.json();
+    const syncedAt = new Date().toISOString();
+    const state: AppCheckSyncState = {
+      syncedAt,
+      source: { provider: "firebase", service: "app_check", apiVersion: "v1", resource: `projects/${env.FIREBASE_PROJECT_ID}/services`, endpoint },
+      services,
+    };
+    await writeAppCheckSyncState(env, state);
+    return json({ status: "ok", ...state }, 200, env);
+  } catch (e) {
+    await logError(env, 'firebase-app-check', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ status: "error", message: String(e) }, 200, env);
+  }
+}
+
+interface AppDistributionRelease {
+  name: string;
+  displayVersion: string;
+  buildVersion: string;
+  createTime: string;
+  releaseNotesText: string | null;
+}
+
+interface AppDistributionSyncState {
+  syncedAt: string;
+  source: FirebaseSourceRecord;
+  releases: AppDistributionRelease[];
+}
+
+async function readAppDistributionSyncState(env: Env): Promise<AppDistributionSyncState | null> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'firebase_app_distribution_sync'"
+  ).first<{ value: string }>();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value) as AppDistributionSyncState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeAppDistributionSyncState(env: Env, state: AppDistributionSyncState): Promise<void> {
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('firebase_app_distribution_sync', ?, ?)"
+  ).bind(JSON.stringify(state), nowSec()).run();
+}
+
+async function handleAppDistributionStatus(_req: Request, env: Env): Promise<Response> {
+  const hasCredentials = !!(env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY);
+  const syncState = await readAppDistributionSyncState(env);
+  return json({
+    source: "worker",
+    projectId: env.FIREBASE_PROJECT_ID,
+    status: hasCredentials ? "connected" : "disabled",
+    hasCredentials,
+    lastSyncTimestamp: syncState?.syncedAt ?? null,
+    releases: syncState?.releases ?? [],
+  }, 200, env);
+}
+
+async function handleAppDistributionSync(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ status: "not_configured", message: "FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY não configurados." }, 200, env);
+  }
+  const resource = `projects/${FIREBASE_PROJECT_NUMBER}/apps/${FIREBASE_ANDROID_APP_ID}/releases`;
+  const endpoint = `https://firebaseappdistribution.googleapis.com/v1/${resource}`;
+  try {
+    const token = await getFirebaseAccessToken(env);
+    const resp = await fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      await logError(env, 'firebase-app-distribution', `releases_${resp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar App Distribution (HTTP ${resp.status}).` }, 200, env);
+    }
+    const data = await resp.json() as {
+      releases?: Array<{ name: string; displayVersion: string; buildVersion: string; createTime: string; releaseNotes?: { text?: string } }>;
+    };
+    const releases: AppDistributionRelease[] = (data.releases ?? []).map(r => ({
+      name: r.name, displayVersion: r.displayVersion, buildVersion: r.buildVersion,
+      createTime: r.createTime, releaseNotesText: r.releaseNotes?.text ?? null,
+    }));
+    const syncedAt = new Date().toISOString();
+    const state: AppDistributionSyncState = {
+      syncedAt,
+      source: { provider: "firebase", service: "app_distribution", apiVersion: "v1", resource, endpoint },
+      releases,
+    };
+    await writeAppDistributionSyncState(env, state);
+    return json({ status: "ok", ...state }, 200, env);
+  } catch (e) {
+    await logError(env, 'firebase-app-distribution', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ status: "error", message: String(e) }, 200, env);
+  }
+}
+
 // --- GH#761: integração real com Google Play (Android Publisher API) ---
 
 const GOOGLE_PLAY_PACKAGE_NAME = "io.signallq.app";
@@ -3956,6 +4110,10 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "POST", pattern: /^\/admin\/integrations\/firebase\/management\/sync$/,       handler: handleFirebaseManagementSync },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/remote-config\/status$/,  handler: handleRemoteConfigStatus },
   { method: "POST", pattern: /^\/admin\/integrations\/firebase\/remote-config\/sync$/,    handler: handleRemoteConfigSync },
+  { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/app-check\/status$/,       handler: handleAppCheckStatus },
+  { method: "POST", pattern: /^\/admin\/integrations\/firebase\/app-check\/sync$/,         handler: handleAppCheckSync },
+  { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/app-distribution\/status$/, handler: handleAppDistributionStatus },
+  { method: "POST", pattern: /^\/admin\/integrations\/firebase\/app-distribution\/sync$/,   handler: handleAppDistributionSync },
   { method: "GET",  pattern: /^\/admin\/analytics\/product$/,                   handler: withErrorLogging('analytics', handleProductAnalytics) },
   { method: "GET",  pattern: /^\/admin\/analytics\/battery$/,                   handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/settings$/,                             handler: handleSettings },
@@ -4023,6 +4181,16 @@ const SCHEDULED_SYNC_JOBS: Array<{
   {
     name: 'firebase-remote-config',
     run: (env) => handleRemoteConfigSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'firebase-app-check',
+    run: (env) => handleAppCheckSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'firebase-app-distribution',
+    run: (env) => handleAppDistributionSync(new Request('https://internal/scheduled-sync'), env),
     isError: (data) => data.status === 'error',
   },
 ];
