@@ -887,7 +887,7 @@ Roda a query de conectividade no BigQuery (conta `session_start` do dia anterior
 
 **Decisão 2026-07-11 (GH#877/#878) — sync de Firebase desligado por flag:** o job do cron
 começou (PR #878) a registrar corretamente os erros reais do BigQuery em vez de escondê-los
-como `no_data_yet`. Só que o export GA4→BigQuery (`analytics_542463828`) **nunca foi criado**
+como `no_data_yet`. Só que o export GA4→BigQuery (`analytics_543555227`) **nunca foi criado**
 — o projeto Firebase `signallq-app` está em modo Sandbox e o Luiz decidiu **não habilitar
 billing** (sem custo novo). Resultado: todo dia às 06:00 UTC o cron ia gravar um
 `bq_error_403` real em `system_errors`, ruído permanente sem solução no horizonte.

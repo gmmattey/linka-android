@@ -5,7 +5,7 @@
 **Fonte de verdade:** código real (`AnalyticsHelper`/`FirebaseAnalyticsHelper`, `DiagnosticOrchestrator`, `SignallQOrchestrator`) — este arquivo também define o contrato-alvo para eventos ainda não instrumentados
 **Escopo:** funil principal SIG-155 (7 eventos implementados) + contrato mais amplo proposto (eventos por feature ainda não instrumentados)
 **Responsável:** Camilo (Backend Android)
-**Property ID:** 542463828 (Firebase Analytics — Android)
+**Property ID:** 543555227 (Firebase Analytics — Android)
 **Status de implementação:** funil principal (7 eventos, ver seção "Funil
 principal") instrumentado via `AnalyticsHelper` (SIG-155). Eventos do schema
 SIG-134 (`feature_used`, `screen_view`, `app_session_start`, `feature_crash`,
