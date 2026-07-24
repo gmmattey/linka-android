@@ -1974,9 +1974,6 @@ async function handleFirebaseManagementSync(_req: Request, env: Env): Promise<Re
         appId: a.appId, displayName: a.displayName, packageName: a.packageName, state: a.state,
       })),
     };
-    await recordIntegrationSnapshot(env, {
-      provider: "firebase", service: "firebase_management", resource: state.source.resource, payload: state,
-    });
     await writeFirebaseManagementSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2051,10 +2048,6 @@ async function handleRemoteConfigSync(_req: Request, env: Env): Promise<Response
       parameterCount: parameterKeys.length,
       parameterKeys,
     };
-    await recordIntegrationSnapshot(env, {
-      provider: "firebase", service: "remote_config", resource: state.source.resource,
-      valueNumeric: state.parameterCount, payload: state,
-    });
     await writeRemoteConfigSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2129,9 +2122,6 @@ async function handleAppCheckSync(_req: Request, env: Env): Promise<Response> {
       source: { provider: "firebase", service: "app_check", apiVersion: "v1", resource: `projects/${env.FIREBASE_PROJECT_ID}/services`, endpoint },
       services,
     };
-    await recordIntegrationSnapshot(env, {
-      provider: "firebase", service: "app_check", resource: state.source.resource, payload: state,
-    });
     await writeAppCheckSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2212,9 +2202,6 @@ async function handleAppDistributionSync(_req: Request, env: Env): Promise<Respo
       source: { provider: "firebase", service: "app_distribution", apiVersion: "v1", resource, endpoint },
       releases,
     };
-    await recordIntegrationSnapshot(env, {
-      provider: "firebase", service: "app_distribution", resource, valueNumeric: releases.length, payload: state,
-    });
     await writeAppDistributionSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2287,9 +2274,6 @@ async function handleFcmDeliveryDataSync(_req: Request, env: Env): Promise<Respo
       source: { provider: "firebase", service: "fcm_data", apiVersion: "v1beta1", resource, endpoint },
       androidDeliveryData: data.androidDeliveryData ?? [],
     };
-    await recordIntegrationSnapshot(env, {
-      provider: "firebase", service: "fcm_data", resource, payload: state,
-    });
     await writeFcmDeliveryDataSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
