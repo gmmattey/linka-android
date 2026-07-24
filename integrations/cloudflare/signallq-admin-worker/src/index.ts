@@ -238,6 +238,38 @@ function nowSec(): number {
   return Math.floor(Date.now() / 1000);
 }
 
+// GH#1342/#1344 (migration 016) — grava uma linha de histórico append-only por sync, além do
+// cache "última sincronização" em admin_settings. Sem isso, nenhuma das integrações de Google
+// Play/Firebase teria série temporal pra plotar tendência (ChartCard) ou correlacionar por
+// período — cada sync sobrescrevia o anterior. payload é sempre o JSON bruto do registro
+// completo, nunca só o valor numérico, para preservar campos novos que a fonte adicionar depois.
+async function recordIntegrationSnapshot(env: Env, params: {
+  provider: string;
+  service: string;
+  resource: string;
+  metric?: string | null;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  valueNumeric?: number | null;
+  payload: unknown;
+}): Promise<void> {
+  await env.DB.prepare(
+    `INSERT INTO integration_metric_snapshots
+     (provider, service, resource, metric, period_start, period_end, value_numeric, payload, synced_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    params.provider,
+    params.service,
+    params.resource,
+    params.metric ?? null,
+    params.periodStart ?? null,
+    params.periodEnd ?? null,
+    params.valueNumeric ?? null,
+    JSON.stringify(params.payload),
+    nowSec()
+  ).run();
+}
+
 // Achado ao validar #883/#884 em produção: um valor corrompido em
 // admin_settings.value (ex.: escrita manual malformada) derrubava
 // generateAndPersistAlerts inteiro (500 em /admin/alerts) via JSON.parse sem
@@ -1942,6 +1974,9 @@ async function handleFirebaseManagementSync(_req: Request, env: Env): Promise<Re
         appId: a.appId, displayName: a.displayName, packageName: a.packageName, state: a.state,
       })),
     };
+    await recordIntegrationSnapshot(env, {
+      provider: "firebase", service: "firebase_management", resource: state.source.resource, payload: state,
+    });
     await writeFirebaseManagementSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2016,6 +2051,10 @@ async function handleRemoteConfigSync(_req: Request, env: Env): Promise<Response
       parameterCount: parameterKeys.length,
       parameterKeys,
     };
+    await recordIntegrationSnapshot(env, {
+      provider: "firebase", service: "remote_config", resource: state.source.resource,
+      valueNumeric: state.parameterCount, payload: state,
+    });
     await writeRemoteConfigSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2090,6 +2129,9 @@ async function handleAppCheckSync(_req: Request, env: Env): Promise<Response> {
       source: { provider: "firebase", service: "app_check", apiVersion: "v1", resource: `projects/${env.FIREBASE_PROJECT_ID}/services`, endpoint },
       services,
     };
+    await recordIntegrationSnapshot(env, {
+      provider: "firebase", service: "app_check", resource: state.source.resource, payload: state,
+    });
     await writeAppCheckSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2170,6 +2212,9 @@ async function handleAppDistributionSync(_req: Request, env: Env): Promise<Respo
       source: { provider: "firebase", service: "app_distribution", apiVersion: "v1", resource, endpoint },
       releases,
     };
+    await recordIntegrationSnapshot(env, {
+      provider: "firebase", service: "app_distribution", resource, valueNumeric: releases.length, payload: state,
+    });
     await writeAppDistributionSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2242,6 +2287,9 @@ async function handleFcmDeliveryDataSync(_req: Request, env: Env): Promise<Respo
       source: { provider: "firebase", service: "fcm_data", apiVersion: "v1beta1", resource, endpoint },
       androidDeliveryData: data.androidDeliveryData ?? [],
     };
+    await recordIntegrationSnapshot(env, {
+      provider: "firebase", service: "fcm_data", resource, payload: state,
+    });
     await writeFcmDeliveryDataSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
@@ -2694,6 +2742,11 @@ async function handlePlayVitalsSync(_req: Request, env: Env): Promise<Response> 
       rangeStart: startDate.toISOString().slice(0, 10),
       rangeEnd: endDate.toISOString().slice(0, 10),
     };
+    await recordIntegrationSnapshot(env, {
+      provider: "google_play", service: "play_developer_reporting", resource: state.source.resource,
+      metric: "anrRate", periodStart: state.rangeStart, periodEnd: state.rangeEnd,
+      valueNumeric: anrRatePercent, payload: state,
+    });
     await writePlayVitalsSyncState(env, state);
     return json({ status: "ok", ...state }, 200, env);
   } catch (e) {
