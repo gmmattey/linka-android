@@ -11,6 +11,13 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/).
 
 ## [Unreleased]
 
+## [0.30.2] — 2026-07-24
+
+### Corrigido
+- Logging de diagnóstico no gate UMP (ConsentManager): agora registra `consentStatus` e resultado final de `canRequestAds()` em ambos os caminhos (sucesso e falha de `requestConsentInfoUpdate`), incluindo código de erro — permite diagnosticar "nenhum anúncio aparece" sem debugger (#1330, #1334).
+- Ad Unit IDs do Google: build `debug` usa Ad Unit ID de teste público; build `release` usa teste nas trilhas `internal`/`alpha` e real em `production` — permite validação visual do carregamento/exibição de anúncio nativo enquanto a conta AdMob está em revisão (#1330, #1335).
+- Race condition FK em `ai_usage`: `sendAiUsage()` agora aguarda confirmação de `sendDiagnostic()` da mesma sessão antes de enviar, evitando inserção com `session_id` apontando para linha que ainda não existe em `diagnostic_sessions` no D1. Correlação por `sessionId`, timeout 10s (#1336, #1337).
+
 ## [0.30.1] — 2026-07-21
 
 ### Corrigido
