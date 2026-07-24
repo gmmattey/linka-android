@@ -99,6 +99,55 @@ export interface GooglePlayVitalsSyncResult {
   syncedAt?: string;
 }
 
+/**
+ * GH#1341/#1352 — mesmo shape do `GooglePlayVitalsStatus` (ANR rate), mas para crash rate
+ * (`crashRateMetricSet` na Play Developer Reporting API). Métrica-âncora irmã do ANR rate na
+ * categoria Qualidade — nunca somar/misturar com `crashFreeSessionRate` do Firebase Crashlytics
+ * (fonte diferente, ver `GooglePlayCrashAnrSummary`).
+ */
+export interface GooglePlayCrashRateStatus {
+  status: "connected" | "disabled";
+  hasCredentials: boolean;
+  lastSyncTimestamp: string | null;
+  crashRatePercent: number | null;
+  rangeStart: string | null;
+  rangeEnd: string | null;
+}
+
+export interface GooglePlayCrashRateSyncResult {
+  status: "ok" | "error" | "not_configured";
+  message?: string;
+  crashRatePercent?: number | null;
+  rangeStart?: string;
+  rangeEnd?: string;
+  syncedAt?: string;
+}
+
+/**
+ * GH#1342 — título/descrição por idioma (Android Publisher API, `edits/listings`). Hoje só
+ * pt-BR é publicado — a UI não deve assumir mais de um idioma, só renderizar o que vier.
+ */
+export interface GooglePlayStoreListingEntry {
+  language: string;
+  title: string;
+  shortDescription: string;
+  fullDescription: string;
+}
+
+export interface GooglePlayStoreListingStatus {
+  status: "connected" | "disabled";
+  hasCredentials: boolean;
+  lastSyncTimestamp: string | null;
+  listings: GooglePlayStoreListingEntry[];
+}
+
+export interface GooglePlayStoreListingSyncResult {
+  status: "ok" | "error" | "not_configured";
+  message?: string;
+  listings?: GooglePlayStoreListingEntry[];
+  syncedAt?: string;
+}
+
 // migration 012_play_track.sql — mapeamento version_code -> trilha do Play Console
 // (internal/alpha/beta/production), sincronizado via Android Publisher API e aplicado
 // aos dados históricos por um backfill explícito e separado.

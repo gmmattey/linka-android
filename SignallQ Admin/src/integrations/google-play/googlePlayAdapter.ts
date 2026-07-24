@@ -11,7 +11,9 @@ import {
   mockGooglePlayTracksStatus,
   mockGooglePlayTracksSyncResult,
   mockGooglePlayTracksBackfillResult,
-  mockGooglePlayVitalsStatus
+  mockGooglePlayVitalsStatus,
+  mockGooglePlayCrashRateStatus,
+  mockGooglePlayStoreListingStatus
 } from "./googlePlay.mock";
 import {
   GooglePlayIntegrationStatus,
@@ -26,7 +28,12 @@ import {
   GooglePlayTracksSyncResult,
   GooglePlayTracksBackfillResult,
   GooglePlayVitalsStatus,
-  GooglePlayVitalsSyncResult
+  GooglePlayVitalsSyncResult,
+  GooglePlayCrashRateStatus,
+  GooglePlayCrashRateSyncResult,
+  GooglePlayStoreListingStatus,
+  GooglePlayStoreListingSyncResult,
+  GooglePlayStoreListingEntry
 } from "./googlePlay.types";
 import { DashboardFilters } from "../../services/adminMetricsService";
 
@@ -245,6 +252,92 @@ export async function syncGooglePlayVitals(): Promise<GooglePlayVitalsSyncResult
     };
   }
   return apiClient.request<GooglePlayVitalsSyncResult>("POST", "/admin/integrations/google-play/vitals/sync");
+}
+
+// GH#1341/#1352 — crash rate (Android Vitals), mesma metric set family do ANR rate, endpoint
+// próprio (`/vitals/crash-rate/*`) pra nunca fundir os dois na mesma linha de admin_settings.
+interface GooglePlayCrashRateStatusWorkerResponse {
+  source: string;
+  packageName?: string;
+  status: "connected" | "disabled";
+  hasCredentials: boolean;
+  lastSyncTimestamp: string | null;
+  crashRatePercent: number | null;
+  rangeStart: string | null;
+  rangeEnd: string | null;
+}
+
+export async function getGooglePlayCrashRateStatus(): Promise<GooglePlayCrashRateStatus> {
+  if (apiClient.isMockEnabled()) {
+    return apiClient.simulateFetch(mockGooglePlayCrashRateStatus, {});
+  }
+
+  const raw = await apiClient.request<GooglePlayCrashRateStatusWorkerResponse>(
+    "GET",
+    "/admin/integrations/google-play/vitals/crash-rate/status"
+  );
+
+  return {
+    status: raw.status,
+    hasCredentials: raw.hasCredentials,
+    lastSyncTimestamp: raw.lastSyncTimestamp,
+    crashRatePercent: raw.crashRatePercent,
+    rangeStart: raw.rangeStart,
+    rangeEnd: raw.rangeEnd,
+  };
+}
+
+export async function syncGooglePlayCrashRate(): Promise<GooglePlayCrashRateSyncResult> {
+  if (apiClient.isMockEnabled()) {
+    return {
+      status: "ok",
+      crashRatePercent: mockGooglePlayCrashRateStatus.crashRatePercent,
+      rangeStart: mockGooglePlayCrashRateStatus.rangeStart ?? undefined,
+      rangeEnd: mockGooglePlayCrashRateStatus.rangeEnd ?? undefined,
+      syncedAt: new Date().toISOString(),
+    };
+  }
+  return apiClient.request<GooglePlayCrashRateSyncResult>("POST", "/admin/integrations/google-play/vitals/crash-rate/sync");
+}
+
+// GH#1342 — store listing (título/descrição por idioma). Só pt-BR publicado hoje — `listings`
+// pode vir com 1 item, a UI não deve assumir mais que isso.
+interface GooglePlayStoreListingStatusWorkerResponse {
+  source: string;
+  packageName?: string;
+  status: "connected" | "disabled";
+  hasCredentials: boolean;
+  lastSyncTimestamp: string | null;
+  listings: GooglePlayStoreListingEntry[];
+}
+
+export async function getGooglePlayStoreListingStatus(): Promise<GooglePlayStoreListingStatus> {
+  if (apiClient.isMockEnabled()) {
+    return apiClient.simulateFetch(mockGooglePlayStoreListingStatus, {});
+  }
+
+  const raw = await apiClient.request<GooglePlayStoreListingStatusWorkerResponse>(
+    "GET",
+    "/admin/integrations/google-play/store-listing/status"
+  );
+
+  return {
+    status: raw.status,
+    hasCredentials: raw.hasCredentials,
+    lastSyncTimestamp: raw.lastSyncTimestamp,
+    listings: raw.listings ?? [],
+  };
+}
+
+export async function syncGooglePlayStoreListing(): Promise<GooglePlayStoreListingSyncResult> {
+  if (apiClient.isMockEnabled()) {
+    return {
+      status: "ok",
+      listings: mockGooglePlayStoreListingStatus.listings,
+      syncedAt: new Date().toISOString(),
+    };
+  }
+  return apiClient.request<GooglePlayStoreListingSyncResult>("POST", "/admin/integrations/google-play/store-listing/sync");
 }
 
 // Linha do D1 (migration 017_gh1341_google_play_reviews.sql) — snake_case, cru, nunca exposta

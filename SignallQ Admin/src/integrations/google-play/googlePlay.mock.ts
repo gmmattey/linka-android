@@ -9,7 +9,9 @@ import {
   GooglePlayTracksStatus,
   GooglePlayTracksSyncResult,
   GooglePlayTracksBackfillResult,
-  GooglePlayVitalsStatus
+  GooglePlayVitalsStatus,
+  GooglePlayCrashRateStatus,
+  GooglePlayStoreListingStatus
 } from "./googlePlay.types";
 
 export const mockGooglePlayStatus: GooglePlayIntegrationStatus = {
@@ -189,6 +191,30 @@ export const mockGooglePlayCrashAnr: GooglePlayCrashAnrSummary = {
   anrCountWeekly: 3,
   crashCountWeekly: 11,
   crashFreeSessionRate: 99.45
+};
+
+export const mockGooglePlayCrashRateStatus: GooglePlayCrashRateStatus = {
+  status: "connected",
+  hasCredentials: true,
+  lastSyncTimestamp: "2026-07-24T10:00:00.000Z",
+  crashRatePercent: 0.61,
+  rangeStart: "2026-07-17",
+  rangeEnd: "2026-07-23",
+};
+
+export const mockGooglePlayStoreListingStatus: GooglePlayStoreListingStatus = {
+  status: "connected",
+  hasCredentials: true,
+  lastSyncTimestamp: "2026-07-24T10:00:00.000Z",
+  listings: [
+    {
+      language: "pt-BR",
+      title: "SignallQ — Diagnóstico de Wi-Fi e Internet",
+      shortDescription: "Teste de velocidade, diagnóstico de rede e recomendações práticas.",
+      fullDescription:
+        "SignallQ mede sua velocidade de internet, analisa a qualidade do seu Wi-Fi e do sinal móvel, identifica problemas na sua rede doméstica e recomenda ações práticas para melhorar sua conexão.",
+    },
+  ],
 };
 
 export const mockGooglePlayTracksStatus: GooglePlayTracksStatus = {

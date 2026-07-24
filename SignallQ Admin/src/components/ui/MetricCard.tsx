@@ -29,9 +29,11 @@ interface MetricCardProps {
   /** Contexto curto do veredito — ex.: "abaixo do limiar de mercado (1%)". */
   verdictNote?: string;
   /**
-   * GH#1341 — item 2.1.1 do plano de UX Google Play/Firebase: métrica-âncora de categoria,
+   * GH#1341/#1352 — item 2.1.1 do plano de UX Google Play/Firebase: métrica-âncora de categoria,
    * sempre a primeira coisa renderizada, maior que um `MetricCard` comum (valor 48–56px) e com
-   * borda tingida pelo tom do veredito. Usar no máximo uma por categoria/seção.
+   * borda tingida pelo tom do veredito. Padrão é uma por categoria/seção — duas lado a lado só
+   * quando ambas forem métricas-âncora de mesmo nível hierárquico (ex.: ANR rate + crash rate em
+   * Qualidade, cada uma medida e sincronizada de forma independente).
    */
   size?: "default" | "hero";
   /** Conteúdo extra ao lado do label — usado pelo `TermHint` (item 2.2.2 do plano de UX). */
