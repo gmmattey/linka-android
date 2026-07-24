@@ -1,0 +1,13 @@
+name: Debug SA temp
+on: workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print client_email e project_id
+        env:
+          SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$SA_JSON" | jq -r '"client_email=" + .client_email + "  project_id=" + .project_id'
