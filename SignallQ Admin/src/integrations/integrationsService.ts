@@ -29,6 +29,10 @@ export const integrationsService = {
   triggerGooglePlayTracksBackfill: googlePlayAdapter.backfillGooglePlayTracks,
   getGooglePlayVitalsStatus: googlePlayAdapter.getGooglePlayVitalsStatus,
   triggerGooglePlayVitalsSync: googlePlayAdapter.syncGooglePlayVitals,
+  getGooglePlayCrashRateStatus: googlePlayAdapter.getGooglePlayCrashRateStatus,
+  triggerGooglePlayCrashRateSync: googlePlayAdapter.syncGooglePlayCrashRate,
+  getGooglePlayStoreListingStatus: googlePlayAdapter.getGooglePlayStoreListingStatus,
+  triggerGooglePlayStoreListingSync: googlePlayAdapter.syncGooglePlayStoreListing,
   getGooglePlayReviewsList: googlePlayAdapter.getGooglePlayReviewsList,
 
   // --- APP STORE FUTURE-READY ---
