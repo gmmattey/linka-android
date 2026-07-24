@@ -2548,6 +2548,118 @@ async function handleGooglePlayTracksSync(_req: Request, env: Env): Promise<Resp
   }
 }
 
+// GH#1342 — store listing (título/descrição por idioma via Publisher API). Mesmo padrão de
+// edit→read→discard do #761 (tracks): cria edit, lê listings, descarta sem PUT. `admin_settings`
+// é suficiente aqui (estado pontual de config, não série temporal) — mesmo critério já aplicado
+// em Firebase Management/Remote Config/App Check/App Distribution/FCM, revisado pela Claudete em
+// docs_ai/decisions/DECISAO_MODELO_DADOS_INTEGRACOES_PLAY_FIREBASE_2026-07-24.md.
+
+interface StoreListingEntry {
+  language: string;
+  title: string;
+  fullDescription: string;
+  shortDescription: string;
+}
+
+interface StoreListingSyncState {
+  syncedAt: string;
+  source: { provider: "google_play"; service: "android_publisher"; apiVersion: "v3"; resource: string; endpoint: string };
+  listings: StoreListingEntry[];
+}
+
+async function readStoreListingSyncState(env: Env): Promise<StoreListingSyncState | null> {
+  const row = await env.DB.prepare(
+    "SELECT value FROM admin_settings WHERE key = 'google_play_store_listing_sync'"
+  ).first<{ value: string }>();
+  if (!row?.value) return null;
+  try {
+    return JSON.parse(row.value) as StoreListingSyncState;
+  } catch {
+    return null;
+  }
+}
+
+async function writeStoreListingSyncState(env: Env, state: StoreListingSyncState): Promise<void> {
+  await env.DB.prepare(
+    "INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('google_play_store_listing_sync', ?, ?)"
+  ).bind(JSON.stringify(state), nowSec()).run();
+}
+
+async function handleStoreListingStatus(_req: Request, env: Env): Promise<Response> {
+  const hasCredentials = !!(env.GOOGLE_PLAY_CLIENT_EMAIL && env.GOOGLE_PLAY_PRIVATE_KEY);
+  const syncState = await readStoreListingSyncState(env);
+  return json({
+    source: "worker",
+    packageName: GOOGLE_PLAY_PACKAGE_NAME,
+    status: hasCredentials ? "connected" : "disabled",
+    hasCredentials,
+    lastSyncTimestamp: syncState?.syncedAt ?? null,
+    listings: syncState?.listings ?? [],
+  }, 200, env);
+}
+
+async function handleStoreListingSync(_req: Request, env: Env): Promise<Response> {
+  if (!env.GOOGLE_PLAY_CLIENT_EMAIL || !env.GOOGLE_PLAY_PRIVATE_KEY) {
+    return json({ status: "not_configured", message: "GOOGLE_PLAY_CLIENT_EMAIL/GOOGLE_PLAY_PRIVATE_KEY não configurados." }, 200, env);
+  }
+  const base = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${GOOGLE_PLAY_PACKAGE_NAME}`;
+  let token: string;
+  try {
+    token = await getGooglePlayAccessToken(env, "https://www.googleapis.com/auth/androidpublisher");
+  } catch (e) {
+    await logError(env, 'google-play-store-listing', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ status: "error", message: String(e) }, 200, env);
+  }
+
+  let editId: string | null = null;
+  try {
+    const editResp = await fetch(`${base}/edits`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    if (!editResp.ok) {
+      const errText = await editResp.text();
+      await logError(env, 'google-play-store-listing', `edits_insert_${editResp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao criar edit (HTTP ${editResp.status}).` }, 200, env);
+    }
+    editId = ((await editResp.json()) as { id: string }).id;
+
+    const listingsResp = await fetch(`${base}/edits/${editId}/listings`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!listingsResp.ok) {
+      const errText = await listingsResp.text();
+      await logError(env, 'google-play-store-listing', `listings_${listingsResp.status}: ${errText.slice(0, 300)}`, '');
+      return json({ status: "error", message: `Falha ao consultar listings (HTTP ${listingsResp.status}).` }, 200, env);
+    }
+    const listingsData = await listingsResp.json() as {
+      listings?: Array<{ language: string; title: string; fullDescription: string; shortDescription: string }>;
+    };
+    const listings: StoreListingEntry[] = (listingsData.listings ?? []).map(l => ({
+      language: l.language, title: l.title, fullDescription: l.fullDescription, shortDescription: l.shortDescription,
+    }));
+
+    const syncedAt = new Date().toISOString();
+    const state: StoreListingSyncState = {
+      syncedAt,
+      source: {
+        provider: "google_play", service: "android_publisher", apiVersion: "v3",
+        resource: `applications/${GOOGLE_PLAY_PACKAGE_NAME}/edits/listings`,
+        endpoint: `${base}/edits/{editId}/listings`,
+      },
+      listings,
+    };
+    await writeStoreListingSyncState(env, state);
+    return json({ status: "ok", ...state }, 200, env);
+  } catch (e) {
+    await logError(env, 'google-play-store-listing', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ status: "error", message: String(e) }, 200, env);
+  } finally {
+    if (editId) {
+      try {
+        await fetch(`${base}/edits/${editId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      } catch (e) {
+        await logError(env, 'google-play-store-listing', `edit_discard_failed: ${String(e)}`, '');
+      }
+    }
+  }
+}
+
 // Backfill explícito e separado do sync: só aplica o mapeamento já salvo em
 // play_console_tracks aos dados históricos, sem chamar a API do Google. Idempotente —
 // só toca linhas com play_track IS NULL, então rodar de novo nunca duplica/sobrescreve
@@ -4225,6 +4337,8 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "POST", pattern: /^\/admin\/integrations\/firebase\/app-distribution\/sync$/,   handler: handleAppDistributionSync },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/fcm-delivery\/status$/,     handler: handleFcmDeliveryDataStatus },
   { method: "POST", pattern: /^\/admin\/integrations\/firebase\/fcm-delivery\/sync$/,       handler: handleFcmDeliveryDataSync },
+  { method: "GET",  pattern: /^\/admin\/integrations\/google-play\/store-listing\/status$/, handler: handleStoreListingStatus },
+  { method: "POST", pattern: /^\/admin\/integrations\/google-play\/store-listing\/sync$/,   handler: handleStoreListingSync },
   { method: "GET",  pattern: /^\/admin\/analytics\/product$/,                   handler: withErrorLogging('analytics', handleProductAnalytics) },
   { method: "GET",  pattern: /^\/admin\/analytics\/battery$/,                   handler: withErrorLogging('analytics', handleBatteryAnalytics) },
   { method: "GET",  pattern: /^\/admin\/settings$/,                             handler: handleSettings },
@@ -4307,6 +4421,11 @@ const SCHEDULED_SYNC_JOBS: Array<{
   {
     name: 'firebase-fcm-delivery',
     run: (env) => handleFcmDeliveryDataSync(new Request('https://internal/scheduled-sync'), env),
+    isError: (data) => data.status === 'error',
+  },
+  {
+    name: 'google-play-store-listing',
+    run: (env) => handleStoreListingSync(new Request('https://internal/scheduled-sync'), env),
     isError: (data) => data.status === 'error',
   },
 ];
