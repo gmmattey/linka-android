@@ -1837,6 +1837,83 @@ async function handleFirebaseAnalytics(request: Request, env: Env): Promise<Resp
   }
 }
 
+// GH#1343 — ampliação do GA4 além do runReport básico: aquisição, telas, retenção. Mesmo padrão
+// live/passthrough do handleFirebaseAnalytics acima (sem persistência — é dashboard consultado
+// ao vivo, não série histórica gravada; property ID corrigido em 2026-07-24, ver wrangler.toml).
+async function runGa4Report(env: Env, body: unknown): Promise<{ status: number; data: unknown }> {
+  const token = await getFirebaseAccessToken(env);
+  const resp = await fetch(
+    `https://analyticsdata.googleapis.com/v1beta/properties/${env.FIREBASE_GA4_PROPERTY_ID}:runReport`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify(body) }
+  );
+  return { status: resp.status, data: await resp.json() };
+}
+
+async function handleFirebaseAcquisition(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ source: "no_credentials" }, 200, env);
+  }
+  if (!env.FIREBASE_GA4_PROPERTY_ID) {
+    return json({ source: "no_ga4_property_id", message: "Configure FIREBASE_GA4_PROPERTY_ID no wrangler.toml." }, 200, env);
+  }
+  try {
+    const { status, data } = await runGa4Report(env, {
+      dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+      dimensions: [{ name: "sessionSource" }, { name: "sessionMedium" }, { name: "sessionCampaignName" }],
+      metrics: [{ name: "newUsers" }, { name: "sessions" }, { name: "engagedSessions" }],
+    });
+    if (status !== 200) await logError(env, 'firebase-ga4-acquisition', `runReport_${status}: ${JSON.stringify(data).slice(0, 300)}`, '');
+    return json({ source: "firebase_analytics", data }, 200, env);
+  } catch (e) {
+    await logError(env, 'firebase-ga4-acquisition', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ source: "error", message: String(e) }, 500, env);
+  }
+}
+
+async function handleFirebaseScreens(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ source: "no_credentials" }, 200, env);
+  }
+  if (!env.FIREBASE_GA4_PROPERTY_ID) {
+    return json({ source: "no_ga4_property_id", message: "Configure FIREBASE_GA4_PROPERTY_ID no wrangler.toml." }, 200, env);
+  }
+  try {
+    const { status, data } = await runGa4Report(env, {
+      dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+      dimensions: [{ name: "unifiedScreenName" }],
+      metrics: [{ name: "screenPageViews" }, { name: "activeUsers" }],
+      orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+      limit: "20",
+    });
+    if (status !== 200) await logError(env, 'firebase-ga4-screens', `runReport_${status}: ${JSON.stringify(data).slice(0, 300)}`, '');
+    return json({ source: "firebase_analytics", data }, 200, env);
+  } catch (e) {
+    await logError(env, 'firebase-ga4-screens', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ source: "error", message: String(e) }, 500, env);
+  }
+}
+
+async function handleFirebaseRetention(_req: Request, env: Env): Promise<Response> {
+  if (!env.FIREBASE_CLIENT_EMAIL || !env.FIREBASE_PRIVATE_KEY) {
+    return json({ source: "no_credentials" }, 200, env);
+  }
+  if (!env.FIREBASE_GA4_PROPERTY_ID) {
+    return json({ source: "no_ga4_property_id", message: "Configure FIREBASE_GA4_PROPERTY_ID no wrangler.toml." }, 200, env);
+  }
+  try {
+    const { status, data } = await runGa4Report(env, {
+      dateRanges: [{ startDate: "28daysAgo", endDate: "today" }],
+      dimensions: [{ name: "date" }],
+      metrics: [{ name: "active1DayUsers" }, { name: "active7DayUsers" }, { name: "active28DayUsers" }],
+    });
+    if (status !== 200) await logError(env, 'firebase-ga4-retention', `runReport_${status}: ${JSON.stringify(data).slice(0, 300)}`, '');
+    return json({ source: "firebase_analytics", data }, 200, env);
+  } catch (e) {
+    await logError(env, 'firebase-ga4-retention', String(e), e instanceof Error ? (e.stack ?? '') : '');
+    return json({ source: "error", message: String(e) }, 500, env);
+  }
+}
+
 interface FirebaseSyncState {
   syncedAt: string;
   eventsImported: number;
@@ -4469,6 +4546,9 @@ const ROUTES: Array<{ method: string; pattern: RegExp; handler: Handler }> = [
   { method: "GET",  pattern: /^\/admin\/cloudflare-usage$/,                     handler: withErrorLogging('cloudflare-usage', handleCloudflareUsage) },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/status$/,       handler: handleFirebaseStatus },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/analytics$/,    handler: handleFirebaseAnalytics },
+  { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/acquisition$/,  handler: handleFirebaseAcquisition },
+  { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/screens$/,      handler: handleFirebaseScreens },
+  { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/retention$/,    handler: handleFirebaseRetention },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crashlytics$/,  handler: handleFirebaseCrashlytics },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/versions$/,     handler: handleFirebaseVersions },
   { method: "GET",  pattern: /^\/admin\/integrations\/firebase\/crash-issues$/, handler: handleFirebaseCrashIssues },
