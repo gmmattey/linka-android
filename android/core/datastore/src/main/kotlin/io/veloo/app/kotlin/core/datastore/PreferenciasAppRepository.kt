@@ -66,6 +66,12 @@ class PreferenciasAppRepository(
     // de "negada permanentemente" (nao deve reabrir) so com shouldShowRequestPermissionRationale.
     private val chaveTelefoniaPermissaoJaSolicitada = booleanPreferencesKey("telefoniaPermissaoJaSolicitada")
 
+    // #1182 -- mesmo problema da chave acima, mas para ACCESS_FINE_LOCATION: so e solicitada de
+    // fato no onboarding (RequestMultiplePermissions), e MainActivity.onResume() reavalia
+    // shouldShowRequestPermissionRationale() a cada resume, que tambem retorna false tanto para
+    // "nunca pedida" quanto para "negada permanentemente".
+    private val chaveLocalizacaoPermissaoJaSolicitada = booleanPreferencesKey("localizacaoPermissaoJaSolicitada")
+
     // Velocidade contratada — MinhaConexaoScreen / Laudo (#85)
     private val chaveVelocidadeContratadaDownMbps = intPreferencesKey("velocidadeContratadaDownMbps")
     private val chaveVelocidadeContratadaUpMbps = intPreferencesKey("velocidadeContratadaUpMbps")
@@ -224,6 +230,9 @@ class PreferenciasAppRepository(
 
     val telefoniaPermissaoJaSolicitadaFlow: Flow<Boolean> =
         context.dataStore.data.map { it[chaveTelefoniaPermissaoJaSolicitada] ?: false }
+
+    val localizacaoPermissaoJaSolicitadaFlow: Flow<Boolean> =
+        context.dataStore.data.map { it[chaveLocalizacaoPermissaoJaSolicitada] ?: false }
 
     // null = nao respondido, true = aceito, false = recusado
     val consentimentoLgpdFlow: Flow<Boolean?> =
@@ -447,6 +456,10 @@ class PreferenciasAppRepository(
 
     suspend fun definirTelefoniaPermissaoJaSolicitada() {
         withContext(ioDispatcher) { context.dataStore.edit { it[chaveTelefoniaPermissaoJaSolicitada] = true } }
+    }
+
+    suspend fun definirLocalizacaoPermissaoJaSolicitada() {
+        withContext(ioDispatcher) { context.dataStore.edit { it[chaveLocalizacaoPermissaoJaSolicitada] = true } }
     }
 
     suspend fun definirConsentimentoLgpd(aceito: Boolean) {
