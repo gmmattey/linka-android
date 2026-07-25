@@ -313,6 +313,14 @@ class MainActivity : ComponentActivity() {
                     // do fluxo antigo de callbacks por permissao.
                     OnboardingScreen(
                         onConcluir = { viewModel.marcarOnboardingConcluido() },
+                        onPermissoesSolicitadas = { solicitadas ->
+                            // #1182 -- marca ANTES de saber se foi concedida, igual a #1179 no Pro:
+                            // e o proprio ato de o SO ja ter perguntado que distingue "nunca pedida"
+                            // de "negada permanentemente" na proxima leitura de onResume().
+                            if (Manifest.permission.ACCESS_FINE_LOCATION in solicitadas) {
+                                viewModel.marcarLocalizacaoPermissaoJaSolicitada()
+                            }
+                        },
                         onPermissoesConcedidas = { concedidas ->
                             if (Manifest.permission.ACCESS_FINE_LOCATION in concedidas) {
                                 temPermissaoLocalizacao = true
@@ -533,9 +541,13 @@ class MainActivity : ComponentActivity() {
             this,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
-        // #155/9.3: bloqueada = não concedida E não pode mais mostrar rationale
+        // #155/9.3, corrigido em #1182: shouldShowRequestPermissionRationale() sozinho retorna
+        // false tanto para "nunca pedida" quanto para "negada permanentemente" -- so trata como
+        // bloqueio permanente quando ja existe um pedido real registrado (marcado no callback do
+        // RequestMultiplePermissions do onboarding, unica tela que de fato solicita esta permissao).
         localizacaoBloqueadaPermanentemente = !temPermissaoLocalizacao &&
-            !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
+            !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) &&
+            viewModel.localizacaoPermissaoJaSolicitada.value
         val emWifi = viewModel.monitorRede.snapshotFlow.value.estadoConexao == EstadoConexao.wifi
         // Usa DevicesViewModel para verificar novos dispositivos (etapa A do refactor).
         // O MainViewModel.verificarDispositivosNovos() ainda existe mas nao e mais chamado aqui.

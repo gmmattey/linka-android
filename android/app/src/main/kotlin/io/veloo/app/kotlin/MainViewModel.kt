@@ -339,6 +339,21 @@ class MainViewModel
             viewModelScope.launch { preferenciasAppRepository.definirTelefoniaPermissaoJaSolicitada() }
         }
 
+        // #1182 -- mesmo padrao acima, para ACCESS_FINE_LOCATION. Eagerly, nao WhileSubscribed:
+        // MainActivity.onResume() le .value fora de qualquer coletor Compose ativo -- sem
+        // coletor, WhileSubscribed nunca colocaria o upstream pra rodar e .value ficaria preso
+        // no initial (false) mesmo com o valor real ja persistido (mesmo raciocinio de
+        // localDeviceSnapshot acima).
+        val localizacaoPermissaoJaSolicitada: StateFlow<Boolean> by lazy {
+            preferenciasAppRepository.localizacaoPermissaoJaSolicitadaFlow
+                .distinctUntilChanged()
+                .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        }
+
+        fun marcarLocalizacaoPermissaoJaSolicitada() {
+            viewModelScope.launch { preferenciasAppRepository.definirLocalizacaoPermissaoJaSolicitada() }
+        }
+
         fun marcarOnboardingConcluido() {
             viewModelScope.launch { preferenciasAppRepository.definirOnboardingConcluido(true) }
         }
